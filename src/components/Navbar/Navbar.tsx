@@ -44,10 +44,13 @@ export default function Navbar() {
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ delay: 0.1 * (index + 1), duration: 0.5 }}
               >
-                <a
+                <motion.a
                   href={link.href}
                   onClick={() => setActiveLink(link.label)}
                   className={`${styles.navLink} ${isActive ? styles.active : ""}`}
+                  whileHover={{ scale: 1.03, opacity: 0.8 }}
+                  whileTap={{ scale: 0.97 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 20 }}
                 >
                   {link.label}
                   {isActive && (
@@ -57,7 +60,7 @@ export default function Navbar() {
                       transition={{ type: "spring", stiffness: 380, damping: 30 }}
                     />
                   )}
-                </a>
+                </motion.a>
               </motion.li>
             );
           })}
@@ -89,7 +92,7 @@ export default function Navbar() {
 
           {/* Sign In */}
           <motion.a
-            href="#signin"
+            href="/login"
             className={styles.signIn}
             whileHover={{ scale: 1.05, opacity: 0.8 }}
             whileTap={{ scale: 0.95 }}
@@ -100,9 +103,9 @@ export default function Navbar() {
 
           {/* Get Started Button */}
           <motion.a
-            href="#get-started"
+            href="/signup"
             className={styles.getStartedBtn}
-            whileHover={{ scale: 1.03, backgroundColor: "rgba(40, 40, 40, 0.95)" }}
+            whileHover={{ scale: 1.03 }}
             whileTap={{ scale: 0.97 }}
             transition={{ type: "spring", stiffness: 400, damping: 17 }}
           >

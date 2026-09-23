@@ -1,13 +1,13 @@
 @font-face {
   font-family: 'Deltha';
   src: url('/fonts/Deltha.otf') format('opentype'),
-       url('/fonts/Deltha.ttf') format('truetype');
+    url('/fonts/Deltha.ttf') format('truetype');
   font-weight: 400;
   font-style: normal;
   font-display: swap;
 }
 
-@import url('https://fonts.googleapis.com/css2?family=Afacad:wght@400;500;700&family=Inter:wght@300;400;500&family=Oranienbaum&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Afacad:wght@400;500;700&family=Inter:wght@300;400;500&family=Oranienbaum&family=Outfit:wght@300;400;500;700&display=swap');
 
 /* ===== CSS RESET ===== */
 *,
@@ -26,7 +26,7 @@ html {
 
 body {
   font-family: 'Afacad', sans-serif;
-  background: #0a0a0a;
+  background: #000000;
   color: #ffffff;
   overflow-x: hidden;
   min-height: 100vh;
@@ -46,7 +46,8 @@ button {
   font-family: inherit;
 }
 
-ul, ol {
+ul,
+ol {
   list-style: none;
 }
 
@@ -59,7 +60,7 @@ img {
 :root {
   /* Fonts */
   --font-logo: 'Deltha', 'Cormorant Garamond', serif;
-  --font-heading: 'Oranienbaum', serif;
+  --font-heading: 'Outfit', sans-serif;
   --font-body: 'Afacad', sans-serif;
   --font-accent: 'Inter', sans-serif;
 
@@ -67,7 +68,7 @@ img {
   --color-bg: #0a0a0a;
   --color-text-white: #ffffff;
   --color-text-dark: rgba(0, 0, 0, 0.8);
-  --color-text-heading: rgba(0, 0, 0, 0.7);
+  --color-text-heading: rgba(0, 0, 0, 0.55); /* More semi-transparent */
   --color-tagline: rgb(53, 45, 39);
   --color-subtitle: rgb(30, 18, 8);
   --color-cta-text: rgb(63, 58, 58);
