@@ -23,12 +23,10 @@
 .overlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(
-    to right,
-    rgba(200, 185, 165, 0.45) 0%,
-    rgba(200, 185, 165, 0.15) 30%,
-    transparent 60%
-  );
+  background: linear-gradient(to right,
+      rgba(0, 0, 0, 0.5) 0%,
+      rgba(0, 0, 0, 0.15) 50%,
+      transparent 100%);
   z-index: 1;
 }
 
@@ -36,29 +34,39 @@
 .content {
   position: relative;
   z-index: 5;
-  padding-left: 40px; /* Reduced to align with logo at edge */
-  padding-top: calc(var(--nav-height) + 12vh); /* Push down slightly */
+  padding-left: 40px;
+  /* Reduced to align with logo at edge */
+  padding-top: calc(var(--nav-height) + 12vh);
+  /* Push down slightly */
   width: 100%;
 }
 
 /* Tagline */
 .tagline {
   font-family: var(--font-accent);
-  font-size: 13px; /* Scaled down */
+  font-size: 13px;
+  /* Scaled down */
   font-weight: 500;
-  color: var(--color-tagline);
-  letter-spacing: 2px;
+  color: rgba(255, 255, 255, 0.6);
+  letter-spacing: 6px;
+  /* Elongated spacing for a cinematic feel */
+  text-transform: uppercase;
   margin-bottom: 16px;
 }
 
 /* Heading */
 .heading {
   font-family: var(--font-heading);
-  font-size: clamp(32px, 4.2vw, 68px); /* Much smaller clamp */
-  font-weight: 400;
-  color: var(--color-text-heading);
-  line-height: 1.1;
-  margin-bottom: 24px; 
+  font-size: clamp(50px, 6.5vw, 84px);
+  /* Slightly reduced size */
+  font-weight: 500;
+  /* Minimalistic, elegant weight */
+  letter-spacing: -1.5px;
+  /* Tight tracking for a highly contemporary look */
+  color: rgba(255, 255, 255, 0.95);
+  /* Pure white for dark theme */
+  line-height: 1.05;
+  margin-bottom: 32px;
 }
 
 .headingLine {
@@ -68,12 +76,13 @@
 /* Subtitle */
 .subtitle {
   font-family: var(--font-accent);
-  font-size: 13px; /* Scaled down */
-  font-weight: 400;
-  color: rgba(40, 30, 20, 0.9);
-  line-height: 1.5;
-  margin-bottom: 32px; 
-  max-width: 400px;
+  font-size: clamp(16px, 2vw, 20px);
+  /* Significantly increased for better hierarchy */
+  font-weight: 500; /* Match tagline weight */
+  color: rgba(255, 255, 255, 0.85); /* Slightly brighter for readability */
+  line-height: 1.6;
+  margin-bottom: 40px;
+  max-width: 750px; /* Widened further to ensure a sleek two-line layout */
 }
 
 /* CTA Button */
@@ -85,18 +94,38 @@
   font-size: 14px;
   font-weight: 400;
   color: var(--color-text-white);
-  background: rgba(30, 30, 30, 0.65);
+
+  /* Ultra-Realistic Liquid Glass Effect */
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-top-color: rgba(255, 255, 255, 0.4);
+  border-left-color: rgba(255, 255, 255, 0.3);
+  box-shadow:
+    /* Dispersion/Chromatic Aberration */
+    -2px 0 4px rgba(255, 0, 80, 0.15),
+    2px 0 4px rgba(0, 200, 255, 0.15),
+    /* Inner reflections */
+    inset 0 1px 2px rgba(255, 255, 255, 0.5),
+    inset 0 -1px 2px rgba(255, 255, 255, 0.1),
+    /* Outer drop shadow */
+    0 8px 32px rgba(0, 0, 0, 0.15);
+  backdrop-filter: blur(24px) saturate(140%) brightness(1.15);
+  -webkit-backdrop-filter: blur(24px) saturate(140%) brightness(1.15);
+
   text-decoration: none;
   padding: 10px 24px;
   border-radius: 50px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
   transition: all 0.3s ease;
 }
 
 .ctaButton:hover {
-  background: rgba(30, 30, 30, 0.9);
+  background: rgba(255, 255, 255, 0.1);
+  box-shadow:
+    -3px 0 6px rgba(255, 0, 80, 0.25),
+    3px 0 6px rgba(0, 200, 255, 0.25),
+    inset 0 1px 3px rgba(255, 255, 255, 0.6),
+    inset 0 -1px 3px rgba(255, 255, 255, 0.2),
+    0 12px 40px rgba(0, 0, 0, 0.2);
   color: #fff;
 }
 
@@ -123,10 +152,12 @@
     padding-left: 24px;
     padding-top: calc(var(--nav-height) + 40px);
   }
+
   .heading {
     font-size: clamp(32px, 8vw, 48px);
     margin-bottom: 16px;
   }
+
   .subtitle {
     margin-bottom: 24px;
   }

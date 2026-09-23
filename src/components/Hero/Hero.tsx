@@ -5,6 +5,33 @@ import Features from "@/components/Features/Features";
 import styles from "./Hero.module.css";
 
 export default function Hero() {
+  const containerVariant = {
+    hidden: { opacity: 1 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.05, // Slower, more deliberate typing
+        delayChildren: 0.4,
+      },
+    },
+  };
+
+  const charVariant = {
+    hidden: { opacity: 0, y: 20, filter: "blur(10px)" },
+    visible: { 
+      opacity: 1, 
+      y: 0, 
+      filter: "blur(0px)",
+      transition: { 
+        duration: 1.2, // Ultra-long, silky smooth duration
+        ease: [0.2, 0.65, 0.3, 0.9] // Buttery smooth cubic bezier (Apple style)
+      }
+    },
+  };
+
+  const line1 = "Learn beyond the obvious.";
+  const line2 = "Build beyond the expected.";
+
   return (
     <section className={styles.hero}>
       {/* Background Image */}
@@ -28,12 +55,24 @@ export default function Hero() {
         {/* Main Heading */}
         <motion.h1
           className={styles.heading}
-          initial={{ opacity: 0, y: 40 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5, duration: 0.8, ease: [0.25, 0.46, 0.45, 0.94] }}
+          variants={containerVariant}
+          initial="hidden"
+          animate="visible"
         >
-          <span className={styles.headingLine}>Learn beyond the obvious.</span>
-          <span className={styles.headingLine}>Build beyond the expected.</span>
+          <span className={styles.headingLine}>
+            {line1.split("").map((char, index) => (
+              <motion.span key={`l1-${index}`} variants={charVariant} style={{ display: "inline-block" }}>
+                {char === " " ? "\u00A0" : char}
+              </motion.span>
+            ))}
+          </span>
+          <span className={styles.headingLine}>
+            {line2.split("").map((char, index) => (
+              <motion.span key={`l2-${index}`} variants={charVariant} style={{ display: "inline-block" }}>
+                {char === " " ? "\u00A0" : char}
+              </motion.span>
+            ))}
+          </span>
         </motion.h1>
 
         {/* Subtitle */}
@@ -43,23 +82,21 @@ export default function Hero() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.7, duration: 0.7, ease: "easeOut" }}
         >
-          A learning space for curious minds —
-          <br />
-          built to help you gain real skills, achieve your goals,
-          <br />
-          and create a life you&apos;re proud of.
+          A learning space for curious minds — built to help you gain real skills, achieve your goals, and create a life you&apos;re proud of.
         </motion.p>
 
         {/* CTA Button */}
         <motion.a
-          href="#start"
+          href="/signup"
           className={styles.ctaButton}
           initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.9, duration: 0.6, ease: "easeOut" }}
+          animate={{ 
+            opacity: 1, 
+            y: 0,
+            transition: { delay: 0.9, duration: 0.6, ease: "easeOut" }
+          }}
           whileHover={{
             scale: 1.04,
-            background: "rgba(30, 30, 30, 0.9)",
             transition: { type: "spring", stiffness: 400, damping: 17 },
           }}
           whileTap={{ scale: 0.97 }}
