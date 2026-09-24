@@ -1,0 +1,53 @@
+.themeLight {
+  color: #111 !important;
+}
+
+.themeLight h1, 
+.themeLight h2, 
+.themeLight h3, 
+.themeLight h4, 
+.themeLight p, 
+.themeLight span, 
+.themeLight div, 
+.themeLight a, 
+.themeLight button, 
+.themeLight label, 
+.themeLight input, 
+.themeLight th, 
+.themeLight td {
+  color: #111 !important;
+}
+
+/* Fix specific glass borders and backgrounds for light mode to maintain contrast */
+.themeLight aside,
+.themeLight header {
+  background: rgba(255, 255, 255, 0.25) !important;
+  border-color: rgba(255, 255, 255, 0.3) !important;
+}
+
+.themeLight [class*="_metricCard__"],
+.themeLight [class*="_courseCard__"],
+.themeLight [class*="_sectionCard__"],
+.themeLight [class*="_clockPanel__"] {
+  background: rgba(255, 255, 255, 0.15) !important;
+  border-color: rgba(255, 255, 255, 0.3) !important;
+}
+
+.themeLight [class*="searchBar"] {
+  background: rgba(255, 255, 255, 0.6) !important;
+  border-color: rgba(0, 0, 0, 0.2) !important;
+}
+
+.themeLight [class*="searchInput"]::placeholder {
+  color: rgba(0, 0, 0, 0.5) !important;
+}
+
+.themeLight [class*="navLinkActive"] {
+  background: rgba(0, 0, 0, 0.08) !important;
+  border-color: rgba(0, 0, 0, 0.1) !important;
+}
+
+.themeLight [class*="badge"] {
+  background: rgba(0, 0, 0, 0.05) !important;
+  border-color: rgba(0, 0, 0, 0.1) !important;
+}

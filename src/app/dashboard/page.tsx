@@ -1,119 +1,181 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { useState } from "react";
+import { Timer, Flag, Trophy, Target, Calendar, BarChart2, ChevronRight } from "lucide-react";
 import styles from "./dashboard.module.css";
 
-const stats = [
-  {
-    label: "Courses Completed",
-    value: "04",
-    icon: (
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-        <polyline points="22 4 12 14.01 9 11.01"></polyline>
-      </svg>
-    )
-  },
-  {
-    label: "Hours Learned",
-    value: "28.5",
-    icon: (
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <circle cx="12" cy="12" r="10"></circle>
-        <polyline points="12 6 12 12 16 14"></polyline>
-      </svg>
-    )
-  },
-  {
-    label: "Current Streak",
-    value: "12 Days",
-    icon: (
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M12 2v20"></path>
-        <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
-      </svg>
-    )
-  }
+const tableData = [
+  { name: "Hanbee Grand Prix 2026", format: "TEAM", telemetry: "00:41.284s", position: "#2", status: "UPCOMING" },
+  { name: "Autonomous RC Drag Sprint", format: "SOLO", telemetry: "00:43.112s", position: "#5", status: "COMPLETED" },
+  { name: "National RC Championship", format: "TEAM", telemetry: "00:40.998s", position: "#3", status: "COMPLETED" },
+  { name: "Hanbee Invitational 2025", format: "SOLO", telemetry: "00:42.450s", position: "#4", status: "COMPLETED" },
+  { name: "RC Sprint Series Qualifiers", format: "TEAM", telemetry: "—", position: "—", status: "UPCOMING" },
 ];
 
-export default function DashboardPage() {
+export default function DashboardOverview() {
+  const [filter, setFilter] = useState("ALL");
+
+  const filteredData = tableData.filter(row => {
+    if (filter === "ALL") return true;
+    return row.format === filter;
+  });
+
+  const handleActionClick = (action: string) => {
+    alert(`Opening ${action}...`);
+  };
+
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, ease: "easeOut" }}
-    >
-      <header className={styles.header}>
-        <h1 className={styles.title}>Welcome back, Alex.</h1>
-        <p className={styles.subtitle}>Here is what&apos;s happening with your learning progress today.</p>
-      </header>
+    <div>
+      <div className={styles.pageHeader}>
+        <h1 className={styles.pageTitle}>Overview</h1>
+        <p className={styles.pageSubtitle}>Tournament performance & quick actions</p>
+      </div>
 
-      <section className={styles.grid}>
-        {stats.map((stat, idx) => (
-          <motion.div 
-            key={stat.label} 
-            className={styles.card}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 + idx * 0.1, duration: 0.5 }}
-          >
-            <div className={styles.cardHeader}>
-              <div className={styles.iconWrapper}>{stat.icon}</div>
-              {stat.label}
-            </div>
-            <div className={styles.value}>{stat.value}</div>
-          </motion.div>
-        ))}
-      </section>
-
-      <section>
-        <h2 className={styles.sectionTitle}>Continue Learning</h2>
-        <div className={styles.courseList}>
-          
-          <motion.div 
-            className={styles.courseCard}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4, duration: 0.5 }}
-          >
-            <div className={styles.courseThumb}>
-              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.8)" strokeWidth="1.5">
-                <polygon points="5 3 19 12 5 21 5 3"></polygon>
-              </svg>
-            </div>
-            <div className={styles.courseInfo}>
-              <h3 className={styles.courseName}>Advanced UI/UX Principles</h3>
-              <p className={styles.courseInstructor}>by Sarah Drasner</p>
-              <div className={styles.progressBarBg}>
-                <div className={styles.progressBarFill} style={{ width: "65%" }}></div>
-              </div>
-              <div className={styles.progressText}>65% Completed</div>
-            </div>
-          </motion.div>
-
-          <motion.div 
-            className={styles.courseCard}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5, duration: 0.5 }}
-          >
-            <div className={styles.courseThumb} style={{ background: "linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)" }}>
-              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.8)" strokeWidth="1.5">
-                <polygon points="5 3 19 12 5 21 5 3"></polygon>
-              </svg>
-            </div>
-            <div className={styles.courseInfo}>
-              <h3 className={styles.courseName}>Mastering React & Next.js</h3>
-              <p className={styles.courseInstructor}>by Lee Robinson</p>
-              <div className={styles.progressBarBg}>
-                <div className={styles.progressBarFill} style={{ width: "32%", background: "#43e97b" }}></div>
-              </div>
-              <div className={styles.progressText}>32% Completed</div>
-            </div>
-          </motion.div>
-
+      <div className={styles.metricsRow}>
+        <div className={styles.metricCard}>
+          <div className={styles.metricCardHeader}>
+            <span className={styles.metricLabel}>Fastest Lap Time</span>
+            <Timer size={16} className={styles.metricIcon} />
+          </div>
+          <div className={styles.metricValue}>00:41.284s</div>
+          <div className={styles.metricSubtext}>↓ 0.3s from last race</div>
+          <div className={styles.sparkline}>
+            {[40, 55, 30, 70, 85, 60, 45].map((h, i) => (
+              <div key={i} className={styles.bar} style={{ height: `${h}%`, '--bar-color': 'rgba(255, 255, 255, 0.7)' } as React.CSSProperties} />
+            ))}
+          </div>
         </div>
-      </section>
-    </motion.div>
+
+        <div className={styles.metricCard}>
+          <div className={styles.metricCardHeader}>
+            <span className={styles.metricLabel}>Total Participations</span>
+            <Flag size={16} className={styles.metricIcon} />
+          </div>
+          <div className={styles.metricValue}>12</div>
+          <div className={styles.metricSubtext}>Competitions entered</div>
+          <div className={styles.sparkline}>
+            {[20, 30, 25, 45, 60, 80, 100].map((h, i) => (
+              <div key={i} className={styles.bar} style={{ height: `${h}%`, '--bar-color': 'rgba(255, 255, 255, 0.5)' } as React.CSSProperties} />
+            ))}
+          </div>
+        </div>
+
+        <div className={styles.metricCard}>
+          <div className={styles.metricCardHeader}>
+            <span className={styles.metricLabel}>Team Rank</span>
+            <Trophy size={16} className={styles.metricIcon} />
+          </div>
+          <div className={styles.metricValue}>#2</div>
+          <div className={styles.metricSubtext}>Team Apex RC</div>
+          <div className={styles.sparkline}>
+            {[50, 40, 60, 45, 75, 80, 70].map((h, i) => (
+              <div key={i} className={styles.bar} style={{ height: `${h}%`, '--bar-color': 'rgba(255, 255, 255, 0.6)' } as React.CSSProperties} />
+            ))}
+          </div>
+        </div>
+
+        <div className={styles.metricCard}>
+          <div className={styles.metricCardHeader}>
+            <span className={styles.metricLabel}>Solo Standing</span>
+            <Target size={16} className={styles.metricIcon} />
+          </div>
+          <div className={styles.metricValue}>#5</div>
+          <div className={styles.metricSubtext}>Overall leaderboard</div>
+          <div className={styles.sparkline}>
+            {[80, 70, 85, 65, 55, 45, 35].map((h, i) => (
+              <div key={i} className={styles.bar} style={{ height: `${h}%`, '--bar-color': 'rgba(255, 255, 255, 0.4)' } as React.CSSProperties} />
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div className={styles.tableSection}>
+        <div className={styles.tableHeader}>
+          <h2 className={styles.tableTitle}>Tournament Participation</h2>
+          <div className={styles.tableFilters}>
+            <button 
+              className={`${styles.filterBtn} ${filter === 'ALL' ? styles.filterBtnActive : ''}`}
+              onClick={() => setFilter('ALL')}
+            >
+              All Events
+            </button>
+            <button 
+              className={`${styles.filterBtn} ${filter === 'TEAM' ? styles.filterBtnActive : ''}`}
+              onClick={() => setFilter('TEAM')}
+            >
+              Team
+            </button>
+            <button 
+              className={`${styles.filterBtn} ${filter === 'SOLO' ? styles.filterBtnActive : ''}`}
+              onClick={() => setFilter('SOLO')}
+            >
+              Solo
+            </button>
+          </div>
+        </div>
+
+        <table className={styles.dataTable}>
+          <thead>
+            <tr>
+              <th>Event Name</th>
+              <th>Format</th>
+              <th>Lap / Telemetry</th>
+              <th>Position</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filteredData.map((row, i) => (
+              <tr key={i}>
+                <td>{row.name}</td>
+                <td>
+                  <span className={`${styles.badge} ${row.format === 'TEAM' ? styles.badgeTeam : styles.badgeSolo}`}>
+                    {row.format}
+                  </span>
+                </td>
+                <td style={{ fontFamily: "monospace" }}>{row.telemetry}</td>
+                <td>{row.position}</td>
+                <td>
+                  <span className={`${styles.badge} ${row.status === 'UPCOMING' ? styles.badgeUpcoming : styles.badgeCompleted}`}>
+                    {row.status}
+                  </span>
+                </td>
+              </tr>
+            ))}
+            {filteredData.length === 0 && (
+              <tr>
+                <td colSpan={5} style={{ textAlign: 'center', padding: '40px 0', color: 'rgba(255,255,255,0.4)' }}>
+                  No events match the selected filter.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      <div className={styles.quickActions}>
+        <button className={styles.actionBtn} onClick={() => handleActionClick("Schedule")}>
+          <div className={styles.actionIcon}>
+            <Calendar size={18} color="rgba(255,255,255,0.7)" />
+            View Schedule
+          </div>
+          <ChevronRight size={18} color="rgba(255,255,255,0.4)" />
+        </button>
+        <button className={styles.actionBtn} onClick={() => handleActionClick("Telemetry Logs")}>
+          <div className={styles.actionIcon}>
+            <BarChart2 size={18} color="rgba(255,255,255,0.7)" />
+            Check Telemetry Logs
+          </div>
+          <ChevronRight size={18} color="rgba(255,255,255,0.4)" />
+        </button>
+        <button className={styles.actionBtn} onClick={() => handleActionClick("Race Registration")}>
+          <div className={styles.actionIcon}>
+            <Flag size={18} color="rgba(255,255,255,0.7)" />
+            Register for Next Race
+          </div>
+          <ChevronRight size={18} color="rgba(255,255,255,0.4)" />
+        </button>
+      </div>
+    </div>
   );
 }
