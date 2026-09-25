@@ -55,11 +55,16 @@
   background: var(--bg-card);
   box-shadow: var(--clay-shadow-outer);
   border-radius: var(--clay-radius-md);
-  
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 16px 32px rgba(0, 0, 0, 0.2);
+}
+
+.courseContent {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
 }
 
 .courseImage {
@@ -93,7 +98,7 @@
   background: var(--bg-card);
   box-shadow: var(--clay-shadow-subtle);
   color: var(--text-muted);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border: var(--border-subtle);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -140,25 +145,26 @@
 .progressValue { color: var(--text-muted); font-weight: 500; }
 
 .progressBar {
-  height: 4px;
+  height: 6px;
   background: var(--bg-card-hover);
-  box-shadow: var(--clay-shadow-elevated);
-  border-radius: 2px;
+  box-shadow: var(--clay-shadow-active);
+  border-radius: 3px;
   overflow: hidden;
 }
 
 .progressFill {
   height: 100%;
-  background: rgba(255, 255, 255, 0.4);
-  border-radius: 2px;
+  background: var(--accent);
+  border-radius: 3px;
 }
 
 .courseActionBtn {
   width: 100%;
   padding: 12px;
-  background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  color: var(--text-muted);
+  background: var(--bg-card);
+  box-shadow: var(--clay-shadow-button);
+  color: var(--text-main);
+  border: none;
   border-radius: 8px;
   font-size: 13px;
   font-weight: 500;
@@ -168,6 +174,6 @@
 
 .courseActionBtn:hover {
   background: var(--bg-card-hover);
-  box-shadow: var(--clay-shadow-elevated);
-  border-color: var(--text-muted);
+  box-shadow: var(--clay-shadow-active);
+  color: var(--accent);
 }

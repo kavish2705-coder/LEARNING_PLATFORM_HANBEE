@@ -66,7 +66,7 @@
 .navLinkActive {
   background: var(--bg-card-hover);
   box-shadow: var(--clay-shadow-button); /* Firm outward pop */
-  color: var(--text-main);
+  color: var(--accent);
 }
 
 .navIcon {

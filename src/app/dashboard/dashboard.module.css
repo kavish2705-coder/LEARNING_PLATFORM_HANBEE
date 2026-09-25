@@ -112,24 +112,24 @@
   background: transparent;
   border: var(--border-subtle);
   color: var(--text-muted);
-  padding: 6px 16px;
-  border-radius: 8px;
-  font-size: 12px;
+  padding: 10px 24px;
+  border-radius: var(--clay-radius-sm);
+  font-size: 14px;
+  font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.3s ease;
 }
 
 .filterBtn:hover {
   background: var(--bg-card);
   box-shadow: var(--clay-shadow-outer);
-  border-radius: var(--clay-radius-md);
+  color: var(--text-main);
 }
 
 .filterBtnActive {
   background: var(--bg-card-hover);
-  box-shadow: var(--clay-shadow-elevated);
-  color: var(--text-main);
-  border-color: var(--text-muted);
+  box-shadow: var(--clay-shadow-active);
+  color: var(--accent);
 }
 
 .dataTable {
@@ -208,4 +208,62 @@
   display: flex;
   align-items: center;
   gap: 12px;
+}
+
+.actionText {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  flex: 1;
+  text-align: left;
+  margin-left: 12px;
+}
+
+.actionText strong {
+  color: var(--text-main);
+  font-size: 15px;
+}
+
+.actionText span {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.dashboardGrid {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 32px;
+  align-items: start;
+}
+
+.mainColumn {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.sideColumn {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.actionList {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+
+.filterGroup {
+  display: flex;
+  align-items: center;
+  gap: 16px;
 }

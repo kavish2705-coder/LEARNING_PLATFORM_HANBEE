@@ -7,12 +7,12 @@ import "./theme.css";
 import { useTheme } from "./ThemeProvider";
 
 export default function ClientLayout({ children }: { children: React.ReactNode }) {
-  const { theme } = useTheme();
+  const { activeTheme } = useTheme();
 
   return (
     <div 
       className={styles.dashboardContainer} 
-      data-theme={theme.toLowerCase()}
+      data-theme={activeTheme}
     >
       {/* Sidebar navigation */}
       <Sidebar />

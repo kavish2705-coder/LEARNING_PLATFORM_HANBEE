@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { Moon, Sun, Monitor } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Moon, Sun, Monitor, Palette } from "lucide-react";
 import styles from "./settings.module.css";
 import { useTheme } from "../ThemeProvider";
 
@@ -13,7 +13,7 @@ export default function SettingsPage() {
     courses: false,
   });
 
-  const { theme, setTheme } = useTheme();
+  const { theme, setTheme, accentHue, setAccentHue, accentLightness, setAccentLightness } = useTheme();
   const [isSaving, setIsSaving] = useState(false);
 
   const handleToggle = (key: keyof typeof toggles) => {
@@ -157,7 +157,58 @@ export default function SettingsPage() {
             >
               <Monitor size={16} /> System
             </button>
+            <button 
+              className={`${styles.themeBtn} ${theme === 'Personalized' ? styles.themeBtnActive : ''}`}
+              onClick={() => setTheme('Personalized')}
+            >
+              <Palette size={16} /> Personalized
+            </button>
           </div>
+
+          {theme === 'Personalized' && (
+            <div style={{ marginTop: "32px", animation: "fadeIn 0.3s ease" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "16px" }}>
+                <Palette size={18} style={{ color: "var(--accent)" }} />
+                <h4 style={{ fontSize: "15px", fontWeight: "500" }}>Choose Your Vibe</h4>
+              </div>
+              
+              <div style={{ marginBottom: "24px" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px", fontSize: "13px", color: "var(--text-muted)" }}>
+                  <span>Color Hue</span>
+                </div>
+                <div className={styles.colorSliderWrapper}>
+                   <input 
+                     type="range" 
+                     min="0" 
+                     max="360" 
+                     value={accentHue} 
+                     onChange={(e) => setAccentHue(Number(e.target.value))}
+                     className={styles.colorSlider}
+                   />
+                </div>
+              </div>
+
+              <div>
+                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px", fontSize: "13px", color: "var(--text-muted)" }}>
+                  <span>Intensity (Light / Dark)</span>
+                </div>
+                <div className={styles.colorSliderWrapper}>
+                   <input 
+                     type="range" 
+                     min="15" 
+                     max="85" 
+                     value={accentLightness} 
+                     onChange={(e) => setAccentLightness(Number(e.target.value))}
+                     className={styles.lightnessSlider}
+                   />
+                </div>
+              </div>
+              
+              <p style={{ marginTop: "16px", fontSize: "13px", color: "var(--text-muted)", lineHeight: 1.5 }}>
+                Drag the sliders to completely alter the color grading of your dashboard in real-time. Text and shadows automatically adapt!
+              </p>
+            </div>
+          )}
         </section>
       </div>
     </div>
