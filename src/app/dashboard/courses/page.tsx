@@ -20,7 +20,7 @@ const courses = [
     badge: "ADVANCED",
     status: "IN_PROGRESS",
     category: "RC Engineering",
-    image: "https://images.unsplash.com/photo-1620802051772-52a466479fdf?q=80&w=800&auto=format&fit=crop", // Abstract engineering
+    image: "https://images.unsplash.com/photo-1559024094-4a1e4495c3c1?q=80&w=800&auto=format&fit=crop", // Abstract engineering
   },
   {
     title: "Autonomous Telemetry with Python",
@@ -98,17 +98,15 @@ export default function CoursesPage() {
               style={{ backgroundImage: `url(${course.image})` }}
             >
               <div className={styles.courseOverlay} />
-              <span className={`${styles.badge} ${course.badge === 'ADVANCED' ? styles.badgeAdvanced : styles.badgeIntermediate}`}>
-                {course.badge}
-              </span>
-              {course.status === 'COMPLETED' && (
-                <span className={`${styles.badge} ${styles.badgeCompleted}`}>
-                  COMPLETED
-                </span>
-              )}
             </div>
             
             <div className={styles.courseContent}>
+              <div className={styles.badgeRow}>
+                <span className={styles.badge}>{course.badge}</span>
+                {course.status === 'COMPLETED' && (
+                  <span className={`${styles.badge} ${styles.badgeCompleted}`}>COMPLETED</span>
+                )}
+              </div>
               <h3 className={styles.courseTitle}>{course.title}</h3>
               <p className={styles.courseInstructor}>{course.instructor}</p>
               
