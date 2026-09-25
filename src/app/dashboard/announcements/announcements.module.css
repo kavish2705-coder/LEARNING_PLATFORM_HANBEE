@@ -12,7 +12,7 @@
 
 .pageSubtitle {
   font-size: 14px;
-  color: rgba(255, 255, 255, 0.4);
+  color: var(--text-muted);
 }
 
 .tabs {
@@ -23,8 +23,8 @@
 
 .tabBtn {
   background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  color: rgba(255, 255, 255, 0.5);
+  border: var(--border-subtle);
+  color: var(--text-muted);
   padding: 8px 16px;
   border-radius: 8px;
   font-size: 13px;
@@ -33,13 +33,16 @@
 }
 
 .tabBtn:hover {
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--bg-card);
+  box-shadow: var(--clay-shadow-outer);
+  border-radius: var(--clay-radius-md);
 }
 
 .tabBtnActive {
-  background: rgba(255, 255, 255, 0.1);
-  color: #fff;
-  border-color: rgba(255, 255, 255, 0.15);
+  background: var(--bg-card-hover);
+  box-shadow: var(--clay-shadow-elevated);
+  color: var(--text-main);
+  border-color: var(--text-muted);
 }
 
 .announcementsList {
@@ -49,11 +52,10 @@
 }
 
 .announcementCard {
-  background: rgba(255, 255, 255, 0.02);
-  backdrop-filter: blur(24px) saturate(140%);
-  -webkit-backdrop-filter: blur(24px) saturate(140%);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 16px;
+  background: var(--bg-card);
+  box-shadow: var(--clay-shadow-outer);
+  border-radius: var(--clay-radius-md);
+  
   padding: 24px;
   box-shadow: 0 16px 32px rgba(0, 0, 0, 0.2);
 }
@@ -74,11 +76,15 @@
   justify-content: center;
   font-weight: 600;
   font-size: 14px;
-  color: #fff;
+  color: var(--text-main);
 }
 
-.avatarStaff { background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); }
-.avatarManager { background: rgba(255, 255, 255, 0.2); border: 1px solid rgba(255, 255, 255, 0.3); }
+.avatarStaff { background: var(--bg-card);
+  box-shadow: var(--clay-shadow-outer);
+  border: var(--border-subtle); }
+.avatarManager { background: var(--bg-card);
+  box-shadow: var(--clay-shadow-outer);
+  border: var(--border-subtle); }
 
 .authorName {
   font-weight: 500;
@@ -94,12 +100,14 @@
   border: 1px solid currentColor;
 }
 
-.roleManager { color: #fff; border-color: rgba(255, 255, 255, 0.3); background: rgba(255, 255, 255, 0.1); }
-.roleStaff { color: rgba(255, 255, 255, 0.7); border-color: rgba(255, 255, 255, 0.15); background: rgba(255, 255, 255, 0.05); }
+.roleManager { color: var(--text-main); border-color: var(--text-muted); background: var(--bg-card-hover);
+  box-shadow: var(--clay-shadow-elevated); }
+.roleStaff { color: var(--text-muted); border-color: var(--text-muted); background: var(--bg-card-hover);
+  box-shadow: var(--clay-shadow-elevated); }
 
 .time {
   font-size: 12px;
-  color: rgba(255, 255, 255, 0.4);
+  color: var(--text-muted);
   margin-left: auto;
 }
 
@@ -108,8 +116,9 @@
   align-items: center;
   gap: 4px;
   font-size: 10px;
-  color: #fff;
-  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-main);
+  background: var(--bg-card-hover);
+  box-shadow: var(--clay-shadow-elevated);
   padding: 4px 8px;
   border-radius: 4px;
   margin-left: 12px;
@@ -127,7 +136,7 @@
 
 .content {
   font-size: 14px;
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--text-muted);
   line-height: 1.6;
   margin-bottom: 20px;
 }
@@ -143,6 +152,7 @@
   letter-spacing: 0.5px;
   padding: 4px 8px;
   border-radius: 4px;
-  background: rgba(255, 255, 255, 0.05);
-  color: rgba(255, 255, 255, 0.5);
+  background: var(--bg-card-hover);
+  box-shadow: var(--clay-shadow-elevated);
+  color: var(--text-muted);
 }

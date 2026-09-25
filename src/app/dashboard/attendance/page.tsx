@@ -52,7 +52,7 @@ export default function AttendancePage() {
           <div className={styles.statusIndicator}>
             <div 
               className={styles.statusDot} 
-              style={{ backgroundColor: isClockedIn ? '#00ff80' : 'rgba(255, 255, 255, 0.2)', boxShadow: isClockedIn ? '0 0 10px #00ff80' : 'none' }}
+              style={{ backgroundColor: isClockedIn ? '#00ff80' : 'var(--text-muted)', boxShadow: isClockedIn ? '0 0 10px #00ff80' : 'none' }}
             />
             Status: {isClockedIn ? 'Checked In' : 'Checked Out'}
           </div>
@@ -60,9 +60,9 @@ export default function AttendancePage() {
             className={styles.clockInBtn}
             onClick={() => setIsClockedIn(!isClockedIn)}
             style={{ 
-              backgroundColor: isClockedIn ? 'rgba(255, 68, 68, 0.1)' : 'rgba(255, 255, 255, 0.1)',
-              borderColor: isClockedIn ? 'rgba(255, 68, 68, 0.3)' : 'rgba(255, 255, 255, 0.2)',
-              color: isClockedIn ? '#ff4444' : '#fff'
+              backgroundColor: isClockedIn ? 'rgba(255, 68, 68, 0.1)' : 'var(--bg-card)',
+              borderColor: isClockedIn ? 'rgba(255, 68, 68, 0.3)' : 'var(--border-subtle)',
+              color: isClockedIn ? '#ff4444' : 'var(--text-main)'
             }}
           >
             {isClockedIn ? (
@@ -93,7 +93,7 @@ export default function AttendancePage() {
                 <td>{row.date}</td>
                 <td style={{ fontFamily: 'monospace' }}>{row.checkIn}</td>
                 <td style={{ fontFamily: 'monospace' }}>{row.checkOut}</td>
-                <td style={{ fontFamily: 'monospace', color: 'rgba(255,255,255,0.7)' }}>{row.hours}</td>
+                <td style={{ fontFamily: 'monospace', color: 'var(--text-muted)' }}>{row.hours}</td>
                 <td>
                   <span className={`${styles.badge} ${
                     row.status === 'PRESENT' ? styles.badgePresent :

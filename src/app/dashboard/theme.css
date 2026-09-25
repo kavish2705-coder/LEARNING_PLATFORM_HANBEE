@@ -1,0 +1,47 @@
+:root, [data-theme="dark"] {
+  --bg-page: #292d32;
+  --bg-card: #292d32;
+  --bg-card-hover: #292d32;
+  --bg-input: #292d32;
+  --text-main: #ffffff;
+  --text-muted: rgba(255, 255, 255, 0.5);
+  
+  /* Classic Dark Neumorphism */
+  --clay-shadow-outer: 8px 8px 16px rgba(0, 0, 0, 0.4), -4px -4px 12px rgba(255, 255, 255, 0.04);
+  --clay-shadow-inner: none;
+  
+  /* Buttons and Active States */
+  --clay-shadow-button: 4px 4px 10px rgba(0, 0, 0, 0.4), -3px -3px 8px rgba(255, 255, 255, 0.04);
+  --clay-shadow-active: inset 4px 4px 8px rgba(0, 0, 0, 0.4), inset -3px -3px 8px rgba(255, 255, 255, 0.04);
+  
+  --clay-radius-lg: 32px;
+  --clay-radius-md: 24px;
+  --clay-radius-sm: 16px;
+  
+  --border-subtle: none;
+}
+
+[data-theme="light"] {
+  --bg-page: #e0e5ec;
+  --bg-card: #e0e5ec;
+  --bg-card-hover: #e0e5ec;
+  --bg-input: #e0e5ec;
+  --text-main: #31344b;
+  --text-muted: rgba(49, 52, 75, 0.85);
+  
+  /* Classic Light Neumorphism */
+  --clay-shadow-outer: 8px 8px 16px rgba(163, 177, 198, 0.6), -4px -4px 12px rgba(255, 255, 255, 0.7);
+  --clay-shadow-inner: none;
+  
+  /* Buttons and Active States */
+  --clay-shadow-button: 4px 4px 10px rgba(163, 177, 198, 0.6), -3px -3px 8px rgba(255, 255, 255, 0.7);
+  --clay-shadow-active: inset 4px 4px 8px rgba(163, 177, 198, 0.7), inset -3px -3px 8px rgba(255, 255, 255, 0.8);
+  
+  --border-subtle: none;
+}
+
+/* Base resets */
+[data-theme] {
+  color: var(--text-main);
+}
+

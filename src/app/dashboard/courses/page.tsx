@@ -137,7 +137,7 @@ export default function CoursesPage() {
       </div>
       
       {filteredCourses.length === 0 && (
-        <div style={{ textAlign: 'center', color: 'rgba(255,255,255,0.4)', padding: '40px 0' }}>
+        <div style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '40px 0' }}>
           No courses found for this category.
         </div>
       )}

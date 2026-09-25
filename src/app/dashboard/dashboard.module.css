@@ -12,7 +12,7 @@
 
 .pageSubtitle {
   font-size: 14px;
-  color: rgba(255, 255, 255, 0.4);
+  color: var(--text-muted);
 }
 
 /* Overview Cards */
@@ -24,17 +24,14 @@
 
 .metricCard {
   flex: 1;
-  background: rgba(255, 255, 255, 0.02);
-  backdrop-filter: blur(24px) saturate(140%);
-  -webkit-backdrop-filter: blur(24px) saturate(140%);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 16px;
+  background: var(--bg-card);
+  box-shadow: var(--clay-shadow-outer);
+  border-radius: var(--clay-radius-md);
   padding: 24px;
   display: flex;
   flex-direction: column;
   position: relative;
   overflow: hidden;
-  box-shadow: 0 16px 32px rgba(0, 0, 0, 0.2);
 }
 
 .metricCardHeader {
@@ -48,11 +45,11 @@
   font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 1px;
-  color: rgba(255, 255, 255, 0.4);
+  color: var(--text-muted);
 }
 
 .metricIcon {
-  color: rgba(255, 255, 255, 0.3);
+  color: var(--text-muted);
 }
 
 .metricValue {
@@ -64,7 +61,7 @@
 
 .metricSubtext {
   font-size: 12px;
-  color: rgba(255, 255, 255, 0.4);
+  color: var(--text-muted);
   margin-bottom: 16px;
 }
 
@@ -85,11 +82,10 @@
 
 /* Table Section */
 .tableSection {
-  background: rgba(255, 255, 255, 0.02);
-  backdrop-filter: blur(24px) saturate(140%);
-  -webkit-backdrop-filter: blur(24px) saturate(140%);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 16px;
+  background: var(--bg-card);
+  box-shadow: var(--clay-shadow-outer);
+  border-radius: var(--clay-radius-md);
+  
   padding: 24px;
   margin-bottom: 32px;
   box-shadow: 0 16px 32px rgba(0, 0, 0, 0.2);
@@ -114,8 +110,8 @@
 
 .filterBtn {
   background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  color: rgba(255, 255, 255, 0.5);
+  border: var(--border-subtle);
+  color: var(--text-muted);
   padding: 6px 16px;
   border-radius: 8px;
   font-size: 12px;
@@ -124,13 +120,16 @@
 }
 
 .filterBtn:hover {
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--bg-card);
+  box-shadow: var(--clay-shadow-outer);
+  border-radius: var(--clay-radius-md);
 }
 
 .filterBtnActive {
-  background: rgba(255, 255, 255, 0.1);
-  color: #fff;
-  border-color: rgba(255, 255, 255, 0.15);
+  background: var(--bg-card-hover);
+  box-shadow: var(--clay-shadow-elevated);
+  color: var(--text-main);
+  border-color: var(--text-muted);
 }
 
 .dataTable {
@@ -143,7 +142,7 @@
   font-size: 10px;
   text-transform: uppercase;
   letter-spacing: 1px;
-  color: rgba(255, 255, 255, 0.3);
+  color: var(--text-muted);
   padding-bottom: 16px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
@@ -151,7 +150,7 @@
 .dataTable td {
   padding: 20px 0;
   font-size: 14px;
-  color: rgba(255, 255, 255, 0.8);
+  color: var(--text-muted);
   border-bottom: 1px solid rgba(255, 255, 255, 0.02);
 }
 
@@ -164,11 +163,15 @@
   letter-spacing: 0.5px;
 }
 
-.badgeTeam { background: rgba(255, 255, 255, 0.05); color: rgba(255, 255, 255, 0.7); border: 1px solid rgba(255, 255, 255, 0.1); }
-.badgeSolo { background: rgba(255, 255, 255, 0.02); color: rgba(255, 255, 255, 0.5); border: 1px solid rgba(255, 255, 255, 0.05); }
+.badgeTeam { background: var(--bg-card-hover);
+  box-shadow: var(--clay-shadow-elevated); color: var(--text-muted); border: 1px solid rgba(255, 255, 255, 0.1); }
+.badgeSolo { background: var(--bg-card);
+  box-shadow: var(--clay-shadow-outer);
+  border-radius: var(--clay-radius-md); color: var(--text-muted); border: 1px solid rgba(255, 255, 255, 0.05); }
 
-.badgeUpcoming { background: rgba(255, 255, 255, 0.1); color: #fff; border: 1px solid rgba(255, 255, 255, 0.2); }
-.badgeCompleted { background: transparent; color: rgba(255, 255, 255, 0.4); border: 1px solid rgba(255, 255, 255, 0.08); }
+.badgeUpcoming { background: var(--bg-card-hover);
+  box-shadow: var(--clay-shadow-elevated); color: var(--text-main); border: 1px solid rgba(255, 255, 255, 0.2); }
+.badgeCompleted { background: transparent; color: var(--text-muted); border: var(--border-subtle); }
 
 /* Quick Actions */
 .quickActions {
@@ -178,16 +181,16 @@
 
 .actionBtn {
   flex: 1;
-  background: rgba(255, 255, 255, 0.02);
-  backdrop-filter: blur(24px) saturate(140%);
-  -webkit-backdrop-filter: blur(24px) saturate(140%);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: var(--bg-card);
+  box-shadow: var(--clay-shadow-outer);
+  border-radius: var(--clay-radius-md);
+    border: var(--border-subtle);
   border-radius: 12px;
   padding: 20px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  color: rgba(255, 255, 255, 0.8);
+  color: var(--text-muted);
   font-weight: 500;
   font-size: 14px;
   cursor: pointer;
@@ -195,9 +198,10 @@
 }
 
 .actionBtn:hover {
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--bg-card-hover);
+  box-shadow: var(--clay-shadow-elevated);
   transform: translateY(-2px);
-  border-color: rgba(255, 255, 255, 0.15);
+  border-color: var(--text-muted);
 }
 
 .actionIcon {

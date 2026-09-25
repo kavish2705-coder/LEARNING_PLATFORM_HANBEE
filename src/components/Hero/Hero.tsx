@@ -15,7 +15,7 @@ export default function Hero() {
     },
   };
 
-  const charVariant = {
+  const charVariant: any = {
     hidden: { opacity: 0, y: 20, filter: "blur(10px)" },
     visible: { 
       opacity: 1, 

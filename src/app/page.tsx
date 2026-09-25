@@ -30,6 +30,7 @@ export default function Home() {
           WebkitMaskImage: "linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.05) 10vh, rgba(0,0,0,0.3) 20vh, rgba(0,0,0,0.8) 30vh, black 35vh)",
           maskImage: "linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.05) 10vh, rgba(0,0,0,0.3) 20vh, rgba(0,0,0,0.8) 30vh, black 35vh)",
           padding: "calc(120px + 35vh) 40px 160px 40px",
+          pointerEvents: "none", // Prevent this transparent layer from stealing clicks from the Hero CTA
         }}
       >
         <motion.div
@@ -37,7 +38,7 @@ export default function Home() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-100px" }}
           transition={{ duration: 0.8, ease: [0.2, 0.65, 0.3, 0.9] }}
-          style={{ textAlign: "center", maxWidth: "800px" }}
+          style={{ textAlign: "center", maxWidth: "800px", pointerEvents: "auto" }}
         >
           <h2 style={{
             fontFamily: "var(--font-heading)",
@@ -66,7 +67,8 @@ export default function Home() {
           gap: "24px",
           width: "100%",
           maxWidth: "1200px",
-          marginTop: "80px"
+          marginTop: "80px",
+          pointerEvents: "auto"
         }}>
           {[
             {

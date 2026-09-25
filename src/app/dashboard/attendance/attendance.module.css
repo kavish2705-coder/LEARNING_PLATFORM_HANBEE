@@ -12,14 +12,14 @@
 
 .pageSubtitle {
   font-size: 14px;
-  color: rgba(255, 255, 255, 0.4);
+  color: var(--text-muted);
 }
 
 .clockPanel {
-  background: rgba(255, 255, 255, 0.02);
-  backdrop-filter: blur(24px) saturate(140%);
-  -webkit-backdrop-filter: blur(24px) saturate(140%);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: var(--bg-card);
+  box-shadow: var(--clay-shadow-outer);
+  border-radius: var(--clay-radius-md);
+    border: var(--border-subtle);
   border-radius: 20px;
   padding: 48px;
   display: flex;
@@ -34,16 +34,16 @@
   font-family: monospace;
   font-weight: 500;
   letter-spacing: 2px;
-  color: #fff;
+  color: var(--text-main);
 }
 
 .timeDisplay span {
-  color: rgba(255, 255, 255, 0.3);
+  color: var(--text-muted);
 }
 
 .timeDisplay small {
   font-size: 24px;
-  color: rgba(255, 255, 255, 0.4);
+  color: var(--text-muted);
   margin-left: 12px;
 }
 
@@ -58,9 +58,10 @@
   align-items: center;
   gap: 8px;
   font-size: 14px;
-  color: rgba(255, 255, 255, 0.5);
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: var(--text-muted);
+  background: var(--bg-card);
+  box-shadow: var(--clay-shadow-outer);
+  border: var(--border-subtle);
   padding: 8px 16px;
   border-radius: 24px;
 }
@@ -69,13 +70,14 @@
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background-color: rgba(255, 255, 255, 0.2);
+  background-color: var(--text-muted);
 }
 
 .clockInBtn {
-  background: rgba(255, 255, 255, 0.1);
-  color: #fff;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: var(--bg-card-hover);
+  box-shadow: var(--clay-shadow-elevated);
+  color: var(--text-main);
+  border: 1px solid var(--border-subtle);
   border-radius: 12px;
   padding: 16px 32px;
   font-size: 16px;
@@ -85,21 +87,20 @@
   align-items: center;
   gap: 8px;
   transition: all 0.3s ease;
-  backdrop-filter: blur(12px);
 }
 
 .clockInBtn:hover {
-  background: rgba(255, 255, 255, 0.15);
-  border-color: rgba(255, 255, 255, 0.3);
+  background: var(--bg-card-hover);
+  box-shadow: var(--clay-shadow-elevated);
+  border-color: var(--text-muted);
   transform: translateY(-2px);
 }
 
 .historySection {
-  background: rgba(255, 255, 255, 0.02);
-  backdrop-filter: blur(24px) saturate(140%);
-  -webkit-backdrop-filter: blur(24px) saturate(140%);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 16px;
+  background: var(--bg-card);
+  box-shadow: var(--clay-shadow-outer);
+  border-radius: var(--clay-radius-md);
+  
   padding: 32px;
   box-shadow: 0 16px 32px rgba(0, 0, 0, 0.2);
 }
@@ -120,16 +121,16 @@
   font-size: 10px;
   text-transform: uppercase;
   letter-spacing: 1px;
-  color: rgba(255, 255, 255, 0.3);
+  color: var(--text-muted);
   padding-bottom: 16px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid var(--border-subtle);
 }
 
 .dataTable td {
   padding: 24px 0;
   font-size: 14px;
-  color: rgba(255, 255, 255, 0.8);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.02);
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border-subtle);
 }
 
 .badge {
@@ -141,6 +142,8 @@
   letter-spacing: 0.5px;
 }
 
-.badgePresent { background: rgba(255, 255, 255, 0.1); color: #fff; border: 1px solid rgba(255, 255, 255, 0.2); }
-.badgeLate { background: rgba(255, 255, 255, 0.05); color: rgba(255, 255, 255, 0.7); border: 1px solid rgba(255, 255, 255, 0.1); }
-.badgeNoPitDuty { background: transparent; color: rgba(255, 255, 255, 0.4); border: 1px solid rgba(255, 255, 255, 0.08); }
+.badgePresent { background: var(--bg-card-hover);
+  box-shadow: var(--clay-shadow-elevated); color: var(--text-main); border: 1px solid var(--border-subtle); }
+.badgeLate { background: var(--bg-card-hover);
+  box-shadow: var(--clay-shadow-elevated); color: var(--text-muted); border: 1px solid var(--border-subtle); }
+.badgeNoPitDuty { background: transparent; color: var(--text-muted); border: var(--border-subtle); }

@@ -3,16 +3,16 @@
 import Sidebar from "./components/Sidebar";
 import Header from "./components/Header";
 import styles from "./layout.module.css";
-import "./light-theme.css";
+import "./theme.css";
 import { useTheme } from "./ThemeProvider";
 
 export default function ClientLayout({ children }: { children: React.ReactNode }) {
-  const { theme, activeBackground } = useTheme();
+  const { theme } = useTheme();
 
   return (
     <div 
-      className={`${styles.dashboardContainer} ${theme === 'Light' ? 'themeLight' : ''}`}
-      style={{ backgroundImage: `url(${activeBackground})` }}
+      className={styles.dashboardContainer} 
+      data-theme={theme.toLowerCase()}
     >
       {/* Sidebar navigation */}
       <Sidebar />

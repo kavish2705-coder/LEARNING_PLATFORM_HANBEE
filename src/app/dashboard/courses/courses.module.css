@@ -12,7 +12,7 @@
 
 .pageSubtitle {
   font-size: 14px;
-  color: rgba(255, 255, 255, 0.4);
+  color: var(--text-muted);
 }
 
 .tabs {
@@ -23,8 +23,8 @@
 
 .tabBtn {
   background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  color: rgba(255, 255, 255, 0.5);
+  border: var(--border-subtle);
+  color: var(--text-muted);
   padding: 8px 16px;
   border-radius: 8px;
   font-size: 13px;
@@ -33,13 +33,16 @@
 }
 
 .tabBtn:hover {
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--bg-card);
+  box-shadow: var(--clay-shadow-outer);
+  border-radius: var(--clay-radius-md);
 }
 
 .tabBtnActive {
-  background: rgba(255, 255, 255, 0.1);
-  color: #fff;
-  border-color: rgba(255, 255, 255, 0.15);
+  background: var(--bg-card);
+  box-shadow: var(--clay-shadow-button);
+  color: var(--text-main);
+  border-radius: 20px;
 }
 
 .coursesGrid {
@@ -49,11 +52,10 @@
 }
 
 .courseCard {
-  background: rgba(255, 255, 255, 0.02);
-  backdrop-filter: blur(24px) saturate(140%);
-  -webkit-backdrop-filter: blur(24px) saturate(140%);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 16px;
+  background: var(--bg-card);
+  box-shadow: var(--clay-shadow-outer);
+  border-radius: var(--clay-radius-md);
+  
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -86,13 +88,15 @@
   letter-spacing: 0.5px;
 }
 
-.badgeIntermediate { background: rgba(255, 255, 255, 0.05); color: rgba(255, 255, 255, 0.7); border: 1px solid rgba(255, 255, 255, 0.1); }
-.badgeAdvanced { background: rgba(255, 255, 255, 0.1); color: #fff; border: 1px solid rgba(255, 255, 255, 0.2); }
+.badgeIntermediate { background: var(--bg-card-hover);
+  box-shadow: var(--clay-shadow-elevated); color: var(--text-muted); border: 1px solid rgba(255, 255, 255, 0.1); }
+.badgeAdvanced { background: var(--bg-card-hover);
+  box-shadow: var(--clay-shadow-elevated); color: var(--text-main); border: 1px solid rgba(255, 255, 255, 0.2); }
 .badgeCompleted { 
   position: absolute;
   top: 16px;
   right: 16px;
-  background: transparent; color: rgba(255, 255, 255, 0.4); border: 1px solid rgba(255, 255, 255, 0.08);
+  background: transparent; color: var(--text-muted); border: var(--border-subtle);
 }
 
 .courseContent {
@@ -111,7 +115,7 @@
 
 .courseInstructor {
   font-size: 12px;
-  color: rgba(255, 255, 255, 0.4);
+  color: var(--text-muted);
   margin-bottom: 24px;
 }
 
@@ -127,12 +131,13 @@
   margin-bottom: 8px;
 }
 
-.progressLabel { color: rgba(255, 255, 255, 0.4); }
-.progressValue { color: rgba(255, 255, 255, 0.7); font-weight: 500; }
+.progressLabel { color: var(--text-muted); }
+.progressValue { color: var(--text-muted); font-weight: 500; }
 
 .progressBar {
   height: 4px;
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--bg-card-hover);
+  box-shadow: var(--clay-shadow-elevated);
   border-radius: 2px;
   overflow: hidden;
 }
@@ -148,7 +153,7 @@
   padding: 12px;
   background: transparent;
   border: 1px solid rgba(255, 255, 255, 0.15);
-  color: rgba(255, 255, 255, 0.8);
+  color: var(--text-muted);
   border-radius: 8px;
   font-size: 13px;
   font-weight: 500;
@@ -157,6 +162,7 @@
 }
 
 .courseActionBtn:hover {
-  background: rgba(255, 255, 255, 0.05);
-  border-color: rgba(255, 255, 255, 0.3);
+  background: var(--bg-card-hover);
+  box-shadow: var(--clay-shadow-elevated);
+  border-color: var(--text-muted);
 }
