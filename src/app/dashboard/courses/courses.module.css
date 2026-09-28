@@ -95,10 +95,9 @@
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  background: var(--bg-card);
-  box-shadow: var(--clay-shadow-subtle);
+  background: var(--bg-input);
   color: var(--text-muted);
-  border: var(--border-subtle);
+  border: 1px solid var(--text-muted);
   display: inline-flex;
   align-items: center;
   justify-content: center;

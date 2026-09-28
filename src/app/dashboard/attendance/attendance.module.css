@@ -18,15 +18,13 @@
 .clockPanel {
   background: var(--bg-card);
   box-shadow: var(--clay-shadow-outer);
-  border-radius: var(--clay-radius-md);
-    border: var(--border-subtle);
+  border: var(--border-subtle);
   border-radius: 20px;
   padding: 48px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   margin-bottom: 32px;
-  box-shadow: 0 16px 32px rgba(0, 0, 0, 0.2);
 }
 
 .timeDisplay {
@@ -59,9 +57,8 @@
   gap: 8px;
   font-size: 14px;
   color: var(--text-muted);
-  background: var(--bg-card);
-  box-shadow: var(--clay-shadow-outer);
-  border: var(--border-subtle);
+  background: var(--bg-input);
+  border: 1px solid rgba(0,0,0,0.02);
   padding: 8px 16px;
   border-radius: 24px;
 }
@@ -75,7 +72,7 @@
 
 .clockInBtn {
   background: var(--bg-card-hover);
-  box-shadow: var(--clay-shadow-elevated);
+  box-shadow: var(--clay-shadow-button);
   color: var(--text-main);
   border: 1px solid var(--border-subtle);
   border-radius: 12px;
@@ -91,7 +88,7 @@
 
 .clockInBtn:hover {
   background: var(--bg-card-hover);
-  box-shadow: var(--clay-shadow-elevated);
+  box-shadow: var(--clay-shadow-outer);
   border-color: var(--text-muted);
   transform: translateY(-2px);
 }
@@ -100,9 +97,7 @@
   background: var(--bg-card);
   box-shadow: var(--clay-shadow-outer);
   border-radius: var(--clay-radius-md);
-  
   padding: 32px;
-  box-shadow: 0 16px 32px rgba(0, 0, 0, 0.2);
 }
 
 .historyTitle {
@@ -142,8 +137,6 @@
   letter-spacing: 0.5px;
 }
 
-.badgePresent { background: var(--bg-card-hover);
-  box-shadow: var(--clay-shadow-elevated); color: var(--text-main); border: 1px solid var(--border-subtle); }
-.badgeLate { background: var(--bg-card-hover);
-  box-shadow: var(--clay-shadow-elevated); color: var(--text-muted); border: 1px solid var(--border-subtle); }
-.badgeNoPitDuty { background: transparent; color: var(--text-muted); border: var(--border-subtle); }
+.badgePresent { background: var(--bg-input); color: var(--text-main); }
+.badgeLate { background: var(--bg-input); color: var(--text-muted); }
+.badgeNoPitDuty { background: transparent; color: var(--text-muted); border: 1px solid var(--border-subtle); }
