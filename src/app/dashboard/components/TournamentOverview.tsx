@@ -12,7 +12,10 @@ const tableData = [
   { name: "RC Sprint Series Qualifiers", format: "TEAM", telemetry: "—", position: "—", status: "UPCOMING" },
 ];
 
+import { useRole } from "../../RoleContext";
+
 export default function TournamentOverview() {
+  const { role } = useRole();
   const [filter, setFilter] = useState("ALL");
 
   const filteredData = tableData.filter(row => {
@@ -23,6 +26,86 @@ export default function TournamentOverview() {
   const handleActionClick = (action: string) => {
     alert(`Opening ${action}...`);
   };
+
+  if (role === "teacher") {
+    return (
+      <div>
+        <div className={styles.pageHeader}>
+          <h1 className={styles.pageTitle}>Tournament Administration</h1>
+          <p className={styles.pageSubtitle}>Manage participating teams and track leaderboard progress</p>
+        </div>
+
+        <div className={styles.metricsRow}>
+          <div className={styles.metricCard}>
+            <div className={styles.metricCardHeader}>
+              <span className={styles.metricLabel}>Active Teams</span>
+              <Target size={16} className={styles.metricIcon} />
+            </div>
+            <div className={styles.metricValue}>24</div>
+            <div className={styles.metricSubtext}>Across all classes</div>
+          </div>
+
+          <div className={styles.metricCard}>
+            <div className={styles.metricCardHeader}>
+              <span className={styles.metricLabel}>Upcoming Races</span>
+              <Flag size={16} className={styles.metricIcon} />
+            </div>
+            <div className={styles.metricValue}>3</div>
+            <div className={styles.metricSubtext}>Next 7 days</div>
+          </div>
+
+          <div className={styles.metricCard}>
+            <div className={styles.metricCardHeader}>
+              <span className={styles.metricLabel}>Pending Telemetry</span>
+              <Timer size={16} className={styles.metricIcon} />
+            </div>
+            <div className={styles.metricValue}>12</div>
+            <div className={styles.metricSubtext}>Runs to review</div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (role === "manager") {
+    return (
+      <div>
+        <div className={styles.pageHeader}>
+          <h1 className={styles.pageTitle}>Facility & Tournaments</h1>
+          <p className={styles.pageSubtitle}>Manage track scheduling and tournament registration</p>
+        </div>
+
+        <div className={styles.metricsRow}>
+          <div className={styles.metricCard}>
+            <div className={styles.metricCardHeader}>
+              <span className={styles.metricLabel}>Facility Utilization</span>
+              <Timer size={16} className={styles.metricIcon} />
+            </div>
+            <div className={styles.metricValue}>85%</div>
+            <div className={styles.metricSubtext}>Peak hours this week</div>
+          </div>
+
+          <div className={styles.metricCard}>
+            <div className={styles.metricCardHeader}>
+              <span className={styles.metricLabel}>Active Tournaments</span>
+              <Trophy size={16} className={styles.metricIcon} />
+            </div>
+            <div className={styles.metricValue}>2</div>
+            <div className={styles.metricSubtext}>Currently ongoing</div>
+          </div>
+
+          <div className={styles.metricCard}>
+            <div className={styles.metricCardHeader}>
+              <span className={styles.metricLabel}>Total Registrations</span>
+              <Target size={16} className={styles.metricIcon} />
+            </div>
+            <div className={styles.metricValue}>1,402</div>
+            <div className={styles.metricSubtext}>+15% from last year</div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div>

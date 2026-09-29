@@ -4,7 +4,8 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import styles from "./login.module.css";
 import { Suspense, useState, useEffect } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
+import { useRole, Role } from "../RoleContext";
 
 function LoginContent() {
   const searchParams = useSearchParams();
@@ -17,6 +18,21 @@ function LoginContent() {
     }
   }, [searchParams]);
   const [activeRole, setActiveRole] = useState("Student");
+  
+  const { setRole } = useRole();
+  const router = useRouter();
+
+  const handleAuthSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    // Map the UI role selection to our internal Role type
+    let internalRole: Role = "student";
+    if (activeRole === "Staff") internalRole = "teacher";
+    if (activeRole === "Manager") internalRole = "manager";
+    
+    setRole(internalRole);
+    router.push("/dashboard");
+  };
 
   const getPrimaryPlaceholder = () => {
     if (activeRole === "Staff") return "Email / Staff ID";
@@ -73,7 +89,7 @@ function LoginContent() {
           ))}
         </div>
 
-        <form onSubmit={(e) => { e.preventDefault(); window.location.href = "/dashboard"; }}>
+        <form onSubmit={handleAuthSubmit}>
           
           {!isLogin && (
             <div className={styles.formGroup}>

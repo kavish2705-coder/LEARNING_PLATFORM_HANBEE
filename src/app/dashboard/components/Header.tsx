@@ -1,14 +1,31 @@
 "use client";
 
-import { Search, Bell } from "lucide-react";
+import { Search, Bell, ChevronDown } from "lucide-react";
 import styles from "../layout.module.css";
+import { useRole, Role } from "../../RoleContext";
 
 export default function Header() {
+  const { role, setRole } = useRole();
+  
+  const userNames = {
+    student: "Alex Rivera",
+    teacher: "James Okafor",
+    manager: "Marcus Reyes"
+  };
+
+  const userSubtitles = {
+    student: "Team Apex",
+    teacher: "Lead Instructor",
+    manager: "Facility Director"
+  };
+
+  const getInitial = (name: string) => name.charAt(0);
+
   return (
     <header className={styles.header}>
       <div className={styles.headerLeft}>
         <div className={styles.greeting}>Good morning,</div>
-        <div className={styles.greetingName}>Alex Rivera</div>
+        <div className={styles.greetingName}>{userNames[role]}</div>
       </div>
 
       <div className={styles.searchBar}>
@@ -30,10 +47,10 @@ export default function Header() {
         </button>
 
         <div className={styles.headerUser}>
-          <div className={styles.avatar}>A</div>
+          <div className={styles.avatar}>{getInitial(userNames[role])}</div>
           <div className={styles.userInfo}>
-            <span className={styles.userName}>Student</span>
-            <span className={styles.userRole}>Team Apex</span>
+            <span className={styles.userName}>{userNames[role]}</span>
+            <span className={styles.userRole}>{userSubtitles[role]}</span>
           </div>
         </div>
       </div>
