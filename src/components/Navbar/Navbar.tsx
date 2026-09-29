@@ -103,7 +103,7 @@ export default function Navbar() {
 
           {/* Get Started Button */}
           <motion.a
-            href="/signup"
+            href="/login?mode=signup"
             className={styles.getStartedBtn}
             whileHover={{ scale: 1.03 }}
             whileTap={{ scale: 0.97 }}

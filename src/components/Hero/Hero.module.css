@@ -78,11 +78,13 @@
   font-family: var(--font-accent);
   font-size: clamp(16px, 2vw, 20px);
   /* Significantly increased for better hierarchy */
-  font-weight: 500; /* Match tagline weight */
-  color: rgba(255, 255, 255, 0.85); /* Slightly brighter for readability */
+  font-weight: 300;
+  color: rgba(255, 255, 255, 0.85);
+  /* Slightly brighter for readability */
   line-height: 1.6;
   margin-bottom: 40px;
-  max-width: 750px; /* Widened further to ensure a sleek two-line layout */
+  max-width: 750px;
+  /* Widened further to ensure a sleek two-line layout */
 }
 
 /* CTA Button */

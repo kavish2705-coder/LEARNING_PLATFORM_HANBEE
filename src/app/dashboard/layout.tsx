@@ -1,5 +1,6 @@
-import Sidebar from "@/components/Sidebar/Sidebar";
-import DashboardNav from "@/components/DashboardNav/DashboardNav";
+import { ThemeProvider } from "./ThemeProvider";
+import { ModeProvider } from "./ModeContext";
+import ClientLayout from "./ClientLayout";
 
 export default function DashboardLayout({
   children,
@@ -7,14 +8,12 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div style={{ display: "flex", minHeight: "100vh", background: "#050505" }}>
-      <Sidebar />
-      <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
-        <DashboardNav />
-        <main style={{ flex: 1, padding: "24px 48px", overflowY: "auto" }}>
+    <ThemeProvider>
+      <ModeProvider>
+        <ClientLayout>
           {children}
-        </main>
-      </div>
-    </div>
+        </ClientLayout>
+      </ModeProvider>
+    </ThemeProvider>
   );
 }

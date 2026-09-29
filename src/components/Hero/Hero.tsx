@@ -1,7 +1,6 @@
 "use client";
 
 import { motion } from "framer-motion";
-import Features from "@/components/Features/Features";
 import styles from "./Hero.module.css";
 
 export default function Hero() {
@@ -16,7 +15,7 @@ export default function Hero() {
     },
   };
 
-  const charVariant = {
+  const charVariant: any = {
     hidden: { opacity: 0, y: 20, filter: "blur(10px)" },
     visible: { 
       opacity: 1, 
@@ -87,7 +86,7 @@ export default function Hero() {
 
         {/* CTA Button */}
         <motion.a
-          href="/signup"
+          href="/login?mode=signup"
           className={styles.ctaButton}
           initial={{ opacity: 0, y: 20 }}
           animate={{ 
@@ -119,8 +118,6 @@ export default function Hero() {
         </motion.a>
       </div>
 
-      {/* Features Bar */}
-      <Features />
     </section>
   );
 }
