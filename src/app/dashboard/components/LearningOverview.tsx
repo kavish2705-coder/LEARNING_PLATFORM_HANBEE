@@ -54,6 +54,46 @@ export default function LearningOverview() {
             <div className={styles.metricSubtext}>This month</div>
           </div>
         </div>
+
+        <div className={styles.dashboardGrid} style={{ marginTop: '32px' }}>
+          <div className={styles.mainColumn}>
+            <div className={styles.sectionCard}>
+              <h2 className={styles.sectionTitle}>Recent Submissions</h2>
+              <div className={styles.tableContainer}>
+                <table className={styles.dataTable}>
+                  <thead>
+                    <tr>
+                      <th>Student</th>
+                      <th>Assignment</th>
+                      <th>Submitted</th>
+                      <th>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td className={styles.cellHighlight}>Alex Rivera</td>
+                      <td>Gyro Calibration Script</td>
+                      <td>2 hours ago</td>
+                      <td><span className={styles.statusPill} style={{ background: 'rgba(255,165,0,0.1)', color: '#ffa500' }}>Pending Grading</span></td>
+                    </tr>
+                    <tr>
+                      <td className={styles.cellHighlight}>Sam Chen</td>
+                      <td>Telemetry Module Quiz</td>
+                      <td>4 hours ago</td>
+                      <td><span className={styles.statusPill} style={{ background: 'rgba(255,165,0,0.1)', color: '#ffa500' }}>Pending Grading</span></td>
+                    </tr>
+                    <tr>
+                      <td className={styles.cellHighlight}>Jordan Lee</td>
+                      <td>Motor PID Tuning</td>
+                      <td>1 day ago</td>
+                      <td><span className={`${styles.statusPill} ${styles.statusSuccess}`}>Graded (95%)</span></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
@@ -90,6 +130,46 @@ export default function LearningOverview() {
             </div>
             <div className={styles.metricValue}>99.9%</div>
             <div className={styles.metricSubtext}>All systems operational</div>
+          </div>
+        </div>
+
+        <div className={styles.dashboardGrid} style={{ marginTop: '32px' }}>
+          <div className={styles.mainColumn}>
+            <div className={styles.sectionCard}>
+              <h2 className={styles.sectionTitle}>Course Popularity</h2>
+              <div className={styles.tableContainer}>
+                <table className={styles.dataTable}>
+                  <thead>
+                    <tr>
+                      <th>Course Name</th>
+                      <th>Instructor</th>
+                      <th>Active Students</th>
+                      <th>Completion Rate</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td className={styles.cellHighlight}>Intro to RC Telemetry & Sensors</td>
+                      <td>James Okafor</td>
+                      <td>342</td>
+                      <td>84%</td>
+                    </tr>
+                    <tr>
+                      <td className={styles.cellHighlight}>Advanced PID Tuning</td>
+                      <td>Sarah Jenkins</td>
+                      <td>215</td>
+                      <td>76%</td>
+                    </tr>
+                    <tr>
+                      <td className={styles.cellHighlight}>Basics of Autonomous Navigation</td>
+                      <td>Dr. Alan Turing</td>
+                      <td>198</td>
+                      <td>92%</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
           </div>
         </div>
       </div>
