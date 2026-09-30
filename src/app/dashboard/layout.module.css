@@ -64,9 +64,13 @@
 }
 
 .navLinkActive {
-  background: var(--bg-card-hover);
+  background: var(--color-primary);
   box-shadow: var(--clay-shadow-button); /* Firm outward pop */
-  color: var(--accent);
+  color: var(--color-primary-text);
+}
+
+.navLinkActive:hover {
+  background: var(--color-primary-hover);
 }
 
 .navIcon {
@@ -291,7 +295,7 @@
 }
 
 .modeOptionActive {
-  color: var(--text-main);
+  color: var(--color-primary-text);
 }
 
 .modeSwitcherGlider {
@@ -299,7 +303,7 @@
   top: 4px;
   bottom: 4px;
   width: calc(50% - 4px);
-  background: var(--bg-card);
+  background: var(--color-primary);
   box-shadow: var(--clay-shadow-button); /* Pops out of the track */
   border-radius: 8px;
   transition: transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);

@@ -111,10 +111,10 @@
 }
 
 .saveBtn {
-  background: var(--bg-card-hover);
-  box-shadow: var(--clay-shadow-elevated);
+  background: var(--bg-card);
+  box-shadow: var(--clay-shadow-outer);
   color: var(--text-main);
-  border: var(--border-subtle);
+  border: 1px solid transparent;
   padding: 10px 24px;
   border-radius: 8px;
   font-weight: 500;
@@ -124,9 +124,8 @@
 }
 
 .saveBtn:hover {
-  background: var(--bg-card-hover);
-  box-shadow: var(--clay-shadow-elevated);
-  border-color: var(--text-muted);
+  background: var(--bg-input);
+  box-shadow: var(--clay-shadow-active);
 }
 
 .settingRow {
@@ -202,15 +201,20 @@
   transition: all 0.2s;
 }
 
-.themeBtn:hover {
+.themeBtn:hover:not(.themeBtnActive) {
   background: var(--bg-card-hover);
   box-shadow: var(--clay-shadow-elevated);
+  color: var(--text-main);
+}
+
+.themeBtnActive:hover {
+  background: var(--color-primary-hover);
 }
 
 .themeBtnActive {
-  background: var(--bg-card);
+  background: var(--color-primary);
   box-shadow: var(--clay-shadow-button);
-  color: var(--text-main);
+  color: var(--color-primary-text);
 }
 
 .colorSliderWrapper {

@@ -23,7 +23,7 @@ export default function LearningOverview() {
             <h2 style={{ fontSize: '24px', fontWeight: '500', marginTop: '8px', marginBottom: '8px' }}>14 Pending Assignments</h2>
             <p style={{ color: 'var(--text-muted)', fontSize: '14px', marginBottom: '16px' }}>Intro to RC Telemetry & Sensors - Final Project</p>
           </div>
-          <Link href="/dashboard/grading" style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'var(--bg-card)', padding: '12px 24px', borderRadius: '12px', boxShadow: 'var(--clay-shadow-button)', color: 'var(--text-main)', fontWeight: '500', textDecoration: 'none' }}>
+          <Link href="/dashboard/grading" className={styles.primaryBtn}>
             <PlayCircle size={18} /> Start Grading
           </Link>
         </div>
@@ -197,7 +197,7 @@ export default function LearningOverview() {
           </div>
         </div>
         
-        <Link href="/dashboard/courses/intro-telemetry" style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'var(--bg-card)', padding: '12px 24px', borderRadius: '12px', boxShadow: 'var(--clay-shadow-button)', color: 'var(--text-main)', fontWeight: '500', textDecoration: 'none' }}>
+        <Link href="/dashboard/courses/intro-telemetry" className={styles.primaryBtn}>
           <PlayCircle size={18} /> Resume Lesson
         </Link>
       </div>
