@@ -63,6 +63,46 @@ export default function TournamentOverview() {
             <div className={styles.metricSubtext}>Runs to review</div>
           </div>
         </div>
+
+        <div className={styles.dashboardGrid} style={{ marginTop: '32px' }}>
+          <div className={styles.mainColumn}>
+            <div className={styles.sectionCard}>
+              <h2 className={styles.sectionTitle}>Registered Teams</h2>
+              <div className={styles.tableContainer}>
+                <table className={styles.dataTable}>
+                  <thead>
+                    <tr>
+                      <th>Team Name</th>
+                      <th>Class</th>
+                      <th>Best Time</th>
+                      <th>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td className={styles.cellHighlight}>Team Apex</td>
+                      <td>Advanced Engineering</td>
+                      <td className={styles.cellMonospace}>00:41.284s</td>
+                      <td><span className={`${styles.statusPill} ${styles.statusSuccess}`}>Qualified</span></td>
+                    </tr>
+                    <tr>
+                      <td className={styles.cellHighlight}>Circuit Breakers</td>
+                      <td>Robotics 101</td>
+                      <td className={styles.cellMonospace}>00:44.912s</td>
+                      <td><span className={`${styles.statusPill} ${styles.statusSuccess}`}>Qualified</span></td>
+                    </tr>
+                    <tr>
+                      <td className={styles.cellHighlight}>Velocity Ops</td>
+                      <td>Advanced Engineering</td>
+                      <td className={styles.cellMonospace}>—</td>
+                      <td><span className={styles.statusPill} style={{ background: 'rgba(255,165,0,0.1)', color: '#ffa500' }}>Pending Run</span></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
@@ -101,6 +141,46 @@ export default function TournamentOverview() {
             </div>
             <div className={styles.metricValue}>1,402</div>
             <div className={styles.metricSubtext}>+15% from last year</div>
+          </div>
+        </div>
+
+        <div className={styles.dashboardGrid} style={{ marginTop: '32px' }}>
+          <div className={styles.mainColumn}>
+            <div className={styles.sectionCard}>
+              <h2 className={styles.sectionTitle}>Track Schedule</h2>
+              <div className={styles.tableContainer}>
+                <table className={styles.dataTable}>
+                  <thead>
+                    <tr>
+                      <th>Time Slot</th>
+                      <th>Event Type</th>
+                      <th>Organizer</th>
+                      <th>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td className={styles.cellHighlight}>09:00 - 12:00</td>
+                      <td>Practice Laps</td>
+                      <td>James Okafor</td>
+                      <td><span className={`${styles.statusPill} ${styles.statusSuccess}`}>In Progress</span></td>
+                    </tr>
+                    <tr>
+                      <td className={styles.cellHighlight}>13:00 - 16:00</td>
+                      <td>RC Sprint Qualifiers</td>
+                      <td>Tournament Committee</td>
+                      <td><span className={styles.statusPill} style={{ background: 'rgba(255,165,0,0.1)', color: '#ffa500' }}>Upcoming</span></td>
+                    </tr>
+                    <tr>
+                      <td className={styles.cellHighlight}>17:00 - 20:00</td>
+                      <td>Open Track Maintenance</td>
+                      <td>Facility Team</td>
+                      <td><span className={styles.statusPill} style={{ background: 'rgba(255,255,255,0.1)', color: 'var(--text-muted)' }}>Scheduled</span></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
           </div>
         </div>
       </div>

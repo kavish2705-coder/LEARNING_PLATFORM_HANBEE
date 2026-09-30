@@ -49,18 +49,7 @@ export default function MyTeamPage() {
           <div style={{ display: "flex", gap: "16px" }}>
             <Link 
               href="/dashboard/team/start"
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "8px",
-                padding: "14px 28px",
-                background: "var(--accent)",
-                color: "#ffffff",
-                borderRadius: "12px",
-                textDecoration: "none",
-                fontWeight: "600",
-                boxShadow: "0 4px 12px rgba(59, 130, 246, 0.4)"
-              }}
+              className={styles.primaryBtn}
             >
               <Plus size={18} />
               Start a New Team

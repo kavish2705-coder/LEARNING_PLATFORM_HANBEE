@@ -3,6 +3,7 @@
 import { Search, Bell, ChevronDown } from "lucide-react";
 import styles from "../layout.module.css";
 import { useRole, Role } from "../../RoleContext";
+import Link from "next/link";
 
 export default function Header() {
   const { role, setRole } = useRole();
@@ -41,10 +42,10 @@ export default function Header() {
       <div className={styles.headerRight}>
         <div className={styles.date}>Thu, Sep 24</div>
         
-        <button className={styles.notificationBtn}>
+        <Link href="/dashboard/announcements" className={styles.notificationBtn}>
           <Bell size={20} />
           <div className={styles.notificationBadge} />
-        </button>
+        </Link>
 
         <div className={styles.headerUser}>
           <div className={styles.avatar}>{getInitial(userNames[role])}</div>
