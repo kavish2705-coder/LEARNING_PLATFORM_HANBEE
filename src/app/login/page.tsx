@@ -27,11 +27,19 @@ function LoginContent() {
     
     // Map the UI role selection to our internal Role type
     let internalRole: Role = "student";
-    if (activeRole === "Staff") internalRole = "teacher";
-    if (activeRole === "Manager") internalRole = "manager";
+    let targetPath = "/dashboard";
+    
+    if (activeRole === "Staff") {
+      internalRole = "teacher";
+      targetPath = "/dashboard/hanbee/my-space";
+    }
+    if (activeRole === "Manager") {
+      internalRole = "manager";
+      targetPath = "/dashboard/manager/monitor";
+    }
     
     setRole(internalRole);
-    router.push("/dashboard");
+    router.push(targetPath);
   };
 
   const getPrimaryPlaceholder = () => {
