@@ -183,51 +183,83 @@ export default function LearningOverview() {
         <p className={styles.pageSubtitle}>Track your course progress and upcoming lessons</p>
       </div>
 
-      <div className={styles.sectionCard} style={{ marginBottom: '32px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div>
-          <span className={styles.metricLabel}>CONTINUE LEARNING</span>
-          <h2 style={{ fontSize: '24px', fontWeight: '500', marginTop: '8px', marginBottom: '8px' }}>Intro to RC Telemetry & Sensors</h2>
-          <p style={{ color: 'var(--text-muted)', fontSize: '14px', marginBottom: '16px' }}>Module 4: Reading Gyroscope Data</p>
-          
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <div style={{ flex: 1, height: '6px', background: 'var(--bg-card-hover)', borderRadius: '4px', overflow: 'hidden', width: '200px' }}>
-              <div style={{ height: '100%', width: '72%', background: 'var(--text-main)' }}></div>
+      <div className={styles.dashboardGrid}>
+        <div className={styles.mainColumn}>
+          {/* Most Time-Sensitive Info: Continue Learning */}
+          <div className={styles.sectionCard} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--color-primary)', color: 'var(--color-primary-text)', borderColor: 'var(--color-primary)', boxShadow: 'var(--clay-shadow-elevated)' }}>
+            <div>
+              <span className={styles.metricLabel} style={{ color: 'rgba(255,255,255,0.7)' }}>UP NEXT</span>
+              <h2 style={{ fontSize: '24px', fontWeight: '600', marginTop: '8px', marginBottom: '8px' }}>Intro to RC Telemetry & Sensors</h2>
+              <p style={{ fontSize: '14px', marginBottom: '16px', color: 'rgba(255,255,255,0.9)' }}>Module 4: Reading Gyroscope Data</p>
+              
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <div style={{ flex: 1, height: '6px', background: 'rgba(255,255,255,0.2)', borderRadius: '4px', overflow: 'hidden', width: '200px' }}>
+                  <div style={{ height: '100%', width: '72%', background: '#ffffff' }}></div>
+                </div>
+                <span style={{ fontSize: '12px', fontWeight: '500' }}>72%</span>
+              </div>
             </div>
-            <span style={{ fontSize: '12px', fontWeight: '500' }}>72%</span>
+            
+            <Link href="/dashboard/courses/intro-telemetry" className={styles.primaryBtn} style={{ background: '#ffffff', color: 'var(--color-primary)', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
+              <PlayCircle size={18} /> Resume Lesson
+            </Link>
+          </div>
+
+          <h2 className={styles.tableTitle} style={{ marginTop: '32px', marginBottom: '16px' }}>My Progress</h2>
+          <div className={styles.metricsRow}>
+            <div className={styles.metricCard}>
+              <div className={styles.metricCardHeader}>
+                <span className={styles.metricLabel}>Active Courses</span>
+                <BookOpen size={16} className={styles.metricIcon} />
+              </div>
+              <div className={styles.metricValue}>3</div>
+            </div>
+            <div className={styles.metricCard}>
+              <div className={styles.metricCardHeader}>
+                <span className={styles.metricLabel}>Hours Learned</span>
+                <Clock size={16} className={styles.metricIcon} />
+              </div>
+              <div className={styles.metricValue}>24.5h</div>
+            </div>
+            <div className={styles.metricCard}>
+              <div className={styles.metricCardHeader}>
+                <span className={styles.metricLabel}>Certificates</span>
+                <Award size={16} className={styles.metricIcon} />
+              </div>
+              <div className={styles.metricValue}>2</div>
+            </div>
           </div>
         </div>
-        
-        <Link href="/dashboard/courses/intro-telemetry" className={styles.primaryBtn}>
-          <PlayCircle size={18} /> Resume Lesson
-        </Link>
-      </div>
 
-      <div className={styles.metricsRow}>
-        <div className={styles.metricCard}>
-          <div className={styles.metricCardHeader}>
-            <span className={styles.metricLabel}>Courses in Progress</span>
-            <BookOpen size={16} className={styles.metricIcon} />
+        <div className={styles.sideColumn}>
+          {/* Urgent Deadlines and Attendance side column */}
+          <div className={styles.sectionCard} style={{ borderColor: 'var(--color-warning)' }}>
+            <h3 className={styles.tableTitle} style={{ color: 'var(--color-warning)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Clock size={18} /> Pending Work
+            </h3>
+            <div style={{ marginTop: '16px' }}>
+              <div style={{ padding: '12px', background: 'var(--bg-input)', borderRadius: '8px', marginBottom: '12px' }}>
+                <div style={{ fontWeight: '600', fontSize: '14px', marginBottom: '4px' }}>Gyroscope Quiz</div>
+                <div style={{ fontSize: '12px', color: 'var(--color-warning)' }}>Due Tomorrow</div>
+              </div>
+              <div style={{ padding: '12px', background: 'var(--bg-input)', borderRadius: '8px' }}>
+                <div style={{ fontWeight: '600', fontSize: '14px', marginBottom: '4px' }}>PID Tuning Project</div>
+                <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Due in 4 days</div>
+              </div>
+            </div>
           </div>
-          <div className={styles.metricValue}>3</div>
-          <div className={styles.metricSubtext}>Currently active</div>
-        </div>
 
-        <div className={styles.metricCard}>
-          <div className={styles.metricCardHeader}>
-            <span className={styles.metricLabel}>Hours Learned</span>
-            <Clock size={16} className={styles.metricIcon} />
+          <div className={styles.sectionCard} style={{ borderColor: 'var(--color-success)' }}>
+            <h3 className={styles.tableTitle} style={{ color: 'var(--color-success)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Award size={18} /> Next Live Class
+            </h3>
+            <div style={{ marginTop: '16px' }}>
+              <div style={{ padding: '12px', background: 'var(--bg-input)', borderRadius: '8px' }}>
+                <div style={{ fontWeight: '600', fontSize: '14px', marginBottom: '4px' }}>Advanced Quadcopter Dynamics</div>
+                <div style={{ fontSize: '12px', color: 'var(--color-success)', fontWeight: '500' }}>Today at 4:00 PM</div>
+              </div>
+            </div>
           </div>
-          <div className={styles.metricValue}>24.5h</div>
-          <div className={styles.metricSubtext}>This month</div>
-        </div>
-
-        <div className={styles.metricCard}>
-          <div className={styles.metricCardHeader}>
-            <span className={styles.metricLabel}>Completed</span>
-            <Award size={16} className={styles.metricIcon} />
-          </div>
-          <div className={styles.metricValue}>2</div>
-          <div className={styles.metricSubtext}>Certificates earned</div>
         </div>
       </div>
     </div>

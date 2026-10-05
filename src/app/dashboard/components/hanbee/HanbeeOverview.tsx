@@ -73,43 +73,30 @@ export default function HanbeeOverview() {
         <p className={styles.pageSubtitle}>Your personal dashboard and activity overview</p>
       </header>
 
-      <div className={styles.metricsRow}>
-        <div className={styles.metricCard}>
-          <div className={styles.metricCardHeader}>
-            <span className={styles.metricLabel}>Time Tracking (Today)</span>
-            <Clock size={16} className={styles.metricIcon} />
-          </div>
-          <div className={styles.metricValue}>{data.hoursWorked.today}h</div>
-          <div className={styles.metricSubtext}>Target: 8h / day</div>
-          <div className={styles.sparkline}>
-            <div className={styles.bar} style={{ height: "100%", width: Math.min((data.hoursWorked.today / 8) * 100, 100) + "%", backgroundColor: "var(--text-main)", borderRadius: "2px", opacity: 1 }}></div>
+      {/* Summary Info Bar - Dense */}
+      <div className={styles.sectionCard} style={{ display: "flex", gap: "32px", padding: "16px 24px", marginBottom: "24px", alignItems: "center" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+          <Clock size={20} style={{ color: "var(--accent)" }} />
+          <div>
+            <div style={{ fontSize: "12px", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.5px" }}>Time Today</div>
+            <div style={{ fontSize: "20px", fontWeight: "600" }}>{data.hoursWorked.today}h</div>
           </div>
         </div>
-
-        <div className={styles.metricCard}>
-          <div className={styles.metricCardHeader}>
-            <span className={styles.metricLabel}>Total Hours (7d)</span>
-            <TrendingUp size={16} className={styles.metricIcon} />
-          </div>
-          <div className={styles.metricValue}>{data.hoursWorked.totalHours}h</div>
-          <div className={styles.metricSubtext}>Last 7 days</div>
-          <div className={styles.sparkline}>
-            {data.hoursWorked.last7Days.map((hours, index) => (
-              <div key={index} className={styles.bar} style={{ height: (Math.min((hours / 8) * 100, 100) || 5) + "%", "--bar-color": "var(--text-muted)" } as React.CSSProperties} />
-            ))}
+        <div style={{ width: "1px", height: "32px", background: "var(--border-subtle)" }}></div>
+        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+          <TrendingUp size={20} style={{ color: "var(--accent)" }} />
+          <div>
+            <div style={{ fontSize: "12px", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.5px" }}>Weekly Total</div>
+            <div style={{ fontSize: "20px", fontWeight: "600" }}>{data.hoursWorked.totalHours}h</div>
           </div>
         </div>
-
-        <div className={styles.metricCard}>
-          <div className={styles.metricCardHeader}>
-            <span className={styles.metricLabel}>Current Status</span>
-            <AlertTriangle size={16} className={styles.metricIcon} />
-          </div>
-          <div className={styles.metricValue} style={{ fontSize: "20px", marginTop: "8px" }}>
-             {data.status}
-          </div>
-          <div className={styles.metricSubtext}>
-             {data.needsAttention.length > 0 ? "Needs Attention: " + data.needsAttention[0].message : "All caught up"}
+        <div style={{ width: "1px", height: "32px", background: "var(--border-subtle)" }}></div>
+        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+          <AlertTriangle size={20} style={{ color: data.needsAttention.length > 0 ? "var(--color-warning)" : "var(--color-success)" }} />
+          <div>
+            <div style={{ fontSize: "12px", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.5px" }}>Status</div>
+            <div style={{ fontSize: "14px", fontWeight: "500", color: "var(--text-main)" }}>{data.status}</div>
+            {data.needsAttention.length > 0 && <div style={{ fontSize: "12px", color: "var(--color-warning)" }}>{data.needsAttention[0].message}</div>}
           </div>
         </div>
       </div>

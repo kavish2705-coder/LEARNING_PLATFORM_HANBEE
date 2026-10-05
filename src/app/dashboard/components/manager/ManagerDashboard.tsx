@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
 import type { ReactNode } from "react";
@@ -48,93 +48,126 @@ export default function ManagerDashboard() {
   const orderedStaff = [...staff].sort((a, b) => (b.last_clock_in ?? "").localeCompare(a.last_clock_in ?? "")).slice(0, 6);
 
   return <div>
-    <header className={styles.pageHeader}>
-      <h1 className={styles.pageTitle}>Platform monitor</h1>
-      <p className={styles.pageSubtitle}>A live view of school activity, learning, tournaments, and Hanbee staff.</p>
+    <header className={styles.pageHeader} style={{ marginBottom: "24px" }}>
+      <div>
+        <h1 className={styles.pageTitle}>Platform monitor</h1>
+        <p className={styles.pageSubtitle}>Live view of school activity, learning, tournaments, and Hanbee staff.</p>
+      </div>
+      <div style={{ display: "flex", gap: "16px", marginTop: "16px" }}>
+        <AttentionLink href="/dashboard/manager/verifications" label="School registrations" count={pendingSchools} />
+        <AttentionLink href="/dashboard/manager/verifications" label="Staff applications" count={staffApplications} />
+        <AttentionLink href="/dashboard/hanbee/applications" label="Course applications" count={lms?.course_applications_pending ?? 0} />
+      </div>
     </header>
     {error && <p role="alert" className={styles.sectionCard}>{error}</p>}
     {loading ? <div className={styles.sectionCard} role="status">Loading platform activity…</div> : <>
-      <div className={styles.metricsRow}>
-        <Metric icon={<Building2 size={16} className={styles.metricIcon} />} label="Registered schools" value={schools.length} caption={pendingSchools + " waiting for verification"} href="/dashboard/manager/schools" />
-        <Metric icon={<Users size={16} className={styles.metricIcon} />} label="Active students" value={lms?.students ?? 0} caption={(lms?.solo_students ?? 0) + " solo accounts"} href="/dashboard/hanbee/lms" />
-        <Metric icon={<BookOpen size={16} className={styles.metricIcon} />} label="Published courses" value={activeCourses} caption={(lms?.avg_completion_pct ?? 0) + "% average completion"} href="/dashboard/hanbee/courses" />
+
+      {/* Summary Info Bar - Dense */}
+      <div className={styles.sectionCard} style={{ display: "flex", gap: "32px", padding: "16px 24px", marginBottom: "24px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+          <Building2 size={20} style={{ color: "var(--accent)" }} />
+          <div>
+            <div style={{ fontSize: "12px", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.5px" }}>Registered schools</div>
+            <div style={{ fontSize: "20px", fontWeight: "600" }}>{schools.length}</div>
+          </div>
+        </div>
+        <div style={{ width: "1px", background: "var(--border-subtle)" }}></div>
+        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+          <Users size={20} style={{ color: "var(--accent)" }} />
+          <div>
+            <div style={{ fontSize: "12px", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.5px" }}>Active students</div>
+            <div style={{ fontSize: "20px", fontWeight: "600" }}>{lms?.students ?? 0}</div>
+          </div>
+        </div>
+        <div style={{ width: "1px", background: "var(--border-subtle)" }}></div>
+        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+          <BookOpen size={20} style={{ color: "var(--accent)" }} />
+          <div>
+            <div style={{ fontSize: "12px", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.5px" }}>Published courses</div>
+            <div style={{ fontSize: "20px", fontWeight: "600" }}>{activeCourses}</div>
+          </div>
+        </div>
       </div>
 
-      <div className={styles.dashboardGrid}>
+      <div className={styles.dashboardGrid} style={{ gridTemplateColumns: "minmax(0, 1fr)" }}>
         <div className={styles.mainColumn}>
           <div className={styles.sectionCard}>
-            <div className={styles.sectionHeader}>
-              <h2 className={styles.tableTitle}>Tournament Teams</h2>
-            </div>
-            <div className={styles.metricsRow} style={{ marginBottom: 0 }}>
-              {Object.entries(tournament?.teams ?? {}).map(([status, count]) => 
-                <div key={status} className={styles.metricCard}>
-                  <span className={styles.metricLabel}>{status.replaceAll("_", " ")}</span>
-                  <strong className={styles.metricValue}>{count}</strong>
-                </div>
-              )}
-              {Object.keys(tournament?.teams ?? {}).length === 0 && <p>No tournament teams are registered.</p>}
-            </div>
-            <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 16 }}>
-              <span className={styles.badge + ' ' + styles.badgeTeam}>Schools with teams: {tournament?.schools_with_teams ?? 0}</span>
-              <span className={styles.badge + ' ' + styles.badgeSolo}>Solo entries: {tournament?.solo_teams ?? 0}</span>
-            </div>
-          </div>
-          
-          <div className={styles.sectionCard}>
-            <div className={styles.sectionHeader}>
+            <div className={styles.sectionHeader} style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <h2 className={styles.tableTitle}>Staff Snapshot</h2>
-              <Link href="/dashboard/manager/hanbee-staff" style={{ color: "var(--text-main)", fontSize: "14px", textDecoration: "none" }}>View all staff →</Link>
+              <div style={{ display: "flex", gap: "8px" }}>
+                <input type="text" placeholder="Filter staff..." className={styles.filterInput} style={{ background: "var(--bg-input)", border: "var(--border-subtle)", padding: "6px 12px", borderRadius: "6px", color: "var(--text-main)", fontSize: "13px" }} />
+                <Link href="/dashboard/manager/hanbee-staff" className={styles.actionBtn} style={{ textDecoration: "none", fontSize: "13px" }}>View all</Link>
+              </div>
             </div>
             <table className={styles.dataTable}>
-              <thead><tr><th>Staff member</th><th>Hours (7d)</th><th>Days (30d)</th><th>Tasks</th><th>Last clock-in</th></tr></thead>
+              <thead><tr><th>Staff member</th><th>Hours (7d)</th><th>Days (30d)</th><th>Open Tasks</th><th>Status</th><th>Last clock-in</th></tr></thead>
               <tbody>
                 {orderedStaff.map((person) => <tr key={person.staff_id}>
-                  <td style={{ color: "var(--text-main)" }}>{person.full_name}</td>
+                  <td style={{ color: "var(--text-main)", fontWeight: "500" }}>{person.full_name}</td>
                   <td>{person.hours_last_7_days}</td>
                   <td>{person.days_worked_last_30}</td>
                   <td>{person.open_tasks}</td>
-                  <td>{person.last_clock_in ? new Date(person.last_clock_in).toLocaleString() : "No clock-in yet"}</td>
+                  <td>
+                    <span className={styles.badge + ' ' + (person.last_clock_in ? styles.badgeCompleted : styles.badgeUpcoming)}>
+                      {person.last_clock_in ? "Active" : "Offline"}
+                    </span>
+                  </td>
+                  <td style={{ color: "var(--text-muted)" }}>{person.last_clock_in ? new Date(person.last_clock_in).toLocaleString() : "—"}</td>
                 </tr>)}
-                {orderedStaff.length === 0 && <tr><td colSpan={5}>No staff activity is available.</td></tr>}
+                {orderedStaff.length === 0 && <tr><td colSpan={6}>No staff activity is available.</td></tr>}
               </tbody>
             </table>
           </div>
-        </div>
-        
-        <div className={styles.sideColumn}>
+
           <div className={styles.sectionCard}>
-            <h2 className={styles.tableTitle} style={{ marginBottom: '24px' }}>Needs your attention</h2>
-            <div className={styles.actionList}>
-              <AttentionLink href="/dashboard/manager/verifications" label="School registrations" count={pendingSchools} />
-              <AttentionLink href="/dashboard/manager/verifications" label="Staff applications" count={staffApplications} />
-              <AttentionLink href="/dashboard/hanbee/applications" label="Course applications" count={lms?.course_applications_pending ?? 0} />
-              <AttentionLink href="/dashboard/hanbee/tournament" label="Tournament entries" count={tournament?.teams_awaiting_decision ?? 0} />
+            <div className={styles.sectionHeader} style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <h2 className={styles.tableTitle}>Tournament Registrations</h2>
+              <div style={{ display: "flex", gap: "8px" }}>
+                <select className={styles.filterInput} style={{ background: "var(--bg-input)", border: "var(--border-subtle)", padding: "6px 12px", borderRadius: "6px", color: "var(--text-main)", fontSize: "13px" }}>
+                  <option value="all">All statuses</option>
+                  <option value="pending">Pending</option>
+                  <option value="approved">Approved</option>
+                </select>
+                <Link href="/dashboard/hanbee/tournament" className={styles.actionBtn} style={{ textDecoration: "none", fontSize: "13px" }}>Manage teams</Link>
+              </div>
             </div>
+            <table className={styles.dataTable}>
+              <thead>
+                <tr><th>Status</th><th>Count</th><th>Progress</th></tr>
+              </thead>
+              <tbody>
+                {Object.entries(tournament?.teams ?? {}).map(([status, count]) => {
+                  const total = tournament?.participants ?? 1;
+                  const pct = Math.min((count / total) * 100, 100);
+                  return (
+                    <tr key={status}>
+                      <td style={{ color: "var(--text-main)", textTransform: "capitalize" }}>{status.replaceAll("_", " ")}</td>
+                      <td style={{ fontWeight: "600" }}>{count}</td>
+                      <td style={{ width: "40%" }}>
+                        <div className={styles.sparkline} style={{ marginTop: 0, height: "6px" }}>
+                          <div className={styles.bar} style={{ height: "100%", width: `${pct}%`, backgroundColor: "var(--accent)" }}></div>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+                {Object.keys(tournament?.teams ?? {}).length === 0 && <tr><td colSpan={3}>No tournament teams are registered.</td></tr>}
+              </tbody>
+            </table>
           </div>
+
         </div>
       </div>
     </>}
   </div>;
 }
 
-function Metric({ icon, label, value, caption, href }: { icon: ReactNode; label: string; value: number; caption: string; href: string }) {
-  return <Link href={href} className={styles.metricCard} style={{ textDecoration: "none" }}>
-    <div className={styles.metricCardHeader}>
-      <span className={styles.metricLabel}>{label}</span>
-      {icon}
-    </div>
-    <div className={styles.metricValue}>{value}</div>
-    <div className={styles.metricSubtext}>{caption}</div>
-  </Link>;
-}
-
 function AttentionLink({ href, label, count }: { href: string; label: string; count: number }) {
-  return <Link href={href} className={styles.actionBtn} style={{ textDecoration: "none" }}>
-    <div className={styles.actionText} style={{ marginLeft: 0 }}>
-      <strong>{label}</strong>
-      <span>{count > 0 ? count + " pending" : "All caught up"}</span>
+  if (count === 0) return null;
+  return <Link href={href} className={styles.actionBtn} style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: "8px", background: "rgba(245, 158, 11, 0.1)", borderColor: "rgba(245, 158, 11, 0.2)", color: "#F59E0B" }}>
+    <CircleAlert size={16} />
+    <div style={{ fontSize: "13px" }}>
+      <strong>{count}</strong> {label}
     </div>
-    <CircleAlert size={16} style={{ color: count > 0 ? "#ffaa00" : "var(--text-muted)" }} />
   </Link>;
 }

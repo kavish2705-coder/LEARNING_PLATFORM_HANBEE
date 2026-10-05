@@ -5,7 +5,7 @@ import { ChevronLeft, Play, CheckCircle, FileText, Download } from "lucide-react
 import Link from "next/link";
 import styles from "./lesson.module.css";
 
-export default function LessonViewer({ params }: { params: { id: string } }) {
+export default function LessonViewer() {
   const [activeTab, setActiveTab] = useState("content");
   const [quizCompleted, setQuizCompleted] = useState(false);
 

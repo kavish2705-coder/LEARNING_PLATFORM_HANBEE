@@ -84,8 +84,8 @@ export default function Sidebar() {
   const { role: dummyRole } = useRole();
   const { data: profile } = useSessionProfile();
 
-  const activeRole = profile?.role || (dummyRole === "manager" ? "manager" : dummyRole === "teacher" ? "staff" : "student");
-
+  const activeRole = profile?.role || (dummyRole === "manager" ? "manager" : dummyRole === "teacher" ? "staff" : dummyRole === "school_staff" ? "school_staff" : "student");
+        
   const items = activeRole === "school_staff"
     ? schoolMenu
     : activeRole === "staff"
@@ -93,8 +93,8 @@ export default function Sidebar() {
       : activeRole === "manager"
         ? managerMenu
         : mode === "tournament" ? studentTournamentMenu : studentLearningMenu;
-        
-  const displayName = profile?.full_name || (dummyRole === 'student' ? 'Alex Rivera' : dummyRole === 'teacher' ? 'James Okafor' : 'Marcus Reyes');
+
+  const displayName = profile?.full_name || (dummyRole === 'student' ? 'Alex Rivera' : dummyRole === 'teacher' ? 'James Okafor' : dummyRole === "school_staff" ? 'Principal Smith' : 'Marcus Reyes');
   const initials = displayName.split(/\s+/).slice(0, 2).map((part) => part[0]).join("").toUpperCase();
 
   async function handleSignOut() {
