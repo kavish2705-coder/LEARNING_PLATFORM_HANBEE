@@ -1,6 +1,6 @@
 "use client";
 
-import styles from "../../dashboard.module.css";
+import styles from "../dashboard.module.css";
 import { Users, UserCheck, Shield, Edit3, Trash2, Mail, Check, X } from "lucide-react";
 import { useState } from "react";
 

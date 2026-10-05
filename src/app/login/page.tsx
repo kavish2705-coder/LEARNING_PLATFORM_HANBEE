@@ -27,22 +27,36 @@ function LoginContent() {
     
     // Map the UI role selection to our internal Role type
     let internalRole: Role = "student";
-    if (activeRole === "Staff") internalRole = "teacher";
-    if (activeRole === "Manager") internalRole = "manager";
+    let targetPath = "/dashboard";
+    
+    if (activeRole === "Staff") {
+      internalRole = "teacher";
+      targetPath = "/dashboard/hanbee/my-space";
+    }
+    if (activeRole === "Manager") {
+      internalRole = "manager";
+      targetPath = "/dashboard/manager/monitor";
+    }
+    if (activeRole === "School") {
+      internalRole = "school_staff";
+      targetPath = "/dashboard/school/overview";
+    }
     
     setRole(internalRole);
-    router.push("/dashboard");
+    router.push(targetPath);
   };
 
   const getPrimaryPlaceholder = () => {
     if (activeRole === "Staff") return "Email / Staff ID";
     if (activeRole === "Manager") return "Email / Manager ID";
+    if (activeRole === "School") return "Email / School Admin ID";
     return "Email / Student ID";
   };
 
   const getSecondaryPlaceholder = () => {
     if (activeRole === "Staff") return "Department Code";
     if (activeRole === "Manager") return "Region / Branch Code";
+    if (activeRole === "School") return "School Code";
     return "Team / Section Code";
   };
 
@@ -78,7 +92,7 @@ function LoginContent() {
 
         <span className={styles.sectionLabel}>SELECT ROLE</span>
         <div className={styles.roleSegment}>
-          {["Student", "Staff", "Manager"].map(role => (
+          {["Student", "School", "Staff", "Manager"].map(role => (
             <button 
               key={role}
               className={`${styles.roleBtn} ${activeRole === role ? styles.roleBtnActive : ''}`}

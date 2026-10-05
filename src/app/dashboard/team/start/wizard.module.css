@@ -1,0 +1,250 @@
+.wizardContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 40px 20px;
+}
+
+.backLink {
+  align-self: flex-start;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-muted);
+  text-decoration: none;
+  font-size: 14px;
+  margin-bottom: 32px;
+  transition: color 0.2s;
+}
+
+.backLink:hover {
+  color: var(--text-main);
+}
+
+.wizardCard {
+  width: 100%;
+  background: var(--bg-card);
+  box-shadow: var(--clay-shadow-outer);
+  border-radius: var(--clay-radius-lg);
+  padding: 40px;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  animation: slideUp 0.4s ease-out;
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.stepper {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 48px;
+}
+
+.stepIndicator {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-muted);
+  position: relative;
+  z-index: 2;
+}
+
+.stepIcon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--bg-card-hover);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--clay-shadow-outer);
+  transition: all 0.3s;
+}
+
+.stepLabel {
+  font-size: 12px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.stepIndicatorActive {
+  color: var(--accent);
+}
+
+.stepIndicatorActive .stepIcon {
+  background: var(--accent);
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(8, 145, 178, 0.3);
+}
+
+.stepIndicatorPast .stepIcon {
+  background: var(--accent);
+  color: #fff;
+}
+
+.stepLine {
+  flex: 1;
+  height: 4px;
+  background: var(--bg-card-hover);
+  margin: 0 16px;
+  border-radius: 2px;
+  position: relative;
+  top: -10px;
+  z-index: 1;
+  transition: background 0.3s;
+}
+
+.stepLineActive {
+  background: var(--accent);
+}
+
+.stepContent {
+  min-height: 250px;
+}
+
+.stepPanel h2 {
+  font-size: 24px;
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+
+.stepPanel p {
+  color: var(--text-muted);
+  margin-bottom: 32px;
+}
+
+.inputGroup {
+  margin-bottom: 24px;
+}
+
+.inputGroup label {
+  display: block;
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 8px;
+  color: var(--text-muted);
+}
+
+.inputField {
+  width: 100%;
+  padding: 16px;
+  border-radius: var(--clay-radius-sm);
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-input);
+  color: var(--text-main);
+  font-size: 16px;
+  box-shadow: var(--clay-shadow-inner);
+  transition: all 0.2s;
+}
+
+.inputField:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(8, 145, 178, 0.1);
+}
+
+.colorGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
+.colorBtn {
+  aspect-ratio: 1;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.colorBtn:hover {
+  transform: scale(1.1);
+}
+
+.colorBtnActive {
+  box-shadow: 0 0 0 3px var(--bg-card), 0 0 0 5px var(--accent);
+}
+
+.summaryCard {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 24px;
+  background: var(--bg-input);
+  border-radius: var(--clay-radius-md);
+  border: 1px solid var(--border-subtle);
+}
+
+.summaryColor {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+}
+
+.summaryInfo h3 {
+  font-size: 20px;
+  margin-bottom: 4px;
+}
+
+.summaryInfo span {
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+.wizardFooter {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 48px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.primaryBtn, .secondaryBtn {
+  padding: 14px 28px;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.primaryBtn {
+  background: var(--color-primary);
+  color: var(--color-primary-text);
+  border: none;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.primaryBtn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.2);
+}
+
+.primaryBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.secondaryBtn {
+  background: transparent;
+  color: var(--text-main);
+  border: 1px solid var(--border-subtle);
+}
+
+.secondaryBtn:hover {
+  background: var(--bg-card-hover);
+}

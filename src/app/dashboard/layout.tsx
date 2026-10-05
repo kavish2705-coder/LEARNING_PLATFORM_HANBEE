@@ -1,6 +1,7 @@
 import { ThemeProvider } from "./ThemeProvider";
 import { ModeProvider } from "./ModeContext";
 import ClientLayout from "./ClientLayout";
+import { QueryProvider } from "./QueryProvider";
 
 export default function DashboardLayout({
   children,
@@ -9,11 +10,13 @@ export default function DashboardLayout({
 }) {
   return (
     <ThemeProvider>
-      <ModeProvider>
-        <ClientLayout>
-          {children}
-        </ClientLayout>
-      </ModeProvider>
+      <QueryProvider>
+        <ModeProvider>
+          <ClientLayout>
+            {children}
+          </ClientLayout>
+        </ModeProvider>
+      </QueryProvider>
     </ThemeProvider>
   );
 }

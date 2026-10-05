@@ -20,6 +20,8 @@
   z-index: 10;
   border-right: var(--border-subtle);
   transition: background-color 0.5s ease, box-shadow 0.5s ease;
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
 }
 
 .logo {
@@ -139,6 +141,7 @@
   box-shadow: 0 2px 10px rgba(0,0,0,0.02);
   z-index: 5;
   transition: background-color 0.5s ease, border-color 0.5s ease;
+  background: transparent;
 }
 
 .headerLeft {

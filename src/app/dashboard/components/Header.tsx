@@ -8,16 +8,18 @@ import Link from "next/link";
 export default function Header() {
   const { role, setRole } = useRole();
   
-  const userNames = {
+  const userNames: Record<Role, string> = {
     student: "Alex Rivera",
     teacher: "James Okafor",
-    manager: "Marcus Reyes"
+    manager: "Marcus Reyes",
+    school_staff: "Principal Smith"
   };
 
-  const userSubtitles = {
+  const userSubtitles: Record<Role, string> = {
     student: "Team Apex",
     teacher: "Lead Instructor",
-    manager: "Facility Director"
+    manager: "Facility Director",
+    school_staff: "School Administrator"
   };
 
   const getInitial = (name: string) => name.charAt(0);

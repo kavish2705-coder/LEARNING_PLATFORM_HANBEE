@@ -55,16 +55,7 @@ export default function MyTeamPage() {
               Start a New Team
             </Link>
             
-            <button style={{
-              padding: "14px 28px",
-              background: "var(--bg-card)",
-              boxShadow: "var(--clay-shadow-button)",
-              color: "var(--text-main)",
-              borderRadius: "12px",
-              border: "none",
-              fontWeight: "600",
-              cursor: "pointer"
-            }}>
+            <button className={styles.filterBtn} style={{ padding: "14px 28px", fontSize: "16px" }}>
               Browse Teams
             </button>
           </div>
