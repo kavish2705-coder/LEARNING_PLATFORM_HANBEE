@@ -53,12 +53,6 @@ function LoginContent() {
     return "Email / Student ID";
   };
 
-  const getSecondaryPlaceholder = () => {
-    if (activeRole === "Staff") return "Department Code";
-    if (activeRole === "Manager") return "Region / Branch Code";
-    if (activeRole === "School") return "School Code";
-    return "Team / Section Code";
-  };
 
   return (
     <>
@@ -141,13 +135,6 @@ function LoginContent() {
             </div>
           </div>
 
-          <div className={styles.formGroup}>
-            <input 
-              type="text" 
-              className={styles.input} 
-              placeholder={getSecondaryPlaceholder()} 
-            />
-          </div>
 
           {isLogin && (
             <div className={styles.formOptions}>
