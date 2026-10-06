@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="en" data-track="react">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Testing React Applications — React Notes · Hanbee</title>
+<meta name="description" content="Test the way users use your app. Vitest, React Testing Library, user-event, mocking APIs with MSW, testing hooks, async UI, accessibility checks and end-to-end tests with Playwright.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500..700;1,9..144,500&amp;family=Inter:wght@400..700&amp;family=JetBrains+Mono:wght@400..600&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/notes.css">
+<script src="../assets/notes.js" defer></script>
+</head>
+<body>
+<div class="progress" aria-hidden="true"><i></i></div>
+<header class="top">
+  <a class="brand" href="../index.html"><b>H</b>Hanbee · React Notes</a>
+  <nav><a class="keep" href="index.html">All topics</a><button id="theme-toggle" type="button" aria-label="Toggle light and dark theme">Theme</button></nav>
+</header>
+<div class="shell">
+  <details class="toc"><summary>On this page</summary><nav aria-label="On this page"><ol><li><a href="#why-and-what-to-test"><span>01</span>Why and What to Test</a></li><li><a href="#tooling"><span>02</span>Tooling</a></li><li><a href="#setup-vite-vitest"><span>03</span>Setup (Vite + Vitest)</a></li><li><a href="#unit-tests"><span>04</span>Unit Tests</a></li><li><a href="#component-tests-with-rtl"><span>05</span>Component Tests with RTL</a></li><li><a href="#testing-forms-and-interactions"><span>06</span>Testing Forms and Interactions</a></li><li><a href="#mocking"><span>07</span>Mocking</a></li><li><a href="#testing-components-with-providers"><span>08</span>Testing Components with Providers</a></li><li><a href="#testing-async-ui-and-act"><span>09</span>Testing Async UI and act()</a></li><li><a href="#testing-hooks"><span>10</span>Testing Hooks</a></li><li><a href="#snapshot-and-visual-testing"><span>11</span>Snapshot and Visual Testing</a></li><li><a href="#accessibility-testing"><span>12</span>Accessibility Testing</a></li><li><a href="#testing-server-components-and-actions"><span>13</span>Testing Server Components and Actions</a></li><li><a href="#end-to-end-tests-with-playwright"><span>14</span>End-to-End Tests with Playwright</a></li><li><a href="#test-quality-rules"><span>15</span>Test Quality Rules</a></li><li><a href="#coverage-and-ci"><span>16</span>Coverage and CI</a></li><li><a href="#quick-recap"><span>17</span>Quick Recap</a></li></ol></nav></details>
+  <main>
+    <header class="hero">
+      <p class="kicker"><span class="pill">Production and Advanced</span><span>Topic 17</span><span>Intermediate</span><span>8 min read</span></p>
+      <h1>Testing React Applications</h1>
+      <p class="lede">Test the way users use your app. Vitest, React Testing Library, user-event, mocking APIs with MSW, testing hooks, async UI, accessibility checks and end-to-end tests with Playwright.</p>
+    </header>
+    <article>
+<h2 id="why-and-what-to-test"><span class="num">01</span>Why and What to Test</h2>
+<p>Tests protect you from regressions and let you refactor with confidence. Aim for tests that resemble <strong>how users interact</strong> with the UI, not tests that mirror implementation details.</p>
+<h3 id="the-testing-trophy">The testing trophy</h3>
+<pre><code class="language-text">        E2E (few)           Playwright: full flows in a real browser
+      Integration (most)    React Testing Library: components + hooks + API mocks together
+    Unit (some)             Vitest: pure functions, reducers, utilities
+  Static analysis (always)  TypeScript + ESLint</code></pre>
+<div class="table-wrap"><table><thead><tr><th>Test</th><th>Example</th></tr></thead><tbody><tr><td><strong>Unit</strong></td><td><code>formatPrice(2499)</code> returns <code>"₹2,499.00"</code></td></tr><tr><td><strong>Component / integration</strong></td><td>Filling the login form shows an error for a bad password</td></tr><tr><td><strong>E2E</strong></td><td>User signs up, enrols in a course, sees it on the dashboard</td></tr></tbody></table></div>
+<h2 id="tooling"><span class="num">02</span>Tooling</h2>
+<div class="table-wrap"><table><thead><tr><th>Tool</th><th>Role</th></tr></thead><tbody><tr><td><strong>Vitest</strong></td><td>Fast test runner (Jest-compatible API, native Vite support)</td></tr><tr><td><strong>React Testing Library (RTL)</strong></td><td>Render components and query the DOM like a user</td></tr><tr><td><strong>@testing-library/user-event</strong></td><td>Realistic user interactions</td></tr><tr><td><strong>@testing-library/jest-dom</strong></td><td>Matchers like <code>toBeInTheDocument()</code></td></tr><tr><td><strong>MSW</strong> (Mock Service Worker)</td><td>Mock network requests at the network layer</td></tr><tr><td><strong>Playwright</strong> / Cypress</td><td>End-to-end browser tests</td></tr><tr><td><strong>jest-axe / axe-core</strong></td><td>Automated accessibility checks</td></tr></tbody></table></div>
+<aside class="callout note"><span class="label">Note</span><p>Jest also works. Many existing projects use it; Vitest is the default choice for new Vite projects.</p></aside>
+<h2 id="setup-vite-vitest"><span class="num">03</span>Setup (Vite + Vitest)</h2>
+<pre><code class="language-bash">npm install -D vitest jsdom @testing-library/react @testing-library/user-event @testing-library/jest-dom</code></pre>
+<pre data-file="vite.config.js"><code class="language-js">import { defineConfig } from "vitest/config";
+import react from "@vitejs/plugin-react";
+
+export default defineConfig({
+  plugins: [react()],
+  test: {
+    environment: "jsdom",
+    globals: true,
+    setupFiles: "./src/test/setup.js",
+    css: true,
+  },
+});</code></pre>
+<pre data-file="src/test/setup.js"><code class="language-js">import "@testing-library/jest-dom/vitest";
+import { afterEach } from "vitest";
+import { cleanup } from "@testing-library/react";
+
+afterEach(() =&gt; cleanup());</code></pre>
+<pre data-file="package.json"><code class="language-json">{ "scripts": { "test": "vitest", "test:run": "vitest run", "coverage": "vitest run --coverage" } }</code></pre>
+<h2 id="unit-tests"><span class="num">04</span>Unit Tests</h2>
+<pre data-file="price.test.js"><code class="language-js">import { describe, it, expect } from "vitest";
+import { formatPrice, cartReducer } from "./cart";
+
+describe("formatPrice", () =&gt; {
+  it("formats rupees", () =&gt; {
+    expect(formatPrice(2499)).toBe("₹2,499.00");
+  });
+  it.each([[0, "₹0.00"], [10.5, "₹10.50"]])("formats %s as %s", (input, expected) =&gt; {
+    expect(formatPrice(input)).toBe(expected);
+  });
+});
+
+describe("cartReducer", () =&gt; {
+  it("adds an item without mutating state", () =&gt; {
+    const state = { items: [] };
+    const next = cartReducer(state, { type: "added", item: { id: 1 } });
+    expect(next.items).toHaveLength(1);
+    expect(state.items).toHaveLength(0);
+  });
+});</code></pre>
+<h2 id="component-tests-with-rtl"><span class="num">05</span>Component Tests with RTL</h2>
+<pre data-file="Counter.test.jsx"><code class="language-jsx">import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import Counter from "./Counter";
+
+describe("Counter", () =&gt; {
+  it("increments when the button is clicked", async () =&gt; {
+    const user = userEvent.setup();
+    render(&lt;Counter /&gt;);
+
+    expect(screen.getByText(/count: 0/i)).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: /increment/i }));
+    expect(screen.getByText(/count: 1/i)).toBeInTheDocument();
+  });
+});</code></pre>
+<h3 id="query-priority-use-the-first-that-works">Query priority (use the first that works)</h3>
+<ol><li><strong><code>getByRole</code></strong> (with <code>name</code>): matches how assistive tech sees the page</li><li><code>getByLabelText</code>: form fields</li><li><code>getByPlaceholderText</code>, <code>getByText</code>, <code>getByDisplayValue</code></li><li><code>getByAltText</code>, <code>getByTitle</code></li><li><code>getByTestId</code> <strong>last resort</strong></li></ol>
+<h3 id="query-variants">Query variants</h3>
+<div class="table-wrap"><table><thead><tr><th>Prefix</th><th>Not found</th><th>Found multiple</th><th>Async</th></tr></thead><tbody><tr><td><code>getBy…</code></td><td><strong>throws</strong></td><td>throws</td><td>no</td></tr><tr><td><code>queryBy…</code></td><td>returns <code>null</code></td><td>throws</td><td>no</td></tr><tr><td><code>findBy…</code></td><td>rejects after timeout</td><td>throws</td><td><strong>yes</strong> (waits)</td></tr><tr><td><code>getAllBy / queryAllBy / findAllBy</code></td><td></td><td>returns array</td><td></td></tr></tbody></table></div>
+<pre><code class="language-jsx">expect(screen.queryByRole("alert")).not.toBeInTheDocument();      // asserting absence: use queryBy
+const row = await screen.findByText("React 19");                  // waiting for async UI: use findBy</code></pre>
+<h3 id="common-matchers-jest-dom">Common matchers (jest-dom)</h3>
+<p><code>toBeInTheDocument</code>, <code>toBeVisible</code>, <code>toBeDisabled</code>, <code>toBeEnabled</code>, <code>toHaveTextContent</code>, <code>toHaveValue</code>, <code>toBeChecked</code>, <code>toHaveAttribute</code>, <code>toHaveFocus</code>, <code>toHaveAccessibleName</code>.</p>
+<h2 id="testing-forms-and-interactions"><span class="num">06</span>Testing Forms and Interactions</h2>
+<pre data-file="LoginForm.test.jsx"><code class="language-jsx">it("shows validation errors and submits valid data", async () =&gt; {
+  const user = userEvent.setup();
+  const onSubmit = vi.fn();
+  render(&lt;LoginForm onSubmit={onSubmit} /&gt;);
+
+  await user.click(screen.getByRole("button", { name: /log in/i }));
+  expect(await screen.findByRole("alert")).toHaveTextContent(/email is required/i);
+  expect(onSubmit).not.toHaveBeenCalled();
+
+  await user.type(screen.getByLabelText(/email/i), "asha@mail.com");
+  await user.type(screen.getByLabelText(/password/i), "secret123");
+  await user.click(screen.getByRole("button", { name: /log in/i }));
+
+  expect(onSubmit).toHaveBeenCalledWith({ email: "asha@mail.com", password: "secret123" });
+});</code></pre>
+<p>Other <code>user</code> helpers: <code>user.type</code>, <code>user.clear</code>, <code>user.selectOptions</code>, <code>user.upload</code>, <code>user.hover</code>, <code>user.keyboard("{Enter}")</code>, <code>user.tab()</code>.</p>
+<h2 id="mocking"><span class="num">07</span>Mocking</h2>
+<pre><code class="language-js">const fn = vi.fn();                              // spy/mocks
+fn.mockReturnValue(5);   fn.mockResolvedValue({ ok: true });
+expect(fn).toHaveBeenCalledTimes(1);
+expect(fn).toHaveBeenCalledWith("a");
+
+vi.mock("./api");                                // mock a module
+vi.spyOn(window, "fetch").mockResolvedValue(new Response("{}"));
+
+vi.useFakeTimers();                              // timers, debounce
+vi.advanceTimersByTime(300);
+vi.useRealTimers();</code></pre>
+<h3 id="mock-the-network-with-msw">Mock the network with MSW</h3>
+<pre><code class="language-bash">npm install -D msw</code></pre>
+<pre data-file="src/test/server.js"><code class="language-js">import { setupServer } from "msw/node";
+import { http, HttpResponse } from "msw";
+
+export const handlers = [
+  http.get("/api/courses", () =&gt; HttpResponse.json([{ id: 1, title: "React 19" }])),
+  http.post("/api/enroll", async ({ request }) =&gt; HttpResponse.json({ ok: true }, { status: 201 })),
+];
+export const server = setupServer(...handlers);</code></pre>
+<pre data-file="src/test/setup.js"><code class="language-js">import { server } from "./server";
+beforeAll(() =&gt; server.listen({ onUnhandledRequest: "error" }));
+afterEach(() =&gt; server.resetHandlers());
+afterAll(() =&gt; server.close());</code></pre>
+<pre><code class="language-jsx">it("shows an error state when the API fails", async () =&gt; {
+  server.use(http.get("/api/courses", () =&gt; new HttpResponse(null, { status: 500 })));
+  renderWithProviders(&lt;Courses /&gt;);
+  expect(await screen.findByRole("alert")).toHaveTextContent(/could not load/i);
+});</code></pre>
+<p>MSW lets your code use the <strong>real <code>fetch</code></strong>, so tests stay close to production behaviour and the same handlers work in the browser for development.</p>
+<h2 id="testing-components-with-providers"><span class="num">08</span>Testing Components with Providers</h2>
+<pre data-file="src/test/utils.jsx"><code class="language-jsx">import { render } from "@testing-library/react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { MemoryRouter } from "react-router";
+
+export function renderWithProviders(ui, { route = "/" } = {}) {
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });   // no retries in tests
+  return render(
+    &lt;QueryClientProvider client={client}&gt;
+      &lt;MemoryRouter initialEntries={[route]}&gt;{ui}&lt;/MemoryRouter&gt;
+    &lt;/QueryClientProvider&gt;
+  );
+}</code></pre>
+<p>Use a fresh <code>QueryClient</code> per test to avoid cache leaking between tests; use <code>MemoryRouter</code> or <code>createMemoryRouter</code> for routing.</p>
+<h2 id="testing-async-ui-and-act"><span class="num">09</span>Testing Async UI and act()</h2>
+<ul><li>Prefer <code>await screen.findBy…</code> / <code>waitFor</code> over arbitrary delays</li><li><code>await user.click(…)</code> already wraps updates in <code>act</code></li><li>In React 19, import <code>act</code> from <strong><code>react</code></strong> (not <code>react-dom/test-utils</code>)</li><li>"not wrapped in act(...)" warnings mean a state update happened after the test ended or was not awaited</li></ul>
+<pre><code class="language-jsx">import { waitFor } from "@testing-library/react";
+await waitFor(() =&gt; expect(onSave).toHaveBeenCalled());</code></pre>
+<h2 id="testing-hooks"><span class="num">10</span>Testing Hooks</h2>
+<pre><code class="language-jsx">import { renderHook, act } from "@testing-library/react";
+
+it("toggles", () =&gt; {
+  const { result } = renderHook(() =&gt; useToggle(false));
+  expect(result.current[0]).toBe(false);
+  act(() =&gt; result.current[1]());
+  expect(result.current[0]).toBe(true);
+});</code></pre>
+<p>For hooks that need context, pass a <code>wrapper</code>: <code>renderHook(() =&gt; useAuth(), { wrapper: AuthProvider })</code>.</p>
+<h2 id="snapshot-and-visual-testing"><span class="num">11</span>Snapshot and Visual Testing</h2>
+<ul><li>Avoid large DOM snapshots: they are brittle and rarely catch real bugs</li><li>Use <strong>inline snapshots</strong> for small, stable structures</li><li>For visual regression use Playwright screenshots, <strong>Chromatic</strong> or Storybook</li></ul>
+<h2 id="accessibility-testing"><span class="num">12</span>Accessibility Testing</h2>
+<pre><code class="language-jsx">import { axe, toHaveNoViolations } from "jest-axe";
+expect.extend(toHaveNoViolations);
+
+it("has no obvious a11y violations", async () =&gt; {
+  const { container } = render(&lt;LoginForm /&gt;);
+  expect(await axe(container)).toHaveNoViolations();
+});</code></pre>
+<p>Automated checks catch roughly a third of issues; also test with the <strong>keyboard</strong> and a screen reader, and use <code>getByRole</code> so your tests double as accessibility checks.</p>
+<h2 id="testing-server-components-and-actions"><span class="num">13</span>Testing Server Components and Actions</h2>
+<ul><li><strong>Server Actions and pure server logic</strong>: unit-test as normal async functions (mock the database)</li><li><strong>Async Server Components</strong>: RTL cannot render them directly; test the <strong>data functions</strong> with unit tests and the <strong>flow</strong> with E2E tests</li><li>Client Components inside them are tested with RTL as usual</li></ul>
+<h2 id="end-to-end-tests-with-playwright"><span class="num">14</span>End-to-End Tests with Playwright</h2>
+<pre><code class="language-bash">npm init playwright@latest</code></pre>
+<pre data-file="e2e/enroll.spec.ts"><code class="language-ts">import { test, expect } from "@playwright/test";
+
+test("student can enrol in a course", async ({ page }) =&gt; {
+  await page.goto("/login");
+  await page.getByLabel("Email").fill("student@hanbee.test");
+  await page.getByLabel("Password").fill("secret123");
+  await page.getByRole("button", { name: "Log in" }).click();
+
+  await page.getByRole("link", { name: "Courses" }).click();
+  await page.getByRole("button", { name: "Enroll in React 19" }).click();
+
+  await expect(page.getByRole("status")).toHaveText("Enrolled!");
+  await page.reload();
+  await expect(page.getByText("React 19")).toBeVisible();
+});</code></pre>
+<ul><li>Auto-waiting locators (<code>getByRole</code>, <code>getByLabel</code>) make tests stable</li><li>Run across Chromium, Firefox and WebKit, record <strong>traces</strong> and videos for failures</li><li>Keep E2E tests for <strong>critical journeys</strong> (sign-up, checkout, enrolment); they are slower</li></ul>
+<h2 id="test-quality-rules"><span class="num">15</span>Test Quality Rules</h2>
+<div class="table-wrap"><table><thead><tr><th>Do</th><th>Don't</th></tr></thead><tbody><tr><td>Test <strong>behaviour</strong> the user sees</td><td>Test internal state or private functions</td></tr><tr><td>Query by role, label, text</td><td>Query by class names or test ids first</td></tr><tr><td>Mock the <strong>network boundary</strong> (MSW)</td><td>Mock your own components/hooks everywhere</td></tr><tr><td>Keep tests independent and deterministic</td><td>Share state between tests; rely on order</td></tr><tr><td>Write one clear reason to fail per test</td><td>Giant tests asserting everything</td></tr><tr><td>Name tests as sentences (<code>it("shows an error when…")</code>)</td><td><code>it("test 1")</code></td></tr></tbody></table></div>
+<h2 id="coverage-and-ci"><span class="num">16</span>Coverage and CI</h2>
+<pre><code class="language-bash">npx vitest run --coverage</code></pre>
+<ul><li>Coverage shows <strong>untested code</strong>, not <strong>good tests</strong>; don't chase 100%</li><li>Run lint, type-check and tests in <strong>CI</strong> (GitHub Actions) on every pull request</li><li>Block merges on failures; run E2E on a preview deployment</li></ul>
+<pre data-file=".github/workflows/ci.yml"><code class="language-yaml">name: CI
+on: [pull_request]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm }
+      - run: npm ci
+      - run: npm run lint
+      - run: npx tsc --noEmit
+      - run: npm run test:run</code></pre>
+<h2 id="quick-recap"><span class="num">17</span>Quick Recap</h2>
+<ul><li>Test <strong>behaviour</strong>, not implementation: Vitest + React Testing Library + user-event</li><li>Prefer <code>getByRole</code>/<code>getByLabelText</code>; use <code>findBy…</code> for async, <code>queryBy…</code> for absence</li><li>Mock the network with <strong>MSW</strong>; wrap with providers using a <code>renderWithProviders</code> helper</li><li>Use <code>renderHook</code> for hooks; <code>act</code> now comes from <code>react</code></li><li>Keep <strong>E2E (Playwright)</strong> for critical user journeys; run everything in CI</li></ul>
+    </article>
+    <nav class="pager" aria-label="Topic navigation">
+      <a class="prev" href="16-server-components-frameworks.html"><small>← Previous</small><strong>Server Components, SSR and React Frameworks</strong></a>
+      <a class="next" href="18-architecture-security-deployment.html"><small>Next →</small><strong>Architecture, Security and Deployment</strong></a>
+    </nav>
+  </main>
+</div>
+</body>
+</html>

@@ -1,0 +1,259 @@
+<!doctype html>
+<html lang="en" data-track="react">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Custom Hooks, Patterns and Error Boundaries — React Notes · Hanbee</title>
+<meta name="description" content="Reuse logic with custom hooks, structure components with composition patterns, handle failures with error boundaries, and render outside the tree with portals.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500..700;1,9..144,500&amp;family=Inter:wght@400..700&amp;family=JetBrains+Mono:wght@400..600&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/notes.css">
+<script src="../assets/notes.js" defer></script>
+</head>
+<body>
+<div class="progress" aria-hidden="true"><i></i></div>
+<header class="top">
+  <a class="brand" href="../index.html"><b>H</b>Hanbee · React Notes</a>
+  <nav><a class="keep" href="index.html">All topics</a><button id="theme-toggle" type="button" aria-label="Toggle light and dark theme">Theme</button></nav>
+</header>
+<div class="shell">
+  <details class="toc"><summary>On this page</summary><nav aria-label="On this page"><ol><li><a href="#custom-hooks"><span>01</span>Custom Hooks</a></li><li><a href="#useful-custom-hooks"><span>02</span>Useful Custom Hooks</a></li><li><a href="#naming-and-design-tips"><span>03</span>Naming and Design Tips</a></li><li><a href="#component-composition-patterns"><span>04</span>Component Composition Patterns</a></li><li><a href="#error-boundaries"><span>05</span>Error Boundaries</a></li><li><a href="#portals"><span>06</span>Portals</a></li><li><a href="#suspense-boundaries-recap"><span>07</span>Suspense Boundaries (Recap)</a></li><li><a href="#lists-of-components-and-dynamic-rendering"><span>08</span>Lists of Components and Dynamic Rendering</a></li><li><a href="#quick-recap"><span>09</span>Quick Recap</a></li></ol></nav></details>
+  <main>
+    <header class="hero">
+      <p class="kicker"><span class="pill">React 19 and Patterns</span><span>Topic 10</span><span>Intermediate</span><span>8 min read</span></p>
+      <h1>Custom Hooks, Patterns and Error Boundaries</h1>
+      <p class="lede">Reuse logic with custom hooks, structure components with composition patterns, handle failures with error boundaries, and render outside the tree with portals.</p>
+    </header>
+    <article>
+<h2 id="custom-hooks"><span class="num">01</span>Custom Hooks</h2>
+<p>A <strong>custom hook</strong> is a function whose name starts with <code>use</code> and that calls other hooks. It lets you <strong>reuse stateful logic</strong> (not UI) across components.</p>
+<pre><code class="language-jsx">function useToggle(initial = false) {
+  const [on, setOn] = useState(initial);
+  const toggle = useCallback(() =&gt; setOn(v =&gt; !v), []);
+  return [on, toggle];
+}
+
+function Menu() {
+  const [open, toggleOpen] = useToggle();
+  return &lt;button onClick={toggleOpen}&gt;{open ? "Close" : "Open"}&lt;/button&gt;;
+}</code></pre>
+<h3 id="rules">Rules</h3>
+<ul><li>The name <strong>must</strong> start with <code>use</code> so linters can check the Rules of Hooks</li><li>Each call has its <strong>own isolated state</strong>: two components using <code>useToggle()</code> do not share state</li><li>It shares <strong>logic</strong>, not state (share state with Context or a store)</li><li>Custom hooks can call other hooks and return anything: values, arrays, objects, functions</li></ul>
+<h2 id="useful-custom-hooks"><span class="num">02</span>Useful Custom Hooks</h2>
+<h3 id="uselocalstorage">useLocalStorage</h3>
+<pre><code class="language-jsx">function useLocalStorage(key, initial) {
+  const [value, setValue] = useState(() =&gt; {
+    try {
+      const saved = localStorage.getItem(key);
+      return saved !== null ? JSON.parse(saved) : initial;
+    } catch { return initial; }
+  });
+
+  useEffect(() =&gt; {
+    try { localStorage.setItem(key, JSON.stringify(value)); } catch { /* storage full or blocked */ }
+  }, [key, value]);
+
+  return [value, setValue];
+}
+
+const [theme, setTheme] = useLocalStorage("theme", "light");</code></pre>
+<h3 id="usedebounce">useDebounce</h3>
+<pre><code class="language-jsx">function useDebounce(value, delay = 300) {
+  const [debounced, setDebounced] = useState(value);
+  useEffect(() =&gt; {
+    const id = setTimeout(() =&gt; setDebounced(value), delay);
+    return () =&gt; clearTimeout(id);
+  }, [value, delay]);
+  return debounced;
+}</code></pre>
+<h3 id="usefetch-simple-version">useFetch (simple version)</h3>
+<pre><code class="language-jsx">function useFetch(url) {
+  const [state, setState] = useState({ data: null, error: null, loading: true });
+
+  useEffect(() =&gt; {
+    const controller = new AbortController();
+    setState(s =&gt; ({ ...s, loading: true }));
+
+    fetch(url, { signal: controller.signal })
+      .then(res =&gt; { if (!res.ok) throw new Error(`HTTP ${res.status}`); return res.json(); })
+      .then(data =&gt; setState({ data, error: null, loading: false }))
+      .catch(error =&gt; { if (error.name !== "AbortError") setState({ data: null, error, loading: false }); });
+
+    return () =&gt; controller.abort();
+  }, [url]);
+
+  return state;
+}
+
+const { data, error, loading } = useFetch(`/api/courses/${id}`);</code></pre>
+<aside class="callout tip"><span class="label">Tip</span><p>In real projects, prefer <strong>TanStack Query</strong> over a hand-written <code>useFetch</code>: caching, retries and deduplication are already solved.</p></aside>
+<h3 id="usewindowsize-usemediaquery">useWindowSize / useMediaQuery</h3>
+<pre><code class="language-jsx">function useMediaQuery(query) {
+  const [matches, setMatches] = useState(() =&gt; window.matchMedia(query).matches);
+  useEffect(() =&gt; {
+    const mql = window.matchMedia(query);
+    const onChange = (e) =&gt; setMatches(e.matches);
+    mql.addEventListener("change", onChange);
+    return () =&gt; mql.removeEventListener("change", onChange);
+  }, [query]);
+  return matches;
+}
+const isMobile = useMediaQuery("(max-width: 640px)");</code></pre>
+<h3 id="useprevious">usePrevious</h3>
+<pre><code class="language-jsx">function usePrevious(value) {
+  const ref = useRef(undefined);
+  useEffect(() =&gt; { ref.current = value; });
+  return ref.current;
+}</code></pre>
+<h3 id="useonclickoutside">useOnClickOutside</h3>
+<pre><code class="language-jsx">function useOnClickOutside(ref, handler) {
+  useEffect(() =&gt; {
+    const listener = (e) =&gt; { if (ref.current &amp;&amp; !ref.current.contains(e.target)) handler(e); };
+    document.addEventListener("pointerdown", listener);
+    return () =&gt; document.removeEventListener("pointerdown", listener);
+  }, [ref, handler]);
+}</code></pre>
+<h3 id="useinterval">useInterval</h3>
+<pre><code class="language-jsx">function useInterval(callback, delay) {
+  const saved = useRef(callback);
+  useEffect(() =&gt; { saved.current = callback; }, [callback]);
+  useEffect(() =&gt; {
+    if (delay == null) return;
+    const id = setInterval(() =&gt; saved.current(), delay);
+    return () =&gt; clearInterval(id);
+  }, [delay]);
+}</code></pre>
+<h3 id="libraries-of-ready-made-hooks">Libraries of ready-made hooks</h3>
+<p><code>usehooks-ts</code>, <code>react-use</code>, <code>ahooks</code>, <code>@uidotdev/usehooks</code> provide well-tested versions of these.</p>
+<h2 id="naming-and-design-tips"><span class="num">03</span>Naming and Design Tips</h2>
+<ul><li>Name by <strong>what it does</strong>, not how: <code>useOnlineStatus</code>, not <code>useEventListenerOnWindow</code></li><li>Return the <strong>smallest</strong> useful API; use an array for 2 values, an object for more</li><li>Keep hooks focused; compose small hooks into bigger ones</li><li>Don't wrap one-off <code>useEffect</code> calls in a hook just for the sake of it</li><li>Test hooks with <code>renderHook</code> from React Testing Library</li></ul>
+<h2 id="component-composition-patterns"><span class="num">04</span>Component Composition Patterns</h2>
+<h3 id="children-and-slots">Children and slots</h3>
+<pre><code class="language-jsx">function Layout({ header, sidebar, children }) {
+  return (
+    &lt;div className="layout"&gt;
+      &lt;header&gt;{header}&lt;/header&gt;
+      &lt;aside&gt;{sidebar}&lt;/aside&gt;
+      &lt;main&gt;{children}&lt;/main&gt;
+    &lt;/div&gt;
+  );
+}
+&lt;Layout header={&lt;Nav /&gt;} sidebar={&lt;Menu /&gt;}&gt;&lt;Dashboard /&gt;&lt;/Layout&gt;</code></pre>
+<h3 id="compound-components">Compound components</h3>
+<p>Related components that <strong>share implicit state</strong> through Context, giving a flexible, declarative API.</p>
+<pre><code class="language-jsx">const TabsContext = createContext(null);
+
+function Tabs({ defaultValue, children }) {
+  const [value, setValue] = useState(defaultValue);
+  return &lt;TabsContext value={{ value, setValue }}&gt;&lt;div&gt;{children}&lt;/div&gt;&lt;/TabsContext&gt;;
+}
+Tabs.List = ({ children }) =&gt; &lt;div role="tablist"&gt;{children}&lt;/div&gt;;
+Tabs.Tab = function Tab({ value, children }) {
+  const ctx = use(TabsContext);
+  return &lt;button role="tab" aria-selected={ctx.value === value} onClick={() =&gt; ctx.setValue(value)}&gt;{children}&lt;/button&gt;;
+};
+Tabs.Panel = function Panel({ value, children }) {
+  return use(TabsContext).value === value ? &lt;div role="tabpanel"&gt;{children}&lt;/div&gt; : null;
+};
+
+&lt;Tabs defaultValue="notes"&gt;
+  &lt;Tabs.List&gt;&lt;Tabs.Tab value="notes"&gt;Notes&lt;/Tabs.Tab&gt;&lt;Tabs.Tab value="videos"&gt;Videos&lt;/Tabs.Tab&gt;&lt;/Tabs.List&gt;
+  &lt;Tabs.Panel value="notes"&gt;…&lt;/Tabs.Panel&gt;
+  &lt;Tabs.Panel value="videos"&gt;…&lt;/Tabs.Panel&gt;
+&lt;/Tabs&gt;</code></pre>
+<p>Used by Radix UI, Headless UI, Reach UI and shadcn/ui.</p>
+<h3 id="render-props">Render props</h3>
+<p>A prop that is a <strong>function returning JSX</strong>: the component supplies data, the caller decides how to render.</p>
+<pre><code class="language-jsx">function MouseTracker({ children }) {
+  const [pos, setPos] = useState({ x: 0, y: 0 });
+  return &lt;div onPointerMove={e =&gt; setPos({ x: e.clientX, y: e.clientY })}&gt;{children(pos)}&lt;/div&gt;;
+}
+&lt;MouseTracker&gt;{({ x, y }) =&gt; &lt;p&gt;{x}, {y}&lt;/p&gt;}&lt;/MouseTracker&gt;</code></pre>
+<p>Mostly <strong>replaced by custom hooks</strong> today, but still common in libraries (e.g. <code>Controller</code> in React Hook Form).</p>
+<h3 id="higher-order-components-hoc">Higher-order components (HOC)</h3>
+<p>A function that takes a component and returns an enhanced one.</p>
+<pre><code class="language-jsx">function withAuth(Component) {
+  return function Protected(props) {
+    const { user } = useAuth();
+    return user ? &lt;Component {...props} user={user} /&gt; : &lt;Navigate to="/login" /&gt;;
+  };
+}
+const AdminPage = withAuth(Admin);</code></pre>
+<p>Hooks and composition replaced most HOC use; you'll still meet them in older code (<code>connect</code> from Redux, <code>withRouter</code>).</p>
+<h3 id="controlled-vs-uncontrolled-components">Controlled vs uncontrolled components</h3>
+<p>A component can be <strong>controlled</strong> by its parent (<code>value</code> + <code>onChange</code>) or <strong>uncontrolled</strong> (own state, <code>defaultValue</code>). Good reusable components support both.</p>
+<h3 id="container-presentational">Container / presentational</h3>
+<p>Separate <strong>how it looks</strong> (presentational, receives props) from <strong>how it gets data</strong> (container or hook). Today the "container" is usually a custom hook or a Server Component.</p>
+<h3 id="polymorphic-as-prop">Polymorphic <code>as</code> prop</h3>
+<pre><code class="language-jsx">function Text({ as: Tag = "p", children, ...rest }) { return &lt;Tag {...rest}&gt;{children}&lt;/Tag&gt;; }
+&lt;Text as="h1"&gt;Title&lt;/Text&gt;</code></pre>
+<h3 id="pattern-summary">Pattern summary</h3>
+<div class="table-wrap"><table><thead><tr><th>Pattern</th><th>Use for</th></tr></thead><tbody><tr><td>Custom hook</td><td>Reusing stateful logic</td></tr><tr><td>Children / slots</td><td>Layouts and wrappers</td></tr><tr><td>Compound components</td><td>Tabs, accordions, menus, selects</td></tr><tr><td>Render props</td><td>Letting callers customise rendering</td></tr><tr><td>HOC</td><td>Legacy code, cross-cutting wrappers</td></tr><tr><td>Context</td><td>Sharing data across a subtree</td></tr></tbody></table></div>
+<h2 id="error-boundaries"><span class="num">05</span>Error Boundaries</h2>
+<p>A render error in any component <strong>unmounts the whole tree</strong> by default. An <strong>error boundary</strong> catches errors in its children and shows a fallback.</p>
+<aside class="callout note"><span class="label">Note</span><p>Error boundaries must still be <strong>class components</strong>, or you can use the <code>react-error-boundary</code> library (recommended).</p></aside>
+<pre><code class="language-jsx">import { ErrorBoundary } from "react-error-boundary";
+
+function Fallback({ error, resetErrorBoundary }) {
+  return (
+    &lt;div role="alert"&gt;
+      &lt;p&gt;Something went wrong: {error.message}&lt;/p&gt;
+      &lt;button onClick={resetErrorBoundary}&gt;Try again&lt;/button&gt;
+    &lt;/div&gt;
+  );
+}
+
+&lt;ErrorBoundary FallbackComponent={Fallback} onError={(e, info) =&gt; report(e, info.componentStack)} onReset={() =&gt; refetch()}&gt;
+  &lt;Dashboard /&gt;
+&lt;/ErrorBoundary&gt;</code></pre>
+<h3 id="what-boundaries-catch">What boundaries catch</h3>
+<div class="table-wrap"><table><thead><tr><th>Catches</th><th>Does not catch</th></tr></thead><tbody><tr><td>Errors during <strong>rendering</strong></td><td>Errors in <strong>event handlers</strong> (use try/catch)</td></tr><tr><td>Errors in lifecycle/effects' render phase</td><td><strong>Async</strong> code (promises, <code>setTimeout</code>)</td></tr><tr><td>Errors in child constructors</td><td>Errors in the boundary itself</td></tr><tr><td>Rejected promises read with <code>use()</code> / Suspense</td><td>Server-side rendering errors (handled by the framework)</td></tr></tbody></table></div>
+<h3 id="placement-strategy">Placement strategy</h3>
+<ul><li>One <strong>top-level</strong> boundary (app crash page)</li><li><strong>Route-level</strong> boundaries so a broken page doesn't take down the layout</li><li>Boundaries around <strong>independent widgets</strong> (charts, comments) so they fail alone</li><li>Combine with <code>&lt;Suspense&gt;</code>: <code>ErrorBoundary &gt; Suspense &gt; Component</code></li></ul>
+<h3 id="class-boundary-for-reference">Class boundary (for reference)</h3>
+<pre><code class="language-jsx">class Boundary extends React.Component {
+  state = { error: null };
+  static getDerivedStateFromError(error) { return { error }; }
+  componentDidCatch(error, info) { report(error, info.componentStack); }
+  render() { return this.state.error ? &lt;p&gt;Oops&lt;/p&gt; : this.props.children; }
+}</code></pre>
+<h3 id="errors-in-event-handlers-and-async-code">Errors in event handlers and async code</h3>
+<pre><code class="language-jsx">async function handleSave() {
+  try { await save(); } catch (e) { setError(e.message); }
+}</code></pre>
+<h2 id="portals"><span class="num">06</span>Portals</h2>
+<p>Render children into a <strong>different DOM node</strong> while keeping them in the same React tree (context and events still bubble through React parents). Ideal for modals, tooltips and dropdowns that must escape <code>overflow: hidden</code> or <code>z-index</code> stacking.</p>
+<pre><code class="language-jsx">import { createPortal } from "react-dom";
+
+function Modal({ open, onClose, children }) {
+  if (!open) return null;
+  return createPortal(
+    &lt;div className="backdrop" onClick={onClose}&gt;
+      &lt;div className="modal" role="dialog" aria-modal="true" onClick={e =&gt; e.stopPropagation()}&gt;
+        {children}
+        &lt;button onClick={onClose}&gt;Close&lt;/button&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;,
+    document.body
+  );
+}</code></pre>
+<p>For modals also manage <strong>focus trapping, Escape to close and scroll locking</strong>, or use the native <code>&lt;dialog&gt;</code> element / Radix Dialog.</p>
+<h2 id="suspense-boundaries-recap"><span class="num">07</span>Suspense Boundaries (Recap)</h2>
+<p><code>&lt;Suspense fallback={…}&gt;</code> shows a fallback while children are loading (lazy components, <code>use(promise)</code>, data libraries). Combine with error boundaries and nest them for granular loading UI.</p>
+<h2 id="lists-of-components-and-dynamic-rendering"><span class="num">08</span>Lists of Components and Dynamic Rendering</h2>
+<pre><code class="language-jsx">const widgets = { chart: ChartWidget, table: TableWidget, text: TextWidget };
+function Widget({ type, ...props }) {
+  const Component = widgets[type];
+  return Component ? &lt;Component {...props} /&gt; : null;
+}</code></pre>
+<p>Store the <strong>component reference</strong> (capitalised variable), never a string, when rendering dynamically.</p>
+<h2 id="quick-recap"><span class="num">09</span>Quick Recap</h2>
+<ul><li><strong>Custom hooks</strong> (<code>useXyz</code>) reuse stateful logic; each use gets its own state</li><li>Prefer hooks and composition over HOCs and render props; <strong>compound components</strong> suit tabs/menus/accordions</li><li><strong>Error boundaries</strong> (use <code>react-error-boundary</code>) catch render errors; handle event/async errors with try/catch</li><li>Place boundaries at app, route and widget level, combined with <code>Suspense</code></li><li><strong>Portals</strong> render modals and tooltips outside their parent DOM node while staying in the React tree</li></ul>
+    </article>
+    <nav class="pager" aria-label="Topic navigation">
+      <a class="prev" href="09-forms-validation.html"><small>← Previous</small><strong>Forms and Validation</strong></a>
+      <a class="next" href="11-routing.html"><small>Next →</small><strong>Routing with React Router</strong></a>
+    </nav>
+  </main>
+</div>
+</body>
+</html>

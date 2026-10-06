@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="en" data-track="java">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Arrays and Strings — Java Notes · Hanbee</title>
+<meta name="description" content="Store collections of values in arrays, then master Java's most used class, String, along with StringBuilder, the string pool and regular expressions.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500..700;1,9..144,500&amp;family=Inter:wght@400..700&amp;family=JetBrains+Mono:wght@400..600&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/notes.css">
+<script src="../assets/notes.js" defer></script>
+</head>
+<body>
+<div class="progress" aria-hidden="true"><i></i></div>
+<header class="top">
+  <a class="brand" href="../index.html"><b>H</b>Hanbee · Java Notes</a>
+  <nav><a class="keep" href="index.html">All topics</a><button id="theme-toggle" type="button" aria-label="Toggle light and dark theme">Theme</button></nav>
+</header>
+<div class="shell">
+  <details class="toc"><summary>On this page</summary><nav aria-label="On this page"><ol><li><a href="#arrays"><span>01</span>Arrays</a></li><li><a href="#multi-dimensional-arrays"><span>02</span>Multi-dimensional Arrays</a></li><li><a href="#the-arrays-utility-class"><span>03</span>The Arrays Utility Class</a></li><li><a href="#strings"><span>04</span>Strings</a></li><li><a href="#common-string-methods"><span>05</span>Common String Methods</a></li><li><a href="#stringbuilder-and-stringbuffer"><span>06</span>StringBuilder and StringBuffer</a></li><li><a href="#regular-expressions"><span>07</span>Regular Expressions</a></li><li><a href="#common-string-programs"><span>08</span>Common String Programs</a></li><li><a href="#quick-recap"><span>09</span>Quick Recap</a></li></ol></nav></details>
+  <main>
+    <header class="hero">
+      <p class="kicker"><span class="pill">Foundations</span><span>Topic 04</span><span>Beginner</span><span>6 min read</span></p>
+      <h1>Arrays and Strings</h1>
+      <p class="lede">Store collections of values in arrays, then master Java's most used class, String, along with StringBuilder, the string pool and regular expressions.</p>
+    </header>
+    <article>
+<h2 id="arrays"><span class="num">01</span>Arrays</h2>
+<p>An array is a <strong>fixed-size, ordered</strong> container of elements of the <strong>same type</strong>, accessed by a zero-based index. Arrays are objects, stored on the heap.</p>
+<h3 id="declaring-and-creating">Declaring and creating</h3>
+<pre><code class="language-java">int[] marks = new int[5];            // five zeros
+int[] scores = {90, 80, 70};         // literal
+String[] names = new String[3];      // three nulls
+int size = scores.length;            // length is a field, not a method</code></pre>
+<h3 id="accessing-and-traversing">Accessing and traversing</h3>
+<pre><code class="language-java">scores[0] = 95;
+for (int i = 0; i &lt; scores.length; i++) {
+    System.out.println(scores[i]);
+}
+for (int s : scores) {
+    System.out.println(s);
+}</code></pre>
+<aside class="callout warning"><span class="label">Warning</span><p>Accessing an invalid index throws <code>ArrayIndexOutOfBoundsException</code>. Valid indexes are <code>0</code> to <code>length - 1</code>.</p></aside>
+<h3 id="default-values">Default values</h3>
+<p>Numeric arrays start with <code>0</code>, <code>boolean</code> with <code>false</code>, <code>char</code> with <code>'\u0000'</code>, and object arrays with <code>null</code>.</p>
+<h2 id="multi-dimensional-arrays"><span class="num">02</span>Multi-dimensional Arrays</h2>
+<pre><code class="language-java">int[][] grid = new int[3][4];       // 3 rows, 4 columns
+int[][] matrix = {
+    {1, 2, 3},
+    {4, 5, 6}
+};
+System.out.println(matrix[1][2]);   // 6</code></pre>
+<h3 id="jagged-arrays">Jagged arrays</h3>
+<p>Rows can have different lengths.</p>
+<pre><code class="language-java">int[][] jagged = new int[3][];
+jagged[0] = new int[]{1};
+jagged[1] = new int[]{1, 2};
+jagged[2] = new int[]{1, 2, 3};</code></pre>
+<h2 id="the-arrays-utility-class"><span class="num">03</span>The Arrays Utility Class</h2>
+<pre><code class="language-java">import java.util.Arrays;
+
+int[] a = {5, 2, 9, 1};
+Arrays.sort(a);                              // [1, 2, 5, 9]
+int pos = Arrays.binarySearch(a, 5);         // 2 (array must be sorted)
+int[] copy = Arrays.copyOf(a, 6);            // pads with zeros
+int[] part = Arrays.copyOfRange(a, 1, 3);    // [2, 5]
+Arrays.fill(a, 7);                           // [7, 7, 7, 7]
+System.out.println(Arrays.toString(a));
+System.out.println(Arrays.deepToString(new int[][]{{1}, {2, 3}}));
+System.out.println(Arrays.equals(a, copy));
+List&lt;Integer&gt; list = Arrays.asList(1, 2, 3); // fixed-size list view</code></pre>
+<h3 id="arrays-vs-arraylist">Arrays vs ArrayList</h3>
+<div class="table-wrap"><table><thead><tr><th></th><th>Array</th><th><code>ArrayList</code></th></tr></thead><tbody><tr><td>Size</td><td>Fixed</td><td>Grows automatically</td></tr><tr><td>Element types</td><td>Primitives and objects</td><td>Objects only (boxed)</td></tr><tr><td>Syntax</td><td><code>a[i]</code>, <code>a.length</code></td><td><code>list.get(i)</code>, <code>list.size()</code></td></tr><tr><td>Speed</td><td>Slightly faster</td><td>Small overhead</td></tr></tbody></table></div>
+<h2 id="strings"><span class="num">04</span>Strings</h2>
+<p><code>String</code> is a class that represents a sequence of characters. It is <strong>immutable</strong>: once created, its content never changes. Every "modification" creates a new object.</p>
+<pre><code class="language-java">String s1 = "Java";                 // string literal (goes to the pool)
+String s2 = new String("Java");     // new object on the heap
+char[] chars = {'J', 'a', 'v', 'a'};
+String s3 = new String(chars);</code></pre>
+<h3 id="the-string-pool">The string pool</h3>
+<p>String literals are stored in a shared <strong>string constant pool</strong>. Two identical literals refer to the same object.</p>
+<pre><code class="language-java">String a = "Hello";
+String b = "Hello";
+String c = new String("Hello");
+
+System.out.println(a == b);        // true  (same pooled object)
+System.out.println(a == c);        // false (different objects)
+System.out.println(a.equals(c));   // true  (same content)
+System.out.println(c.intern() == a); // true</code></pre>
+<aside class="callout interview"><span class="label">Interview question</span><p>What is the difference between <code>==</code> and <code>equals()</code> for strings?</p><p><code>==</code> compares <strong>references</strong> (are they the same object?). <code>equals()</code> compares <strong>content</strong>. Always use <code>equals()</code> to compare strings.</p></aside>
+<h3 id="why-is-string-immutable">Why is String immutable?</h3>
+<ul><li>Safe to share through the pool</li><li>Thread-safe without synchronisation</li><li>Safe as keys in <code>HashMap</code> (hash code is cached)</li><li>Security: file names, URLs and class names cannot be changed after validation</li></ul>
+<h2 id="common-string-methods"><span class="num">05</span>Common String Methods</h2>
+<div class="table-wrap"><table><thead><tr><th>Method</th><th>Example</th><th>Result</th></tr></thead><tbody><tr><td><code>length()</code></td><td><code>"Java".length()</code></td><td><code>4</code></td></tr><tr><td><code>charAt(i)</code></td><td><code>"Java".charAt(1)</code></td><td><code>'a'</code></td></tr><tr><td><code>substring(b, e)</code></td><td><code>"Hello".substring(1, 4)</code></td><td><code>"ell"</code></td></tr><tr><td><code>indexOf(x)</code></td><td><code>"Hello".indexOf('l')</code></td><td><code>2</code></td></tr><tr><td><code>lastIndexOf(x)</code></td><td><code>"Hello".lastIndexOf('l')</code></td><td><code>3</code></td></tr><tr><td><code>contains(x)</code></td><td><code>"Hello".contains("ell")</code></td><td><code>true</code></td></tr><tr><td><code>startsWith / endsWith</code></td><td><code>"Hello".startsWith("He")</code></td><td><code>true</code></td></tr><tr><td><code>toUpperCase / toLowerCase</code></td><td><code>"Hi".toUpperCase()</code></td><td><code>"HI"</code></td></tr><tr><td><code>trim / strip</code></td><td><code>"  x ".trim()</code></td><td><code>"x"</code></td></tr><tr><td><code>replace(a, b)</code></td><td><code>"a-b".replace('-', '+')</code></td><td><code>"a+b"</code></td></tr><tr><td><code>split(regex)</code></td><td><code>"a,b,c".split(",")</code></td><td><code>["a","b","c"]</code></td></tr><tr><td><code>isEmpty / isBlank</code></td><td><code>" ".isBlank()</code></td><td><code>true</code></td></tr><tr><td><code>equals / equalsIgnoreCase</code></td><td><code>"a".equalsIgnoreCase("A")</code></td><td><code>true</code></td></tr><tr><td><code>compareTo</code></td><td><code>"a".compareTo("b")</code></td><td>negative number</td></tr><tr><td><code>repeat(n)</code></td><td><code>"ab".repeat(2)</code></td><td><code>"abab"</code></td></tr><tr><td><code>String.valueOf(x)</code></td><td><code>String.valueOf(10)</code></td><td><code>"10"</code></td></tr><tr><td><code>String.join(sep, ...)</code></td><td><code>String.join("-", "a", "b")</code></td><td><code>"a-b"</code></td></tr><tr><td><code>toCharArray()</code></td><td><code>"ab".toCharArray()</code></td><td><code>['a','b']</code></td></tr></tbody></table></div>
+<h3 id="concatenation">Concatenation</h3>
+<pre><code class="language-java">String full = "Hanbee" + " " + "LMS";
+String line = "Total: " + 10 + 20;     // "Total: 1020"
+String sum = "Total: " + (10 + 20);    // "Total: 30"</code></pre>
+<h3 id="text-blocks-java-15">Text blocks (Java 15+)</h3>
+<pre><code class="language-java">String json = """
+    {
+      "name": "Asha",
+      "course": "Java"
+    }
+    """;</code></pre>
+<h3 id="formatting">Formatting</h3>
+<pre><code class="language-java">String msg = String.format("%s scored %.1f", "Asha", 91.25);
+String msg2 = "%s scored %d".formatted("Ravi", 80);   // Java 15+</code></pre>
+<h2 id="stringbuilder-and-stringbuffer"><span class="num">06</span>StringBuilder and StringBuffer</h2>
+<p>Because <code>String</code> is immutable, building a string in a loop with <code>+</code> creates many throw-away objects. Use a <strong>mutable</strong> builder instead.</p>
+<pre><code class="language-java">StringBuilder sb = new StringBuilder();
+for (int i = 1; i &lt;= 5; i++) {
+    sb.append(i).append(",");
+}
+sb.setLength(sb.length() - 1);     // remove last comma
+sb.insert(0, "[").append("]");
+sb.reverse();
+System.out.println(sb);            // ]5,4,3,2,1[</code></pre>
+<p>Other methods: <code>delete(start, end)</code>, <code>deleteCharAt(i)</code>, <code>replace(s, e, str)</code>, <code>indexOf</code>, <code>charAt</code>, <code>toString()</code>.</p>
+<div class="table-wrap"><table><thead><tr><th></th><th><code>String</code></th><th><code>StringBuilder</code></th><th><code>StringBuffer</code></th></tr></thead><tbody><tr><td>Mutable</td><td>No</td><td>Yes</td><td>Yes</td></tr><tr><td>Thread-safe</td><td>Yes (immutable)</td><td>No</td><td>Yes (synchronised)</td></tr><tr><td>Speed</td><td>Slowest for repeated edits</td><td>Fastest</td><td>Slower than builder</td></tr><tr><td>Use when</td><td>Fixed text</td><td>Single-thread string building</td><td>Rare, shared across threads</td></tr></tbody></table></div>
+<h2 id="regular-expressions"><span class="num">07</span>Regular Expressions</h2>
+<pre><code class="language-java">import java.util.regex.*;
+
+boolean ok = "asha@mail.com".matches("[\\w.]+@[\\w.]+\\.[a-z]{2,}");
+
+Pattern p = Pattern.compile("(\\d{3})-(\\d{4})");
+Matcher m = p.matcher("Call 555-1234 now");
+if (m.find()) {
+    System.out.println(m.group());    // 555-1234
+    System.out.println(m.group(1));   // 555
+}
+String clean = "a1b22c".replaceAll("[0-9]+", "#");   // a#b#c</code></pre>
+<h3 id="common-regex-tokens">Common regex tokens</h3>
+<div class="table-wrap"><table><thead><tr><th>Token</th><th>Meaning</th></tr></thead><tbody><tr><td><code>.</code></td><td>any character</td></tr><tr><td><code>\\d</code> <code>\\w</code> <code>\\s</code></td><td>digit, word character, whitespace</td></tr><tr><td><code>*</code> <code>+</code> <code>?</code></td><td>0 or more, 1 or more, 0 or 1</td></tr><tr><td><code>{n,m}</code></td><td>between n and m times</td></tr><tr><td><code>[abc]</code> <code>[^abc]</code> <code>[a-z]</code></td><td>set, negated set, range</td></tr><tr><td><code>^</code> <code>$</code></td><td>start, end of input</td></tr><tr><td><code>( )</code> <code>|</code></td><td>group, alternation</td></tr></tbody></table></div>
+<h2 id="common-string-programs"><span class="num">08</span>Common String Programs</h2>
+<pre><code class="language-java">// reverse
+String rev = new StringBuilder(s).reverse().toString();
+
+// palindrome
+boolean pal = s.equalsIgnoreCase(rev);
+
+// count vowels
+long vowels = s.toLowerCase().chars().filter(c -&gt; "aeiou".indexOf(c) &gt;= 0).count();
+
+// anagram check
+char[] x = a.toCharArray(), y = b.toCharArray();
+Arrays.sort(x); Arrays.sort(y);
+boolean anagram = Arrays.equals(x, y);</code></pre>
+<h2 id="quick-recap"><span class="num">09</span>Quick Recap</h2>
+<ul><li>Arrays are fixed-size, zero-indexed objects; use <code>Arrays</code> for sort/search/copy</li><li><code>String</code> is immutable and pooled; compare with <code>equals()</code></li><li>Use <code>StringBuilder</code> when building text in loops</li><li><code>split</code>, <code>matches</code> and <code>replaceAll</code> accept regular expressions</li></ul>
+    </article>
+    <nav class="pager" aria-label="Topic navigation">
+      <a class="prev" href="03-control-flow.html"><small>← Previous</small><strong>Control Flow Statements</strong></a>
+      <a class="next" href="05-methods.html"><small>Next →</small><strong>Methods</strong></a>
+    </nav>
+  </main>
+</div>
+</body>
+</html>

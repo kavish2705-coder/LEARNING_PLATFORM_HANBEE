@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="en" data-track="react">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Refs, Context and Reducers — React Notes · Hanbee</title>
+<meta name="description" content="Reach the DOM with useRef, avoid prop drilling with Context, and manage complex state with useReducer. Includes ref as a prop and the simplified Context syntax from React 19.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500..700;1,9..144,500&amp;family=Inter:wght@400..700&amp;family=JetBrains+Mono:wght@400..600&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/notes.css">
+<script src="../assets/notes.js" defer></script>
+</head>
+<body>
+<div class="progress" aria-hidden="true"><i></i></div>
+<header class="top">
+  <a class="brand" href="../index.html"><b>H</b>Hanbee · React Notes</a>
+  <nav><a class="keep" href="index.html">All topics</a><button id="theme-toggle" type="button" aria-label="Toggle light and dark theme">Theme</button></nav>
+</header>
+<div class="shell">
+  <details class="toc"><summary>On this page</summary><nav aria-label="On this page"><ol><li><a href="#useref"><span>01</span>useRef</a></li><li><a href="#ref-as-a-prop-react-19"><span>02</span>ref as a Prop (React 19)</a></li><li><a href="#context"><span>03</span>Context</a></li><li><a href="#usereducer"><span>04</span>useReducer</a></li><li><a href="#context-usereducer-mini-global-store"><span>05</span>Context + useReducer (mini global store)</a></li><li><a href="#other-useful-hooks"><span>06</span>Other Useful Hooks</a></li><li><a href="#quick-recap"><span>07</span>Quick Recap</a></li></ol></nav></details>
+  <main>
+    <header class="hero">
+      <p class="kicker"><span class="pill">Core Hooks</span><span>Topic 06</span><span>Intermediate</span><span>7 min read</span></p>
+      <h1>Refs, Context and Reducers</h1>
+      <p class="lede">Reach the DOM with useRef, avoid prop drilling with Context, and manage complex state with useReducer. Includes ref as a prop and the simplified Context syntax from React 19.</p>
+    </header>
+    <article>
+<h2 id="useref"><span class="num">01</span>useRef</h2>
+<p><code>useRef</code> returns a <strong>mutable object</strong> <code>{ current: value }</code> that React keeps <strong>between renders</strong>. Changing <code>ref.current</code> does <strong>not</strong> trigger a re-render.</p>
+<pre><code class="language-jsx">import { useRef } from "react";
+
+const ref = useRef(null);       // React 19: an initial argument is required (TypeScript too)
+ref.current = 5;                // mutate freely</code></pre>
+<h3 id="use-1-access-a-dom-element">Use 1: Access a DOM element</h3>
+<pre><code class="language-jsx">function SearchBox() {
+  const inputRef = useRef(null);
+
+  return (
+    &lt;&gt;
+      &lt;input ref={inputRef} placeholder="Search" /&gt;
+      &lt;button onClick={() =&gt; inputRef.current.focus()}&gt;Focus&lt;/button&gt;
+    &lt;/&gt;
+  );
+}</code></pre>
+<p>Common DOM tasks: <code>focus()</code>, <code>scrollIntoView()</code>, measuring size (<code>getBoundingClientRect()</code>), playing a <code>&lt;video&gt;</code>, integrating a non-React library.</p>
+<h3 id="use-2-store-values-that-should-not-cause-renders">Use 2: Store values that should not cause renders</h3>
+<pre><code class="language-jsx">function Stopwatch() {
+  const [time, setTime] = useState(0);
+  const intervalRef = useRef(null);                    // timer id: not shown in UI
+
+  const start = () =&gt; { intervalRef.current = setInterval(() =&gt; setTime(t =&gt; t + 1), 1000); };
+  const stop = () =&gt; clearInterval(intervalRef.current);
+
+  return &lt;&gt;&lt;p&gt;{time}s&lt;/p&gt;&lt;button onClick={start}&gt;Start&lt;/button&gt;&lt;button onClick={stop}&gt;Stop&lt;/button&gt;&lt;/&gt;;
+}</code></pre>
+<p>Also good for: previous values, timeouts, whether a component is mounted, any "instance variable".</p>
+<h3 id="state-vs-ref">State vs ref</h3>
+<div class="table-wrap"><table><thead><tr><th></th><th><code>useState</code></th><th><code>useRef</code></th></tr></thead><tbody><tr><td>Change triggers re-render</td><td>Yes</td><td>No</td></tr><tr><td>Value read during render</td><td>Yes (it is the UI)</td><td>Avoid reading/writing <code>current</code> during render</td></tr><tr><td>Mutable directly</td><td>No (use setter)</td><td>Yes</td></tr><tr><td>Use for</td><td>Data shown on screen</td><td>Timers, DOM nodes, mutable instance values</td></tr></tbody></table></div>
+<aside class="callout warning"><span class="label">Warning</span><p>Do not read or write <code>ref.current</code> during rendering (except for lazy initialisation). It makes components unpredictable.</p></aside>
+<h3 id="ref-callbacks-and-cleanup-react-19">Ref callbacks and cleanup (React 19)</h3>
+<p>A ref can be a function. In React 19 it may <strong>return a cleanup function</strong>.</p>
+<pre><code class="language-jsx">&lt;div
+  ref={(node) =&gt; {
+    const observer = new ResizeObserver(() =&gt; console.log("resized"));
+    observer.observe(node);
+    return () =&gt; observer.disconnect();       // new in React 19: runs when the element is removed
+  }}
+/&gt;</code></pre>
+<h3 id="refs-to-a-list-of-nodes">Refs to a list of nodes</h3>
+<pre><code class="language-jsx">&lt;ul&gt;
+  {items.map(item =&gt; (
+    &lt;li key={item.id} ref={(node) =&gt; {
+      map.set(item.id, node);
+      return () =&gt; map.delete(item.id);       // clean up (React 19)
+    }}&gt;{item.name}&lt;/li&gt;
+  ))}
+&lt;/ul&gt;</code></pre>
+<h2 id="ref-as-a-prop-react-19"><span class="num">02</span>ref as a Prop (React 19)</h2>
+<p>Function components now receive <code>ref</code> as a normal prop, so <code>forwardRef</code> is no longer needed. (<code>forwardRef</code> still works but is deprecated and will be removed.)</p>
+<pre><code class="language-jsx">// React 19
+function MyInput({ ref, label, ...props }) {
+  return (
+    &lt;label&gt;
+      {label}
+      &lt;input ref={ref} {...props} /&gt;
+    &lt;/label&gt;
+  );
+}
+
+function Form() {
+  const inputRef = useRef(null);
+  return &lt;MyInput ref={inputRef} label="Name" /&gt;;
+}</code></pre>
+<pre><code class="language-jsx">// Before React 19
+const MyInput = forwardRef(function MyInput({ label, ...props }, ref) {
+  return &lt;label&gt;{label}&lt;input ref={ref} {...props} /&gt;&lt;/label&gt;;
+});</code></pre>
+<h3 id="useimperativehandle">useImperativeHandle</h3>
+<p>Expose only specific methods to a parent instead of the whole DOM node.</p>
+<pre><code class="language-jsx">function FancyInput({ ref }) {
+  const inner = useRef(null);
+  useImperativeHandle(ref, () =&gt; ({
+    focus: () =&gt; inner.current.focus(),
+    clear: () =&gt; { inner.current.value = ""; },
+  }), []);
+  return &lt;input ref={inner} /&gt;;
+}</code></pre>
+<p>Use sparingly; prefer props and state when possible.</p>
+<h2 id="context"><span class="num">03</span>Context</h2>
+<p><strong>Context</strong> lets a parent make data available to <strong>any descendant</strong> without passing props through every level (<strong>prop drilling</strong>).</p>
+<pre><code class="language-text">Without context:  App → Layout → Sidebar → UserMenu → Avatar   (user passed through each)
+With context:     App provides user → Avatar reads it directly</code></pre>
+<h3 id="create-provide-consume">Create, provide, consume</h3>
+<pre data-file="ThemeContext.jsx"><code class="language-jsx">import { createContext, useContext, useState } from "react";
+
+const ThemeContext = createContext("light");                 // default value
+
+export function ThemeProvider({ children }) {
+  const [theme, setTheme] = useState("light");
+  const toggle = () =&gt; setTheme(t =&gt; (t === "light" ? "dark" : "light"));
+
+  return (
+    &lt;ThemeContext value={{ theme, toggle }}&gt;                 {/* React 19: no .Provider needed */}
+      {children}
+    &lt;/ThemeContext&gt;
+  );
+}
+
+export function useTheme() {                                  // custom hook wraps useContext
+  const ctx = useContext(ThemeContext);
+  if (!ctx) throw new Error("useTheme must be used inside &lt;ThemeProvider&gt;");
+  return ctx;
+}</code></pre>
+<pre><code class="language-jsx">// main.jsx
+&lt;ThemeProvider&gt;&lt;App /&gt;&lt;/ThemeProvider&gt;
+
+// anywhere deep inside
+function ThemeButton() {
+  const { theme, toggle } = useTheme();
+  return &lt;button onClick={toggle}&gt;Theme: {theme}&lt;/button&gt;;
+}</code></pre>
+<aside class="callout note"><span class="label">Note</span><p>In React 19 you render <code>&lt;ThemeContext value={...}&gt;</code> directly. <code>&lt;ThemeContext.Provider&gt;</code> still works but is deprecated.</p></aside>
+<h3 id="reading-context-with-use-react-19">Reading context with use() (React 19)</h3>
+<pre><code class="language-jsx">import { use } from "react";
+const { theme } = use(ThemeContext);        // like useContext, but may be called conditionally</code></pre>
+<h3 id="when-to-use-context">When to use context</h3>
+<p>Good for <strong>rarely changing, app-wide</strong> values:</p>
+<ul><li>Theme and locale</li><li>Current authenticated user</li><li>Feature flags</li><li>Router and query client (libraries use it internally)</li></ul>
+<h3 id="context-performance">Context performance</h3>
+<ul><li><strong>Every consumer re-renders</strong> when the context value changes</li><li>A new object in <code>value={{ ... }}</code> on every render triggers consumers each time; keep it stable (React Compiler or <code>useMemo</code>)</li><li>Split contexts by concern (<code>UserContext</code>, <code>ThemeContext</code>) and by update frequency</li><li>Separate state and dispatch contexts to avoid unnecessary renders</li><li>For frequently changing global state use <strong>Zustand</strong>, <strong>Redux Toolkit</strong> or <strong>Jotai</strong> (see State Management)</li></ul>
+<pre><code class="language-jsx">const value = useMemo(() =&gt; ({ theme, toggle }), [theme]);   // not needed with the React Compiler</code></pre>
+<h3 id="context-vs-props-vs-state-library">Context vs props vs state library</h3>
+<div class="table-wrap"><table><thead><tr><th>Need</th><th>Use</th></tr></thead><tbody><tr><td>Pass data one or two levels</td><td>Props</td></tr><tr><td>Wrap children with a layout</td><td><code>children</code> composition</td></tr><tr><td>Rarely changing global value</td><td>Context</td></tr><tr><td>Complex, frequently updated global state</td><td>Zustand / Redux Toolkit</td></tr><tr><td>Server data</td><td>TanStack Query</td></tr></tbody></table></div>
+<h2 id="usereducer"><span class="num">04</span>useReducer</h2>
+<p><code>useReducer</code> manages state with a <strong>reducer function</strong>: <code>(state, action) =&gt; newState</code>. Ideal when state has many fields or many ways to change.</p>
+<pre><code class="language-jsx">import { useReducer } from "react";
+
+const initial = { items: [], filter: "all" };
+
+function reducer(state, action) {
+  switch (action.type) {
+    case "added":
+      return { ...state, items: [...state.items, { id: action.id, text: action.text, done: false }] };
+    case "toggled":
+      return { ...state, items: state.items.map(i =&gt; i.id === action.id ? { ...i, done: !i.done } : i) };
+    case "removed":
+      return { ...state, items: state.items.filter(i =&gt; i.id !== action.id) };
+    case "filter_set":
+      return { ...state, filter: action.filter };
+    default:
+      throw new Error(`Unknown action: ${action.type}`);
+  }
+}
+
+function Todos() {
+  const [state, dispatch] = useReducer(reducer, initial);
+
+  return (
+    &lt;&gt;
+      &lt;button onClick={() =&gt; dispatch({ type: "added", id: crypto.randomUUID(), text: "New" })}&gt;Add&lt;/button&gt;
+      {state.items.map(i =&gt; (
+        &lt;label key={i.id}&gt;
+          &lt;input type="checkbox" checked={i.done} onChange={() =&gt; dispatch({ type: "toggled", id: i.id })} /&gt;
+          {i.text}
+        &lt;/label&gt;
+      ))}
+    &lt;/&gt;
+  );
+}</code></pre>
+<h3 id="rules-for-reducers">Rules for reducers</h3>
+<ul><li><strong>Pure</strong>: no API calls, no random values, no mutation of <code>state</code></li><li>Return a <strong>new</strong> state object</li><li>Describe <strong>what happened</strong> in the action (<code>"added"</code>), not what to set</li></ul>
+<h3 id="usestate-vs-usereducer">useState vs useReducer</h3>
+<div class="table-wrap"><table><thead><tr><th></th><th><code>useState</code></th><th><code>useReducer</code></th></tr></thead><tbody><tr><td>Code size</td><td>Smaller for simple state</td><td>More boilerplate</td></tr><tr><td>Complex logic</td><td>Scattered in handlers</td><td><strong>Centralised</strong> in the reducer</td></tr><tr><td>Related fields</td><td>Several <code>useState</code> calls</td><td>One state object</td></tr><tr><td>Testing</td><td>Test the component</td><td>Test the reducer as a plain function</td></tr><tr><td>Passing updates down</td><td>Many setters</td><td>One <code>dispatch</code></td></tr></tbody></table></div>
+<h2 id="context-usereducer-mini-global-store"><span class="num">05</span>Context + useReducer (mini global store)</h2>
+<pre><code class="language-jsx">const TasksContext = createContext(null);
+const TasksDispatchContext = createContext(null);
+
+export function TasksProvider({ children }) {
+  const [tasks, dispatch] = useReducer(tasksReducer, []);
+  return (
+    &lt;TasksContext value={tasks}&gt;
+      &lt;TasksDispatchContext value={dispatch}&gt;
+        {children}
+      &lt;/TasksDispatchContext&gt;
+    &lt;/TasksContext&gt;
+  );
+}
+
+export const useTasks = () =&gt; useContext(TasksContext);
+export const useTasksDispatch = () =&gt; useContext(TasksDispatchContext);</code></pre>
+<p>Components that only <strong>dispatch</strong> don't re-render when the tasks change, because <code>dispatch</code> is stable.</p>
+<h2 id="other-useful-hooks"><span class="num">06</span>Other Useful Hooks</h2>
+<div class="table-wrap"><table><thead><tr><th>Hook</th><th>Purpose</th></tr></thead><tbody><tr><td><code>useId()</code></td><td>Generate stable unique ids for accessibility (<code>htmlFor</code>, <code>aria-describedby</code>)</td></tr><tr><td><code>useDebugValue()</code></td><td>Label custom hooks in DevTools</td></tr><tr><td><code>useSyncExternalStore()</code></td><td>Subscribe to external stores</td></tr><tr><td><code>useImperativeHandle()</code></td><td>Customise what a ref exposes</td></tr></tbody></table></div>
+<pre><code class="language-jsx">function Field({ label }) {
+  const id = useId();
+  return (&lt;&gt;&lt;label htmlFor={id}&gt;{label}&lt;/label&gt;&lt;input id={id} /&gt;&lt;/&gt;);
+}</code></pre>
+<h2 id="quick-recap"><span class="num">07</span>Quick Recap</h2>
+<ul><li><code>useRef</code> keeps a mutable value or DOM node across renders <strong>without re-rendering</strong></li><li>React 19: <code>ref</code> is a normal prop (no <code>forwardRef</code>), ref callbacks can return cleanup, <code>useRef</code> needs an argument</li><li><strong>Context</strong> removes prop drilling for app-wide values; <code>&lt;Context value&gt;</code> in 19; <code>use(Context)</code> can be conditional</li><li>Context re-renders all consumers when its value changes, so keep it for slow-changing data</li><li><code>useReducer</code> centralises complex state transitions in a pure reducer</li></ul>
+    </article>
+    <nav class="pager" aria-label="Topic navigation">
+      <a class="prev" href="05-effects-lifecycle.html"><small>← Previous</small><strong>Effects and Component Lifecycle</strong></a>
+      <a class="next" href="07-performance-optimization.html"><small>Next →</small><strong>Performance and Optimisation</strong></a>
+    </nav>
+  </main>
+</div>
+</body>
+</html>

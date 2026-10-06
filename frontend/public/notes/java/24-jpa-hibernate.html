@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="en" data-track="java">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>JPA and Hibernate (ORM) — Java Notes · Hanbee</title>
+<meta name="description" content="Map Java objects to database tables. Entities, relationships, EntityManager, JPQL, fetching, the N+1 problem, caching, transactions and Spring Data JPA.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500..700;1,9..144,500&amp;family=Inter:wght@400..700&amp;family=JetBrains+Mono:wght@400..600&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/notes.css">
+<script src="../assets/notes.js" defer></script>
+</head>
+<body>
+<div class="progress" aria-hidden="true"><i></i></div>
+<header class="top">
+  <a class="brand" href="../index.html"><b>H</b>Hanbee · Java Notes</a>
+  <nav><a class="keep" href="index.html">All topics</a><button id="theme-toggle" type="button" aria-label="Toggle light and dark theme">Theme</button></nav>
+</header>
+<div class="shell">
+  <details class="toc"><summary>On this page</summary><nav aria-label="On this page"><ol><li><a href="#why-orm"><span>01</span>Why ORM?</a></li><li><a href="#entities"><span>02</span>Entities</a></li><li><a href="#relationships"><span>03</span>Relationships</a></li><li><a href="#fetch-types"><span>04</span>Fetch Types</a></li><li><a href="#entitymanager-and-the-persistence-context"><span>05</span>EntityManager and the Persistence Context</a></li><li><a href="#transactions"><span>06</span>Transactions</a></li><li><a href="#jpql-and-criteria"><span>07</span>JPQL and Criteria</a></li><li><a href="#persistence-xml-plain-jpa"><span>08</span>persistence.xml (plain JPA)</a></li><li><a href="#caching"><span>09</span>Caching</a></li><li><a href="#inheritance-mapping"><span>10</span>Inheritance Mapping</a></li><li><a href="#spring-data-jpa"><span>11</span>Spring Data JPA</a></li><li><a href="#common-pitfalls"><span>12</span>Common Pitfalls</a></li><li><a href="#quick-recap"><span>13</span>Quick Recap</a></li></ol></nav></details>
+  <main>
+    <header class="hero">
+      <p class="kicker"><span class="pill">Enterprise Java (JEE)</span><span>Topic 24</span><span>Advanced</span><span>7 min read</span></p>
+      <h1>JPA and Hibernate (ORM)</h1>
+      <p class="lede">Map Java objects to database tables. Entities, relationships, EntityManager, JPQL, fetching, the N+1 problem, caching, transactions and Spring Data JPA.</p>
+    </header>
+    <article>
+<h2 id="why-orm"><span class="num">01</span>Why ORM?</h2>
+<p>JDBC means writing a lot of repetitive SQL and manual mapping from rows to objects. <strong>Object-Relational Mapping (ORM)</strong> does this for you.</p>
+<div class="table-wrap"><table><thead><tr><th></th><th>JDBC</th><th>JPA / Hibernate</th></tr></thead><tbody><tr><td>SQL</td><td>Written by hand</td><td>Generated (or JPQL)</td></tr><tr><td>Mapping</td><td><code>rs.getString(...)</code> everywhere</td><td>Annotations on classes</td></tr><tr><td>Relationships</td><td>Manual joins</td><td>Navigate with fields</td></tr><tr><td>Caching, dirty checking</td><td>You build it</td><td>Built in</td></tr><tr><td>Control / performance tuning</td><td>Maximum</td><td>Needs understanding</td></tr></tbody></table></div>
+<ul><li><strong>JPA</strong> (Jakarta Persistence API) is the <strong>specification</strong></li><li><strong>Hibernate</strong> is the most popular <strong>implementation</strong> (also EclipseLink)</li><li><strong>Spring Data JPA</strong> adds repositories on top of JPA</li></ul>
+<h2 id="entities"><span class="num">02</span>Entities</h2>
+<p>An entity is a class mapped to a table.</p>
+<pre><code class="language-java">@Entity
+@Table(name = "students")
+public class Student {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(name = "full_name", nullable = false, length = 100)
+    private String name;
+
+    @Column(unique = true, nullable = false)
+    private String email;
+
+    @Enumerated(EnumType.STRING)           // store "ACTIVE", not 0 (ordinal breaks on reorder)
+    private Status status = Status.ACTIVE;
+
+    private LocalDate dob;                 // mapped automatically
+
+    @Transient
+    private int tempScore;                 // not persisted
+
+    @Version
+    private Long version;                  // optimistic locking
+
+    protected Student() { }                // JPA needs a no-arg constructor
+    // getters / setters
+}</code></pre>
+<h3 id="entity-rules">Entity rules</h3>
+<ul><li>Annotated <code>@Entity</code>, has an <code>@Id</code>, non-<code>final</code> class, no-arg constructor (at least <code>protected</code>)</li><li>Implement <code>equals</code>/<code>hashCode</code> carefully (use the business key or id)</li></ul>
+<h3 id="id-generation-strategies">Id generation strategies</h3>
+<div class="table-wrap"><table><thead><tr><th>Strategy</th><th>Meaning</th></tr></thead><tbody><tr><td><code>IDENTITY</code></td><td>Database auto-increment column</td></tr><tr><td><code>SEQUENCE</code></td><td>Database sequence (best for batching on PostgreSQL/Oracle)</td></tr><tr><td><code>AUTO</code></td><td>Provider chooses</td></tr><tr><td><code>UUID</code></td><td>Generated UUID</td></tr></tbody></table></div>
+<h3 id="composite-and-embedded-types">Composite and embedded types</h3>
+<pre><code class="language-java">@Embeddable
+public class Address { private String street; private String city; private String pincode; }
+
+@Entity
+public class Student { @Embedded private Address address; }</code></pre>
+<h2 id="relationships"><span class="num">03</span>Relationships</h2>
+<div class="table-wrap"><table><thead><tr><th>Annotation</th><th>Meaning</th><th>Example</th></tr></thead><tbody><tr><td><code>@OneToOne</code></td><td>One-to-one</td><td>User ↔ Profile</td></tr><tr><td><code>@OneToMany</code> / <code>@ManyToOne</code></td><td>One-to-many</td><td>Course → Lessons</td></tr><tr><td><code>@ManyToMany</code></td><td>Many-to-many</td><td>Students ↔ Courses</td></tr></tbody></table></div>
+<pre><code class="language-java">@Entity
+public class Course {
+    @Id @GeneratedValue private Long id;
+    private String title;
+
+    @OneToMany(mappedBy = "course", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List&lt;Lesson&gt; lessons = new ArrayList&lt;&gt;();
+
+    public void addLesson(Lesson l) { lessons.add(l); l.setCourse(this); }   // keep both sides in sync
+}
+
+@Entity
+public class Lesson {
+    @Id @GeneratedValue private Long id;
+    private String title;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "course_id")             // the foreign key lives here: the OWNING side
+    private Course course;
+}
+
+@Entity
+public class Student {
+    @ManyToMany
+    @JoinTable(name = "enrollment",
+               joinColumns = @JoinColumn(name = "student_id"),
+               inverseJoinColumns = @JoinColumn(name = "course_id"))
+    private Set&lt;Course&gt; courses = new HashSet&lt;&gt;();
+}</code></pre>
+<h3 id="key-ideas">Key ideas</h3>
+<ul><li><strong>Owning side</strong> has the foreign key and <code>@JoinColumn</code>; the <strong>inverse side</strong> uses <code>mappedBy</code></li><li><strong>Cascade</strong> (<code>PERSIST</code>, <code>MERGE</code>, <code>REMOVE</code>, <code>ALL</code>) propagates operations to children</li><li><code>orphanRemoval = true</code> deletes children removed from the collection</li><li>Prefer <strong>unidirectional</strong> or carefully synchronised bidirectional mappings</li><li>Use a <code>Set</code> for <code>@ManyToMany</code></li></ul>
+<h2 id="fetch-types"><span class="num">04</span>Fetch Types</h2>
+<div class="table-wrap"><table><thead><tr><th></th><th><code>LAZY</code></th><th><code>EAGER</code></th></tr></thead><tbody><tr><td>Loaded</td><td>When first accessed</td><td>Immediately with the owner</td></tr><tr><td>Defaults</td><td><code>@OneToMany</code>, <code>@ManyToMany</code></td><td><code>@ManyToOne</code>, <code>@OneToOne</code></td></tr><tr><td>Risk</td><td><code>LazyInitializationException</code> outside a session</td><td>Loading far too much data</td></tr></tbody></table></div>
+<aside class="callout tip"><span class="label">Tip</span><p>Make <strong>everything LAZY</strong> (<code>@ManyToOne(fetch = LAZY)</code>) and fetch what you need per query.</p></aside>
+<h3 id="the-n-1-query-problem">The N+1 query problem</h3>
+<pre><code class="language-java">List&lt;Course&gt; courses = em.createQuery("select c from Course c", Course.class).getResultList();  // 1 query
+for (Course c : courses) System.out.println(c.getLessons().size());   // +N queries, one per course!</code></pre>
+<p>Fix with a <strong>fetch join</strong>, an <strong>entity graph</strong>, or batch fetching:</p>
+<pre><code class="language-java">em.createQuery("select distinct c from Course c join fetch c.lessons", Course.class).getResultList();</code></pre>
+<h2 id="entitymanager-and-the-persistence-context"><span class="num">05</span>EntityManager and the Persistence Context</h2>
+<p>The <strong>persistence context</strong> is a first-level cache of managed entities within a transaction.</p>
+<h3 id="entity-states">Entity states</h3>
+<pre><code class="language-text"> new ──persist()──► MANAGED ──detach()/close()──► DETACHED ──merge()──► MANAGED
+                      │ remove()
+                      ▼
+                   REMOVED ──commit──► deleted row</code></pre>
+<pre><code class="language-java">@PersistenceContext EntityManager em;
+
+Student s = new Student("Asha", "asha@mail.com");
+em.persist(s);                                  // INSERT on flush/commit
+Student found = em.find(Student.class, 1L);     // SELECT (or from cache)
+found.setName("Aisha");                         // dirty checking: UPDATE happens automatically at commit
+em.remove(found);
+Student merged = em.merge(detachedStudent);
+Student ref = em.getReference(Student.class, 1L);   // lazy proxy
+em.flush();  em.clear();  em.refresh(found);</code></pre>
+<aside class="callout note"><span class="label">Note</span><p>Because of <strong>dirty checking</strong>, changing a managed entity inside a transaction updates the database without calling <code>save</code>.</p></aside>
+<h2 id="transactions"><span class="num">06</span>Transactions</h2>
+<pre><code class="language-java">EntityTransaction tx = em.getTransaction();
+try {
+    tx.begin();
+    em.persist(a); em.persist(b);
+    tx.commit();
+} catch (RuntimeException e) {
+    if (tx.isActive()) tx.rollback();
+    throw e;
+}</code></pre>
+<p>In JEE/Spring use declarative transactions: <code>@Transactional</code> on service methods. Roll-back happens on unchecked exceptions by default.</p>
+<h2 id="jpql-and-criteria"><span class="num">07</span>JPQL and Criteria</h2>
+<p><strong>JPQL</strong> queries entities and fields, not tables.</p>
+<pre><code class="language-java">List&lt;Student&gt; list = em.createQuery(
+        "select s from Student s where s.status = :status and s.name like :q order by s.name", Student.class)
+    .setParameter("status", Status.ACTIVE)
+    .setParameter("q", "A%")
+    .setFirstResult(0).setMaxResults(20)          // pagination
+    .getResultList();
+
+Long count = em.createQuery("select count(s) from Student s", Long.class).getSingleResult();
+
+// DTO projection (only needed columns)
+List&lt;StudentSummary&gt; dtos = em.createQuery(
+    "select new com.hanbee.StudentSummary(s.id, s.name) from Student s", StudentSummary.class).getResultList();
+
+// native SQL when necessary
+em.createNativeQuery("select * from students where age &gt; ?1", Student.class).setParameter(1, 18);
+
+// named query
+@NamedQuery(name = "Student.byEmail", query = "select s from Student s where s.email = :email")</code></pre>
+<p>Criteria API builds queries in type-safe Java code, useful for dynamic filters.</p>
+<h2 id="persistence-xml-plain-jpa"><span class="num">08</span>persistence.xml (plain JPA)</h2>
+<pre data-file="persistence.xml"><code class="language-xml">&lt;persistence xmlns="https://jakarta.ee/xml/ns/persistence" version="3.0"&gt;
+  &lt;persistence-unit name="lmsPU"&gt;
+    &lt;class&gt;com.hanbee.model.Student&lt;/class&gt;
+    &lt;properties&gt;
+      &lt;property name="jakarta.persistence.jdbc.url" value="jdbc:postgresql://localhost:5432/lms"/&gt;
+      &lt;property name="jakarta.persistence.jdbc.user" value="user"/&gt;
+      &lt;property name="jakarta.persistence.jdbc.password" value="password"/&gt;
+      &lt;property name="hibernate.hbm2ddl.auto" value="validate"/&gt;
+      &lt;property name="hibernate.show_sql" value="true"/&gt;
+    &lt;/properties&gt;
+  &lt;/persistence-unit&gt;
+&lt;/persistence&gt;</code></pre>
+<p><code>hbm2ddl.auto</code>: <code>validate</code> (safe), <code>update</code>, <code>create</code>, <code>create-drop</code>. Use <strong>Flyway/Liquibase</strong> migrations for production schema changes.</p>
+<h2 id="caching"><span class="num">09</span>Caching</h2>
+<div class="table-wrap"><table><thead><tr><th>Level</th><th>Scope</th><th>Notes</th></tr></thead><tbody><tr><td><strong>First-level</strong></td><td>One <code>EntityManager</code> / transaction</td><td>Always on</td></tr><tr><td><strong>Second-level</strong></td><td>Whole <code>EntityManagerFactory</code></td><td>Optional (Ehcache, Infinispan), mark entities <code>@Cacheable</code></td></tr><tr><td><strong>Query cache</strong></td><td>Query results</td><td>Use sparingly</td></tr></tbody></table></div>
+<h2 id="inheritance-mapping"><span class="num">10</span>Inheritance Mapping</h2>
+<div class="table-wrap"><table><thead><tr><th>Strategy</th><th>Tables</th><th>Trade-off</th></tr></thead><tbody><tr><td><code>SINGLE_TABLE</code></td><td>One table for the hierarchy</td><td>Fast, nullable columns</td></tr><tr><td><code>JOINED</code></td><td>One table per class, joined</td><td>Normalised, slower</td></tr><tr><td><code>TABLE_PER_CLASS</code></td><td>One table per concrete class</td><td>Awkward queries</td></tr></tbody></table></div>
+<p><code>@MappedSuperclass</code> shares common fields (id, audit columns) without being an entity.</p>
+<h2 id="spring-data-jpa"><span class="num">11</span>Spring Data JPA</h2>
+<p>Define an interface; Spring implements it.</p>
+<pre><code class="language-java">public interface StudentRepository extends JpaRepository&lt;Student, Long&gt; {
+    Optional&lt;Student&gt; findByEmail(String email);
+    List&lt;Student&gt; findByStatusOrderByNameAsc(Status status);
+    Page&lt;Student&gt; findByNameContainingIgnoreCase(String q, Pageable pageable);
+    boolean existsByEmail(String email);
+
+    @Query("select s from Student s join fetch s.courses where s.id = :id")
+    Optional&lt;Student&gt; findWithCourses(@Param("id") Long id);
+}</code></pre>
+<pre><code class="language-java">@Service
+public class StudentService {
+    private final StudentRepository repo;
+    public StudentService(StudentRepository repo) { this.repo = repo; }
+
+    @Transactional
+    public Student register(String name, String email) {
+        if (repo.existsByEmail(email)) throw new IllegalStateException("Email in use");
+        return repo.save(new Student(name, email));
+    }
+
+    @Transactional(readOnly = true)
+    public Page&lt;Student&gt; search(String q, int page) {
+        return repo.findByNameContainingIgnoreCase(q, PageRequest.of(page, 20, Sort.by("name")));
+    }
+}</code></pre>
+<h2 id="common-pitfalls"><span class="num">12</span>Common Pitfalls</h2>
+<ul><li><code>LazyInitializationException</code>: accessing a lazy field after the session closed. Fetch what you need inside the transaction</li><li>N+1 queries: use fetch joins / entity graphs, check with <code>show_sql</code></li><li>Using <code>EAGER</code> everywhere</li><li>Exposing entities directly in REST APIs. Use <strong>DTOs</strong></li><li>Forgetting <code>equals/hashCode</code> or breaking them with generated ids</li><li><code>CascadeType.REMOVE</code> on <code>@ManyToMany</code> deleting shared data</li><li>Large batch inserts without batching (<code>hibernate.jdbc.batch_size</code>) and <code>flush/clear</code></li></ul>
+<h2 id="quick-recap"><span class="num">13</span>Quick Recap</h2>
+<ul><li>JPA is the spec; Hibernate implements it; Spring Data JPA removes repository boilerplate</li><li>Entities map to tables with <code>@Entity</code>, <code>@Id</code>, <code>@Column</code>, relationship annotations</li><li>The owning side holds the foreign key; the other side uses <code>mappedBy</code></li><li>Prefer LAZY fetching and fix N+1 with <code>join fetch</code></li><li>Managed entities are dirty-checked automatically inside <code>@Transactional</code> methods</li></ul>
+    </article>
+    <nav class="pager" aria-label="Topic navigation">
+      <a class="prev" href="23-sessions-filters-security.html"><small>← Previous</small><strong>Sessions, Cookies, Filters, Listeners and Web Security</strong></a>
+      <a class="next" href="25-rest-spring-boot.html"><small>Next →</small><strong>REST APIs and Spring Boot</strong></a>
+    </nav>
+  </main>
+</div>
+</body>
+</html>

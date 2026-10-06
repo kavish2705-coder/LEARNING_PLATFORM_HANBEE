@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en" data-track="java">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Control Flow Statements — Java Notes · Hanbee</title>
+<meta name="description" content="Decision making and loops. Control the order in which statements run using if, switch, for, while and the jump statements.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500..700;1,9..144,500&amp;family=Inter:wght@400..700&amp;family=JetBrains+Mono:wght@400..600&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/notes.css">
+<script src="../assets/notes.js" defer></script>
+</head>
+<body>
+<div class="progress" aria-hidden="true"><i></i></div>
+<header class="top">
+  <a class="brand" href="../index.html"><b>H</b>Hanbee · Java Notes</a>
+  <nav><a class="keep" href="index.html">All topics</a><button id="theme-toggle" type="button" aria-label="Toggle light and dark theme">Theme</button></nav>
+</header>
+<div class="shell">
+  <details class="toc"><summary>On this page</summary><nav aria-label="On this page"><ol><li><a href="#decision-making"><span>01</span>Decision Making</a></li><li><a href="#loops"><span>02</span>Loops</a></li><li><a href="#jump-statements"><span>03</span>Jump Statements</a></li><li><a href="#nested-loops-and-patterns"><span>04</span>Nested Loops and Patterns</a></li><li><a href="#common-programs"><span>05</span>Common Programs</a></li><li><a href="#common-mistakes"><span>06</span>Common Mistakes</a></li><li><a href="#quick-recap"><span>07</span>Quick Recap</a></li></ol></nav></details>
+  <main>
+    <header class="hero">
+      <p class="kicker"><span class="pill">Foundations</span><span>Topic 03</span><span>Beginner</span><span>5 min read</span></p>
+      <h1>Control Flow Statements</h1>
+      <p class="lede">Decision making and loops. Control the order in which statements run using if, switch, for, while and the jump statements.</p>
+    </header>
+    <article>
+<h2 id="decision-making"><span class="num">01</span>Decision Making</h2>
+<h3 id="if-else-if-else">if, else if, else</h3>
+<pre><code class="language-java">int marks = 72;
+if (marks &gt;= 90) {
+    System.out.println("A+");
+} else if (marks &gt;= 60) {
+    System.out.println("B");
+} else {
+    System.out.println("Fail");
+}</code></pre>
+<ul><li>The condition must be a <code>boolean</code> (unlike C, <code>if (x = 5)</code> is a compile error for <code>int</code>)</li><li>Always use braces, even for one statement; it prevents bugs when adding lines later</li><li>Nested <code>if</code> is allowed, but flat <code>else if</code> chains read better</li></ul>
+<h3 id="ternary-shortcut">Ternary shortcut</h3>
+<pre><code class="language-java">String status = (age &gt;= 18) ? "Adult" : "Minor";</code></pre>
+<h3 id="switch-statement-classic">switch statement (classic)</h3>
+<pre><code class="language-java">int day = 3;
+switch (day) {
+    case 1:
+        System.out.println("Mon");
+        break;
+    case 2:
+        System.out.println("Tue");
+        break;
+    default:
+        System.out.println("Other");
+}</code></pre>
+<ul><li>Works with <code>byte</code>, <code>short</code>, <code>char</code>, <code>int</code>, wrappers, <code>String</code> and <code>enum</code></li><li>Without <code>break</code>, execution <strong>falls through</strong> to the next case</li><li><code>default</code> runs when no case matches (optional, may appear anywhere)</li></ul>
+<h3 id="switch-expression-java-14">switch expression (Java 14+)</h3>
+<p>No fall-through and it returns a value.</p>
+<pre><code class="language-java">String type = switch (day) {
+    case 1, 7 -&gt; "Weekend";
+    case 2, 3, 4, 5, 6 -&gt; "Weekday";
+    default -&gt; "Invalid";
+};</code></pre>
+<p>Use <code>yield</code> inside a block when you need more than one statement.</p>
+<pre><code class="language-java">int score = switch (grade) {
+    case 'A' -&gt; 90;
+    case 'B' -&gt; {
+        System.out.println("Good");
+        yield 75;
+    }
+    default -&gt; 0;
+};</code></pre>
+<h3 id="pattern-matching-in-switch-java-21">Pattern matching in switch (Java 21)</h3>
+<pre><code class="language-java">static String describe(Object o) {
+    return switch (o) {
+        case Integer i when i &gt; 100 -&gt; "Big int " + i;
+        case Integer i              -&gt; "Int " + i;
+        case String s               -&gt; "String of length " + s.length();
+        case null                   -&gt; "null!";
+        default                     -&gt; "Something else";
+    };
+}</code></pre>
+<h2 id="loops"><span class="num">02</span>Loops</h2>
+<h3 id="for-loop">for loop</h3>
+<pre><code class="language-java">for (int i = 1; i &lt;= 5; i++) {
+    System.out.println(i);
+}</code></pre>
+<p>Three parts: <strong>initialisation</strong>, <strong>condition</strong>, <strong>update</strong>. Any part can be empty; <code>for (;;)</code> is an infinite loop.</p>
+<h3 id="while-loop">while loop</h3>
+<p>Checks the condition <strong>before</strong> each iteration.</p>
+<pre><code class="language-java">int n = 5;
+while (n &gt; 0) {
+    System.out.println(n--);
+}</code></pre>
+<h3 id="do-while-loop">do-while loop</h3>
+<p>Runs the body <strong>at least once</strong>, then checks the condition.</p>
+<pre><code class="language-java">int choice;
+do {
+    choice = readChoice();
+} while (choice != 0);</code></pre>
+<h3 id="enhanced-for-for-each">Enhanced for (for-each)</h3>
+<pre><code class="language-java">int[] marks = {70, 80, 90};
+for (int m : marks) {
+    System.out.println(m);
+}</code></pre>
+<ul><li>Works on arrays and anything that implements <code>Iterable</code></li><li>You cannot get the index, and you cannot safely remove elements while looping over a collection</li></ul>
+<h3 id="which-loop-to-choose">Which loop to choose?</h3>
+<div class="table-wrap"><table><thead><tr><th>Situation</th><th>Use</th></tr></thead><tbody><tr><td>Known number of iterations</td><td><code>for</code></td></tr><tr><td>Unknown iterations, may run zero times</td><td><code>while</code></td></tr><tr><td>Must run at least once (menus, input validation)</td><td><code>do-while</code></td></tr><tr><td>Visit every element of an array or collection</td><td>for-each</td></tr></tbody></table></div>
+<h2 id="jump-statements"><span class="num">03</span>Jump Statements</h2>
+<div class="table-wrap"><table><thead><tr><th>Statement</th><th>Effect</th></tr></thead><tbody><tr><td><code>break</code></td><td>Exits the nearest loop or <code>switch</code></td></tr><tr><td><code>continue</code></td><td>Skips to the next iteration of the loop</td></tr><tr><td><code>return</code></td><td>Exits the current method (optionally with a value)</td></tr><tr><td><code>break label</code> / <code>continue label</code></td><td>Jumps out of or continues an <strong>outer</strong> loop</td></tr></tbody></table></div>
+<pre><code class="language-java">for (int i = 1; i &lt;= 10; i++) {
+    if (i % 2 == 0) continue;   // skip evens
+    if (i &gt; 7) break;           // stop at 7
+    System.out.println(i);      // 1 3 5 7
+}</code></pre>
+<h3 id="labelled-break">Labelled break</h3>
+<pre><code class="language-java">outer:
+for (int i = 1; i &lt;= 3; i++) {
+    for (int j = 1; j &lt;= 3; j++) {
+        if (i * j == 4) break outer;
+        System.out.println(i + "," + j);
+    }
+}</code></pre>
+<h2 id="nested-loops-and-patterns"><span class="num">04</span>Nested Loops and Patterns</h2>
+<pre><code class="language-java">for (int i = 1; i &lt;= 4; i++) {
+    for (int j = 1; j &lt;= i; j++) {
+        System.out.print("* ");
+    }
+    System.out.println();
+}</code></pre>
+<pre><code class="language-output">* 
+* * 
+* * * 
+* * * * </code></pre>
+<h2 id="common-programs"><span class="num">05</span>Common Programs</h2>
+<h3 id="factorial">Factorial</h3>
+<pre><code class="language-java">long fact = 1;
+for (int i = 2; i &lt;= n; i++) fact *= i;</code></pre>
+<h3 id="prime-check">Prime check</h3>
+<pre><code class="language-java">boolean prime = n &gt; 1;
+for (int i = 2; i * i &lt;= n; i++) {
+    if (n % i == 0) { prime = false; break; }
+}</code></pre>
+<h3 id="fibonacci-first-10">Fibonacci (first 10)</h3>
+<pre><code class="language-java">int a = 0, b = 1;
+for (int i = 0; i &lt; 10; i++) {
+    System.out.print(a + " ");
+    int next = a + b;
+    a = b;
+    b = next;
+}</code></pre>
+<h3 id="palindrome-number">Palindrome number</h3>
+<pre><code class="language-java">int original = n, reversed = 0;
+while (n &gt; 0) {
+    reversed = reversed * 10 + n % 10;
+    n /= 10;
+}
+boolean isPalindrome = (original == reversed);</code></pre>
+<h2 id="common-mistakes"><span class="num">06</span>Common Mistakes</h2>
+<ul><li>A semicolon right after <code>if (...)</code> or <code>for (...)</code> makes the body empty</li><li>Using <code>=</code> instead of <code>==</code> in conditions</li><li>Off-by-one errors: <code>i &lt;= n</code> versus <code>i &lt; n</code></li><li>Forgetting <code>break</code> in classic <code>switch</code></li><li>Infinite loops because the loop variable is never updated</li></ul>
+<h2 id="quick-recap"><span class="num">07</span>Quick Recap</h2>
+<ul><li><code>if</code> / <code>else if</code> / <code>else</code> for conditions; <code>switch</code> for many fixed choices</li><li>Prefer arrow-style <code>switch</code> expressions in modern Java</li><li><code>for</code>, <code>while</code>, <code>do-while</code>, and for-each cover all looping needs</li><li><code>break</code> leaves a loop, <code>continue</code> skips an iteration, labels reach outer loops</li></ul>
+    </article>
+    <nav class="pager" aria-label="Topic navigation">
+      <a class="prev" href="02-language-basics.html"><small>← Previous</small><strong>Language Basics</strong></a>
+      <a class="next" href="04-arrays-strings.html"><small>Next →</small><strong>Arrays and Strings</strong></a>
+    </nav>
+  </main>
+</div>
+</body>
+</html>

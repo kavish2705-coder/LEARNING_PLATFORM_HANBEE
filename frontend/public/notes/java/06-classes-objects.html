@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="en" data-track="java">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Classes and Objects — Java Notes · Hanbee</title>
+<meta name="description" content="The core of Java. Classes, objects, constructors, this, static members, initialisation blocks, packages, access modifiers and encapsulation.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500..700;1,9..144,500&amp;family=Inter:wght@400..700&amp;family=JetBrains+Mono:wght@400..600&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/notes.css">
+<script src="../assets/notes.js" defer></script>
+</head>
+<body>
+<div class="progress" aria-hidden="true"><i></i></div>
+<header class="top">
+  <a class="brand" href="../index.html"><b>H</b>Hanbee · Java Notes</a>
+  <nav><a class="keep" href="index.html">All topics</a><button id="theme-toggle" type="button" aria-label="Toggle light and dark theme">Theme</button></nav>
+</header>
+<div class="shell">
+  <details class="toc"><summary>On this page</summary><nav aria-label="On this page"><ol><li><a href="#object-oriented-programming-concepts"><span>01</span>Object-Oriented Programming Concepts</a></li><li><a href="#classes-and-objects"><span>02</span>Classes and Objects</a></li><li><a href="#constructors"><span>03</span>Constructors</a></li><li><a href="#the-this-keyword"><span>04</span>The this Keyword</a></li><li><a href="#static-members"><span>05</span>Static Members</a></li><li><a href="#initialisation-blocks"><span>06</span>Initialisation Blocks</a></li><li><a href="#packages-and-imports"><span>07</span>Packages and Imports</a></li><li><a href="#access-modifiers"><span>08</span>Access Modifiers</a></li><li><a href="#encapsulation"><span>09</span>Encapsulation</a></li><li><a href="#immutable-classes"><span>10</span>Immutable Classes</a></li><li><a href="#object-lifecycle-and-garbage-collection"><span>11</span>Object Lifecycle and Garbage Collection</a></li><li><a href="#the-object-class-basics"><span>12</span>The Object Class Basics</a></li><li><a href="#quick-recap"><span>13</span>Quick Recap</a></li></ol></nav></details>
+  <main>
+    <header class="hero">
+      <p class="kicker"><span class="pill">Object-Oriented Programming</span><span>Topic 06</span><span>Beginner</span><span>5 min read</span></p>
+      <h1>Classes and Objects</h1>
+      <p class="lede">The core of Java. Classes, objects, constructors, this, static members, initialisation blocks, packages, access modifiers and encapsulation.</p>
+    </header>
+    <article>
+<h2 id="object-oriented-programming-concepts"><span class="num">01</span>Object-Oriented Programming Concepts</h2>
+<p>OOP models software as <strong>objects</strong> that combine <strong>data</strong> (state) and <strong>behaviour</strong> (methods). Java's OOP rests on four pillars:</p>
+<div class="table-wrap"><table><thead><tr><th>Pillar</th><th>Idea</th></tr></thead><tbody><tr><td><strong>Encapsulation</strong></td><td>Hide data inside a class, expose it through methods</td></tr><tr><td><strong>Inheritance</strong></td><td>A class reuses and extends another class</td></tr><tr><td><strong>Polymorphism</strong></td><td>One interface, many forms (overloading, overriding)</td></tr><tr><td><strong>Abstraction</strong></td><td>Show <em>what</em> an object does, hide <em>how</em></td></tr></tbody></table></div>
+<h2 id="classes-and-objects"><span class="num">02</span>Classes and Objects</h2>
+<p>A <strong>class</strong> is a blueprint. An <strong>object</strong> is a real instance created from that blueprint.</p>
+<pre data-file="Student.java"><code class="language-java">public class Student {
+    // fields (state)
+    String name;
+    int age;
+
+    // method (behaviour)
+    void introduce() {
+        System.out.println("I am " + name + ", " + age + " years old");
+    }
+}</code></pre>
+<pre><code class="language-java">Student s1 = new Student();   // object creation
+s1.name = "Asha";
+s1.age = 20;
+s1.introduce();
+
+Student s2 = new Student();   // another independent object</code></pre>
+<h3 id="what-new-does">What <code>new</code> does</h3>
+<ol><li>Allocates memory for the object on the <strong>heap</strong></li><li>Sets fields to default values</li><li>Calls the constructor</li><li>Returns a <strong>reference</strong> to the object</li></ol>
+<pre><code class="language-text">Stack                     Heap
+s1 ───────────────────►  [ name="Asha", age=20 ]
+s2 ───────────────────►  [ name=null,   age=0  ]</code></pre>
+<h3 id="reference-variables">Reference variables</h3>
+<pre><code class="language-java">Student a = new Student();
+Student b = a;        // b points to the SAME object
+b.name = "Ravi";
+System.out.println(a.name);   // Ravi
+Student c = null;     // refers to nothing; c.name would throw NullPointerException</code></pre>
+<h2 id="constructors"><span class="num">03</span>Constructors</h2>
+<p>A constructor initialises a new object. It has the <strong>same name as the class</strong> and <strong>no return type</strong>.</p>
+<pre><code class="language-java">public class Student {
+    String name;
+    int age;
+
+    Student() {                       // no-arg constructor
+        this("Unknown", 0);
+    }
+
+    Student(String name, int age) {   // parameterised constructor
+        this.name = name;
+        this.age = age;
+    }
+}</code></pre>
+<ul><li>If you write <strong>no</strong> constructor, the compiler adds a default no-arg constructor</li><li>Once you write any constructor, the default is <strong>not</strong> added</li><li>Constructors can be overloaded</li><li>Constructors are not inherited, cannot be <code>static</code>, <code>final</code> or <code>abstract</code></li></ul>
+<h3 id="copy-constructor">Copy constructor</h3>
+<pre><code class="language-java">Student(Student other) {
+    this(other.name, other.age);
+}</code></pre>
+<h2 id="the-this-keyword"><span class="num">04</span>The this Keyword</h2>
+<div class="table-wrap"><table><thead><tr><th>Use</th><th>Example</th></tr></thead><tbody><tr><td>Refer to the current object's field</td><td><code>this.name = name;</code></td></tr><tr><td>Call another constructor (first line only)</td><td><code>this("Unknown", 0);</code></td></tr><tr><td>Pass the current object</td><td><code>register(this);</code></td></tr><tr><td>Return the current object (method chaining)</td><td><code>return this;</code></td></tr></tbody></table></div>
+<h2 id="static-members"><span class="num">05</span>Static Members</h2>
+<p><code>static</code> members belong to the <strong>class</strong>, not to any object. There is one copy shared by all objects.</p>
+<pre><code class="language-java">public class Counter {
+    static int count = 0;           // shared by all objects
+    final int id;
+
+    Counter() {
+        count++;
+        id = count;
+    }
+
+    static int getCount() {         // call as Counter.getCount()
+        return count;
+    }
+}</code></pre>
+<ul><li>A static method cannot access instance members directly and cannot use <code>this</code> or <code>super</code></li><li>Static members are loaded when the class is first loaded</li><li><code>static</code> nested classes, static imports and utility methods (<code>Math.max</code>) are common uses</li></ul>
+<h2 id="initialisation-blocks"><span class="num">06</span>Initialisation Blocks</h2>
+<pre><code class="language-java">public class Demo {
+    static int x;
+    int y;
+
+    static {                 // runs once, when the class is loaded
+        x = 10;
+    }
+
+    {                        // runs before each constructor
+        y = 20;
+    }
+
+    Demo() { System.out.println("constructor"); }
+}</code></pre>
+<h3 id="order-of-initialisation">Order of initialisation</h3>
+<ol><li>Static variables and static blocks (top to bottom, once)</li><li>Instance variables and instance blocks (top to bottom, per object)</li><li>Constructor body</li></ol>
+<h2 id="packages-and-imports"><span class="num">07</span>Packages and Imports</h2>
+<p>A <strong>package</strong> groups related classes and avoids name clashes. It maps to a folder structure.</p>
+<pre><code class="language-java">package com.hanbee.lms.model;
+
+import java.util.List;
+import java.util.*;                 // all classes in java.util
+import static java.lang.Math.sqrt;  // static import</code></pre>
+<ul><li><code>java.lang</code> is imported automatically (<code>String</code>, <code>Math</code>, <code>System</code>)</li><li>Use reverse domain names: <code>com.company.project.module</code></li></ul>
+<h2 id="access-modifiers"><span class="num">08</span>Access Modifiers</h2>
+<div class="table-wrap"><table><thead><tr><th>Modifier</th><th>Same class</th><th>Same package</th><th>Subclass (other package)</th><th>Everywhere</th></tr></thead><tbody><tr><td><code>private</code></td><td>✔</td><td>✘</td><td>✘</td><td>✘</td></tr><tr><td><em>(default)</em></td><td>✔</td><td>✔</td><td>✘</td><td>✘</td></tr><tr><td><code>protected</code></td><td>✔</td><td>✔</td><td>✔</td><td>✘</td></tr><tr><td><code>public</code></td><td>✔</td><td>✔</td><td>✔</td><td>✔</td></tr></tbody></table></div>
+<p>Top-level classes can be only <code>public</code> or package-private. Other modifiers: <code>static</code>, <code>final</code>, <code>abstract</code>, <code>synchronized</code>, <code>volatile</code>, <code>transient</code>, <code>native</code>.</p>
+<h2 id="encapsulation"><span class="num">09</span>Encapsulation</h2>
+<p>Make fields <code>private</code> and expose controlled access with <strong>getters and setters</strong>. This lets you validate data and change internals without breaking callers.</p>
+<pre><code class="language-java">public class Account {
+    private double balance;
+
+    public double getBalance() { return balance; }
+
+    public void deposit(double amount) {
+        if (amount &lt;= 0) throw new IllegalArgumentException("Amount must be positive");
+        balance += amount;
+    }
+}</code></pre>
+<aside class="callout tip"><span class="label">Tip</span><p>Don't generate setters for everything. Expose only what callers truly need to change. Immutable objects (no setters) are the safest.</p></aside>
+<h2 id="immutable-classes"><span class="num">10</span>Immutable Classes</h2>
+<p>Once created, an immutable object never changes (like <code>String</code>).</p>
+<pre><code class="language-java">public final class Point {
+    private final int x, y;
+    public Point(int x, int y) { this.x = x; this.y = y; }
+    public int x() { return x; }
+    public int y() { return y; }
+    public Point withX(int newX) { return new Point(newX, y); }
+}</code></pre>
+<p>Rules: <code>final</code> class, <code>private final</code> fields, no setters, defensive copies of mutable inputs/outputs.</p>
+<h2 id="object-lifecycle-and-garbage-collection"><span class="num">11</span>Object Lifecycle and Garbage Collection</h2>
+<ul><li>Objects are created with <code>new</code> and live on the heap</li><li>When no live reference can reach an object, it becomes eligible for <strong>garbage collection</strong></li><li>You cannot force GC; <code>System.gc()</code> is only a hint</li><li><code>finalize()</code> is deprecated; use <code>try-with-resources</code> / <code>Cleaner</code> for cleanup</li></ul>
+<h2 id="the-object-class-basics"><span class="num">12</span>The Object Class Basics</h2>
+<p>Every class implicitly extends <code>java.lang.Object</code>, so every object has <code>toString()</code>, <code>equals()</code>, <code>hashCode()</code>, <code>getClass()</code>.</p>
+<pre><code class="language-java">@Override
+public String toString() {
+    return "Student{name=" + name + ", age=" + age + "}";
+}</code></pre>
+<h2 id="quick-recap"><span class="num">13</span>Quick Recap</h2>
+<ul><li>Class = blueprint, object = instance, <code>new</code> creates it on the heap</li><li>Constructors initialise objects; <code>this(...)</code> chains them</li><li><code>static</code> members are shared per class</li><li>Use <code>private</code> fields + public methods (encapsulation)</li><li>Prefer immutable objects where possible</li></ul>
+    </article>
+    <nav class="pager" aria-label="Topic navigation">
+      <a class="prev" href="05-methods.html"><small>← Previous</small><strong>Methods</strong></a>
+      <a class="next" href="07-inheritance-polymorphism.html"><small>Next →</small><strong>Inheritance, Polymorphism and Abstraction</strong></a>
+    </nav>
+  </main>
+</div>
+</body>
+</html>

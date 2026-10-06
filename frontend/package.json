@@ -10,7 +10,8 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@tanstack/react-query": "^5.104.0",
+    "@supabase/supabase-js": "^2.117.2",
+    "@tanstack/react-query": "^5.104.1",
     "framer-motion": "^12.12.1",
     "lucide-react": "^1.48.0",
     "next": "^15.3.3",

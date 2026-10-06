@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="en" data-track="java">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lambdas, Functional Interfaces and Streams — Java Notes · Hanbee</title>
+<meta name="description" content="Functional-style Java. Lambda expressions, method references, the built-in functional interfaces, Optional and the Stream API with collectors.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500..700;1,9..144,500&amp;family=Inter:wght@400..700&amp;family=JetBrains+Mono:wght@400..600&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/notes.css">
+<script src="../assets/notes.js" defer></script>
+</head>
+<body>
+<div class="progress" aria-hidden="true"><i></i></div>
+<header class="top">
+  <a class="brand" href="../index.html"><b>H</b>Hanbee · Java Notes</a>
+  <nav><a class="keep" href="index.html">All topics</a><button id="theme-toggle" type="button" aria-label="Toggle light and dark theme">Theme</button></nav>
+</header>
+<div class="shell">
+  <details class="toc"><summary>On this page</summary><nav aria-label="On this page"><ol><li><a href="#functional-programming-in-java"><span>01</span>Functional Programming in Java</a></li><li><a href="#lambda-expressions"><span>02</span>Lambda Expressions</a></li><li><a href="#functional-interfaces"><span>03</span>Functional Interfaces</a></li><li><a href="#method-references"><span>04</span>Method References</a></li><li><a href="#optional"><span>05</span>Optional</a></li><li><a href="#stream-api"><span>06</span>Stream API</a></li><li><a href="#collectors"><span>07</span>Collectors</a></li><li><a href="#parallel-streams"><span>08</span>Parallel Streams</a></li><li><a href="#stream-rules-and-pitfalls"><span>09</span>Stream Rules and Pitfalls</a></li><li><a href="#common-stream-interview-programs"><span>10</span>Common Stream Interview Programs</a></li><li><a href="#quick-recap"><span>11</span>Quick Recap</a></li></ol></nav></details>
+  <main>
+    <header class="hero">
+      <p class="kicker"><span class="pill">Core APIs</span><span>Topic 12</span><span>Intermediate</span><span>6 min read</span></p>
+      <h1>Lambdas, Functional Interfaces and Streams</h1>
+      <p class="lede">Functional-style Java. Lambda expressions, method references, the built-in functional interfaces, Optional and the Stream API with collectors.</p>
+    </header>
+    <article>
+<h2 id="functional-programming-in-java"><span class="num">01</span>Functional Programming in Java</h2>
+<p>Java 8 added a functional style: pass <strong>behaviour</strong> (functions) as data. This leads to shorter, more declarative code, especially when processing collections.</p>
+<h2 id="lambda-expressions"><span class="num">02</span>Lambda Expressions</h2>
+<p>A lambda is an <strong>anonymous function</strong>: <code>(parameters) -&gt; expression or block</code>.</p>
+<pre><code class="language-java">// anonymous class
+Runnable r1 = new Runnable() {
+    public void run() { System.out.println("hi"); }
+};
+// lambda
+Runnable r2 = () -&gt; System.out.println("hi");
+
+Comparator&lt;String&gt; byLength = (a, b) -&gt; a.length() - b.length();</code></pre>
+<h3 id="syntax-variations">Syntax variations</h3>
+<pre><code class="language-java">() -&gt; 42                         // no parameters
+x -&gt; x * 2                       // one parameter, parentheses optional
+(int a, int b) -&gt; a + b          // explicit types
+(a, b) -&gt; {                      // block body needs return
+    int sum = a + b;
+    return sum;
+}</code></pre>
+<h3 id="rules">Rules</h3>
+<ul><li>A lambda can only target a <strong>functional interface</strong></li><li>It can use local variables only if they are <strong>effectively final</strong> (never reassigned)</li><li><code>this</code> inside a lambda refers to the <strong>enclosing</strong> class, not the lambda</li></ul>
+<h2 id="functional-interfaces"><span class="num">03</span>Functional Interfaces</h2>
+<p>An interface with <strong>exactly one abstract method</strong> (SAM). Mark it with <code>@FunctionalInterface</code>.</p>
+<pre><code class="language-java">@FunctionalInterface
+interface Calculator {
+    int apply(int a, int b);
+}
+Calculator add = (a, b) -&gt; a + b;
+Calculator mul = (a, b) -&gt; a * b;
+System.out.println(add.apply(3, 4));</code></pre>
+<h3 id="built-in-interfaces-java-util-function">Built-in interfaces (java.util.function)</h3>
+<div class="table-wrap"><table><thead><tr><th>Interface</th><th>Method</th><th>Purpose</th><th>Example</th></tr></thead><tbody><tr><td><code>Predicate&lt;T&gt;</code></td><td><code>boolean test(T)</code></td><td>Test a condition</td><td><code>s -&gt; s.isEmpty()</code></td></tr><tr><td><code>Function&lt;T,R&gt;</code></td><td><code>R apply(T)</code></td><td>Transform</td><td><code>s -&gt; s.length()</code></td></tr><tr><td><code>Consumer&lt;T&gt;</code></td><td><code>void accept(T)</code></td><td>Use a value, no result</td><td><code>System.out::println</code></td></tr><tr><td><code>Supplier&lt;T&gt;</code></td><td><code>T get()</code></td><td>Produce a value</td><td><code>() -&gt; new ArrayList&lt;&gt;()</code></td></tr><tr><td><code>UnaryOperator&lt;T&gt;</code></td><td><code>T apply(T)</code></td><td><code>Function&lt;T,T&gt;</code></td><td><code>s -&gt; s.trim()</code></td></tr><tr><td><code>BinaryOperator&lt;T&gt;</code></td><td><code>T apply(T,T)</code></td><td>Combine two values</td><td><code>Integer::sum</code></td></tr><tr><td><code>BiFunction&lt;T,U,R&gt;</code></td><td><code>R apply(T,U)</code></td><td>Two inputs</td><td><code>(a, b) -&gt; a + b</code></td></tr><tr><td><code>Runnable</code> / <code>Callable&lt;V&gt;</code></td><td><code>run</code> / <code>call</code></td><td>Tasks</td><td><code>() -&gt; work()</code></td></tr></tbody></table></div>
+<p>Primitive variants avoid boxing: <code>IntPredicate</code>, <code>IntFunction</code>, <code>ToIntFunction</code>, <code>IntUnaryOperator</code>, etc.</p>
+<pre><code class="language-java">Predicate&lt;String&gt; notEmpty = s -&gt; !s.isEmpty();
+Predicate&lt;String&gt; shortWord = s -&gt; s.length() &lt; 5;
+Predicate&lt;String&gt; both = notEmpty.and(shortWord);      // also or(), negate()
+
+Function&lt;Integer, Integer&gt; doubleIt = x -&gt; x * 2;
+Function&lt;Integer, Integer&gt; plusTen = x -&gt; x + 10;
+doubleIt.andThen(plusTen).apply(5);                    // 20
+doubleIt.compose(plusTen).apply(5);                    // 30</code></pre>
+<h2 id="method-references"><span class="num">04</span>Method References</h2>
+<p>A shorthand for a lambda that only calls an existing method.</p>
+<div class="table-wrap"><table><thead><tr><th>Kind</th><th>Syntax</th><th>Lambda equivalent</th></tr></thead><tbody><tr><td>Static method</td><td><code>Integer::parseInt</code></td><td><code>s -&gt; Integer.parseInt(s)</code></td></tr><tr><td>Instance method of a given object</td><td><code>System.out::println</code></td><td><code>x -&gt; System.out.println(x)</code></td></tr><tr><td>Instance method of an arbitrary object</td><td><code>String::length</code></td><td><code>s -&gt; s.length()</code></td></tr><tr><td>Constructor</td><td><code>ArrayList::new</code></td><td><code>() -&gt; new ArrayList&lt;&gt;()</code></td></tr></tbody></table></div>
+<h2 id="optional"><span class="num">05</span>Optional</h2>
+<p>A container that <strong>may or may not contain a value</strong>. It makes "no result" explicit instead of returning <code>null</code>.</p>
+<pre><code class="language-java">Optional&lt;String&gt; name = Optional.of("Asha");
+Optional&lt;String&gt; none = Optional.empty();
+Optional&lt;String&gt; maybe = Optional.ofNullable(getNameOrNull());
+
+name.isPresent();   name.isEmpty();
+name.get();                                   // throws if empty: avoid
+name.orElse("Guest");
+name.orElseGet(() -&gt; loadDefault());
+name.orElseThrow(() -&gt; new NoSuchElementException("No name"));
+name.ifPresent(System.out::println);
+name.ifPresentOrElse(n -&gt; use(n), () -&gt; log("missing"));
+name.map(String::toUpperCase).filter(s -&gt; s.startsWith("A"));</code></pre>
+<aside class="callout tip"><span class="label">Tip</span><p>Use <code>Optional</code> as a <strong>return type</strong>. Avoid it for fields, method parameters and collections.</p></aside>
+<h2 id="stream-api"><span class="num">06</span>Stream API</h2>
+<p>A <strong>stream</strong> is a sequence of elements supporting a <strong>pipeline</strong> of operations. Streams do not store data and do not modify the source.</p>
+<pre><code class="language-text">Source  →  Intermediate operations (lazy)  →  Terminal operation (triggers work)
+list    →  filter → map → sorted → distinct  →  collect / forEach / count / reduce</code></pre>
+<pre><code class="language-java">List&lt;Integer&gt; nums = List.of(5, 2, 8, 1, 9, 4);
+
+List&lt;Integer&gt; result = nums.stream()
+        .filter(n -&gt; n % 2 == 0)       // keep evens
+        .map(n -&gt; n * n)               // square
+        .sorted()
+        .collect(Collectors.toList()); // [4, 16, 64]</code></pre>
+<h3 id="creating-streams">Creating streams</h3>
+<pre><code class="language-java">list.stream();                          // from a collection
+Arrays.stream(array);
+Stream.of("a", "b", "c");
+IntStream.rangeClosed(1, 5);            // 1..5
+Stream.iterate(1, x -&gt; x * 2).limit(8);
+Stream.generate(Math::random).limit(3);
+"hello".chars();                        // IntStream of characters
+Files.lines(Path.of("data.txt"));       // lines of a file (close it!)</code></pre>
+<h3 id="intermediate-operations-return-a-stream-lazy">Intermediate operations (return a stream, lazy)</h3>
+<div class="table-wrap"><table><thead><tr><th>Operation</th><th>Purpose</th></tr></thead><tbody><tr><td><code>filter(Predicate)</code></td><td>Keep matching elements</td></tr><tr><td><code>map(Function)</code></td><td>Transform each element</td></tr><tr><td><code>flatMap(Function)</code></td><td>Transform each into a stream and flatten</td></tr><tr><td><code>distinct()</code></td><td>Remove duplicates</td></tr><tr><td><code>sorted()</code> / <code>sorted(Comparator)</code></td><td>Sort</td></tr><tr><td><code>limit(n)</code> / <code>skip(n)</code></td><td>Truncate / skip</td></tr><tr><td><code>peek(Consumer)</code></td><td>Debugging side effect</td></tr><tr><td><code>mapToInt</code> / <code>mapToDouble</code></td><td>Convert to primitive stream</td></tr><tr><td><code>takeWhile</code> / <code>dropWhile</code></td><td>Java 9+</td></tr></tbody></table></div>
+<h3 id="terminal-operations-produce-a-result-end-the-stream">Terminal operations (produce a result, end the stream)</h3>
+<div class="table-wrap"><table><thead><tr><th>Operation</th><th>Result</th></tr></thead><tbody><tr><td><code>forEach(Consumer)</code></td><td>Side effect</td></tr><tr><td><code>collect(Collector)</code></td><td>Collection, Map, String ...</td></tr><tr><td><code>toList()</code></td><td>Unmodifiable <code>List</code> (Java 16+)</td></tr><tr><td><code>count()</code></td><td><code>long</code></td></tr><tr><td><code>reduce(identity, op)</code></td><td>Single combined value</td></tr><tr><td><code>min</code> / <code>max(Comparator)</code></td><td><code>Optional</code></td></tr><tr><td><code>findFirst</code> / <code>findAny</code></td><td><code>Optional</code></td></tr><tr><td><code>anyMatch</code> / <code>allMatch</code> / <code>noneMatch</code></td><td><code>boolean</code></td></tr><tr><td><code>sum</code> / <code>average</code> / <code>summaryStatistics</code></td><td>On primitive streams</td></tr></tbody></table></div>
+<pre><code class="language-java">int total = nums.stream().mapToInt(Integer::intValue).sum();
+double avg = nums.stream().mapToInt(i -&gt; i).average().orElse(0);
+int maxValue = nums.stream().max(Integer::compare).get();
+int sum = nums.stream().reduce(0, Integer::sum);
+boolean anyBig = nums.stream().anyMatch(n -&gt; n &gt; 8);</code></pre>
+<h3 id="flatmap">flatMap</h3>
+<pre><code class="language-java">List&lt;List&lt;Integer&gt;&gt; nested = List.of(List.of(1, 2), List.of(3), List.of(4, 5));
+List&lt;Integer&gt; flat = nested.stream().flatMap(List::stream).toList();   // [1,2,3,4,5]</code></pre>
+<h2 id="collectors"><span class="num">07</span>Collectors</h2>
+<pre><code class="language-java">record Employee(String name, String dept, double salary) { }
+List&lt;Employee&gt; emps = List.of(
+    new Employee("Asha", "IT", 70000), new Employee("Ravi", "IT", 60000),
+    new Employee("Meena", "HR", 50000));
+
+emps.stream().map(Employee::name).collect(Collectors.toList());
+emps.stream().map(Employee::name).collect(Collectors.joining(", ", "[", "]"));
+emps.stream().collect(Collectors.toMap(Employee::name, Employee::salary));
+emps.stream().collect(Collectors.toSet());
+
+// grouping
+Map&lt;String, List&lt;Employee&gt;&gt; byDept = emps.stream().collect(Collectors.groupingBy(Employee::dept));
+Map&lt;String, Long&gt; countByDept = emps.stream().collect(Collectors.groupingBy(Employee::dept, Collectors.counting()));
+Map&lt;String, Double&gt; avgSalary = emps.stream().collect(Collectors.groupingBy(Employee::dept, Collectors.averagingDouble(Employee::salary)));
+
+// partitioning into true / false
+Map&lt;Boolean, List&lt;Employee&gt;&gt; highLow = emps.stream().collect(Collectors.partitioningBy(e -&gt; e.salary() &gt; 55000));
+
+// statistics
+DoubleSummaryStatistics stats = emps.stream().collect(Collectors.summarizingDouble(Employee::salary));</code></pre>
+<h2 id="parallel-streams"><span class="num">08</span>Parallel Streams</h2>
+<pre><code class="language-java">long count = hugeList.parallelStream().filter(this::expensiveCheck).count();</code></pre>
+<p>Splits work across the common ForkJoin pool. Helpful only for <strong>large, CPU-bound, stateless</strong> workloads. Avoid for small data, I/O or shared mutable state.</p>
+<h2 id="stream-rules-and-pitfalls"><span class="num">09</span>Stream Rules and Pitfalls</h2>
+<ul><li>A stream can be consumed <strong>only once</strong>; reuse throws <code>IllegalStateException</code></li><li>Intermediate operations are <strong>lazy</strong>: nothing runs until a terminal operation</li><li>Don't modify the source collection while streaming</li><li>Keep lambdas <strong>pure</strong> (no side effects, no shared mutable state)</li><li>Prefer <code>toList()</code> / collectors over collecting into a list via <code>forEach</code></li><li>Don't force everything into one long pipeline when a loop is clearer</li></ul>
+<h2 id="common-stream-interview-programs"><span class="num">10</span>Common Stream Interview Programs</h2>
+<pre><code class="language-java">// second highest number
+nums.stream().distinct().sorted(Comparator.reverseOrder()).skip(1).findFirst();
+
+// first non-repeated character
+"swiss".chars().mapToObj(c -&gt; (char) c)
+       .collect(Collectors.groupingBy(Function.identity(), LinkedHashMap::new, Collectors.counting()))
+       .entrySet().stream().filter(e -&gt; e.getValue() == 1).map(Map.Entry::getKey).findFirst();
+
+// word frequency
+Arrays.stream(text.split("\\s+")).collect(Collectors.groupingBy(String::toLowerCase, Collectors.counting()));</code></pre>
+<h2 id="quick-recap"><span class="num">11</span>Quick Recap</h2>
+<ul><li>Lambdas implement functional interfaces; method references shorten them</li><li><code>Predicate</code>, <code>Function</code>, <code>Consumer</code>, <code>Supplier</code> cover most needs</li><li><code>Optional</code> models absent values, never call <code>get()</code> blindly</li><li>Streams: source → lazy intermediate ops → terminal op</li><li><code>Collectors.groupingBy</code>, <code>toMap</code>, <code>joining</code>, <code>partitioningBy</code> do the heavy lifting</li></ul>
+    </article>
+    <nav class="pager" aria-label="Topic navigation">
+      <a class="prev" href="11-collections-framework.html"><small>← Previous</small><strong>Collections Framework</strong></a>
+      <a class="next" href="13-file-io.html"><small>Next →</small><strong>File I/O, NIO and Serialization</strong></a>
+    </nav>
+  </main>
+</div>
+</body>
+</html>

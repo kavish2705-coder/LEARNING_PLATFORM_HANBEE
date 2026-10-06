@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en" data-track="java">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Modern Java (Java 9 to 25) — Java Notes · Hanbee</title>
+<meta name="description" content="A tour of the language and library features added since Java 8, including var, text blocks, records, sealed types, pattern matching and virtual threads.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500..700;1,9..144,500&amp;family=Inter:wght@400..700&amp;family=JetBrains+Mono:wght@400..600&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/notes.css">
+<script src="../assets/notes.js" defer></script>
+</head>
+<body>
+<div class="progress" aria-hidden="true"><i></i></div>
+<header class="top">
+  <a class="brand" href="../index.html"><b>H</b>Hanbee · Java Notes</a>
+  <nav><a class="keep" href="index.html">All topics</a><button id="theme-toggle" type="button" aria-label="Toggle light and dark theme">Theme</button></nav>
+</header>
+<div class="shell">
+  <details class="toc"><summary>On this page</summary><nav aria-label="On this page"><ol><li><a href="#why-keep-up"><span>01</span>Why Keep Up?</a></li><li><a href="#java-9-to-11"><span>02</span>Java 9 to 11</a></li><li><a href="#var-java-10"><span>03</span>var (Java 10)</a></li><li><a href="#java-12-to-17"><span>04</span>Java 12 to 17</a></li><li><a href="#java-18-to-21"><span>05</span>Java 18 to 21</a></li><li><a href="#java-22-to-25"><span>06</span>Java 22 to 25</a></li><li><a href="#feature-timeline-cheat-sheet"><span>07</span>Feature Timeline Cheat Sheet</a></li><li><a href="#migrating-and-best-practices"><span>08</span>Migrating and Best Practices</a></li><li><a href="#quick-recap"><span>09</span>Quick Recap</a></li></ol></nav></details>
+  <main>
+    <header class="hero">
+      <p class="kicker"><span class="pill">Core APIs</span><span>Topic 15</span><span>Intermediate</span><span>4 min read</span></p>
+      <h1>Modern Java (Java 9 to 25)</h1>
+      <p class="lede">A tour of the language and library features added since Java 8, including var, text blocks, records, sealed types, pattern matching and virtual threads.</p>
+    </header>
+    <article>
+<h2 id="why-keep-up"><span class="num">01</span>Why Keep Up?</h2>
+<p>Since Java 9 a new version ships <strong>every six months</strong>, and every fourth release is <strong>LTS</strong> (11, 17, 21, 25). Modern Java is much more concise than the Java 8 many tutorials still show.</p>
+<h2 id="java-9-to-11"><span class="num">02</span>Java 9 to 11</h2>
+<h3 id="module-system-java-9">Module system (Java 9)</h3>
+<pre data-file="module-info.java"><code class="language-java">module com.hanbee.lms {
+    requires java.sql;
+    exports com.hanbee.lms.api;
+}</code></pre>
+<p>Modules give strong encapsulation and reliable dependencies. Most applications still use the classpath; modules matter more for libraries and <code>jlink</code>.</p>
+<h3 id="convenience-factories">Convenience factories</h3>
+<pre><code class="language-java">List&lt;String&gt; list = List.of("a", "b");
+Set&lt;Integer&gt; set = Set.of(1, 2, 3);
+Map&lt;String, Integer&gt; map = Map.of("a", 1, "b", 2);
+// all immutable: add/put throws UnsupportedOperationException</code></pre>
+<h3 id="other-additions">Other additions</h3>
+<ul><li><code>JShell</code>: interactive REPL (<code>jshell</code> command)</li><li>Private interface methods, <code>Optional.ifPresentOrElse</code>, <code>Stream.takeWhile/dropWhile</code></li><li>try-with-resources on an effectively final variable</li><li><code>var</code> for local variables (Java 10)</li><li>New <code>HttpClient</code> (Java 11), <code>String.isBlank/strip/lines/repeat</code>, <code>Files.readString</code></li><li>Run a source file directly: <code>java Hello.java</code></li></ul>
+<h2 id="var-java-10"><span class="num">03</span>var (Java 10)</h2>
+<pre><code class="language-java">var users = new ArrayList&lt;User&gt;();
+for (var u : users) { ... }
+var stream = users.stream().map(User::name);</code></pre>
+<p>Use <code>var</code> when the type is obvious from the right-hand side. Avoid it when it hides meaning.</p>
+<h2 id="java-12-to-17"><span class="num">04</span>Java 12 to 17</h2>
+<h3 id="switch-expressions-java-14">Switch expressions (Java 14)</h3>
+<pre><code class="language-java">int days = switch (month) {
+    case JAN, MAR, MAY, JUL, AUG, OCT, DEC -&gt; 31;
+    case APR, JUN, SEP, NOV -&gt; 30;
+    case FEB -&gt; leap ? 29 : 28;
+};</code></pre>
+<h3 id="text-blocks-java-15">Text blocks (Java 15)</h3>
+<pre><code class="language-java">String html = """
+    &lt;div class="card"&gt;
+      &lt;h2&gt;%s&lt;/h2&gt;
+    &lt;/div&gt;
+    """.formatted(title);</code></pre>
+<h3 id="records-java-16">Records (Java 16)</h3>
+<pre><code class="language-java">public record Point(int x, int y) { }</code></pre>
+<p>Immutable data classes with constructor, accessors, <code>equals</code>, <code>hashCode</code> and <code>toString</code> generated.</p>
+<h3 id="pattern-matching-for-instanceof-java-16">Pattern matching for instanceof (Java 16)</h3>
+<pre><code class="language-java">if (obj instanceof String s &amp;&amp; s.length() &gt; 3) {
+    System.out.println(s.toUpperCase());
+}</code></pre>
+<h3 id="sealed-classes-java-17">Sealed classes (Java 17)</h3>
+<pre><code class="language-java">public sealed interface Payment permits Card, Upi, Cash { }
+public record Card(String number) implements Payment { }
+public record Upi(String id) implements Payment { }
+public record Cash() implements Payment { }</code></pre>
+<h3 id="helpful-npe-messages-java-14">Helpful NPE messages (Java 14+)</h3>
+<p><code>NullPointerException</code> now says exactly which variable or call was <code>null</code>.</p>
+<h3 id="other">Other</h3>
+<ul><li><code>Stream.toList()</code> (Java 16)</li><li>Strong encapsulation of JDK internals (Java 17)</li><li>Removal of the Security Manager and Applet API</li></ul>
+<h2 id="java-18-to-21"><span class="num">05</span>Java 18 to 21</h2>
+<h3 id="pattern-matching-for-switch-java-21">Pattern matching for switch (Java 21)</h3>
+<pre><code class="language-java">static String format(Object o) {
+    return switch (o) {
+        case null -&gt; "null";
+        case Integer i when i &gt; 0 -&gt; "positive " + i;
+        case Integer i -&gt; "int " + i;
+        case String s -&gt; "text " + s;
+        case Point(int x, int y) -&gt; "point " + x + "," + y;     // record pattern
+        default -&gt; o.toString();
+    };
+}</code></pre>
+<h3 id="record-patterns-java-21">Record patterns (Java 21)</h3>
+<pre><code class="language-java">if (shape instanceof Rect(Point(var x1, var y1), Point(var x2, var y2))) {
+    System.out.println(Math.abs(x2 - x1));
+}</code></pre>
+<h3 id="virtual-threads-java-21">Virtual threads (Java 21)</h3>
+<pre><code class="language-java">try (var ex = Executors.newVirtualThreadPerTaskExecutor()) {
+    ex.submit(() -&gt; handleRequest());
+}</code></pre>
+<h3 id="sequenced-collections-java-21">Sequenced collections (Java 21)</h3>
+<pre><code class="language-java">List&lt;String&gt; l = new ArrayList&lt;&gt;(List.of("a", "b", "c"));
+l.getFirst();   l.getLast();   l.reversed();   l.addFirst("z");</code></pre>
+<h3 id="other">Other</h3>
+<ul><li>UTF-8 as the default charset (Java 18)</li><li>Simple web server: <code>jwebserver</code></li><li>Generational ZGC</li></ul>
+<h2 id="java-22-to-25"><span class="num">06</span>Java 22 to 25</h2>
+<p>Highlights (some were previews on the way; check the release you use):</p>
+<ul><li><strong>Unnamed variables and patterns</strong> <code>_</code> for values you ignore: <code>catch (Exception _)</code>, <code>case Point(var x, _)</code></li><li><strong>Stream Gatherers</strong>: custom intermediate stream operations</li><li><strong>Scoped values</strong> and <strong>structured concurrency</strong>: safer concurrent code (finalised or maturing, see the JEP status)</li><li><strong>Flexible constructor bodies</strong>, <strong>module import declarations</strong></li><li><strong>Compact source files and instance main methods</strong> for beginners:</li></ul>
+<pre><code class="language-java">void main() {
+    IO.println("Hello, Java!");
+}</code></pre>
+<ul><li>Foreign Function &amp; Memory API replaces most JNI use</li><li>Class-File API, Markdown in Javadoc, Stream improvements</li></ul>
+<aside class="callout note"><span class="label">Note</span><p>Preview features need <code>--enable-preview</code> and can change. Check the current JEP page before relying on one in production.</p></aside>
+<h2 id="feature-timeline-cheat-sheet"><span class="num">07</span>Feature Timeline Cheat Sheet</h2>
+<div class="table-wrap"><table><thead><tr><th>Version</th><th>Key features</th></tr></thead><tbody><tr><td>8</td><td>Lambdas, streams, Optional, default methods, <code>java.time</code></td></tr><tr><td>9</td><td>Modules, <code>List.of</code>, JShell</td></tr><tr><td>10</td><td><code>var</code></td></tr><tr><td>11 (LTS)</td><td><code>HttpClient</code>, <code>String</code> helpers, single-file run</td></tr><tr><td>14</td><td>Switch expressions</td></tr><tr><td>15</td><td>Text blocks</td></tr><tr><td>16</td><td>Records, <code>instanceof</code> patterns</td></tr><tr><td>17 (LTS)</td><td>Sealed classes</td></tr><tr><td>21 (LTS)</td><td>Virtual threads, switch patterns, record patterns, sequenced collections</td></tr><tr><td>25 (LTS)</td><td>Latest LTS: compact source files, scoped values, gatherers and more</td></tr></tbody></table></div>
+<h2 id="migrating-and-best-practices"><span class="num">08</span>Migrating and Best Practices</h2>
+<ul><li>Move to the latest LTS your framework supports (Spring Boot 3+ requires Java 17+)</li><li>Replace verbose DTOs and value classes with <code>record</code></li><li>Replace <code>if instanceof</code> chains and visitor patterns with sealed types + pattern <code>switch</code></li><li>Replace manual thread pools for I/O-bound services with virtual threads</li><li>Use <code>var</code> selectively, text blocks for SQL/JSON/HTML</li></ul>
+<h2 id="quick-recap"><span class="num">09</span>Quick Recap</h2>
+<ul><li>Java releases every 6 months; target LTS versions</li><li>Records, sealed types and pattern matching make data modelling concise and safe</li><li>Switch is now an expression with pattern matching</li><li>Virtual threads simplify high-concurrency servers</li></ul>
+    </article>
+    <nav class="pager" aria-label="Topic navigation">
+      <a class="prev" href="14-multithreading.html"><small>← Previous</small><strong>Multithreading and Concurrency</strong></a>
+      <a class="next" href="16-jvm-reflection-annotations.html"><small>Next →</small><strong>JVM Internals, Reflection and Annotations</strong></a>
+    </nav>
+  </main>
+</div>
+</body>
+</html>

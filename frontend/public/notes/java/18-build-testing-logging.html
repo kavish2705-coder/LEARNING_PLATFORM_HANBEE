@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="en" data-track="java">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Build Tools, Testing and Logging — Java Notes · Hanbee</title>
+<meta name="description" content="Professional project tooling. Maven and Gradle, project structure, JUnit 5 and Mockito for testing, SLF4J logging and Git basics.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500..700;1,9..144,500&amp;family=Inter:wght@400..700&amp;family=JetBrains+Mono:wght@400..600&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/notes.css">
+<script src="../assets/notes.js" defer></script>
+</head>
+<body>
+<div class="progress" aria-hidden="true"><i></i></div>
+<header class="top">
+  <a class="brand" href="../index.html"><b>H</b>Hanbee · Java Notes</a>
+  <nav><a class="keep" href="index.html">All topics</a><button id="theme-toggle" type="button" aria-label="Toggle light and dark theme">Theme</button></nav>
+</header>
+<div class="shell">
+  <details class="toc"><summary>On this page</summary><nav aria-label="On this page"><ol><li><a href="#why-build-tools"><span>01</span>Why Build Tools?</a></li><li><a href="#standard-project-layout"><span>02</span>Standard Project Layout</a></li><li><a href="#maven"><span>03</span>Maven</a></li><li><a href="#testing-with-junit-5"><span>04</span>Testing with JUnit 5</a></li><li><a href="#mocking-with-mockito"><span>05</span>Mocking with Mockito</a></li><li><a href="#logging"><span>06</span>Logging</a></li><li><a href="#git-essentials"><span>07</span>Git Essentials</a></li><li><a href="#quick-recap"><span>08</span>Quick Recap</a></li></ol></nav></details>
+  <main>
+    <header class="hero">
+      <p class="kicker"><span class="pill">Advanced Java</span><span>Topic 18</span><span>Intermediate</span><span>5 min read</span></p>
+      <h1>Build Tools, Testing and Logging</h1>
+      <p class="lede">Professional project tooling. Maven and Gradle, project structure, JUnit 5 and Mockito for testing, SLF4J logging and Git basics.</p>
+    </header>
+    <article>
+<h2 id="why-build-tools"><span class="num">01</span>Why Build Tools?</h2>
+<p>Real projects have dozens of libraries, many modules and repeatable steps (compile, test, package). A <strong>build tool</strong> automates this and manages <strong>dependencies</strong>.</p>
+<div class="table-wrap"><table><thead><tr><th></th><th>Maven</th><th>Gradle</th></tr></thead><tbody><tr><td>Config</td><td>XML (<code>pom.xml</code>)</td><td>Groovy/Kotlin DSL (<code>build.gradle</code>)</td></tr><tr><td>Style</td><td>Convention, declarative</td><td>Flexible, scriptable</td></tr><tr><td>Speed</td><td>Good</td><td>Faster (incremental, daemon, cache)</td></tr><tr><td>Common in</td><td>Enterprise, Spring</td><td>Android, modern projects</td></tr></tbody></table></div>
+<h2 id="standard-project-layout"><span class="num">02</span>Standard Project Layout</h2>
+<pre><code class="language-text">my-app/
+├── pom.xml
+├── src/
+│   ├── main/
+│   │   ├── java/com/hanbee/app/App.java
+│   │   └── resources/application.properties
+│   └── test/
+│       ├── java/com/hanbee/app/AppTest.java
+│       └── resources/
+└── target/            ← build output (do not commit)</code></pre>
+<h2 id="maven"><span class="num">03</span>Maven</h2>
+<h3 id="pom-xml">pom.xml</h3>
+<pre data-file="pom.xml"><code class="language-xml">&lt;project xmlns="http://maven.apache.org/POM/4.0.0"&gt;
+  &lt;modelVersion&gt;4.0.0&lt;/modelVersion&gt;
+
+  &lt;groupId&gt;com.hanbee&lt;/groupId&gt;
+  &lt;artifactId&gt;lms-app&lt;/artifactId&gt;
+  &lt;version&gt;1.0.0&lt;/version&gt;
+  &lt;packaging&gt;jar&lt;/packaging&gt;
+
+  &lt;properties&gt;
+    &lt;maven.compiler.release&gt;21&lt;/maven.compiler.release&gt;
+    &lt;project.build.sourceEncoding&gt;UTF-8&lt;/project.build.sourceEncoding&gt;
+  &lt;/properties&gt;
+
+  &lt;dependencies&gt;
+    &lt;dependency&gt;
+      &lt;groupId&gt;org.junit.jupiter&lt;/groupId&gt;
+      &lt;artifactId&gt;junit-jupiter&lt;/artifactId&gt;
+      &lt;version&gt;5.11.0&lt;/version&gt;
+      &lt;scope&gt;test&lt;/scope&gt;
+    &lt;/dependency&gt;
+  &lt;/dependencies&gt;
+&lt;/project&gt;</code></pre>
+<p><strong>GAV coordinates</strong> (<code>groupId:artifactId:version</code>) uniquely identify an artifact in a repository such as <strong>Maven Central</strong>.</p>
+<h3 id="dependency-scopes">Dependency scopes</h3>
+<div class="table-wrap"><table><thead><tr><th>Scope</th><th>Available at</th></tr></thead><tbody><tr><td><code>compile</code> (default)</td><td>Compile, test, runtime</td></tr><tr><td><code>provided</code></td><td>Compile and test only (container supplies it, e.g. Servlet API)</td></tr><tr><td><code>runtime</code></td><td>Runtime and test (e.g. JDBC driver)</td></tr><tr><td><code>test</code></td><td>Test only</td></tr></tbody></table></div>
+<h3 id="build-lifecycle-and-commands">Build lifecycle and commands</h3>
+<div class="table-wrap"><table><thead><tr><th>Phase</th><th>Does</th></tr></thead><tbody><tr><td><code>validate</code></td><td>Check the project</td></tr><tr><td><code>compile</code></td><td>Compile sources</td></tr><tr><td><code>test</code></td><td>Run unit tests</td></tr><tr><td><code>package</code></td><td>Create the jar/war</td></tr><tr><td><code>verify</code></td><td>Run integration checks</td></tr><tr><td><code>install</code></td><td>Copy to the local repository</td></tr><tr><td><code>deploy</code></td><td>Upload to a remote repository</td></tr></tbody></table></div>
+<pre><code class="language-bash">mvn clean compile
+mvn test
+mvn clean package
+mvn clean install -DskipTests
+mvn dependency:tree</code></pre>
+<p>Each phase runs all the earlier ones. Use the <strong>Maven Wrapper</strong> (<code>./mvnw</code>) so everyone uses the same version.</p>
+<h3 id="gradle-equivalent">Gradle equivalent</h3>
+<pre data-file="build.gradle"><code class="language-groovy">plugins { id 'java' }
+java { toolchain { languageVersion = JavaLanguageVersion.of(21) } }
+repositories { mavenCentral() }
+dependencies {
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.11.0'
+}
+test { useJUnitPlatform() }</code></pre>
+<pre><code class="language-bash">./gradlew build
+./gradlew test</code></pre>
+<h2 id="testing-with-junit-5"><span class="num">04</span>Testing with JUnit 5</h2>
+<pre data-file="CalculatorTest.java"><code class="language-java">import org.junit.jupiter.api.*;
+import static org.junit.jupiter.api.Assertions.*;
+
+class CalculatorTest {
+    private Calculator calc;
+
+    @BeforeEach
+    void setUp() { calc = new Calculator(); }
+
+    @Test
+    @DisplayName("adds two numbers")
+    void add() {
+        assertEquals(5, calc.add(2, 3));
+    }
+
+    @Test
+    void divideByZeroThrows() {
+        ArithmeticException ex = assertThrows(ArithmeticException.class, () -&gt; calc.divide(1, 0));
+        assertEquals("/ by zero", ex.getMessage());
+    }
+}</code></pre>
+<h3 id="annotations">Annotations</h3>
+<div class="table-wrap"><table><thead><tr><th>Annotation</th><th>Purpose</th></tr></thead><tbody><tr><td><code>@Test</code></td><td>A test method</td></tr><tr><td><code>@BeforeEach</code> / <code>@AfterEach</code></td><td>Run around every test</td></tr><tr><td><code>@BeforeAll</code> / <code>@AfterAll</code></td><td>Once per class (static)</td></tr><tr><td><code>@DisplayName</code></td><td>Readable name</td></tr><tr><td><code>@Disabled</code></td><td>Skip</td></tr><tr><td><code>@Nested</code></td><td>Group tests</td></tr><tr><td><code>@Tag</code></td><td>Filter groups</td></tr><tr><td><code>@ParameterizedTest</code></td><td>Run with many inputs</td></tr></tbody></table></div>
+<h3 id="assertions">Assertions</h3>
+<pre><code class="language-java">assertEquals(expected, actual);       assertNotEquals(a, b);
+assertTrue(cond);                     assertFalse(cond);
+assertNull(x);                        assertNotNull(x);
+assertArrayEquals(exp, act);          assertSame(a, b);
+assertThrows(IOException.class, () -&gt; ...);
+assertAll(() -&gt; assertEquals(1, a), () -&gt; assertEquals(2, b));
+assertTimeout(Duration.ofSeconds(1), () -&gt; slowCall());</code></pre>
+<h3 id="parameterized-tests">Parameterized tests</h3>
+<pre><code class="language-java">@ParameterizedTest
+@CsvSource({"1,1,2", "2,3,5", "10,-5,5"})
+void addCases(int a, int b, int expected) {
+    assertEquals(expected, calc.add(a, b));
+}
+
+@ParameterizedTest
+@ValueSource(strings = {"", " ", "\t"})
+void blankStrings(String s) { assertTrue(s.isBlank()); }</code></pre>
+<h3 id="good-test-habits-first">Good test habits (FIRST)</h3>
+<ul><li><strong>F</strong>ast, <strong>I</strong>ndependent, <strong>R</strong>epeatable, <strong>S</strong>elf-validating, <strong>T</strong>imely</li><li>Pattern: <strong>Arrange → Act → Assert</strong></li><li>One logical behaviour per test, descriptive names</li><li>Test behaviour and edge cases (null, empty, boundaries), not private methods</li></ul>
+<h2 id="mocking-with-mockito"><span class="num">05</span>Mocking with Mockito</h2>
+<p>A <strong>mock</strong> replaces a real collaborator (database, API) so you test one class in isolation.</p>
+<pre><code class="language-java">@ExtendWith(MockitoExtension.class)
+class EnrollmentServiceTest {
+    @Mock StudentRepository repo;
+    @Mock EmailSender email;
+    @InjectMocks EnrollmentService service;
+
+    @Test
+    void enrollSendsConfirmation() {
+        when(repo.findById(1L)).thenReturn(Optional.of(new Student(1L, "Asha")));
+
+        service.enroll(1L, "JAVA101");
+
+        verify(email).send(eq("Asha"), contains("JAVA101"));
+        verify(repo, times(1)).save(any(Enrollment.class));
+    }
+
+    @Test
+    void unknownStudentThrows() {
+        when(repo.findById(99L)).thenReturn(Optional.empty());
+        assertThrows(StudentNotFoundException.class, () -&gt; service.enroll(99L, "JAVA101"));
+    }
+}</code></pre>
+<h3 id="test-types">Test types</h3>
+<div class="table-wrap"><table><thead><tr><th>Type</th><th>Scope</th><th>Tools</th></tr></thead><tbody><tr><td>Unit</td><td>One class</td><td>JUnit, Mockito</td></tr><tr><td>Integration</td><td>Several components, real DB</td><td>Spring Boot Test, Testcontainers</td></tr><tr><td>End-to-end</td><td>Whole system</td><td>Selenium, Playwright, REST Assured</td></tr></tbody></table></div>
+<p>Also: <strong>TDD</strong> (write the failing test first), <strong>code coverage</strong> (JaCoCo; high coverage does not mean good tests).</p>
+<h2 id="logging"><span class="num">06</span>Logging</h2>
+<p>Never use <code>System.out.println</code> for application logs. Use a logging framework: levels, formats, files, rotation and per-package control.</p>
+<h3 id="slf4j-logback-standard-stack">SLF4J + Logback (standard stack)</h3>
+<pre><code class="language-java">private static final Logger log = LoggerFactory.getLogger(EnrollmentService.class);
+
+log.trace("very detailed");
+log.debug("Loading student {}", id);              // {} placeholders: no string building when disabled
+log.info("Student {} enrolled in {}", id, course);
+log.warn("Retrying payment, attempt {}", attempt);
+log.error("Enrollment failed for {}", id, exception);   // exception last: logs stack trace</code></pre>
+<div class="table-wrap"><table><thead><tr><th>Level</th><th>Use for</th></tr></thead><tbody><tr><td><code>TRACE</code></td><td>Finest detail</td></tr><tr><td><code>DEBUG</code></td><td>Developer diagnostics</td></tr><tr><td><code>INFO</code></td><td>Normal important events</td></tr><tr><td><code>WARN</code></td><td>Unexpected but recoverable</td></tr><tr><td><code>ERROR</code></td><td>Failures needing attention</td></tr></tbody></table></div>
+<pre data-file="logback.xml"><code class="language-xml">&lt;configuration&gt;
+  &lt;appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender"&gt;
+    &lt;encoder&gt;&lt;pattern&gt;%d{HH:mm:ss} %-5level %logger{20} - %msg%n&lt;/pattern&gt;&lt;/encoder&gt;
+  &lt;/appender&gt;
+  &lt;logger name="com.hanbee" level="DEBUG"/&gt;
+  &lt;root level="INFO"&gt;&lt;appender-ref ref="CONSOLE"/&gt;&lt;/root&gt;
+&lt;/configuration&gt;</code></pre>
+<aside class="callout warning"><span class="label">Warning</span><p>Never log passwords, tokens or personal data.</p></aside>
+<h2 id="git-essentials"><span class="num">07</span>Git Essentials</h2>
+<pre><code class="language-bash">git init
+git clone &lt;url&gt;
+git status
+git add .
+git commit -m "Add student service"
+git branch feature/login
+git switch feature/login
+git merge feature/login
+git pull        git push
+git log --oneline</code></pre>
+<p>Use <code>.gitignore</code> for <code>target/</code>, <code>.idea/</code>, <code>*.class</code> and secrets.</p>
+<h2 id="quick-recap"><span class="num">08</span>Quick Recap</h2>
+<ul><li>Maven/Gradle manage dependencies, builds and project structure</li><li><code>mvn clean package</code> builds; tests run in the <code>test</code> phase</li><li>JUnit 5 for tests; Mockito to isolate dependencies</li><li>Use SLF4J with <code>{}</code> placeholders and proper levels, not <code>println</code></li><li>Keep everything in Git; ignore build output and secrets</li></ul>
+    </article>
+    <nav class="pager" aria-label="Topic navigation">
+      <a class="prev" href="17-jdbc.html"><small>← Previous</small><strong>JDBC: Java Database Connectivity</strong></a>
+      <a class="next" href="19-design-patterns-solid.html"><small>Next →</small><strong>SOLID Principles and Design Patterns</strong></a>
+    </nav>
+  </main>
+</div>
+</body>
+</html>

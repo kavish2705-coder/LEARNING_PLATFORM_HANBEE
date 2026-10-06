@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="en" data-track="java">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SOLID Principles and Design Patterns — Java Notes · Hanbee</title>
+<meta name="description" content="Write maintainable object-oriented code. The five SOLID principles and the most useful creational, structural and behavioural design patterns, with Java examples.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500..700;1,9..144,500&amp;family=Inter:wght@400..700&amp;family=JetBrains+Mono:wght@400..600&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/notes.css">
+<script src="../assets/notes.js" defer></script>
+</head>
+<body>
+<div class="progress" aria-hidden="true"><i></i></div>
+<header class="top">
+  <a class="brand" href="../index.html"><b>H</b>Hanbee · Java Notes</a>
+  <nav><a class="keep" href="index.html">All topics</a><button id="theme-toggle" type="button" aria-label="Toggle light and dark theme">Theme</button></nav>
+</header>
+<div class="shell">
+  <details class="toc"><summary>On this page</summary><nav aria-label="On this page"><ol><li><a href="#why-design-principles"><span>01</span>Why Design Principles?</a></li><li><a href="#solid-principles"><span>02</span>SOLID Principles</a></li><li><a href="#other-guiding-rules"><span>03</span>Other Guiding Rules</a></li><li><a href="#design-patterns-overview"><span>04</span>Design Patterns Overview</a></li><li><a href="#creational-patterns"><span>05</span>Creational Patterns</a></li><li><a href="#structural-patterns"><span>06</span>Structural Patterns</a></li><li><a href="#behavioural-patterns"><span>07</span>Behavioural Patterns</a></li><li><a href="#architectural-patterns"><span>08</span>Architectural Patterns</a></li><li><a href="#choosing-patterns-wisely"><span>09</span>Choosing Patterns Wisely</a></li><li><a href="#quick-recap"><span>10</span>Quick Recap</a></li></ol></nav></details>
+  <main>
+    <header class="hero">
+      <p class="kicker"><span class="pill">Advanced Java</span><span>Topic 19</span><span>Advanced</span><span>7 min read</span></p>
+      <h1>SOLID Principles and Design Patterns</h1>
+      <p class="lede">Write maintainable object-oriented code. The five SOLID principles and the most useful creational, structural and behavioural design patterns, with Java examples.</p>
+    </header>
+    <article>
+<h2 id="why-design-principles"><span class="num">01</span>Why Design Principles?</h2>
+<p>Code that merely works becomes expensive when requirements change. <strong>Principles</strong> guide you to code that is easy to change, test and understand. <strong>Design patterns</strong> are proven, named solutions to recurring design problems.</p>
+<h2 id="solid-principles"><span class="num">02</span>SOLID Principles</h2>
+<h3 id="s-single-responsibility">S: Single Responsibility</h3>
+<p>A class should have <strong>one reason to change</strong>.</p>
+<pre><code class="language-java">// Bad: mixes business logic, persistence and formatting
+class Invoice { double total() {...}  void saveToDb() {...}  String toPdf() {...} }
+
+// Good: one job each
+class Invoice { double total() {...} }
+class InvoiceRepository { void save(Invoice i) {...} }
+class InvoicePrinter { String toPdf(Invoice i) {...} }</code></pre>
+<h3 id="o-open-closed">O: Open/Closed</h3>
+<p>Open for <strong>extension</strong>, closed for <strong>modification</strong>. Add behaviour by adding classes, not by editing tested code.</p>
+<pre><code class="language-java">interface DiscountPolicy { double apply(double price); }
+class FestivalDiscount implements DiscountPolicy { public double apply(double p) { return p * 0.9; } }
+class NoDiscount implements DiscountPolicy { public double apply(double p) { return p; } }
+// a new discount = a new class, no if/else chain to edit</code></pre>
+<h3 id="l-liskov-substitution">L: Liskov Substitution</h3>
+<p>A subclass must be usable <strong>anywhere its parent is</strong>, without breaking behaviour. The classic violation: <code>Square extends Rectangle</code> where setting width also changes height. If a subclass must throw <code>UnsupportedOperationException</code> for an inherited method, the hierarchy is wrong.</p>
+<h3 id="i-interface-segregation">I: Interface Segregation</h3>
+<p>Prefer <strong>small, focused interfaces</strong> over one large one. Clients should not depend on methods they don't use.</p>
+<pre><code class="language-java">interface Worker { void work(); }
+interface Eater { void eat(); }
+class Robot implements Worker { public void work() {} }       // not forced to implement eat()</code></pre>
+<h3 id="d-dependency-inversion">D: Dependency Inversion</h3>
+<p>Depend on <strong>abstractions</strong>, not concrete classes. High-level code should not know low-level details.</p>
+<pre><code class="language-java">class OrderService {
+    private final PaymentGateway gateway;                     // interface
+    OrderService(PaymentGateway gateway) { this.gateway = gateway; }   // injected
+}</code></pre>
+<p><strong>Dependency Injection (DI)</strong> is the technique of passing dependencies in, instead of creating them with <code>new</code>. Spring does this for you (IoC container).</p>
+<h2 id="other-guiding-rules"><span class="num">03</span>Other Guiding Rules</h2>
+<ul><li><strong>DRY</strong>: Don't Repeat Yourself</li><li><strong>KISS</strong>: Keep It Simple</li><li><strong>YAGNI</strong>: You Aren't Gonna Need It</li><li><strong>Law of Demeter</strong>: talk only to your immediate friends (<code>a.getB().getC().doIt()</code> is a smell)</li><li><strong>Composition over inheritance</strong></li><li><strong>High cohesion, low coupling</strong></li></ul>
+<h2 id="design-patterns-overview"><span class="num">04</span>Design Patterns Overview</h2>
+<div class="table-wrap"><table><thead><tr><th>Category</th><th>Purpose</th><th>Examples</th></tr></thead><tbody><tr><td><strong>Creational</strong></td><td>How objects are created</td><td>Singleton, Factory, Builder, Prototype</td></tr><tr><td><strong>Structural</strong></td><td>How objects are composed</td><td>Adapter, Decorator, Facade, Proxy, Composite</td></tr><tr><td><strong>Behavioural</strong></td><td>How objects communicate</td><td>Strategy, Observer, Command, Template Method, Iterator, State</td></tr></tbody></table></div>
+<h2 id="creational-patterns"><span class="num">05</span>Creational Patterns</h2>
+<h3 id="singleton-exactly-one-instance">Singleton: exactly one instance</h3>
+<pre><code class="language-java">// Best: enum singleton (thread-safe, serialisation-safe)
+public enum AppConfig {
+    INSTANCE;
+    public String get(String key) { return System.getProperty(key); }
+}
+
+// Or: lazy holder idiom
+public class Registry {
+    private Registry() {}
+    private static class Holder { static final Registry INSTANCE = new Registry(); }
+    public static Registry getInstance() { return Holder.INSTANCE; }
+}</code></pre>
+<aside class="callout warning"><span class="label">Warning</span><p>Singletons are global state and hard to test. In Spring, beans are singletons by default and injected, so you rarely write one by hand.</p></aside>
+<h3 id="factory-hide-which-class-is-created">Factory: hide which class is created</h3>
+<pre><code class="language-java">interface Notification { void send(String msg); }
+class Email implements Notification { public void send(String m) { ... } }
+class Sms implements Notification { public void send(String m) { ... } }
+
+class NotificationFactory {
+    static Notification create(String type) {
+        return switch (type) {
+            case "EMAIL" -&gt; new Email();
+            case "SMS"   -&gt; new Sms();
+            default -&gt; throw new IllegalArgumentException("Unknown " + type);
+        };
+    }
+}</code></pre>
+<h3 id="builder-construct-complex-objects-step-by-step">Builder: construct complex objects step by step</h3>
+<pre><code class="language-java">public class User {
+    private final String name, email; private final int age;
+    private User(Builder b) { name = b.name; email = b.email; age = b.age; }
+
+    public static class Builder {
+        private String name, email; private int age;
+        public Builder name(String n)  { this.name = n;  return this; }
+        public Builder email(String e) { this.email = e; return this; }
+        public Builder age(int a)      { this.age = a;   return this; }
+        public User build() { return new User(this); }
+    }
+}
+User u = new User.Builder().name("Asha").email("a@x.com").age(21).build();</code></pre>
+<p>Great when a constructor would have many optional parameters. (Lombok's <code>@Builder</code> generates this.)</p>
+<h2 id="structural-patterns"><span class="num">06</span>Structural Patterns</h2>
+<h3 id="adapter-make-incompatible-interfaces-work-together">Adapter: make incompatible interfaces work together</h3>
+<pre><code class="language-java">class LegacyPrinter { void printText(String s) { ... } }
+interface Printer { void print(String s); }
+class PrinterAdapter implements Printer {
+    private final LegacyPrinter legacy;
+    PrinterAdapter(LegacyPrinter l) { this.legacy = l; }
+    public void print(String s) { legacy.printText(s); }
+}</code></pre>
+<h3 id="decorator-add-behaviour-dynamically-by-wrapping">Decorator: add behaviour dynamically by wrapping</h3>
+<pre><code class="language-java">interface Coffee { double cost(); }
+class Espresso implements Coffee { public double cost() { return 50; } }
+class Milk implements Coffee {
+    private final Coffee base;
+    Milk(Coffee base) { this.base = base; }
+    public double cost() { return base.cost() + 10; }
+}
+Coffee order = new Milk(new Milk(new Espresso()));   // 70</code></pre>
+<p><code>java.io</code> streams (<code>new BufferedReader(new FileReader(...))</code>) are the textbook example.</p>
+<h3 id="facade-one-simple-entry-point-to-a-complex-subsystem">Facade: one simple entry point to a complex subsystem</h3>
+<p><code>class OrderFacade { void placeOrder(...) { inventory.reserve(); payment.charge(); shipping.schedule(); } }</code></p>
+<h3 id="proxy-a-stand-in-that-controls-access">Proxy: a stand-in that controls access</h3>
+<p>Lazy loading, caching, security checks, remote calls. Spring AOP (<code>@Transactional</code>) and Hibernate lazy loading use proxies.</p>
+<h3 id="composite">Composite</h3>
+<p>Treat single items and groups uniformly, as in file/folder trees and UI component trees.</p>
+<h2 id="behavioural-patterns"><span class="num">07</span>Behavioural Patterns</h2>
+<h3 id="strategy-swap-algorithms-at-runtime">Strategy: swap algorithms at runtime</h3>
+<pre><code class="language-java">interface SortStrategy { void sort(int[] data); }
+class Sorter {
+    private SortStrategy strategy;
+    Sorter(SortStrategy s) { this.strategy = s; }
+    void sort(int[] d) { strategy.sort(d); }
+}
+// With lambdas, a Strategy is just a Function / Comparator
+list.sort(Comparator.comparing(Student::getName));</code></pre>
+<h3 id="observer-notify-dependents-when-something-changes">Observer: notify dependents when something changes</h3>
+<pre><code class="language-java">interface Listener { void onEvent(String event); }
+class EventBus {
+    private final List&lt;Listener&gt; listeners = new ArrayList&lt;&gt;();
+    void subscribe(Listener l) { listeners.add(l); }
+    void publish(String e) { listeners.forEach(l -&gt; l.onEvent(e)); }
+}</code></pre>
+<p>Used in GUI events, Spring <code>ApplicationEvent</code>, messaging systems.</p>
+<h3 id="template-method-fixed-skeleton-customisable-steps">Template Method: fixed skeleton, customisable steps</h3>
+<pre><code class="language-java">abstract class DataExporter {
+    public final void export() { open(); write(); close(); }   // the template
+    protected abstract void write();
+    protected void open() {}  protected void close() {}
+}</code></pre>
+<h3 id="command">Command</h3>
+<p>Wrap a request as an object, which enables undo, queues and scheduled jobs. <code>Runnable</code> is a command.</p>
+<h3 id="iterator">Iterator</h3>
+<p>Sequential access to elements without exposing the internal structure (<code>Iterable</code> / <code>Iterator</code>).</p>
+<h3 id="state">State</h3>
+<p>Behaviour changes when the object's internal state changes (an order moves NEW → PAID → SHIPPED).</p>
+<h2 id="architectural-patterns"><span class="num">08</span>Architectural Patterns</h2>
+<div class="table-wrap"><table><thead><tr><th>Pattern</th><th>Idea</th></tr></thead><tbody><tr><td><strong>Layered</strong></td><td>Controller → Service → Repository → Database</td></tr><tr><td><strong>MVC</strong></td><td>Model, View, Controller separate data, UI and input handling</td></tr><tr><td><strong>DAO / Repository</strong></td><td>Hide data-access details behind an interface</td></tr><tr><td><strong>DTO</strong></td><td>Plain object for transferring data between layers</td></tr><tr><td><strong>Dependency Injection / IoC</strong></td><td>Container wires objects together</td></tr><tr><td><strong>Microservices</strong></td><td>Small independently deployable services</td></tr><tr><td><strong>Event-driven</strong></td><td>Components communicate by events/messages</td></tr></tbody></table></div>
+<h2 id="choosing-patterns-wisely"><span class="num">09</span>Choosing Patterns Wisely</h2>
+<ul><li>Start with simple code; introduce a pattern when you feel a real <strong>pain</strong> (duplicated if/else, hard-to-test class, scattered object creation)</li><li>Name the pattern in code and docs so teammates recognise it</li><li>Over-engineering is also a bug: prefer a lambda to a one-method Strategy class</li></ul>
+<aside class="callout interview"><span class="label">Interview question</span><p>How do you make a Singleton thread-safe? Can reflection or serialization break it?</p><p>Use an enum singleton or the initialization-on-demand holder idiom. Reflection and serialization can create extra instances of ordinary singleton classes; enums are immune to both.</p></aside>
+<h2 id="quick-recap"><span class="num">10</span>Quick Recap</h2>
+<ul><li>SOLID: single responsibility, open/closed, Liskov, interface segregation, dependency inversion</li><li>Creational (Singleton, Factory, Builder), Structural (Adapter, Decorator, Facade, Proxy), Behavioural (Strategy, Observer, Template Method)</li><li>Depend on interfaces and inject dependencies</li><li>Use patterns to solve real problems, not to decorate code</li></ul>
+    </article>
+    <nav class="pager" aria-label="Topic navigation">
+      <a class="prev" href="18-build-testing-logging.html"><small>← Previous</small><strong>Build Tools, Testing and Logging</strong></a>
+      <a class="next" href="20-jee-overview.html"><small>Next →</small><strong>Jakarta EE (JEE) Overview and Architecture</strong></a>
+    </nav>
+  </main>
+</div>
+</body>
+</html>

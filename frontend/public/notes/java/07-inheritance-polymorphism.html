@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="en" data-track="java">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Inheritance, Polymorphism and Abstraction — Java Notes · Hanbee</title>
+<meta name="description" content="Reuse code with inheritance, change behaviour with overriding, and design with abstract classes and interfaces.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500..700;1,9..144,500&amp;family=Inter:wght@400..700&amp;family=JetBrains+Mono:wght@400..600&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/notes.css">
+<script src="../assets/notes.js" defer></script>
+</head>
+<body>
+<div class="progress" aria-hidden="true"><i></i></div>
+<header class="top">
+  <a class="brand" href="../index.html"><b>H</b>Hanbee · Java Notes</a>
+  <nav><a class="keep" href="index.html">All topics</a><button id="theme-toggle" type="button" aria-label="Toggle light and dark theme">Theme</button></nav>
+</header>
+<div class="shell">
+  <details class="toc"><summary>On this page</summary><nav aria-label="On this page"><ol><li><a href="#inheritance"><span>01</span>Inheritance</a></li><li><a href="#the-super-keyword"><span>02</span>The super Keyword</a></li><li><a href="#method-overriding"><span>03</span>Method Overriding</a></li><li><a href="#polymorphism"><span>04</span>Polymorphism</a></li><li><a href="#the-final-keyword"><span>05</span>The final Keyword</a></li><li><a href="#abstraction"><span>06</span>Abstraction</a></li><li><a href="#the-object-class-equals-hashcode-tostring"><span>07</span>The Object Class: equals, hashCode, toString</a></li><li><a href="#composition-over-inheritance"><span>08</span>Composition over Inheritance</a></li><li><a href="#quick-recap"><span>09</span>Quick Recap</a></li></ol></nav></details>
+  <main>
+    <header class="hero">
+      <p class="kicker"><span class="pill">Object-Oriented Programming</span><span>Topic 07</span><span>Intermediate</span><span>6 min read</span></p>
+      <h1>Inheritance, Polymorphism and Abstraction</h1>
+      <p class="lede">Reuse code with inheritance, change behaviour with overriding, and design with abstract classes and interfaces.</p>
+    </header>
+    <article>
+<h2 id="inheritance"><span class="num">01</span>Inheritance</h2>
+<p>Inheritance lets a <strong>subclass</strong> acquire fields and methods of a <strong>superclass</strong> using <code>extends</code>. It models an <strong>IS-A</strong> relationship: a <code>Dog</code> is an <code>Animal</code>.</p>
+<pre><code class="language-java">class Animal {
+    String name;
+    void eat() { System.out.println(name + " is eating"); }
+}
+
+class Dog extends Animal {
+    void bark() { System.out.println(name + " says Woof"); }
+}
+
+Dog d = new Dog();
+d.name = "Tommy";
+d.eat();     // inherited
+d.bark();</code></pre>
+<h3 id="types-of-inheritance">Types of inheritance</h3>
+<div class="table-wrap"><table><thead><tr><th>Type</th><th>Supported with classes?</th></tr></thead><tbody><tr><td>Single (A → B)</td><td>Yes</td></tr><tr><td>Multilevel (A → B → C)</td><td>Yes</td></tr><tr><td>Hierarchical (A → B, A → C)</td><td>Yes</td></tr><tr><td>Multiple (B extends A and C)</td><td><strong>No</strong> (use interfaces)</td></tr></tbody></table></div>
+<aside class="callout note"><span class="label">Note</span><p>Java forbids multiple inheritance of classes to avoid the <strong>diamond problem</strong>, where two parents provide conflicting implementations.</p></aside>
+<h3 id="what-is-not-inherited">What is (not) inherited</h3>
+<ul><li>Inherited: <code>public</code> and <code>protected</code> members, and package-private members in the same package</li><li>Not inherited: <code>private</code> members, constructors, static initialisers</li><li>Every class ultimately extends <code>Object</code></li></ul>
+<h2 id="the-super-keyword"><span class="num">02</span>The super Keyword</h2>
+<div class="table-wrap"><table><thead><tr><th>Use</th><th>Example</th></tr></thead><tbody><tr><td>Call parent constructor (first line)</td><td><code>super(name);</code></td></tr><tr><td>Call overridden parent method</td><td><code>super.eat();</code></td></tr><tr><td>Access parent field hidden by child</td><td><code>super.name</code></td></tr></tbody></table></div>
+<pre><code class="language-java">class Employee {
+    String name;
+    Employee(String name) { this.name = name; }
+}
+
+class Manager extends Employee {
+    int teamSize;
+    Manager(String name, int teamSize) {
+        super(name);               // must be first statement
+        this.teamSize = teamSize;
+    }
+}</code></pre>
+<p>If a subclass constructor does not call <code>super(...)</code>, the compiler inserts <code>super()</code>. If the parent has no no-arg constructor, you <strong>must</strong> call <code>super(args)</code> explicitly.</p>
+<h3 id="constructor-chaining-order">Constructor chaining order</h3>
+<p>Parent constructor runs <strong>before</strong> child constructor.</p>
+<h2 id="method-overriding"><span class="num">03</span>Method Overriding</h2>
+<p>A subclass provides its own implementation of an inherited method. This is <strong>runtime polymorphism</strong>.</p>
+<pre><code class="language-java">class Shape {
+    double area() { return 0; }
+}
+
+class Circle extends Shape {
+    double r;
+    Circle(double r) { this.r = r; }
+
+    @Override
+    double area() { return Math.PI * r * r; }
+}</code></pre>
+<h3 id="rules-of-overriding">Rules of overriding</h3>
+<ul><li>Same name, same parameter list, compatible return type (covariant allowed)</li><li>Access cannot be <strong>weaker</strong> (a <code>public</code> method cannot become <code>protected</code>)</li><li>Cannot throw broader <strong>checked</strong> exceptions</li><li><code>private</code>, <code>static</code> and <code>final</code> methods cannot be overridden</li><li>Always add <code>@Override</code>: the compiler checks you really are overriding</li></ul>
+<h3 id="overloading-vs-overriding">Overloading vs overriding</h3>
+<div class="table-wrap"><table><thead><tr><th></th><th>Overloading</th><th>Overriding</th></tr></thead><tbody><tr><td>Where</td><td>Same class (or subclass)</td><td>Subclass</td></tr><tr><td>Parameters</td><td>Must differ</td><td>Must be same</td></tr><tr><td>Resolved</td><td>Compile time</td><td>Runtime</td></tr><tr><td>Return type</td><td>Can differ</td><td>Same or covariant</td></tr></tbody></table></div>
+<h2 id="polymorphism"><span class="num">04</span>Polymorphism</h2>
+<p>One reference type, many actual behaviours.</p>
+<pre><code class="language-java">Shape s = new Circle(2);        // upcasting: parent reference, child object
+System.out.println(s.area());   // calls Circle.area() (dynamic dispatch)</code></pre>
+<pre><code class="language-java">Shape[] shapes = { new Circle(1), new Rectangle(2, 3), new Triangle(3, 4) };
+for (Shape sh : shapes) {
+    System.out.println(sh.area());   // each runs its own version
+}</code></pre>
+<h3 id="upcasting-and-downcasting">Upcasting and downcasting</h3>
+<pre><code class="language-java">Animal a = new Dog();          // upcast, implicit and safe
+// a.bark();                    // compile error: Animal has no bark()
+if (a instanceof Dog dog) {     // safe downcast with pattern matching
+    dog.bark();
+}
+Dog d = (Dog) a;               // explicit downcast, ClassCastException if wrong</code></pre>
+<aside class="callout interview"><span class="label">Interview question</span><p>Can fields be overridden? What about static methods?</p><p>No. Fields and static methods are <strong>hidden</strong>, not overridden, and are resolved by the reference type at compile time. Only instance methods use dynamic dispatch.</p></aside>
+<h2 id="the-final-keyword"><span class="num">05</span>The final Keyword</h2>
+<div class="table-wrap"><table><thead><tr><th>Applied to</th><th>Effect</th></tr></thead><tbody><tr><td>Variable</td><td>Value cannot be reassigned (a constant)</td></tr><tr><td>Method</td><td>Cannot be overridden</td></tr><tr><td>Class</td><td>Cannot be extended (<code>String</code>, <code>Integer</code>)</td></tr><tr><td>Parameter</td><td>Cannot be reassigned inside the method</td></tr></tbody></table></div>
+<h2 id="abstraction"><span class="num">06</span>Abstraction</h2>
+<p>Abstraction hides implementation details and shows only essential behaviour. Java offers <strong>abstract classes</strong> and <strong>interfaces</strong>.</p>
+<h3 id="abstract-classes">Abstract classes</h3>
+<pre><code class="language-java">abstract class Vehicle {
+    String brand;
+    Vehicle(String brand) { this.brand = brand; }
+
+    abstract void start();               // no body: subclasses must implement
+
+    void stop() { System.out.println("Stopped"); }   // concrete method
+}
+
+class Car extends Vehicle {
+    Car(String brand) { super(brand); }
+    @Override void start() { System.out.println(brand + " starts with key"); }
+}
+
+// Vehicle v = new Vehicle("x");  // compile error: cannot instantiate
+Vehicle v = new Car("Toyota");</code></pre>
+<ul><li>Can have abstract and concrete methods, fields, constructors</li><li>Cannot be instantiated; a subclass must implement all abstract methods or be abstract itself</li><li>A class with even one abstract method must be declared <code>abstract</code></li></ul>
+<h3 id="abstract-class-vs-interface-summary">Abstract class vs interface (summary)</h3>
+<div class="table-wrap"><table><thead><tr><th></th><th>Abstract class</th><th>Interface</th></tr></thead><tbody><tr><td>Keyword</td><td><code>extends</code> (one only)</td><td><code>implements</code> (many)</td></tr><tr><td>State</td><td>Instance fields allowed</td><td>Only <code>public static final</code> constants</td></tr><tr><td>Constructors</td><td>Yes</td><td>No</td></tr><tr><td>Methods</td><td>Abstract + concrete</td><td>Abstract, <code>default</code>, <code>static</code>, <code>private</code></td></tr><tr><td>Use when</td><td>Closely related classes share code</td><td>Unrelated classes share a capability</td></tr></tbody></table></div>
+<p>Interfaces are covered in detail in the next topic.</p>
+<h2 id="the-object-class-equals-hashcode-tostring"><span class="num">07</span>The Object Class: equals, hashCode, toString</h2>
+<pre><code class="language-java">class Student {
+    int id; String name;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Student s)) return false;
+        return id == s.id &amp;&amp; Objects.equals(name, s.name);
+    }
+
+    @Override
+    public int hashCode() { return Objects.hash(id, name); }
+
+    @Override
+    public String toString() { return "Student[" + id + "," + name + "]"; }
+}</code></pre>
+<aside class="callout warning"><span class="label">Warning</span><p>If you override <code>equals()</code>, you <strong>must</strong> override <code>hashCode()</code>. Equal objects must have equal hash codes or <code>HashMap</code> and <code>HashSet</code> will misbehave.</p></aside>
+<h3 id="the-contract">The contract</h3>
+<ul><li><strong>Reflexive</strong>: <code>x.equals(x)</code> is true</li><li><strong>Symmetric</strong>: <code>x.equals(y)</code> ⇔ <code>y.equals(x)</code></li><li><strong>Transitive</strong>: if <code>x.equals(y)</code> and <code>y.equals(z)</code> then <code>x.equals(z)</code></li><li><strong>Consistent</strong>: repeated calls give the same result</li><li><code>x.equals(null)</code> is always false</li></ul>
+<h2 id="composition-over-inheritance"><span class="num">08</span>Composition over Inheritance</h2>
+<p><strong>HAS-A</strong> relationships are often more flexible than IS-A.</p>
+<pre><code class="language-java">class Engine { void start() { } }
+
+class Car {
+    private final Engine engine = new Engine();   // Car HAS-A Engine
+    void start() { engine.start(); }
+}</code></pre>
+<p>Use inheritance only for a genuine IS-A relationship. Use composition to reuse behaviour without tight coupling.</p>
+<div class="table-wrap"><table><thead><tr><th>Relationship</th><th>Meaning</th><th>Example</th></tr></thead><tbody><tr><td>Association</td><td>Objects know each other</td><td>Teacher ↔ Student</td></tr><tr><td>Aggregation</td><td>HAS-A, parts can exist alone</td><td>Department has Teachers</td></tr><tr><td>Composition</td><td>HAS-A, parts die with the whole</td><td>House has Rooms</td></tr></tbody></table></div>
+<h2 id="quick-recap"><span class="num">09</span>Quick Recap</h2>
+<ul><li><code>extends</code> gives IS-A reuse; Java allows one parent class</li><li>Overriding gives runtime polymorphism; overloading is compile-time</li><li><code>super</code> reaches the parent; <code>final</code> stops overriding/extending</li><li>Abstract classes mix shared code with required methods</li><li>Override <code>equals</code> and <code>hashCode</code> together</li><li>Prefer composition when the relationship is HAS-A</li></ul>
+    </article>
+    <nav class="pager" aria-label="Topic navigation">
+      <a class="prev" href="06-classes-objects.html"><small>← Previous</small><strong>Classes and Objects</strong></a>
+      <a class="next" href="08-interfaces-enums-records.html"><small>Next →</small><strong>Interfaces, Enums, Records and Nested Classes</strong></a>
+    </nav>
+  </main>
+</div>
+</body>
+</html>

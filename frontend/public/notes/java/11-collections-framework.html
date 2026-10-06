@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="en" data-track="java">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Collections Framework — Java Notes · Hanbee</title>
+<meta name="description" content="The standard data-structure library. List, Set, Map and Queue families, how HashMap works, sorting with Comparable and Comparator, and choosing the right collection.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500..700;1,9..144,500&amp;family=Inter:wght@400..700&amp;family=JetBrains+Mono:wght@400..600&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/notes.css">
+<script src="../assets/notes.js" defer></script>
+</head>
+<body>
+<div class="progress" aria-hidden="true"><i></i></div>
+<header class="top">
+  <a class="brand" href="../index.html"><b>H</b>Hanbee · Java Notes</a>
+  <nav><a class="keep" href="index.html">All topics</a><button id="theme-toggle" type="button" aria-label="Toggle light and dark theme">Theme</button></nav>
+</header>
+<div class="shell">
+  <details class="toc"><summary>On this page</summary><nav aria-label="On this page"><ol><li><a href="#collections-overview"><span>01</span>Collections Overview</a></li><li><a href="#the-collection-interface"><span>02</span>The Collection Interface</a></li><li><a href="#list"><span>03</span>List</a></li><li><a href="#set"><span>04</span>Set</a></li><li><a href="#map"><span>05</span>Map</a></li><li><a href="#queue-and-deque"><span>06</span>Queue and Deque</a></li><li><a href="#iterating-collections"><span>07</span>Iterating Collections</a></li><li><a href="#sorting-comparable-and-comparator"><span>08</span>Sorting: Comparable and Comparator</a></li><li><a href="#the-collections-utility-class"><span>09</span>The Collections Utility Class</a></li><li><a href="#choosing-the-right-collection"><span>10</span>Choosing the Right Collection</a></li><li><a href="#quick-recap"><span>11</span>Quick Recap</a></li></ol></nav></details>
+  <main>
+    <header class="hero">
+      <p class="kicker"><span class="pill">Core APIs</span><span>Topic 11</span><span>Intermediate</span><span>6 min read</span></p>
+      <h1>Collections Framework</h1>
+      <p class="lede">The standard data-structure library. List, Set, Map and Queue families, how HashMap works, sorting with Comparable and Comparator, and choosing the right collection.</p>
+    </header>
+    <article>
+<h2 id="collections-overview"><span class="num">01</span>Collections Overview</h2>
+<p>The <strong>Java Collections Framework</strong> (package <code>java.util</code>) provides ready-made, tested data structures and algorithms. Everything is built on interfaces so implementations can be swapped.</p>
+<pre><code class="language-text">Iterable
+  └── Collection
+        ├── List   ── ArrayList, LinkedList, Vector → Stack, (CopyOnWriteArrayList)
+        ├── Set    ── HashSet → LinkedHashSet, TreeSet (SortedSet/NavigableSet)
+        └── Queue  ── PriorityQueue, ArrayDeque (Deque), LinkedList
+
+Map (separate hierarchy)
+  ── HashMap → LinkedHashMap, TreeMap (SortedMap/NavigableMap), Hashtable, ConcurrentHashMap</code></pre>
+<div class="table-wrap"><table><thead><tr><th>Interface</th><th>Ordered?</th><th>Duplicates?</th><th>Notes</th></tr></thead><tbody><tr><td><code>List</code></td><td>Insertion order, index access</td><td>Yes</td><td></td></tr><tr><td><code>Set</code></td><td>Depends on implementation</td><td><strong>No</strong></td><td></td></tr><tr><td><code>Queue</code> / <code>Deque</code></td><td>FIFO / both ends</td><td>Yes</td><td></td></tr><tr><td><code>Map</code></td><td>Depends on implementation</td><td>Unique <strong>keys</strong>, duplicate values</td><td>Not a <code>Collection</code></td></tr></tbody></table></div>
+<h2 id="the-collection-interface"><span class="num">02</span>The Collection Interface</h2>
+<p>Common methods: <code>add</code>, <code>addAll</code>, <code>remove</code>, <code>removeIf</code>, <code>contains</code>, <code>containsAll</code>, <code>size</code>, <code>isEmpty</code>, <code>clear</code>, <code>iterator</code>, <code>stream</code>, <code>toArray</code>.</p>
+<h2 id="list"><span class="num">03</span>List</h2>
+<p>An ordered collection with positional access.</p>
+<h3 id="arraylist">ArrayList</h3>
+<p>Backed by a <strong>resizable array</strong>. Fast random access, slow insert/remove in the middle.</p>
+<pre><code class="language-java">List&lt;String&gt; names = new ArrayList&lt;&gt;();
+names.add("Asha");
+names.add("Ravi");
+names.add(1, "Meena");          // insert at index
+names.set(0, "Aisha");
+String n = names.get(2);
+names.remove("Ravi");           // by object
+names.remove(0);                // by index
+names.contains("Meena");
+names.indexOf("Meena");
+Collections.sort(names);
+List&lt;String&gt; immutable = List.of("a", "b", "c");     // Java 9+, cannot be modified</code></pre>
+<h3 id="linkedlist">LinkedList</h3>
+<p>A <strong>doubly linked list</strong>; also implements <code>Deque</code>. Fast insert/remove at the ends, slow <code>get(i)</code>.</p>
+<h3 id="vector-and-stack">Vector and Stack</h3>
+<p>Legacy, synchronised classes. Prefer <code>ArrayList</code> and <code>ArrayDeque</code>.</p>
+<h3 id="comparison">Comparison</h3>
+<div class="table-wrap"><table><thead><tr><th></th><th><code>ArrayList</code></th><th><code>LinkedList</code></th></tr></thead><tbody><tr><td><code>get(i)</code></td><td>O(1)</td><td>O(n)</td></tr><tr><td><code>add</code> at end</td><td>O(1) amortised</td><td>O(1)</td></tr><tr><td><code>add/remove</code> in middle</td><td>O(n)</td><td>O(n) to find, O(1) to link</td></tr><tr><td>Memory</td><td>Compact</td><td>Extra node pointers</td></tr><tr><td>Default choice</td><td><strong>Yes</strong></td><td>Rarely</td></tr></tbody></table></div>
+<h2 id="set"><span class="num">04</span>Set</h2>
+<p>A collection with <strong>no duplicates</strong>.</p>
+<div class="table-wrap"><table><thead><tr><th>Implementation</th><th>Order</th><th><code>add/contains</code></th><th>Null</th></tr></thead><tbody><tr><td><code>HashSet</code></td><td>None</td><td>O(1)</td><td>one null</td></tr><tr><td><code>LinkedHashSet</code></td><td>Insertion order</td><td>O(1)</td><td>one null</td></tr><tr><td><code>TreeSet</code></td><td><strong>Sorted</strong> (natural or comparator)</td><td>O(log n)</td><td>not allowed</td></tr></tbody></table></div>
+<pre><code class="language-java">Set&lt;Integer&gt; set = new HashSet&lt;&gt;(List.of(3, 1, 2, 3));
+set.add(2);                              // returns false: already present
+Set&lt;String&gt; sorted = new TreeSet&lt;&gt;(List.of("pear", "apple", "fig"));   // apple, fig, pear
+
+TreeSet&lt;Integer&gt; ts = new TreeSet&lt;&gt;(List.of(10, 20, 30, 40));
+ts.first();  ts.last();  ts.floor(25);  ts.ceiling(25);  ts.headSet(30);  ts.descendingSet();</code></pre>
+<aside class="callout note"><span class="label">Note</span><p><code>HashSet</code> uses <code>hashCode()</code> and <code>equals()</code> of your elements. Without a proper pair, duplicates may sneak in.</p></aside>
+<h2 id="map"><span class="num">05</span>Map</h2>
+<p>Stores <strong>key → value</strong> pairs. Keys are unique.</p>
+<pre><code class="language-java">Map&lt;String, Integer&gt; marks = new HashMap&lt;&gt;();
+marks.put("Asha", 90);
+marks.put("Ravi", 75);
+marks.put("Asha", 95);                       // replaces existing value
+int m = marks.get("Asha");
+int d = marks.getOrDefault("Zoya", 0);
+marks.putIfAbsent("Meena", 80);
+marks.containsKey("Ravi");  marks.containsValue(75);
+marks.remove("Ravi");
+
+for (Map.Entry&lt;String, Integer&gt; e : marks.entrySet()) {
+    System.out.println(e.getKey() + " = " + e.getValue());
+}
+marks.forEach((k, v) -&gt; System.out.println(k + " " + v));
+
+// handy compute methods
+marks.merge("Asha", 5, Integer::sum);                        // counting / accumulating
+marks.computeIfAbsent("Tara", k -&gt; 60);
+marks.computeIfPresent("Tara", (k, v) -&gt; v + 10);
+Map&lt;String, Integer&gt; fixed = Map.of("a", 1, "b", 2);        // immutable</code></pre>
+<h3 id="map-implementations">Map implementations</h3>
+<div class="table-wrap"><table><thead><tr><th>Implementation</th><th>Order</th><th>Performance</th><th>Null keys</th><th>Thread-safe</th></tr></thead><tbody><tr><td><code>HashMap</code></td><td>None</td><td>O(1)</td><td>one</td><td>No</td></tr><tr><td><code>LinkedHashMap</code></td><td>Insertion (or access) order</td><td>O(1)</td><td>one</td><td>No</td></tr><tr><td><code>TreeMap</code></td><td>Sorted by key</td><td>O(log n)</td><td>no</td><td>No</td></tr><tr><td><code>Hashtable</code></td><td>None</td><td>O(1)</td><td>no</td><td>Yes (legacy)</td></tr><tr><td><code>ConcurrentHashMap</code></td><td>None</td><td>O(1), highly concurrent</td><td>no</td><td><strong>Yes</strong></td></tr></tbody></table></div>
+<h3 id="how-hashmap-works-internally">How HashMap works internally</h3>
+<ol><li><code>hashCode()</code> of the key is computed and spread into a bucket index</li><li>The entry goes into that <strong>bucket</strong> (an array slot)</li><li>If several keys land in one bucket (<strong>collision</strong>), they form a linked list; since Java 8 a bucket with 8+ entries becomes a <strong>red-black tree</strong> (O(log n))</li><li>On lookup, the bucket is found by hash, then <code>equals()</code> finds the exact key</li><li>When size exceeds <code>capacity × load factor</code> (default 16 × 0.75), the table <strong>resizes</strong> (doubles) and rehashes</li></ol>
+<aside class="callout interview"><span class="label">Interview question</span><p>Why must keys be immutable and override <code>hashCode</code>/<code>equals</code> together?</p><p>If a key changes after insertion, its hash changes and the entry becomes unreachable. If equal objects return different hashes, lookups miss their bucket.</p></aside>
+<h2 id="queue-and-deque"><span class="num">06</span>Queue and Deque</h2>
+<pre><code class="language-java">Queue&lt;String&gt; q = new LinkedList&lt;&gt;();       // or ArrayDeque
+q.offer("A"); q.offer("B");
+q.peek();      // "A", does not remove
+q.poll();      // "A", removes (null if empty)
+
+Deque&lt;Integer&gt; stack = new ArrayDeque&lt;&gt;();  // preferred over Stack
+stack.push(1); stack.push(2);
+stack.pop();   // 2   (LIFO)
+
+PriorityQueue&lt;Integer&gt; pq = new PriorityQueue&lt;&gt;(Comparator.reverseOrder());
+pq.add(5); pq.add(9); pq.add(1);
+pq.poll();     // 9   (highest first)</code></pre>
+<div class="table-wrap"><table><thead><tr><th>Method pair</th><th>Throws if fails</th><th>Returns special value</th></tr></thead><tbody><tr><td>Insert</td><td><code>add</code></td><td><code>offer</code></td></tr><tr><td>Remove</td><td><code>remove</code></td><td><code>poll</code></td></tr><tr><td>Examine</td><td><code>element</code></td><td><code>peek</code></td></tr></tbody></table></div>
+<h2 id="iterating-collections"><span class="num">07</span>Iterating Collections</h2>
+<pre><code class="language-java">for (String s : list) { }                         // for-each
+list.forEach(System.out::println);                // forEach + method reference
+
+Iterator&lt;String&gt; it = list.iterator();
+while (it.hasNext()) {
+    if (it.next().startsWith("A")) it.remove();   // the ONLY safe way to remove while iterating
+}
+list.removeIf(s -&gt; s.startsWith("A"));            // simpler</code></pre>
+<aside class="callout warning"><span class="label">Warning</span><p>Removing from a collection inside a for-each loop throws <code>ConcurrentModificationException</code>. Use <code>Iterator.remove()</code> or <code>removeIf</code>.</p></aside>
+<h2 id="sorting-comparable-and-comparator"><span class="num">08</span>Sorting: Comparable and Comparator</h2>
+<h3 id="comparable-natural-order-inside-the-class">Comparable: natural order (inside the class)</h3>
+<pre><code class="language-java">class Student implements Comparable&lt;Student&gt; {
+    int id; String name;
+    @Override
+    public int compareTo(Student o) { return Integer.compare(id, o.id); }
+}
+Collections.sort(students);</code></pre>
+<h3 id="comparator-custom-order-outside-the-class">Comparator: custom order (outside the class)</h3>
+<pre><code class="language-java">students.sort(Comparator.comparing(Student::getName));
+students.sort(Comparator.comparingInt(Student::getAge).reversed());
+students.sort(Comparator.comparing(Student::getCity)
+                        .thenComparing(Student::getName)
+                        .thenComparingInt(Student::getAge));
+students.sort(Comparator.nullsLast(Comparator.naturalOrder()));</code></pre>
+<div class="table-wrap"><table><thead><tr><th></th><th><code>Comparable</code></th><th><code>Comparator</code></th></tr></thead><tbody><tr><td>Method</td><td><code>compareTo(T)</code></td><td><code>compare(T, T)</code></td></tr><tr><td>Package</td><td><code>java.lang</code></td><td><code>java.util</code></td></tr><tr><td>Defined</td><td>In the class itself</td><td>Separately, many allowed</td></tr><tr><td>Orders</td><td>One natural order</td><td>Any number</td></tr></tbody></table></div>
+<h2 id="the-collections-utility-class"><span class="num">09</span>The Collections Utility Class</h2>
+<pre><code class="language-java">Collections.sort(list);
+Collections.reverse(list);
+Collections.shuffle(list);
+Collections.max(list);   Collections.min(list);
+Collections.frequency(list, "a");
+Collections.swap(list, 0, 1);
+Collections.unmodifiableList(list);
+Collections.synchronizedList(list);
+Collections.emptyList();
+Collections.binarySearch(sortedList, key);</code></pre>
+<h2 id="choosing-the-right-collection"><span class="num">10</span>Choosing the Right Collection</h2>
+<div class="table-wrap"><table><thead><tr><th>Need</th><th>Use</th></tr></thead><tbody><tr><td>Ordered list, fast reads</td><td><code>ArrayList</code></td></tr><tr><td>Queue / stack</td><td><code>ArrayDeque</code></td></tr><tr><td>Unique items, fastest</td><td><code>HashSet</code></td></tr><tr><td>Unique items, keep insertion order</td><td><code>LinkedHashSet</code></td></tr><tr><td>Unique items, always sorted</td><td><code>TreeSet</code></td></tr><tr><td>Key-value lookup</td><td><code>HashMap</code></td></tr><tr><td>Key-value in insertion order / LRU cache</td><td><code>LinkedHashMap</code></td></tr><tr><td>Key-value sorted by key</td><td><code>TreeMap</code></td></tr><tr><td>Multi-threaded map</td><td><code>ConcurrentHashMap</code></td></tr><tr><td>Priority scheduling</td><td><code>PriorityQueue</code></td></tr><tr><td>Keys are enums</td><td><code>EnumMap</code></td></tr></tbody></table></div>
+<h2 id="quick-recap"><span class="num">11</span>Quick Recap</h2>
+<ul><li><code>List</code> allows duplicates and index access; <code>Set</code> forbids duplicates; <code>Map</code> pairs keys to values</li><li>Default picks: <code>ArrayList</code>, <code>HashSet</code>, <code>HashMap</code>, <code>ArrayDeque</code></li><li><code>HashMap</code> relies on <code>hashCode</code> + <code>equals</code></li><li>Use <code>Comparable</code> for natural order and <code>Comparator</code> for custom orders</li><li>Never modify a collection during for-each; use <code>Iterator.remove</code> or <code>removeIf</code></li></ul>
+    </article>
+    <nav class="pager" aria-label="Topic navigation">
+      <a class="prev" href="10-generics-wrappers-utilities.html"><small>← Previous</small><strong>Generics, Wrapper Classes and Utility APIs</strong></a>
+      <a class="next" href="12-lambda-streams.html"><small>Next →</small><strong>Lambdas, Functional Interfaces and Streams</strong></a>
+    </nav>
+  </main>
+</div>
+</body>
+</html>

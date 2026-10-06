@@ -1,0 +1,273 @@
+<!doctype html>
+<html lang="en" data-track="react">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Routing with React Router — React Notes · Hanbee</title>
+<meta name="description" content="Multi-page navigation in a single-page app. Routes, links, nested layouts, URL parameters, search params, loaders and actions, protected routes and lazy-loaded pages with React Router v7.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500..700;1,9..144,500&amp;family=Inter:wght@400..700&amp;family=JetBrains+Mono:wght@400..600&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/notes.css">
+<script src="../assets/notes.js" defer></script>
+</head>
+<body>
+<div class="progress" aria-hidden="true"><i></i></div>
+<header class="top">
+  <a class="brand" href="../index.html"><b>H</b>Hanbee · React Notes</a>
+  <nav><a class="keep" href="index.html">All topics</a><button id="theme-toggle" type="button" aria-label="Toggle light and dark theme">Theme</button></nav>
+</header>
+<div class="shell">
+  <details class="toc"><summary>On this page</summary><nav aria-label="On this page"><ol><li><a href="#why-routing"><span>01</span>Why Routing?</a></li><li><a href="#declarative-routing"><span>02</span>Declarative Routing</a></li><li><a href="#url-parameters"><span>03</span>URL Parameters</a></li><li><a href="#search-params-query-string"><span>04</span>Search Params (Query String)</a></li><li><a href="#nested-routes-and-layouts"><span>05</span>Nested Routes and Layouts</a></li><li><a href="#programmatic-navigation"><span>06</span>Programmatic Navigation</a></li><li><a href="#data-mode-createbrowserrouter"><span>07</span>Data Mode: createBrowserRouter</a></li><li><a href="#protected-routes"><span>08</span>Protected Routes</a></li><li><a href="#lazy-loading-routes"><span>09</span>Lazy Loading Routes</a></li><li><a href="#scroll-titles-and-focus"><span>10</span>Scroll, Titles and Focus</a></li><li><a href="#url-design-tips"><span>11</span>URL Design Tips</a></li><li><a href="#hosting-a-client-side-router"><span>12</span>Hosting a Client-side Router</a></li><li><a href="#next-js-and-other-routers"><span>13</span>Next.js and Other Routers</a></li><li><a href="#quick-recap"><span>14</span>Quick Recap</a></li></ol></nav></details>
+  <main>
+    <header class="hero">
+      <p class="kicker"><span class="pill">Ecosystem</span><span>Topic 11</span><span>Intermediate</span><span>7 min read</span></p>
+      <h1>Routing with React Router</h1>
+      <p class="lede">Multi-page navigation in a single-page app. Routes, links, nested layouts, URL parameters, search params, loaders and actions, protected routes and lazy-loaded pages with React Router v7.</p>
+    </header>
+    <article>
+<h2 id="why-routing"><span class="num">01</span>Why Routing?</h2>
+<p>A <strong>single-page application (SPA)</strong> loads one HTML page and swaps the UI with JavaScript. A <strong>router</strong> keeps the <strong>URL in sync</strong> with what's on screen, so links, bookmarks, the back button and sharing all work.</p>
+<p><strong>React Router v7</strong> is the most popular router. It merges the old Remix framework and works in three modes:</p>
+<div class="table-wrap"><table><thead><tr><th>Mode</th><th>Description</th></tr></thead><tbody><tr><td><strong>Declarative</strong></td><td><code>&lt;BrowserRouter&gt;</code> + <code>&lt;Routes&gt;</code>: simple, client-side routing</td></tr><tr><td><strong>Data</strong></td><td><code>createBrowserRouter</code> + loaders/actions: data fetching tied to routes</td></tr><tr><td><strong>Framework</strong></td><td>Full-stack (SSR, file routes, type safety) built on Vite</td></tr></tbody></table></div>
+<p>These notes focus on <strong>declarative and data</strong> modes. In v7 everything is imported from <code>react-router</code> (the separate <code>react-router-dom</code> package is no longer needed).</p>
+<pre><code class="language-bash">npm install react-router</code></pre>
+<h2 id="declarative-routing"><span class="num">02</span>Declarative Routing</h2>
+<pre data-file="main.jsx"><code class="language-jsx">import { BrowserRouter } from "react-router";
+
+createRoot(document.getElementById("root")).render(
+  &lt;BrowserRouter&gt;
+    &lt;App /&gt;
+  &lt;/BrowserRouter&gt;
+);</code></pre>
+<pre data-file="App.jsx"><code class="language-jsx">import { Routes, Route, Link, NavLink } from "react-router";
+
+function App() {
+  return (
+    &lt;&gt;
+      &lt;nav&gt;
+        &lt;NavLink to="/" end&gt;Home&lt;/NavLink&gt;
+        &lt;NavLink to="/courses"&gt;Courses&lt;/NavLink&gt;
+        &lt;NavLink to="/about"&gt;About&lt;/NavLink&gt;
+      &lt;/nav&gt;
+
+      &lt;Routes&gt;
+        &lt;Route path="/" element={&lt;Home /&gt;} /&gt;
+        &lt;Route path="/courses" element={&lt;Courses /&gt;} /&gt;
+        &lt;Route path="/courses/:courseId" element={&lt;CourseDetail /&gt;} /&gt;
+        &lt;Route path="/about" element={&lt;About /&gt;} /&gt;
+        &lt;Route path="*" element={&lt;NotFound /&gt;} /&gt;
+      &lt;/Routes&gt;
+    &lt;/&gt;
+  );
+}</code></pre>
+<h3 id="link-vs-anchor">Link vs anchor</h3>
+<pre><code class="language-jsx">&lt;Link to="/courses"&gt;Courses&lt;/Link&gt;              {/* client-side navigation: no page reload */}
+&lt;a href="https://example.com"&gt;External&lt;/a&gt;      {/* use &lt;a&gt; for external sites */}</code></pre>
+<h3 id="navlink-for-active-styling">NavLink for active styling</h3>
+<pre><code class="language-jsx">&lt;NavLink to="/courses" className={({ isActive }) =&gt; (isActive ? "link active" : "link")}&gt;Courses&lt;/NavLink&gt;
+&lt;NavLink to="/" end&gt;Home&lt;/NavLink&gt;               {/* `end` stops "/" matching every path */}</code></pre>
+<h2 id="url-parameters"><span class="num">03</span>URL Parameters</h2>
+<pre><code class="language-jsx">&lt;Route path="/courses/:courseId/lessons/:lessonId" element={&lt;Lesson /&gt;} /&gt;
+
+import { useParams } from "react-router";
+
+function Lesson() {
+  const { courseId, lessonId } = useParams();       // always strings
+  return &lt;p&gt;Course {courseId}, lesson {lessonId}&lt;/p&gt;;
+}</code></pre>
+<p>Optional segments: <code>path="/users/:id?"</code>. Splats: <code>path="/files/*"</code> (<code>params["*"]</code>).</p>
+<h2 id="search-params-query-string"><span class="num">04</span>Search Params (Query String)</h2>
+<pre><code class="language-jsx">import { useSearchParams } from "react-router";
+
+function Courses() {
+  const [params, setParams] = useSearchParams();
+  const level = params.get("level") ?? "all";
+  const page = Number(params.get("page") ?? 1);
+
+  return (
+    &lt;&gt;
+      &lt;select value={level} onChange={e =&gt; setParams({ level: e.target.value, page: 1 })}&gt;
+        &lt;option value="all"&gt;All&lt;/option&gt;
+        &lt;option value="beginner"&gt;Beginner&lt;/option&gt;
+      &lt;/select&gt;
+      &lt;button onClick={() =&gt; setParams(p =&gt; { p.set("page", String(page + 1)); return p; })}&gt;Next&lt;/button&gt;
+    &lt;/&gt;
+  );
+}</code></pre>
+<p>Keep <strong>filters, sorting and pagination in the URL</strong> so views are shareable and survive refresh.</p>
+<h2 id="nested-routes-and-layouts"><span class="num">05</span>Nested Routes and Layouts</h2>
+<p>Child routes render inside the parent's <code>&lt;Outlet /&gt;</code>.</p>
+<pre><code class="language-jsx">import { Outlet } from "react-router";
+
+function DashboardLayout() {
+  return (
+    &lt;div className="layout"&gt;
+      &lt;Sidebar /&gt;
+      &lt;main&gt;&lt;Outlet /&gt;&lt;/main&gt;        {/* matched child route renders here */}
+    &lt;/div&gt;
+  );
+}
+
+&lt;Routes&gt;
+  &lt;Route path="/" element={&lt;MarketingLayout /&gt;}&gt;
+    &lt;Route index element={&lt;Home /&gt;} /&gt;
+    &lt;Route path="pricing" element={&lt;Pricing /&gt;} /&gt;
+  &lt;/Route&gt;
+
+  &lt;Route path="/dashboard" element={&lt;DashboardLayout /&gt;}&gt;
+    &lt;Route index element={&lt;Overview /&gt;} /&gt;                 {/* /dashboard */}
+    &lt;Route path="courses" element={&lt;MyCourses /&gt;} /&gt;       {/* /dashboard/courses */}
+    &lt;Route path="courses/:id" element={&lt;CourseProgress /&gt;} /&gt;
+    &lt;Route path="settings" element={&lt;Settings /&gt;} /&gt;
+  &lt;/Route&gt;
+
+  &lt;Route path="*" element={&lt;NotFound /&gt;} /&gt;
+&lt;/Routes&gt;</code></pre>
+<ul><li><code>index</code> marks the default child</li><li>Child paths are <strong>relative</strong> to the parent</li><li>A <strong>layout route</strong> without <code>path</code> can wrap routes without affecting the URL</li><li>Pass data to children with <code>&lt;Outlet context={…} /&gt;</code> and <code>useOutletContext()</code></li></ul>
+<h2 id="programmatic-navigation"><span class="num">06</span>Programmatic Navigation</h2>
+<pre><code class="language-jsx">import { useNavigate, Navigate } from "react-router";
+
+function Login() {
+  const navigate = useNavigate();
+
+  async function handleSubmit() {
+    await login();
+    navigate("/dashboard", { replace: true });       // replace: back button won't return to login
+  }
+}
+
+navigate(-1);                                         // go back
+&lt;Navigate to="/login" replace /&gt;                      // redirect during render</code></pre>
+<p>Other hooks: <code>useLocation()</code> (<code>pathname</code>, <code>search</code>, <code>state</code>), <code>useMatch</code>, <code>useNavigationType</code>.</p>
+<p>Pass hidden data with <code>navigate("/thanks", { state: { orderId: 7 } })</code> and read it via <code>useLocation().state</code>.</p>
+<h2 id="data-mode-createbrowserrouter"><span class="num">07</span>Data Mode: createBrowserRouter</h2>
+<p>Define routes as <strong>objects</strong>, with <strong>loaders</strong> (fetch data before rendering), <strong>actions</strong> (handle form submissions) and <strong>error elements</strong>.</p>
+<pre data-file="main.jsx"><code class="language-jsx">import { createBrowserRouter } from "react-router";
+import { RouterProvider } from "react-router/dom";
+
+const router = createBrowserRouter([
+  {
+    path: "/",
+    element: &lt;RootLayout /&gt;,
+    errorElement: &lt;RootError /&gt;,
+    children: [
+      { index: true, element: &lt;Home /&gt; },
+      {
+        path: "courses",
+        element: &lt;Courses /&gt;,
+        loader: coursesLoader,
+      },
+      {
+        path: "courses/:courseId",
+        element: &lt;CourseDetail /&gt;,
+        loader: courseLoader,
+        action: enrollAction,
+      },
+    ],
+  },
+]);
+
+createRoot(document.getElementById("root")).render(&lt;RouterProvider router={router} /&gt;);</code></pre>
+<h3 id="loaders">Loaders</h3>
+<pre><code class="language-jsx">export async function courseLoader({ params, request }) {
+  const res = await fetch(`/api/courses/${params.courseId}`, { signal: request.signal });
+  if (res.status === 404) throw new Response("Not found", { status: 404 });
+  return res.json();
+}
+
+import { useLoaderData } from "react-router";
+
+function CourseDetail() {
+  const course = useLoaderData();                    // data is ready when the component renders
+  return &lt;h1&gt;{course.title}&lt;/h1&gt;;
+}</code></pre>
+<p>Benefits: no loading spinners-inside-components for first render, parallel data loading for nested routes, no request waterfalls, automatic cancellation.</p>
+<h3 id="actions-and-forms">Actions and Forms</h3>
+<pre><code class="language-jsx">import { Form, redirect, useNavigation, useActionData } from "react-router";
+
+export async function enrollAction({ request, params }) {
+  const data = await request.formData();
+  const email = data.get("email");
+  if (!email) return { error: "Email is required" };
+  await api.enroll(params.courseId, email);
+  return redirect(`/courses/${params.courseId}/thanks`);
+}
+
+function EnrollForm() {
+  const navigation = useNavigation();                // "idle" | "loading" | "submitting"
+  const actionData = useActionData();
+  return (
+    &lt;Form method="post"&gt;
+      &lt;input name="email" type="email" /&gt;
+      {actionData?.error &amp;&amp; &lt;p role="alert"&gt;{actionData.error}&lt;/p&gt;}
+      &lt;button disabled={navigation.state === "submitting"}&gt;Enroll&lt;/button&gt;
+    &lt;/Form&gt;
+  );
+}</code></pre>
+<p>After an action, React Router <strong>automatically revalidates</strong> loaders so the page shows fresh data.</p>
+<h3 id="pending-ui-and-fetchers">Pending UI and fetchers</h3>
+<pre><code class="language-jsx">const navigation = useNavigation();
+{navigation.state === "loading" &amp;&amp; &lt;TopProgressBar /&gt;}
+
+const fetcher = useFetcher();                        // submit/load without navigating
+&lt;fetcher.Form method="post" action="/like"&gt;&lt;button&gt;{fetcher.state === "idle" ? "Like" : "…"}&lt;/button&gt;&lt;/fetcher.Form&gt;</code></pre>
+<h3 id="error-handling">Error handling</h3>
+<pre><code class="language-jsx">import { useRouteError, isRouteErrorResponse } from "react-router";
+
+function RootError() {
+  const error = useRouteError();
+  if (isRouteErrorResponse(error)) return &lt;h1&gt;{error.status} {error.statusText}&lt;/h1&gt;;
+  return &lt;h1&gt;Unexpected error: {error.message}&lt;/h1&gt;;
+}</code></pre>
+<p>Each route can have its own <code>errorElement</code>; errors bubble to the nearest one.</p>
+<h2 id="protected-routes"><span class="num">08</span>Protected Routes</h2>
+<pre><code class="language-jsx">function RequireAuth({ roles }) {
+  const { user, loading } = useAuth();
+  const location = useLocation();
+
+  if (loading) return &lt;Spinner /&gt;;
+  if (!user) return &lt;Navigate to="/login" replace state={{ from: location }} /&gt;;
+  if (roles &amp;&amp; !roles.includes(user.role)) return &lt;Navigate to="/403" replace /&gt;;
+  return &lt;Outlet /&gt;;
+}
+
+&lt;Routes&gt;
+  &lt;Route path="/login" element={&lt;Login /&gt;} /&gt;
+  &lt;Route element={&lt;RequireAuth /&gt;}&gt;
+    &lt;Route path="/dashboard" element={&lt;Dashboard /&gt;} /&gt;
+  &lt;/Route&gt;
+  &lt;Route element={&lt;RequireAuth roles={["admin"]} /&gt;}&gt;
+    &lt;Route path="/admin" element={&lt;Admin /&gt;} /&gt;
+  &lt;/Route&gt;
+&lt;/Routes&gt;</code></pre>
+<p>After login: <code>navigate(location.state?.from?.pathname ?? "/dashboard", { replace: true })</code>.</p>
+<aside class="callout warning"><span class="label">Warning</span><p>Client-side route guards only hide UI. <strong>Always enforce authorisation on the server/API</strong>; anyone can read your front-end code.</p></aside>
+<h2 id="lazy-loading-routes"><span class="num">09</span>Lazy Loading Routes</h2>
+<pre><code class="language-jsx">const router = createBrowserRouter([
+  {
+    path: "/reports",
+    lazy: async () =&gt; {
+      const { Reports, loader } = await import("./pages/Reports");   // code-split per route
+      return { Component: Reports, loader };
+    },
+  },
+]);</code></pre>
+<p>Or with declarative routes: <code>const Reports = lazy(() =&gt; import("./Reports"))</code> inside <code>&lt;Suspense&gt;</code>.</p>
+<h2 id="scroll-titles-and-focus"><span class="num">10</span>Scroll, Titles and Focus</h2>
+<ul><li><code>&lt;ScrollRestoration /&gt;</code> restores scroll positions between navigations (data mode)</li><li>Update the title per route with <code>&lt;title&gt;</code> in the page component (React 19)</li><li>Move focus to the main heading on navigation for screen reader users</li></ul>
+<h2 id="url-design-tips"><span class="num">11</span>URL Design Tips</h2>
+<ul><li>Use meaningful, lowercase, hyphenated paths: <code>/courses/react-19</code></li><li>Prefer <strong>slugs</strong> or ids that are stable</li><li>Put filters in query strings, resource identity in the path</li><li>Provide a catch-all <code>*</code> 404 route</li><li>Redirect old URLs with <code>&lt;Navigate&gt;</code> or a loader <code>redirect()</code></li></ul>
+<h2 id="hosting-a-client-side-router"><span class="num">12</span>Hosting a Client-side Router</h2>
+<p>Because routes like <code>/courses/5</code> don't exist as files, the <strong>server must return <code>index.html</code></strong> for unknown paths (SPA fallback). Netlify: <code>_redirects</code> (<code>/* /index.html 200</code>); Vercel: rewrites; Nginx: <code>try_files $uri /index.html;</code>. Vite's dev server does this automatically.</p>
+<h2 id="next-js-and-other-routers"><span class="num">13</span>Next.js and Other Routers</h2>
+<div class="table-wrap"><table><thead><tr><th>Router</th><th>Style</th></tr></thead><tbody><tr><td><strong>React Router</strong></td><td>Config or JSX routes, most flexible</td></tr><tr><td><strong>Next.js App Router</strong></td><td>File-system routes (<code>app/courses/[id]/page.tsx</code>), Server Components</td></tr><tr><td><strong>TanStack Router</strong></td><td>Fully type-safe routes, search-param validation</td></tr></tbody></table></div>
+<h2 id="quick-recap"><span class="num">14</span>Quick Recap</h2>
+<ul><li>Install <code>react-router</code> (v7); use <code>BrowserRouter</code> for simple apps or <code>createBrowserRouter</code> + <code>RouterProvider</code> for data APIs</li><li><code>Link</code>/<code>NavLink</code> navigate without reloads; <code>useNavigate</code> for code; <code>useParams</code> and <code>useSearchParams</code> read the URL</li><li>Nested routes render through <code>&lt;Outlet /&gt;</code>; <code>index</code> is the default child</li><li>Loaders fetch data per route, actions handle form posts, <code>errorElement</code> handles failures</li><li>Protect routes with a wrapper using <code>Navigate</code>, but enforce security on the server</li><li>Lazy-load route components; configure the server for SPA fallback</li></ul>
+    </article>
+    <nav class="pager" aria-label="Topic navigation">
+      <a class="prev" href="10-custom-hooks-patterns.html"><small>← Previous</small><strong>Custom Hooks, Patterns and Error Boundaries</strong></a>
+      <a class="next" href="12-data-fetching.html"><small>Next →</small><strong>Data Fetching and Server State</strong></a>
+    </nav>
+  </main>
+</div>
+</body>
+</html>
