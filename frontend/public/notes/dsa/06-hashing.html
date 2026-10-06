@@ -1,0 +1,254 @@
+<!doctype html>
+<html lang="en" data-track="dsa">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hashing: HashMap and HashSet Patterns — DSA Notes · Hanbee</title>
+<meta name="description" content="How hash tables work and the patterns that make them the most-used tool in interviews. Frequency counting, two sum, grouping, prefix-sum maps and designing your own hash table.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500..700;1,9..144,500&amp;family=Inter:wght@400..700&amp;family=JetBrains+Mono:wght@400..600&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/notes.css">
+<script src="../assets/notes.js" defer></script>
+</head>
+<body>
+<div class="progress" aria-hidden="true"><i></i></div>
+<header class="top">
+  <a class="brand" href="../index.html"><b>H</b>Hanbee · DSA Notes</a>
+  <nav><a class="keep" href="index.html">All topics</a><button id="theme-toggle" type="button" aria-label="Toggle light and dark theme">Theme</button></nav>
+</header>
+<div class="shell">
+  <details class="toc"><summary>On this page</summary><nav aria-label="On this page"><ol><li><a href="#what-is-hashing"><span>01</span>What is Hashing?</a></li><li><a href="#hash-functions"><span>02</span>Hash Functions</a></li><li><a href="#collision-handling"><span>03</span>Collision Handling</a></li><li><a href="#a-simple-hashmap-from-scratch"><span>04</span>A Simple HashMap from Scratch</a></li><li><a href="#using-hashmap-and-hashset-in-java"><span>05</span>Using HashMap and HashSet in Java</a></li><li><a href="#pattern-1-frequency-counting"><span>06</span>Pattern 1: Frequency Counting</a></li><li><a href="#pattern-2-two-sum-complement-lookup"><span>07</span>Pattern 2: Two Sum (complement lookup)</a></li><li><a href="#pattern-3-grouping-by-a-canonical-key"><span>08</span>Pattern 3: Grouping by a Canonical Key</a></li><li><a href="#pattern-4-prefix-sum-hashmap"><span>09</span>Pattern 4: Prefix Sum + HashMap</a></li><li><a href="#pattern-5-sets-for-existence-and-ranges"><span>10</span>Pattern 5: Sets for Existence and Ranges</a></li><li><a href="#pattern-6-top-k-frequent-bucket-sort"><span>11</span>Pattern 6: Top K Frequent (bucket sort)</a></li><li><a href="#pattern-7-caching-and-memoisation"><span>12</span>Pattern 7: Caching and Memoisation</a></li><li><a href="#pattern-8-index-maps-and-design-problems"><span>13</span>Pattern 8: Index Maps and Design Problems</a></li><li><a href="#hashmap-vs-treemap-vs-linkedhashmap"><span>14</span>HashMap vs TreeMap vs LinkedHashMap</a></li><li><a href="#hashing-beyond-hashmap"><span>15</span>Hashing Beyond HashMap</a></li><li><a href="#when-to-use-hashing"><span>16</span>When to Use Hashing</a></li><li><a href="#common-mistakes"><span>17</span>Common Mistakes</a></li><li><a href="#quick-recap"><span>18</span>Quick Recap</a></li></ol></nav></details>
+  <main>
+    <header class="hero">
+      <p class="kicker"><span class="pill">Linear Data Structures</span><span>Topic 06</span><span>Intermediate</span><span>10 min read</span></p>
+      <h1>Hashing: HashMap and HashSet Patterns</h1>
+      <p class="lede">How hash tables work and the patterns that make them the most-used tool in interviews. Frequency counting, two sum, grouping, prefix-sum maps and designing your own hash table.</p>
+    </header>
+    <article>
+<h2 id="what-is-hashing"><span class="num">01</span>What is Hashing?</h2>
+<p><strong>Hashing</strong> maps a key to an array index using a <strong>hash function</strong>, giving <strong>average <code>O(1)</code></strong> insert, lookup and delete.</p>
+<pre><code class="language-text">key "Asha" ──hash()──► 8734512 ──% capacity──► bucket 5
+
+buckets:  [0] [1] [2] [3] [4] [5: Asha→91] [6] [7] ...</code></pre>
+<div class="table-wrap"><table><thead><tr><th>Structure</th><th>Stores</th><th>Java class</th></tr></thead><tbody><tr><td><strong>Hash set</strong></td><td>Unique keys</td><td><code>HashSet</code></td></tr><tr><td><strong>Hash map</strong></td><td>Key → value pairs</td><td><code>HashMap</code></td></tr><tr><td>Insertion-ordered</td><td>Same, remembers order</td><td><code>LinkedHashMap</code>, <code>LinkedHashSet</code></td></tr><tr><td>Sorted</td><td>Same, sorted by key (<code>O(log n)</code>)</td><td><code>TreeMap</code>, <code>TreeSet</code></td></tr></tbody></table></div>
+<h2 id="hash-functions"><span class="num">02</span>Hash Functions</h2>
+<p>A good hash function is <strong>deterministic</strong>, <strong>fast</strong> and <strong>spreads keys evenly</strong>.</p>
+<pre><code class="language-java">// Polynomial rolling hash for strings (how String.hashCode() works)
+int hash = 0;
+for (char c : s.toCharArray()) hash = 31 * hash + c;
+int bucket = (hash &amp; 0x7fffffff) % capacity;          // make it non-negative, then map to a bucket</code></pre>
+<ul><li>Equal objects <strong>must</strong> produce equal hash codes (<code>equals</code>/<code>hashCode</code> contract)</li><li>Unequal objects <em>may</em> share a hash code (a <strong>collision</strong>)</li></ul>
+<h2 id="collision-handling"><span class="num">03</span>Collision Handling</h2>
+<p>Two keys landing in the same bucket is unavoidable (pigeonhole principle).</p>
+<h3 id="separate-chaining">Separate chaining</h3>
+<p>Each bucket holds a <strong>list</strong> (or tree) of entries. Java's <code>HashMap</code> converts a long chain (8 or more entries, table size at least 64) into a <strong>red-black tree</strong>, so the worst case is <code>O(log n)</code> per bucket.</p>
+<pre><code class="language-text">bucket 3 → [k1:v1] → [k2:v2] → [k3:v3]</code></pre>
+<h3 id="open-addressing">Open addressing</h3>
+<p>All entries live in the array itself. On collision, <strong>probe</strong> for another slot:</p>
+<div class="table-wrap"><table><thead><tr><th>Probing</th><th>Next slot</th></tr></thead><tbody><tr><td>Linear</td><td><code>(h + i) % m</code></td></tr><tr><td>Quadratic</td><td><code>(h + i²) % m</code></td></tr><tr><td>Double hashing</td><td><code>(h1 + i·h2) % m</code></td></tr></tbody></table></div>
+<p>Deletion needs tombstones; clustering hurts performance when the table is full.</p>
+<h3 id="load-factor-and-resizing">Load factor and resizing</h3>
+<p><code>load factor = entries / buckets</code>. Java's <code>HashMap</code> defaults to <strong>0.75</strong>: when exceeded, the table <strong>doubles</strong> and every entry is <strong>rehashed</strong>. Resizing is <code>O(n)</code> but rare, so <code>put</code> stays <code>O(1)</code> amortised.</p>
+<div class="table-wrap"><table><thead><tr><th>Complexity</th><th>Average</th><th>Worst</th></tr></thead><tbody><tr><td><code>put</code>, <code>get</code>, <code>remove</code>, <code>contains</code></td><td><code>O(1)</code></td><td><code>O(n)</code> (<code>O(log n)</code> with tree bins)</td></tr></tbody></table></div>
+<h2 id="a-simple-hashmap-from-scratch"><span class="num">04</span>A Simple HashMap from Scratch</h2>
+<pre><code class="language-java">class MyHashMap {
+    private static class Entry { int key, val; Entry next; Entry(int k, int v) { key = k; val = v; } }
+
+    private Entry[] table = new Entry[16];
+    private int size;
+
+    private int index(int key) { return (key &amp; 0x7fffffff) % table.length; }
+
+    void put(int key, int val) {
+        int i = index(key);
+        for (Entry e = table[i]; e != null; e = e.next)
+            if (e.key == key) { e.val = val; return; }       // update existing
+        Entry n = new Entry(key, val);
+        n.next = table[i]; table[i] = n;                      // insert at the chain head
+        if (++size &gt; table.length * 0.75) resize();
+    }
+
+    int get(int key) {
+        for (Entry e = table[index(key)]; e != null; e = e.next)
+            if (e.key == key) return e.val;
+        return -1;
+    }
+
+    void remove(int key) {
+        int i = index(key);
+        Entry prev = null;
+        for (Entry e = table[i]; e != null; prev = e, e = e.next) {
+            if (e.key == key) {
+                if (prev == null) table[i] = e.next; else prev.next = e.next;
+                size--;
+                return;
+            }
+        }
+    }
+
+    private void resize() {
+        Entry[] old = table;
+        table = new Entry[old.length * 2];
+        for (Entry head : old)
+            for (Entry e = head; e != null; ) {
+                Entry next = e.next;
+                int i = index(e.key);
+                e.next = table[i]; table[i] = e;
+                e = next;
+            }
+    }
+}</code></pre>
+<h2 id="using-hashmap-and-hashset-in-java"><span class="num">05</span>Using HashMap and HashSet in Java</h2>
+<pre><code class="language-java">Map&lt;String, Integer&gt; map = new HashMap&lt;&gt;();
+map.put("a", 1);
+map.get("a");                              // null if absent
+map.getOrDefault("z", 0);
+map.containsKey("a");   map.remove("a");   map.size();
+map.putIfAbsent("b", 2);
+map.merge("a", 1, Integer::sum);           // counting idiom
+map.computeIfAbsent("k", x -&gt; new ArrayList&lt;&gt;()).add(5);   // grouping idiom
+for (Map.Entry&lt;String, Integer&gt; e : map.entrySet()) { e.getKey(); e.getValue(); }
+
+Set&lt;Integer&gt; set = new HashSet&lt;&gt;();
+set.add(3);   set.contains(3);   set.remove(3);          // add returns false if already present</code></pre>
+<h3 id="custom-keys-override-equals-and-hashcode">Custom keys: override equals and hashCode</h3>
+<pre><code class="language-java">record Point(int x, int y) { }                           // records generate equals/hashCode
+Set&lt;Point&gt; visited = new HashSet&lt;&gt;();
+visited.add(new Point(1, 2));
+
+// Or a fast encoding for grid cells: key = row * COLS + col  or  (long) r &lt;&lt; 32 | c</code></pre>
+<aside class="callout warning"><span class="label">Warning</span><p>Never mutate an object <strong>after</strong> using it as a key; its hash changes and it becomes unreachable. Prefer immutable keys such as <code>String</code>, <code>Integer</code> and records. Arrays do <strong>not</strong> override <code>hashCode</code>; convert with <code>Arrays.toString(arr)</code> or <code>List.of(...)</code> to use them as keys.</p></aside>
+<h2 id="pattern-1-frequency-counting"><span class="num">06</span>Pattern 1: Frequency Counting</h2>
+<pre><code class="language-java">static Map&lt;Character, Integer&gt; frequency(String s) {
+    Map&lt;Character, Integer&gt; f = new HashMap&lt;&gt;();
+    for (char c : s.toCharArray()) f.merge(c, 1, Integer::sum);
+    return f;
+}</code></pre>
+<p>Use an <code>int[26]</code> (or <code>int[128]</code>) instead of a map for letters; it is faster.</p>
+<h3 id="contains-duplicate">Contains duplicate</h3>
+<pre><code class="language-java">static boolean containsDuplicate(int[] a) {
+    Set&lt;Integer&gt; seen = new HashSet&lt;&gt;();
+    for (int x : a) if (!seen.add(x)) return true;
+    return false;
+}</code></pre>
+<h3 id="first-non-repeating-character-majority-element-valid-anagram-ransom-note-all-frequency-counting">First non-repeating character, majority element, valid anagram, ransom note: all frequency counting.</h3>
+<h2 id="pattern-2-two-sum-complement-lookup"><span class="num">07</span>Pattern 2: Two Sum (complement lookup)</h2>
+<p>Store each number's index; check whether <code>target - x</code> has already been seen.</p>
+<pre><code class="language-java">static int[] twoSum(int[] a, int target) {
+    Map&lt;Integer, Integer&gt; idx = new HashMap&lt;&gt;();             // value → index
+    for (int i = 0; i &lt; a.length; i++) {
+        Integer j = idx.get(target - a[i]);
+        if (j != null) return new int[]{j, i};
+        idx.put(a[i], i);
+    }
+    return new int[0];                                        // O(n) time, O(n) space
+}</code></pre>
+<h2 id="pattern-3-grouping-by-a-canonical-key"><span class="num">08</span>Pattern 3: Grouping by a Canonical Key</h2>
+<h3 id="group-anagrams">Group anagrams</h3>
+<pre><code class="language-java">static List&lt;List&lt;String&gt;&gt; groupAnagrams(String[] words) {
+    Map&lt;String, List&lt;String&gt;&gt; groups = new HashMap&lt;&gt;();
+    for (String w : words) {
+        char[] c = w.toCharArray();
+        Arrays.sort(c);
+        groups.computeIfAbsent(new String(c), k -&gt; new ArrayList&lt;&gt;()).add(w);   // sorted letters = canonical form
+    }
+    return new ArrayList&lt;&gt;(groups.values());                  // O(n · k log k)
+}</code></pre>
+<p>For <code>O(n · k)</code> use the 26-count signature as the key instead of sorting.</p>
+<h3 id="isomorphic-strings">Isomorphic strings</h3>
+<p>Map each character to its partner both ways; fail if a mapping conflicts.</p>
+<h2 id="pattern-4-prefix-sum-hashmap"><span class="num">09</span>Pattern 4: Prefix Sum + HashMap</h2>
+<p>Count subarrays whose sum equals <code>k</code>. If <code>prefix[j] - prefix[i] = k</code>, then <code>prefix[i] = prefix[j] - k</code>.</p>
+<pre><code class="language-java">static int subarraySum(int[] a, int k) {
+    Map&lt;Integer, Integer&gt; count = new HashMap&lt;&gt;();
+    count.put(0, 1);                                          // empty prefix
+    int sum = 0, res = 0;
+    for (int x : a) {
+        sum += x;
+        res += count.getOrDefault(sum - k, 0);                // how many earlier prefixes complete a subarray?
+        count.merge(sum, 1, Integer::sum);
+    }
+    return res;                                               // O(n), works with negatives (sliding window doesn't)
+}</code></pre>
+<h3 id="longest-subarray-with-sum-k-equal-0s-and-1s">Longest subarray with sum k / equal 0s and 1s</h3>
+<p>Store the <strong>first index</strong> where each prefix sum occurred; the answer is <code>i - firstIndex[prefix - k]</code>. For equal 0s and 1s, treat 0 as -1 and look for sum 0.</p>
+<h3 id="subarray-sums-divisible-by-k">Subarray sums divisible by k</h3>
+<p>Track <code>((sum % k) + k) % k</code> remainders: two equal remainders mean the subarray between them is divisible by <code>k</code>.</p>
+<h2 id="pattern-5-sets-for-existence-and-ranges"><span class="num">10</span>Pattern 5: Sets for Existence and Ranges</h2>
+<h3 id="longest-consecutive-sequence-o-n">Longest consecutive sequence: O(n)</h3>
+<pre><code class="language-java">static int longestConsecutive(int[] a) {
+    Set&lt;Integer&gt; set = new HashSet&lt;&gt;();
+    for (int x : a) set.add(x);
+    int best = 0;
+    for (int x : set) {
+        if (set.contains(x - 1)) continue;                    // only start counting from a sequence's beginning
+        int len = 1;
+        while (set.contains(x + len)) len++;
+        best = Math.max(best, len);
+    }
+    return best;
+}</code></pre>
+<h3 id="intersection-and-union-of-arrays-happy-number-cycle-detection-with-a-set-find-missing-duplicate">Intersection and union of arrays, happy number (cycle detection with a set), find missing/duplicate.</h3>
+<h2 id="pattern-6-top-k-frequent-bucket-sort"><span class="num">11</span>Pattern 6: Top K Frequent (bucket sort)</h2>
+<pre><code class="language-java">static int[] topKFrequent(int[] a, int k) {
+    Map&lt;Integer, Integer&gt; freq = new HashMap&lt;&gt;();
+    for (int x : a) freq.merge(x, 1, Integer::sum);
+
+    List&lt;Integer&gt;[] buckets = new List[a.length + 1];          // index = frequency
+    for (var e : freq.entrySet()) {
+        int f = e.getValue();
+        if (buckets[f] == null) buckets[f] = new ArrayList&lt;&gt;();
+        buckets[f].add(e.getKey());
+    }
+    int[] res = new int[k];
+    int p = 0;
+    for (int f = buckets.length - 1; f &gt; 0 &amp;&amp; p &lt; k; f--)
+        if (buckets[f] != null)
+            for (int x : buckets[f]) { if (p &lt; k) res[p++] = x; }
+    return res;                                                 // O(n)
+}</code></pre>
+<p>Alternative: a min-heap of size <code>k</code> for <code>O(n log k)</code> (see Heaps).</p>
+<h2 id="pattern-7-caching-and-memoisation"><span class="num">12</span>Pattern 7: Caching and Memoisation</h2>
+<p>Hash maps store results of expensive computations (<code>Map&lt;State, Result&gt;</code>): the base of top-down dynamic programming and LRU caches.</p>
+<h2 id="pattern-8-index-maps-and-design-problems"><span class="num">13</span>Pattern 8: Index Maps and Design Problems</h2>
+<ul><li><strong>Insert / delete / getRandom in O(1)</strong>: <code>ArrayList</code> + <code>HashMap&lt;value, index&gt;</code>; delete by swapping with the last element</li><li><strong>Time-based key-value store</strong>: <code>Map&lt;String, List&lt;(time, value)&gt;&gt;</code> + binary search</li><li><strong>Two sum data structure</strong>, <strong>LFU/LRU cache</strong>, <strong>randomised set</strong></li></ul>
+<pre><code class="language-java">class RandomizedSet {
+    private final List&lt;Integer&gt; list = new ArrayList&lt;&gt;();
+    private final Map&lt;Integer, Integer&gt; pos = new HashMap&lt;&gt;();
+    private final Random rnd = new Random();
+
+    boolean insert(int v) {
+        if (pos.containsKey(v)) return false;
+        pos.put(v, list.size()); list.add(v);
+        return true;
+    }
+    boolean remove(int v) {
+        Integer i = pos.remove(v);
+        if (i == null) return false;
+        int last = list.get(list.size() - 1);
+        list.set(i, last);                                      // move the last element into the hole
+        if (last != v) pos.put(last, i);
+        list.remove(list.size() - 1);
+        return true;
+    }
+    int getRandom() { return list.get(rnd.nextInt(list.size())); }
+}</code></pre>
+<h2 id="hashmap-vs-treemap-vs-linkedhashmap"><span class="num">14</span>HashMap vs TreeMap vs LinkedHashMap</h2>
+<div class="table-wrap"><table><thead><tr><th></th><th><code>HashMap</code></th><th><code>LinkedHashMap</code></th><th><code>TreeMap</code></th></tr></thead><tbody><tr><td>Order</td><td>None</td><td>Insertion (or access)</td><td>Sorted by key</td></tr><tr><td><code>get</code>/<code>put</code></td><td><code>O(1)</code></td><td><code>O(1)</code></td><td><code>O(log n)</code></td></tr><tr><td>Range queries (<code>floorKey</code>, <code>ceilingKey</code>, <code>subMap</code>)</td><td>No</td><td>No</td><td><strong>Yes</strong></td></tr><tr><td>Null key</td><td>One allowed</td><td>One allowed</td><td>Not allowed (natural ordering)</td></tr><tr><td>Use for</td><td>Default</td><td>LRU cache, predictable iteration</td><td>Sorted data, nearest-key queries</td></tr></tbody></table></div>
+<h2 id="hashing-beyond-hashmap"><span class="num">15</span>Hashing Beyond HashMap</h2>
+<div class="table-wrap"><table><thead><tr><th>Technique</th><th>Purpose</th></tr></thead><tbody><tr><td><strong>Rolling hash</strong> (Rabin-Karp)</td><td>Substring search / duplicate substrings in <code>O(n)</code></td></tr><tr><td><strong>Bloom filter</strong></td><td>Space-efficient "probably in set" test (no false negatives)</td></tr><tr><td><strong>Consistent hashing</strong></td><td>Distribute keys across servers with minimal movement when nodes change</td></tr><tr><td><strong>Cryptographic hashes</strong> (SHA-256)</td><td>Integrity, passwords (with salt and a slow function like bcrypt)</td></tr><tr><td><strong>Geohash / locality-sensitive hashing</strong></td><td>Nearby-item search</td></tr></tbody></table></div>
+<h2 id="when-to-use-hashing"><span class="num">16</span>When to Use Hashing</h2>
+<ul><li>You need <strong>fast lookup, membership or counting</strong></li><li>You want to turn a nested-loop <code>O(n²)</code> search into <code>O(n)</code> by remembering what you have seen</li><li>Order does not matter (otherwise consider <code>TreeMap</code>, sorting or <code>LinkedHashMap</code>)</li></ul>
+<p>Trade-off: <code>O(n)</code> extra space, no ordering, and worst-case collisions.</p>
+<h2 id="common-mistakes"><span class="num">17</span>Common Mistakes</h2>
+<ul><li>Using a mutable object (or an array) as a key</li><li>Overriding <code>equals</code> without <code>hashCode</code></li><li>Modifying a map while iterating over it (<code>ConcurrentModificationException</code>): use <code>Iterator.remove()</code> or <code>removeIf</code></li><li>Boxing overhead: for small integer ranges use arrays instead of <code>Map&lt;Integer, Integer&gt;</code></li><li>Assuming iteration order from <code>HashMap</code></li><li><code>map.get(k)</code> unboxing a <code>null</code> into <code>int</code> → <code>NullPointerException</code> (use <code>getOrDefault</code>)</li></ul>
+<h2 id="quick-recap"><span class="num">18</span>Quick Recap</h2>
+<ul><li>Hash tables give <strong>average <code>O(1)</code></strong> operations; collisions use chaining (trees in Java) or open addressing; the table resizes at load factor 0.75</li><li>Key patterns: <strong>frequency count</strong>, <strong>complement lookup (two sum)</strong>, <strong>grouping by canonical key</strong>, <strong>prefix sum + map</strong>, <strong>sets for existence</strong></li><li>Use immutable keys and always override <code>equals</code> and <code>hashCode</code> together</li><li><code>TreeMap</code> when you need sorted keys or nearest-key queries; <code>LinkedHashMap</code> for ordering and LRU</li></ul>
+    </article>
+    <nav class="pager" aria-label="Topic navigation">
+      <a class="prev" href="05-stacks-queues.html"><small>← Previous</small><strong>Stacks, Queues and Deques</strong></a>
+      <a class="next" href="07-searching-binary-search.html"><small>Next →</small><strong>Searching and Binary Search</strong></a>
+    </nav>
+  </main>
+</div>
+</body>
+</html>

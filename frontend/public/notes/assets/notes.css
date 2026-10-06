@@ -240,3 +240,5 @@ html.embedded { scroll-padding-top: 1.5rem; }
 :root[data-theme="dark"][data-track="react"] { --accent: oklch(0.78 0.12 215); --accent-soft: oklch(0.78 0.12 215 / 0.13); --note: oklch(0.78 0.12 215); }
 :root[data-track="react"] .callout.interview { --c: oklch(0.55 0.17 300); }
 :root[data-theme="dark"][data-track="react"] .callout.interview { --c: oklch(0.77 0.12 300); }
+:root[data-track="dsa"] { --accent: oklch(0.5 0.13 155); --accent-soft: oklch(0.5 0.13 155 / 0.1); --note: oklch(0.5 0.13 155); --tip: oklch(0.55 0.15 250); }
+:root[data-theme="dark"][data-track="dsa"] { --accent: oklch(0.78 0.14 155); --accent-soft: oklch(0.78 0.14 155 / 0.13); --note: oklch(0.78 0.14 155); --tip: oklch(0.78 0.11 250); }

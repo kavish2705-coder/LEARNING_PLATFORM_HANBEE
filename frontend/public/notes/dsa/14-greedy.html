@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="en" data-track="dsa">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Greedy Algorithms — DSA Notes · Hanbee</title>
+<meta name="description" content="Make the locally best choice at each step. When greedy works and when it fails, the exchange argument, and the classic problems: intervals, jump game, gas station, Huffman coding and more.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500..700;1,9..144,500&amp;family=Inter:wght@400..700&amp;family=JetBrains+Mono:wght@400..600&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/notes.css">
+<script src="../assets/notes.js" defer></script>
+</head>
+<body>
+<div class="progress" aria-hidden="true"><i></i></div>
+<header class="top">
+  <a class="brand" href="../index.html"><b>H</b>Hanbee · DSA Notes</a>
+  <nav><a class="keep" href="index.html">All topics</a><button id="theme-toggle" type="button" aria-label="Toggle light and dark theme">Theme</button></nav>
+</header>
+<div class="shell">
+  <details class="toc"><summary>On this page</summary><nav aria-label="On this page"><ol><li><a href="#what-is-a-greedy-algorithm"><span>01</span>What is a Greedy Algorithm?</a></li><li><a href="#when-does-greedy-work"><span>02</span>When Does Greedy Work?</a></li><li><a href="#when-greedy-fails-coin-change"><span>03</span>When Greedy Fails: Coin Change</a></li><li><a href="#classic-greedy-problems"><span>04</span>Classic Greedy Problems</a></li><li><a href="#huffman-coding"><span>05</span>Huffman Coding</a></li><li><a href="#greedy-on-graphs"><span>06</span>Greedy on Graphs</a></li><li><a href="#greedy-strategy-checklist"><span>07</span>Greedy Strategy Checklist</a></li><li><a href="#common-mistakes"><span>08</span>Common Mistakes</a></li><li><a href="#quick-recap"><span>09</span>Quick Recap</a></li></ol></nav></details>
+  <main>
+    <header class="hero">
+      <p class="kicker"><span class="pill">Algorithm Paradigms</span><span>Topic 14</span><span>Intermediate</span><span>9 min read</span></p>
+      <h1>Greedy Algorithms</h1>
+      <p class="lede">Make the locally best choice at each step. When greedy works and when it fails, the exchange argument, and the classic problems: intervals, jump game, gas station, Huffman coding and more.</p>
+    </header>
+    <article>
+<h2 id="what-is-a-greedy-algorithm"><span class="num">01</span>What is a Greedy Algorithm?</h2>
+<p>A greedy algorithm builds a solution by repeatedly choosing the <strong>best-looking option right now</strong>, and <strong>never reconsiders</strong> earlier choices.</p>
+<pre><code class="language-text">Greedy:    choose the locally best step → commit → repeat</code></pre>
+<p>It is fast and simple (usually <code>O(n log n)</code> from sorting, or <code>O(n)</code>), but it only gives the <strong>optimal</strong> answer when the problem has the right structure.</p>
+<h2 id="when-does-greedy-work"><span class="num">02</span>When Does Greedy Work?</h2>
+<p>Two properties must hold:</p>
+<ol><li><strong>Greedy-choice property</strong>: a globally optimal solution can be reached by making a locally optimal choice first</li><li><strong>Optimal substructure</strong>: after the choice, what remains is a smaller instance of the same problem</li></ol>
+<h3 id="proof-technique-the-exchange-argument">Proof technique: the exchange argument</h3>
+<p>Take any optimal solution that differs from the greedy one. Show you can <strong>swap</strong> its first different choice for the greedy choice <strong>without making it worse</strong>. Repeating this transforms the optimal solution into the greedy one, so greedy is optimal.</p>
+<h3 id="greedy-vs-dynamic-programming">Greedy vs dynamic programming</h3>
+<div class="table-wrap"><table><thead><tr><th></th><th>Greedy</th><th>Dynamic programming</th></tr></thead><tbody><tr><td>Decisions</td><td>One local choice, never revisited</td><td>Considers all choices, remembers sub-results</td></tr><tr><td>Speed</td><td>Faster</td><td>Slower</td></tr><tr><td>Correctness</td><td>Only for special problems</td><td>Works whenever subproblems overlap</td></tr><tr><td>Example</td><td>Fractional knapsack</td><td>0/1 knapsack</td></tr></tbody></table></div>
+<aside class="callout tip"><span class="label">Tip</span><p>If you suspect greedy, look for a <strong>counter-example</strong> with small inputs. If you cannot find one, try the exchange argument. If you can, switch to DP.</p></aside>
+<h2 id="when-greedy-fails-coin-change"><span class="num">03</span>When Greedy Fails: Coin Change</h2>
+<p>With coins <code>{1, 3, 4}</code> and amount <code>6</code>, greedy takes <code>4 + 1 + 1</code> (3 coins), but the optimum is <code>3 + 3</code> (2 coins). For canonical systems like <code>{1, 5, 10, 25}</code> greedy works. For arbitrary coins use DP.</p>
+<h2 id="classic-greedy-problems"><span class="num">04</span>Classic Greedy Problems</h2>
+<h3 id="1-activity-selection-maximum-non-overlapping-intervals">1. Activity selection / maximum non-overlapping intervals</h3>
+<p>Always pick the activity that <strong>finishes earliest</strong>.</p>
+<pre><code class="language-java">static int maxActivities(int[][] acts) {                   // {start, end}
+    Arrays.sort(acts, (a, b) -&gt; Integer.compare(a[1], b[1]));
+    int count = 0, lastEnd = Integer.MIN_VALUE;
+    for (int[] a : acts) {
+        if (a[0] &gt;= lastEnd) { count++; lastEnd = a[1]; }
+    }
+    return count;                                            // O(n log n)
+}</code></pre>
+<p>Why: finishing earliest leaves the most room for the rest (exchange argument).</p>
+<h3 id="2-minimum-intervals-to-remove-so-none-overlap">2. Minimum intervals to remove so none overlap</h3>
+<pre><code class="language-java">static int eraseOverlapIntervals(int[][] iv) {
+    return iv.length - maxActivities(iv);                     // keep the maximum set, erase the rest
+}</code></pre>
+<h3 id="3-merge-intervals-insert-interval">3. Merge intervals / insert interval</h3>
+<p>Sort by start, then sweep and extend the current interval (see the Sorting topic).</p>
+<h3 id="4-minimum-number-of-arrows-to-burst-balloons">4. Minimum number of arrows to burst balloons</h3>
+<p>Sort by <strong>end</strong>; shoot at the end of the first balloon; skip all balloons it bursts.</p>
+<pre><code class="language-java">static int findMinArrowShots(int[][] pts) {
+    Arrays.sort(pts, (a, b) -&gt; Integer.compare(a[1], b[1]));  // compare, don't subtract: values can be extreme
+    int arrows = 0;
+    long end = Long.MIN_VALUE;
+    for (int[] p : pts) {
+        if (p[0] &gt; end) { arrows++; end = p[1]; }
+    }
+    return arrows;
+}</code></pre>
+<h3 id="5-fractional-knapsack">5. Fractional knapsack</h3>
+<p>Take items in decreasing <strong>value/weight ratio</strong>; take a fraction of the last item.</p>
+<pre><code class="language-java">static double fractionalKnapsack(int[] w, int[] v, int cap) {
+    Integer[] idx = new Integer[w.length];
+    for (int i = 0; i &lt; idx.length; i++) idx[i] = i;
+    Arrays.sort(idx, (a, b) -&gt; Double.compare((double) v[b] / w[b], (double) v[a] / w[a]));
+    double value = 0;
+    for (int i : idx) {
+        if (cap == 0) break;
+        int take = Math.min(w[i], cap);
+        value += (double) v[i] * take / w[i];
+        cap -= take;
+    }
+    return value;
+}</code></pre>
+<p>(The <strong>0/1 knapsack</strong> cannot be solved greedily: it needs DP.)</p>
+<h3 id="6-jump-game">6. Jump game</h3>
+<p>Can you reach the last index? Track the <strong>farthest</strong> reachable index.</p>
+<pre><code class="language-java">static boolean canJump(int[] a) {
+    int far = 0;
+    for (int i = 0; i &lt; a.length; i++) {
+        if (i &gt; far) return false;                            // stuck before reaching i
+        far = Math.max(far, i + a[i]);
+    }
+    return true;
+}</code></pre>
+<h3 id="jump-game-ii-minimum-number-of-jumps">Jump game II: minimum number of jumps</h3>
+<pre><code class="language-java">static int jump(int[] a) {
+    int jumps = 0, curEnd = 0, far = 0;
+    for (int i = 0; i &lt; a.length - 1; i++) {
+        far = Math.max(far, i + a[i]);
+        if (i == curEnd) { jumps++; curEnd = far; }           // must jump: extend to the farthest reachable
+    }
+    return jumps;                                              // O(n), a BFS in disguise
+}</code></pre>
+<h3 id="7-gas-station-circular-tour">7. Gas station (circular tour)</h3>
+<pre><code class="language-java">static int canCompleteCircuit(int[] gas, int[] cost) {
+    int total = 0, tank = 0, start = 0;
+    for (int i = 0; i &lt; gas.length; i++) {
+        int diff = gas[i] - cost[i];
+        total += diff; tank += diff;
+        if (tank &lt; 0) { start = i + 1; tank = 0; }              // can't start at or before i
+    }
+    return total &gt;= 0 ? start : -1;                             // O(n)
+}</code></pre>
+<h3 id="8-assign-cookies-two-pointer-greedy">8. Assign cookies / two-pointer greedy</h3>
+<p>Sort both arrays; give each child the <strong>smallest cookie that satisfies</strong> them.</p>
+<pre><code class="language-java">static int findContentChildren(int[] greed, int[] cookies) {
+    Arrays.sort(greed); Arrays.sort(cookies);
+    int child = 0;
+    for (int cookie : cookies)
+        if (child &lt; greed.length &amp;&amp; cookie &gt;= greed[child]) child++;
+    return child;
+}</code></pre>
+<h3 id="9-task-scheduler-minimum-idle-time">9. Task scheduler / minimum idle time</h3>
+<p>Count frequencies; the most frequent task forces a frame structure:</p>
+<pre><code class="language-java">static int leastInterval(char[] tasks, int n) {
+    int[] f = new int[26];
+    for (char c : tasks) f[c - 'A']++;
+    int max = Arrays.stream(f).max().getAsInt();
+    int maxCount = (int) Arrays.stream(f).filter(x -&gt; x == max).count();
+    return Math.max(tasks.length, (max - 1) * (n + 1) + maxCount);
+}</code></pre>
+<h3 id="10-best-time-to-buy-and-sell-stock-ii">10. Best time to buy and sell stock II</h3>
+<p>Collect every <strong>upward</strong> price move.</p>
+<pre><code class="language-java">static int maxProfit(int[] p) {
+    int profit = 0;
+    for (int i = 1; i &lt; p.length; i++) if (p[i] &gt; p[i - 1]) profit += p[i] - p[i - 1];
+    return profit;
+}</code></pre>
+<h3 id="11-lemonade-change-minimum-platforms-candy-distribution">11. Lemonade change, minimum platforms, candy distribution</h3>
+<div class="table-wrap"><table><thead><tr><th>Problem</th><th>Greedy rule</th></tr></thead><tbody><tr><td><strong>Candy</strong> (ratings in a line)</td><td>Two passes: left to right and right to left, take the max</td></tr><tr><td><strong>Minimum platforms / meeting rooms</strong></td><td>Sort arrivals and departures; sweep with two pointers</td></tr><tr><td><strong>Lemonade change</strong></td><td>Prefer giving a 10 + 5 over 5 + 5 + 5 (keep the more useful small bills)</td></tr><tr><td><strong>Partition labels</strong></td><td>Extend the segment to the last occurrence of each character</td></tr><tr><td><strong>Remove K digits</strong></td><td>Monotonic stack: remove a larger digit before a smaller one</td></tr><tr><td><strong>Largest number</strong></td><td>Custom comparator <code>(a+b)</code> vs <code>(b+a)</code></td></tr><tr><td><strong>Queue reconstruction by height</strong></td><td>Sort tall first, insert by <code>k</code></td></tr><tr><td><strong>Non-decreasing array with one change</strong></td><td>Fix the current element depending on <code>a[i-2]</code></td></tr></tbody></table></div>
+<h3 id="partition-labels">Partition labels</h3>
+<pre><code class="language-java">static List&lt;Integer&gt; partitionLabels(String s) {
+    int[] last = new int[26];
+    for (int i = 0; i &lt; s.length(); i++) last[s.charAt(i) - 'a'] = i;
+    List&lt;Integer&gt; res = new ArrayList&lt;&gt;();
+    int start = 0, end = 0;
+    for (int i = 0; i &lt; s.length(); i++) {
+        end = Math.max(end, last[s.charAt(i) - 'a']);
+        if (i == end) { res.add(end - start + 1); start = i + 1; }
+    }
+    return res;
+}</code></pre>
+<h2 id="huffman-coding"><span class="num">05</span>Huffman Coding</h2>
+<p>Compress data by giving <strong>shorter codes to more frequent symbols</strong>. Repeatedly merge the <strong>two least frequent</strong> nodes using a min-heap; the resulting binary tree gives a <strong>prefix-free</strong> code (no code is a prefix of another).</p>
+<pre><code class="language-java">static class HNode implements Comparable&lt;HNode&gt; {
+    char ch; int freq; HNode left, right;
+    HNode(char c, int f) { ch = c; freq = f; }
+    HNode(HNode l, HNode r) { freq = l.freq + r.freq; left = l; right = r; }
+    public int compareTo(HNode o) { return Integer.compare(freq, o.freq); }
+}
+
+static Map&lt;Character, String&gt; huffman(Map&lt;Character, Integer&gt; freq) {
+    PriorityQueue&lt;HNode&gt; pq = new PriorityQueue&lt;&gt;();
+    freq.forEach((c, f) -&gt; pq.offer(new HNode(c, f)));
+    while (pq.size() &gt; 1) pq.offer(new HNode(pq.poll(), pq.poll()));      // merge the two smallest
+    Map&lt;Character, String&gt; codes = new HashMap&lt;&gt;();
+    build(pq.peek(), "", codes);
+    return codes;                                                          // O(n log n)
+}
+static void build(HNode n, String code, Map&lt;Character, String&gt; codes) {
+    if (n == null) return;
+    if (n.left == null &amp;&amp; n.right == null) { codes.put(n.ch, code.isEmpty() ? "0" : code); return; }
+    build(n.left, code + "0", codes);
+    build(n.right, code + "1", codes);
+}</code></pre>
+<p>Used in ZIP/GZIP (DEFLATE), JPEG and MP3 compression.</p>
+<h2 id="greedy-on-graphs"><span class="num">06</span>Greedy on Graphs</h2>
+<div class="table-wrap"><table><thead><tr><th>Algorithm</th><th>Greedy rule</th></tr></thead><tbody><tr><td><strong>Dijkstra</strong></td><td>Expand the closest unvisited vertex</td></tr><tr><td><strong>Kruskal</strong></td><td>Take the cheapest edge that does not form a cycle</td></tr><tr><td><strong>Prim</strong></td><td>Add the cheapest edge leaving the tree</td></tr><tr><td><strong>Huffman</strong></td><td>Merge the two lightest trees</td></tr><tr><td><strong>Interval scheduling</strong></td><td>Earliest finish time first</td></tr></tbody></table></div>
+<h2 id="greedy-strategy-checklist"><span class="num">07</span>Greedy Strategy Checklist</h2>
+<ol><li>Can I <strong>sort</strong> the input by some key (end time, ratio, deadline, frequency)?</li><li>Is there a natural "<strong>best next</strong>" choice (smallest, largest, earliest, cheapest)?</li><li>Does making that choice leave a <strong>smaller problem of the same type</strong>?</li><li>Try to break it with a <strong>counter-example</strong>; try to prove it with an <strong>exchange argument</strong></li></ol>
+<h3 id="typical-sort-keys">Typical sort keys</h3>
+<div class="table-wrap"><table><thead><tr><th>Problem family</th><th>Sort by</th></tr></thead><tbody><tr><td>Max non-overlapping intervals</td><td>End time ascending</td></tr><tr><td>Merge / cover intervals</td><td>Start time ascending</td></tr><tr><td>Fractional knapsack</td><td>Value per weight descending</td></tr><tr><td>Job sequencing with deadlines</td><td>Profit descending (place in the latest free slot)</td></tr><tr><td>Minimise total waiting time</td><td>Duration ascending</td></tr><tr><td>Combine ropes / files</td><td>Always the two smallest (min-heap)</td></tr></tbody></table></div>
+<h2 id="common-mistakes"><span class="num">08</span>Common Mistakes</h2>
+<ul><li>Assuming greedy works without testing small counter-examples (coin change with arbitrary denominations, 0/1 knapsack)</li><li>Sorting by the wrong key (start instead of end for non-overlapping intervals)</li><li>Overflow when comparing with subtraction in comparators</li><li>Forgetting tie-breaking rules (equal end times, equal ratios)</li><li>Off-by-one on interval touching (<code>start &gt;= lastEnd</code> vs <code>&gt;</code>)</li></ul>
+<h2 id="quick-recap"><span class="num">09</span>Quick Recap</h2>
+<ul><li>Greedy = best local choice, never revisited; needs the <strong>greedy-choice property</strong> and <strong>optimal substructure</strong></li><li>Prove with an <strong>exchange argument</strong>; refute with a small <strong>counter-example</strong></li><li>Works: intervals (earliest finish), fractional knapsack, jump game, gas station, Huffman, Dijkstra, Kruskal/Prim</li><li>Fails: arbitrary coin change, 0/1 knapsack → use dynamic programming</li><li>Typical shape: <strong>sort</strong> (or heap) + <strong>one pass</strong>, <code>O(n log n)</code></li></ul>
+    </article>
+    <nav class="pager" aria-label="Topic navigation">
+      <a class="prev" href="13-shortest-paths-mst.html"><small>← Previous</small><strong>Shortest Paths and Minimum Spanning Trees</strong></a>
+      <a class="next" href="15-dynamic-programming.html"><small>Next →</small><strong>Dynamic Programming</strong></a>
+    </nav>
+  </main>
+</div>
+</body>
+</html>

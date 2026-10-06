@@ -1,0 +1,297 @@
+<!doctype html>
+<html lang="en" data-track="dsa">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dynamic Programming — DSA Notes · Hanbee</title>
+<meta name="description" content="Solve problems with overlapping subproblems. Memoisation versus tabulation, a repeatable framework, and the core patterns: 1D, grids, knapsack, subsequences, strings and partitions, with space optimisation.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500..700;1,9..144,500&amp;family=Inter:wght@400..700&amp;family=JetBrains+Mono:wght@400..600&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/notes.css">
+<script src="../assets/notes.js" defer></script>
+</head>
+<body>
+<div class="progress" aria-hidden="true"><i></i></div>
+<header class="top">
+  <a class="brand" href="../index.html"><b>H</b>Hanbee · DSA Notes</a>
+  <nav><a class="keep" href="index.html">All topics</a><button id="theme-toggle" type="button" aria-label="Toggle light and dark theme">Theme</button></nav>
+</header>
+<div class="shell">
+  <details class="toc"><summary>On this page</summary><nav aria-label="On this page"><ol><li><a href="#what-is-dynamic-programming"><span>01</span>What is Dynamic Programming?</a></li><li><a href="#two-implementation-styles"><span>02</span>Two Implementation Styles</a></li><li><a href="#the-dp-framework"><span>03</span>The DP Framework</a></li><li><a href="#pattern-1-linear-1d-dp"><span>04</span>Pattern 1: Linear (1D) DP</a></li><li><a href="#pattern-2-grid-2d-dp"><span>05</span>Pattern 2: Grid (2D) DP</a></li><li><a href="#pattern-3-knapsack"><span>06</span>Pattern 3: Knapsack</a></li><li><a href="#pattern-4-strings-and-subsequences-2d"><span>07</span>Pattern 4: Strings and Subsequences (2D)</a></li><li><a href="#pattern-5-interval-partition-dp"><span>08</span>Pattern 5: Interval / Partition DP</a></li><li><a href="#pattern-6-dp-with-state-machines"><span>09</span>Pattern 6: DP with State Machines</a></li><li><a href="#pattern-7-bitmask-dp"><span>10</span>Pattern 7: Bitmask DP</a></li><li><a href="#pattern-8-dp-on-trees"><span>11</span>Pattern 8: DP on Trees</a></li><li><a href="#pattern-9-digit-dp-probability-dp-counting-dp-brief"><span>12</span>Pattern 9: Digit DP, Probability DP, Counting DP (brief)</a></li><li><a href="#space-optimisation"><span>13</span>Space Optimisation</a></li><li><a href="#reconstructing-the-answer"><span>14</span>Reconstructing the Answer</a></li><li><a href="#recognising-dp-problems"><span>15</span>Recognising DP Problems</a></li><li><a href="#complexity-cheat-sheet"><span>16</span>Complexity Cheat Sheet</a></li><li><a href="#common-mistakes"><span>17</span>Common Mistakes</a></li><li><a href="#quick-recap"><span>18</span>Quick Recap</a></li></ol></nav></details>
+  <main>
+    <header class="hero">
+      <p class="kicker"><span class="pill">Algorithm Paradigms</span><span>Topic 15</span><span>Advanced</span><span>14 min read</span></p>
+      <h1>Dynamic Programming</h1>
+      <p class="lede">Solve problems with overlapping subproblems. Memoisation versus tabulation, a repeatable framework, and the core patterns: 1D, grids, knapsack, subsequences, strings and partitions, with space optimisation.</p>
+    </header>
+    <article>
+<h2 id="what-is-dynamic-programming"><span class="num">01</span>What is Dynamic Programming?</h2>
+<p><strong>Dynamic programming (DP)</strong> solves a problem by breaking it into <strong>overlapping subproblems</strong>, solving each <strong>once</strong>, and <strong>storing</strong> the result so it is never recomputed.</p>
+<p>Use DP when a problem has:</p>
+<ol><li><strong>Overlapping subproblems</strong>: the same smaller problems repeat (unlike merge sort's independent halves)</li><li><strong>Optimal substructure</strong>: the best answer is built from best answers to subproblems</li></ol>
+<h3 id="the-fibonacci-story">The Fibonacci story</h3>
+<pre><code class="language-text">fib(5)
+├─ fib(4)
+│   ├─ fib(3) ─ fib(2), fib(1)
+│   └─ fib(2)           ← repeated
+└─ fib(3) ─ fib(2), fib(1)   ← repeated</code></pre>
+<p>Plain recursion is <code>O(2ⁿ)</code>. Remembering results makes it <code>O(n)</code>.</p>
+<h2 id="two-implementation-styles"><span class="num">02</span>Two Implementation Styles</h2>
+<h3 id="1-top-down-recursion-memoisation">1. Top-down: recursion + memoisation</h3>
+<pre><code class="language-java">static long fib(int n, long[] memo) {
+    if (n &lt;= 1) return n;
+    if (memo[n] != 0) return memo[n];
+    return memo[n] = fib(n - 1, memo) + fib(n - 2, memo);
+}</code></pre>
+<h3 id="2-bottom-up-tabulation">2. Bottom-up: tabulation</h3>
+<pre><code class="language-java">static long fib(int n) {
+    if (n &lt;= 1) return n;
+    long[] dp = new long[n + 1];
+    dp[1] = 1;
+    for (int i = 2; i &lt;= n; i++) dp[i] = dp[i - 1] + dp[i - 2];
+    return dp[n];
+}</code></pre>
+<h3 id="3-space-optimised">3. Space-optimised</h3>
+<pre><code class="language-java">static long fib(int n) {
+    long a = 0, b = 1;
+    for (int i = 0; i &lt; n; i++) { long t = a + b; a = b; b = t; }
+    return a;                                              // O(n) time, O(1) space
+}</code></pre>
+<div class="table-wrap"><table><thead><tr><th></th><th>Memoisation (top-down)</th><th>Tabulation (bottom-up)</th></tr></thead><tbody><tr><td>Code</td><td>Natural recursion</td><td>Loops</td></tr><tr><td>Computes</td><td>Only needed states</td><td>All states</td></tr><tr><td>Risk</td><td>Stack overflow for deep recursion</td><td>None</td></tr><tr><td>Space optimisation</td><td>Harder</td><td>Easy (keep only the last rows)</td></tr></tbody></table></div>
+<h2 id="the-dp-framework"><span class="num">03</span>The DP Framework</h2>
+<ol><li><strong>State</strong>: what do I need to know to describe a subproblem? (<code>dp[i]</code>, <code>dp[i][j]</code>, ...). Write it in words: "<code>dp[i]</code> = best answer using the first <code>i</code> items"</li><li><strong>Transition</strong> (recurrence): how does <code>dp[state]</code> depend on smaller states?</li><li><strong>Base cases</strong>: smallest states with known answers</li><li><strong>Order</strong>: compute states so dependencies are ready (usually increasing indexes)</li><li><strong>Answer</strong>: which cell holds the result? (<code>dp[n]</code>, or the max over all cells)</li><li><strong>Optimise space</strong>: if <code>dp[i]</code> uses only <code>dp[i-1]</code>, keep two variables or a rolling row</li></ol>
+<aside class="callout tip"><span class="label">Tip</span><p>Start by writing the <strong>brute-force recursion</strong>. Spot the repeated calls, add a memo, then (optionally) convert it to a table.</p></aside>
+<h2 id="pattern-1-linear-1d-dp"><span class="num">04</span>Pattern 1: Linear (1D) DP</h2>
+<h3 id="climbing-stairs">Climbing stairs</h3>
+<p>Ways to climb <code>n</code> steps taking 1 or 2 at a time: <code>dp[i] = dp[i-1] + dp[i-2]</code>.</p>
+<pre><code class="language-java">static int climbStairs(int n) {
+    if (n &lt;= 2) return n;
+    int a = 1, b = 2;
+    for (int i = 3; i &lt;= n; i++) { int t = a + b; a = b; b = t; }
+    return b;
+}</code></pre>
+<h3 id="house-robber-no-two-adjacent-houses">House robber (no two adjacent houses)</h3>
+<p>State: <code>dp[i]</code> = max money from the first <code>i</code> houses. Choice: skip house <code>i</code> or rob it.</p>
+<pre><code class="language-java">static int rob(int[] a) {
+    int prev2 = 0, prev1 = 0;
+    for (int x : a) {
+        int cur = Math.max(prev1, prev2 + x);                // skip, or rob this + best up to i-2
+        prev2 = prev1;
+        prev1 = cur;
+    }
+    return prev1;
+}</code></pre>
+<p>Variants: circular houses (run twice, excluding the first or last), house robber on a tree.</p>
+<h3 id="coin-change-minimum-coins">Coin change: minimum coins</h3>
+<p><code>dp[a]</code> = fewest coins for amount <code>a</code>; <code>dp[a] = min(dp[a - coin] + 1)</code>.</p>
+<pre><code class="language-java">static int coinChange(int[] coins, int amount) {
+    int[] dp = new int[amount + 1];
+    Arrays.fill(dp, amount + 1);                              // "infinity"
+    dp[0] = 0;
+    for (int a = 1; a &lt;= amount; a++)
+        for (int c : coins)
+            if (c &lt;= a) dp[a] = Math.min(dp[a], dp[a - c] + 1);
+    return dp[amount] &gt; amount ? -1 : dp[amount];             // O(amount × coins)
+}</code></pre>
+<h3 id="coin-change-ii-number-of-combinations">Coin change II: number of combinations</h3>
+<p>Loop <strong>coins outermost</strong> so each combination is counted once, regardless of order.</p>
+<pre><code class="language-java">static int change(int amount, int[] coins) {
+    int[] dp = new int[amount + 1];
+    dp[0] = 1;
+    for (int c : coins)
+        for (int a = c; a &lt;= amount; a++) dp[a] += dp[a - c];
+    return dp[amount];
+}</code></pre>
+<p>(Swapping the loops counts <strong>permutations</strong> instead.)</p>
+<h3 id="longest-increasing-subsequence-lis">Longest increasing subsequence (LIS)</h3>
+<pre><code class="language-java">// O(n²): dp[i] = length of the LIS ending at i
+static int lis(int[] a) {
+    int[] dp = new int[a.length];
+    Arrays.fill(dp, 1);
+    int best = 1;
+    for (int i = 1; i &lt; a.length; i++) {
+        for (int j = 0; j &lt; i; j++) if (a[j] &lt; a[i]) dp[i] = Math.max(dp[i], dp[j] + 1);
+        best = Math.max(best, dp[i]);
+    }
+    return best;
+}
+
+// O(n log n): tails[k] = smallest possible tail of an increasing subsequence of length k+1
+static int lisFast(int[] a) {
+    int[] tails = new int[a.length];
+    int size = 0;
+    for (int x : a) {
+        int i = Arrays.binarySearch(tails, 0, size, x);
+        if (i &lt; 0) i = -(i + 1);                              // insertion point
+        tails[i] = x;
+        if (i == size) size++;
+    }
+    return size;
+}</code></pre>
+<h3 id="maximum-subarray-kadane-is-dp-too">Maximum subarray (Kadane) is DP too</h3>
+<p><code>dp[i] = max(a[i], dp[i-1] + a[i])</code>.</p>
+<h3 id="word-break">Word break</h3>
+<pre><code class="language-java">static boolean wordBreak(String s, List&lt;String&gt; dict) {
+    Set&lt;String&gt; words = new HashSet&lt;&gt;(dict);
+    boolean[] dp = new boolean[s.length() + 1];
+    dp[0] = true;
+    for (int i = 1; i &lt;= s.length(); i++)
+        for (int j = 0; j &lt; i; j++)
+            if (dp[j] &amp;&amp; words.contains(s.substring(j, i))) { dp[i] = true; break; }
+    return dp[s.length()];
+}</code></pre>
+<h3 id="decode-ways-minimum-cost-climbing-stairs-perfect-squares-jump-game-dp-version-maximum-product-subarray-track-max-and-min-delete-and-earn">Decode ways, minimum cost climbing stairs, perfect squares, jump game (DP version), maximum product subarray (track max and min), delete and earn.</h3>
+<h2 id="pattern-2-grid-2d-dp"><span class="num">05</span>Pattern 2: Grid (2D) DP</h2>
+<h3 id="unique-paths">Unique paths</h3>
+<p>Moving only right or down: <code>dp[r][c] = dp[r-1][c] + dp[r][c-1]</code>.</p>
+<pre><code class="language-java">static int uniquePaths(int m, int n) {
+    int[] dp = new int[n];
+    Arrays.fill(dp, 1);
+    for (int r = 1; r &lt; m; r++)
+        for (int c = 1; c &lt; n; c++) dp[c] += dp[c - 1];       // rolling single row
+    return dp[n - 1];
+}</code></pre>
+<h3 id="minimum-path-sum">Minimum path sum</h3>
+<pre><code class="language-java">static int minPathSum(int[][] g) {
+    int m = g.length, n = g[0].length;
+    int[][] dp = new int[m][n];
+    for (int r = 0; r &lt; m; r++)
+        for (int c = 0; c &lt; n; c++) {
+            if (r == 0 &amp;&amp; c == 0) dp[r][c] = g[0][0];
+            else if (r == 0) dp[r][c] = dp[r][c - 1] + g[r][c];
+            else if (c == 0) dp[r][c] = dp[r - 1][c] + g[r][c];
+            else dp[r][c] = Math.min(dp[r - 1][c], dp[r][c - 1]) + g[r][c];
+        }
+    return dp[m - 1][n - 1];
+}</code></pre>
+<h3 id="maximal-square">Maximal square</h3>
+<p><code>dp[r][c]</code> = side of the largest square ending at <code>(r, c)</code>: <code>1 + min(top, left, top-left)</code> if the cell is <code>1</code>.</p>
+<p>Related: unique paths with obstacles, triangle minimum path, cherry pickup, dungeon game.</p>
+<h2 id="pattern-3-knapsack"><span class="num">06</span>Pattern 3: Knapsack</h2>
+<h3 id="0-1-knapsack-each-item-used-at-most-once">0/1 knapsack: each item used at most once</h3>
+<p><code>dp[i][w]</code> = best value using the first <code>i</code> items with capacity <code>w</code>.</p>
+<pre><code class="language-java">static int knapsack(int[] wt, int[] val, int cap) {
+    int[] dp = new int[cap + 1];                              // 1D optimisation
+    for (int i = 0; i &lt; wt.length; i++)
+        for (int w = cap; w &gt;= wt[i]; w--)                    // iterate capacity BACKWARDS so each item is used once
+            dp[w] = Math.max(dp[w], dp[w - wt[i]] + val[i]);
+    return dp[cap];                                            // O(n · cap)
+}</code></pre>
+<p>The 2D version, for clarity:</p>
+<pre><code class="language-java">int[][] dp = new int[n + 1][cap + 1];
+for (int i = 1; i &lt;= n; i++)
+    for (int w = 0; w &lt;= cap; w++) {
+        dp[i][w] = dp[i - 1][w];                              // skip item i
+        if (wt[i - 1] &lt;= w) dp[i][w] = Math.max(dp[i][w], dp[i - 1][w - wt[i - 1]] + val[i - 1]);   // take it
+    }</code></pre>
+<h3 id="unbounded-knapsack-unlimited-copies">Unbounded knapsack: unlimited copies</h3>
+<p>Same as the 1D version but iterate capacity <strong>forwards</strong>.</p>
+<pre><code class="language-java">for (int i = 0; i &lt; wt.length; i++)
+    for (int w = wt[i]; w &lt;= cap; w++)
+        dp[w] = Math.max(dp[w], dp[w - wt[i]] + val[i]);</code></pre>
+<h3 id="subset-sum-and-partition-equal-subset-sum">Subset sum and partition equal subset sum</h3>
+<pre><code class="language-java">static boolean canPartition(int[] a) {
+    int sum = Arrays.stream(a).sum();
+    if (sum % 2 != 0) return false;
+    int target = sum / 2;
+    boolean[] dp = new boolean[target + 1];
+    dp[0] = true;
+    for (int x : a)
+        for (int s = target; s &gt;= x; s--) dp[s] |= dp[s - x];
+    return dp[target];
+}</code></pre>
+<h3 id="knapsack-family">Knapsack family</h3>
+<div class="table-wrap"><table><thead><tr><th>Problem</th><th>Variant</th></tr></thead><tbody><tr><td>Subset sum, equal partition</td><td>0/1, boolean</td></tr><tr><td>Target sum (assign <code>+</code>/<code>-</code>)</td><td>Count subsets with a given sum</td></tr><tr><td>Last stone weight II</td><td>Minimise the difference of two subset sums</td></tr><tr><td>Coin change (min coins / ways)</td><td>Unbounded</td></tr><tr><td>Rod cutting</td><td>Unbounded</td></tr><tr><td>Ones and zeroes</td><td>2-dimensional capacity</td></tr></tbody></table></div>
+<h2 id="pattern-4-strings-and-subsequences-2d"><span class="num">07</span>Pattern 4: Strings and Subsequences (2D)</h2>
+<h3 id="longest-common-subsequence-lcs">Longest common subsequence (LCS)</h3>
+<p><code>dp[i][j]</code> = LCS length of the first <code>i</code> chars of <code>a</code> and the first <code>j</code> chars of <code>b</code>.</p>
+<pre><code class="language-java">static int lcs(String a, String b) {
+    int m = a.length(), n = b.length();
+    int[][] dp = new int[m + 1][n + 1];
+    for (int i = 1; i &lt;= m; i++)
+        for (int j = 1; j &lt;= n; j++)
+            dp[i][j] = a.charAt(i - 1) == b.charAt(j - 1)
+                    ? dp[i - 1][j - 1] + 1                    // characters match: extend
+                    : Math.max(dp[i - 1][j], dp[i][j - 1]);   // skip one character from either string
+    return dp[m][n];                                           // O(m·n)
+}</code></pre>
+<h3 id="edit-distance-levenshtein">Edit distance (Levenshtein)</h3>
+<p>Minimum insert / delete / replace operations to turn <code>a</code> into <code>b</code>.</p>
+<pre><code class="language-java">static int editDistance(String a, String b) {
+    int m = a.length(), n = b.length();
+    int[][] dp = new int[m + 1][n + 1];
+    for (int i = 0; i &lt;= m; i++) dp[i][0] = i;                // delete all
+    for (int j = 0; j &lt;= n; j++) dp[0][j] = j;                // insert all
+    for (int i = 1; i &lt;= m; i++)
+        for (int j = 1; j &lt;= n; j++)
+            dp[i][j] = a.charAt(i - 1) == b.charAt(j - 1)
+                    ? dp[i - 1][j - 1]
+                    : 1 + Math.min(dp[i - 1][j - 1], Math.min(dp[i - 1][j], dp[i][j - 1]));   // replace, delete, insert
+    return dp[m][n];
+}</code></pre>
+<h3 id="longest-palindromic-subsequence">Longest palindromic subsequence</h3>
+<p><code>LPS(s) = LCS(s, reverse(s))</code>, or <code>dp[i][j]</code> over the substring <code>s[i..j]</code>.</p>
+<h3 id="longest-palindromic-substring-palindromic-substrings-count">Longest palindromic substring, palindromic substrings count</h3>
+<p>Expand around the centre (<code>O(n²)</code>, see the Arrays and Strings topic) or fill <code>dp[i][j] = s[i]==s[j] &amp;&amp; dp[i+1][j-1]</code>.</p>
+<h3 id="more-string-dp">More string DP</h3>
+<div class="table-wrap"><table><thead><tr><th>Problem</th><th>State</th></tr></thead><tbody><tr><td>Longest common substring</td><td><code>dp[i][j]</code> = suffix match length (reset to 0 on mismatch)</td></tr><tr><td>Shortest common supersequence</td><td>From LCS</td></tr><tr><td>Distinct subsequences</td><td><code>dp[i][j]</code> = ways <code>t[0..j)</code> appears in <code>s[0..i)</code></td></tr><tr><td>Regular expression / wildcard matching</td><td><code>dp[i][j]</code> = <code>s[0..i)</code> matches <code>p[0..j)</code></td></tr><tr><td>Interleaving string</td><td><code>dp[i][j]</code> = first <code>i + j</code> chars formed by <code>a[0..i)</code> and <code>b[0..j)</code></td></tr><tr><td>Minimum ASCII delete sum, one-edit distance</td><td>Variants of edit distance</td></tr></tbody></table></div>
+<h2 id="pattern-5-interval-partition-dp"><span class="num">08</span>Pattern 5: Interval / Partition DP</h2>
+<p><strong>State</strong>: <code>dp[i][j]</code> for the subarray <code>[i, j]</code>; try every split point <code>k</code>.</p>
+<pre><code class="language-java">// Matrix chain multiplication idea, burst balloons, palindrome partitioning (min cuts), merge stones
+for (int len = 2; len &lt;= n; len++)
+    for (int i = 0; i + len - 1 &lt; n; i++) {
+        int j = i + len - 1;
+        for (int k = i; k &lt; j; k++)
+            dp[i][j] = Math.min(dp[i][j], dp[i][k] + dp[k + 1][j] + cost(i, k, j));
+    }                                                          // O(n³)</code></pre>
+<h2 id="pattern-6-dp-with-state-machines"><span class="num">09</span>Pattern 6: DP with State Machines</h2>
+<p>Track a small "mode" per position, for example stock trading with holding / not holding / cooldown.</p>
+<pre><code class="language-java">// Best time to buy and sell stock with cooldown
+static int maxProfit(int[] p) {
+    int hold = Integer.MIN_VALUE, sold = 0, rest = 0;
+    for (int price : p) {
+        int prevSold = sold;
+        sold = hold + price;                                   // sell today
+        hold = Math.max(hold, rest - price);                   // keep holding, or buy today (after a rest day)
+        rest = Math.max(rest, prevSold);                       // do nothing
+    }
+    return Math.max(sold, rest);
+}</code></pre>
+<p>Other examples: stock with at most <code>k</code> transactions (<code>dp[t][holding]</code>), paint house (<code>dp[i][colour]</code>).</p>
+<h2 id="pattern-7-bitmask-dp"><span class="num">10</span>Pattern 7: Bitmask DP</h2>
+<p>Represent a <strong>subset</strong> of <code>n ≤ 20</code> items as the bits of an integer; <code>dp[mask]</code>.</p>
+<pre><code class="language-java">// Travelling salesman: dp[mask][last] = shortest path visiting the cities in mask, ending at last. O(2ⁿ · n²)</code></pre>
+<p>Also used for assignment problems and "visit all nodes" shortest paths.</p>
+<h2 id="pattern-8-dp-on-trees"><span class="num">11</span>Pattern 8: DP on Trees</h2>
+<p>Compute each node's value from its children's values during a DFS (return a pair of states).</p>
+<pre><code class="language-java">// House robber III: return {rob this node, skip this node}
+static int[] robTree(TreeNode n) {
+    if (n == null) return new int[]{0, 0};
+    int[] l = robTree(n.left), r = robTree(n.right);
+    int rob = n.val + l[1] + r[1];                             // children must be skipped
+    int skip = Math.max(l[0], l[1]) + Math.max(r[0], r[1]);    // children free to be robbed or skipped
+    return new int[]{rob, skip};
+}</code></pre>
+<h2 id="pattern-9-digit-dp-probability-dp-counting-dp-brief"><span class="num">12</span>Pattern 9: Digit DP, Probability DP, Counting DP (brief)</h2>
+<ul><li><strong>Digit DP</strong>: count numbers in a range with a property by processing digits with a <code>tight</code> flag</li><li><strong>Counting DP</strong>: number of ways (paths, partitions), usually modulo <code>10⁹ + 7</code></li><li><strong>Probability / expected value DP</strong>: knight probability, dice rolls</li></ul>
+<h2 id="space-optimisation"><span class="num">13</span>Space Optimisation</h2>
+<div class="table-wrap"><table><thead><tr><th>Recurrence uses</th><th>Keep</th></tr></thead><tbody><tr><td><code>dp[i-1]</code>, <code>dp[i-2]</code></td><td>Two variables</td></tr><tr><td>Previous row only (<code>dp[i-1][*]</code>)</td><td>One row (or two rows)</td></tr><tr><td>Same row, previous column (<code>dp[i][j-1]</code>) and previous row</td><td>Single array updated in the right direction</td></tr></tbody></table></div>
+<p>For 0/1 knapsack iterate capacity <strong>backwards</strong>; for unbounded iterate <strong>forwards</strong>.</p>
+<h2 id="reconstructing-the-answer"><span class="num">14</span>Reconstructing the Answer</h2>
+<p>Store the choice taken (a <code>parent</code> array, or re-trace from the table) and walk back from the final state. Example: printing the LCS by walking from <code>dp[m][n]</code>: if characters match go diagonally and prepend the character, otherwise move toward the larger neighbour.</p>
+<h2 id="recognising-dp-problems"><span class="num">15</span>Recognising DP Problems</h2>
+<div class="table-wrap"><table><thead><tr><th>Clue in the problem</th><th>Likely DP type</th></tr></thead><tbody><tr><td>"Minimum / maximum / count the number of ways"</td><td>Optimisation or counting DP</td></tr><tr><td>"Can we reach / is it possible"</td><td>Boolean DP</td></tr><tr><td>Choices at each index (take / skip)</td><td>Knapsack-style</td></tr><tr><td>Two strings or two sequences</td><td>2D DP (LCS, edit distance)</td></tr><tr><td>Grid with allowed moves</td><td>Grid DP</td></tr><tr><td>Subarray <code>[i, j]</code> with a split point</td><td>Interval DP</td></tr><tr><td><code>n ≤ 20</code>, subsets</td><td>Bitmask DP</td></tr><tr><td>Tree with choices per node</td><td>Tree DP</td></tr></tbody></table></div>
+<h2 id="complexity-cheat-sheet"><span class="num">16</span>Complexity Cheat Sheet</h2>
+<div class="table-wrap"><table><thead><tr><th>Problem</th><th>Time</th><th>Space</th></tr></thead><tbody><tr><td>Fibonacci, stairs, house robber</td><td><code>O(n)</code></td><td><code>O(1)</code></td></tr><tr><td>Coin change</td><td><code>O(n · amount)</code></td><td><code>O(amount)</code></td></tr><tr><td>LIS</td><td><code>O(n log n)</code></td><td><code>O(n)</code></td></tr><tr><td>0/1 knapsack</td><td><code>O(n · W)</code></td><td><code>O(W)</code></td></tr><tr><td>LCS, edit distance</td><td><code>O(m · n)</code></td><td><code>O(min(m, n))</code> with rolling rows</td></tr><tr><td>Matrix chain, burst balloons</td><td><code>O(n³)</code></td><td><code>O(n²)</code></td></tr><tr><td>TSP bitmask</td><td><code>O(2ⁿ · n²)</code></td><td><code>O(2ⁿ · n)</code></td></tr></tbody></table></div>
+<h2 id="common-mistakes"><span class="num">17</span>Common Mistakes</h2>
+<ul><li>Defining the state vaguely: write <code>dp[i]</code> = "…" in one sentence before coding</li><li>Wrong loop direction in 1D knapsack (backwards = 0/1, forwards = unbounded)</li><li>Not initialising base cases or "infinity" correctly (watch <code>Integer.MAX_VALUE + 1</code> overflow)</li><li>Counting <strong>combinations vs permutations</strong> (coin loop order)</li><li>Off-by-one with <code>dp[i][j]</code> indexed by lengths versus indexes (<code>charAt(i - 1)</code>)</li><li>Using plain recursion without memo on overlapping subproblems</li><li>Exceeding recursion depth in top-down DP with large <code>n</code></li></ul>
+<h2 id="quick-recap"><span class="num">18</span>Quick Recap</h2>
+<ul><li>DP = overlapping subproblems + optimal substructure; store each subproblem's answer once</li><li>Framework: <strong>state → transition → base case → order → answer → optimise space</strong></li><li>Memoisation (top-down) vs tabulation (bottom-up); both give the same complexity</li><li>Core patterns: 1D (stairs, robber, coin change, LIS), grid, <strong>knapsack</strong>, <strong>subsequence/string (LCS, edit distance)</strong>, interval, state machine, bitmask, tree</li><li>Start from brute-force recursion; find the repeated states; memoise</li></ul>
+    </article>
+    <nav class="pager" aria-label="Topic navigation">
+      <a class="prev" href="14-greedy.html"><small>← Previous</small><strong>Greedy Algorithms</strong></a>
+      <a class="next" href="16-bits-math.html"><small>Next →</small><strong>Bit Manipulation, Math and Useful Techniques</strong></a>
+    </nav>
+  </main>
+</div>
+</body>
+</html>

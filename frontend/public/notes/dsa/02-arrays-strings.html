@@ -1,0 +1,391 @@
+<!doctype html>
+<html lang="en" data-track="dsa">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Arrays and Strings: Core Techniques — DSA Notes · Hanbee</title>
+<meta name="description" content="Master the array and string techniques that appear in most interviews. Two pointers, sliding window, prefix sums, Kadane's algorithm, in-place tricks, matrices and common string problems.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500..700;1,9..144,500&amp;family=Inter:wght@400..700&amp;family=JetBrains+Mono:wght@400..600&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/notes.css">
+<script src="../assets/notes.js" defer></script>
+</head>
+<body>
+<div class="progress" aria-hidden="true"><i></i></div>
+<header class="top">
+  <a class="brand" href="../index.html"><b>H</b>Hanbee · DSA Notes</a>
+  <nav><a class="keep" href="index.html">All topics</a><button id="theme-toggle" type="button" aria-label="Toggle light and dark theme">Theme</button></nav>
+</header>
+<div class="shell">
+  <details class="toc"><summary>On this page</summary><nav aria-label="On this page"><ol><li><a href="#arrays-recap"><span>01</span>Arrays Recap</a></li><li><a href="#basic-array-operations"><span>02</span>Basic Array Operations</a></li><li><a href="#two-pointers"><span>03</span>Two Pointers</a></li><li><a href="#sliding-window"><span>04</span>Sliding Window</a></li><li><a href="#prefix-sums"><span>05</span>Prefix Sums</a></li><li><a href="#kadane-s-algorithm-maximum-subarray-sum"><span>06</span>Kadane's Algorithm: Maximum Subarray Sum</a></li><li><a href="#majority-element-boyer-moore-voting"><span>07</span>Majority Element: Boyer-Moore Voting</a></li><li><a href="#other-classic-array-problems"><span>08</span>Other Classic Array Problems</a></li><li><a href="#matrices-2d-arrays"><span>09</span>Matrices (2D Arrays)</a></li><li><a href="#strings"><span>10</span>Strings</a></li><li><a href="#string-matching-algorithms"><span>11</span>String Matching Algorithms</a></li><li><a href="#edge-cases-checklist"><span>12</span>Edge Cases Checklist</a></li><li><a href="#quick-recap"><span>13</span>Quick Recap</a></li></ol></nav></details>
+  <main>
+    <header class="hero">
+      <p class="kicker"><span class="pill">Foundations</span><span>Topic 02</span><span>Beginner</span><span>14 min read</span></p>
+      <h1>Arrays and Strings: Core Techniques</h1>
+      <p class="lede">Master the array and string techniques that appear in most interviews. Two pointers, sliding window, prefix sums, Kadane's algorithm, in-place tricks, matrices and common string problems.</p>
+    </header>
+    <article>
+<h2 id="arrays-recap"><span class="num">01</span>Arrays Recap</h2>
+<p>An array stores elements of one type in <strong>contiguous memory</strong>, so the address of any element is computed directly from its index.</p>
+<pre><code class="language-text">index:   0    1    2    3    4
+value: [ 10 | 20 | 30 | 40 | 50 ]</code></pre>
+<div class="table-wrap"><table><thead><tr><th>Operation</th><th>Complexity</th><th>Why</th></tr></thead><tbody><tr><td>Access by index</td><td><code>O(1)</code></td><td>Direct address calculation</td></tr><tr><td>Update by index</td><td><code>O(1)</code></td><td>Same</td></tr><tr><td>Search (unsorted)</td><td><code>O(n)</code></td><td>Check each element</td></tr><tr><td>Search (sorted)</td><td><code>O(log n)</code></td><td>Binary search</td></tr><tr><td>Insert / delete in the middle</td><td><code>O(n)</code></td><td>Shift elements</td></tr><tr><td>Insert at end (dynamic array)</td><td><code>O(1)</code> amortised</td><td>Occasional resize</td></tr></tbody></table></div>
+<pre><code class="language-java">int[] a = new int[5];                    // zeros
+int[] b = {5, 3, 8, 1};
+int[][] grid = new int[3][4];            // 3 rows, 4 columns
+Arrays.sort(b);   Arrays.fill(a, -1);   Arrays.toString(b);   Arrays.copyOfRange(b, 1, 3);</code></pre>
+<h2 id="basic-array-operations"><span class="num">02</span>Basic Array Operations</h2>
+<h3 id="find-the-maximum-and-second-maximum">Find the maximum and second maximum</h3>
+<pre><code class="language-java">static int secondMax(int[] a) {
+    int max = Integer.MIN_VALUE, second = Integer.MIN_VALUE;
+    for (int x : a) {
+        if (x &gt; max) { second = max; max = x; }
+        else if (x &gt; second &amp;&amp; x != max) second = x;
+    }
+    return second;
+}</code></pre>
+<h3 id="reverse-in-place">Reverse in place</h3>
+<pre><code class="language-java">static void reverse(int[] a, int l, int r) {
+    while (l &lt; r) {
+        int t = a[l]; a[l] = a[r]; a[r] = t;
+        l++; r--;
+    }
+}</code></pre>
+<h3 id="rotate-an-array-right-by-k-reversal-trick-o-n-time-o-1-space">Rotate an array right by k (reversal trick, O(n) time, O(1) space)</h3>
+<pre><code class="language-java">static void rotate(int[] a, int k) {
+    int n = a.length;
+    k %= n;
+    reverse(a, 0, n - 1);        // whole array
+    reverse(a, 0, k - 1);        // first k
+    reverse(a, k, n - 1);        // the rest
+}
+// [1,2,3,4,5,6,7], k=3 → [5,6,7,1,2,3,4]</code></pre>
+<h3 id="remove-duplicates-from-a-sorted-array-in-place">Remove duplicates from a sorted array (in place)</h3>
+<pre><code class="language-java">static int removeDuplicates(int[] a) {
+    if (a.length == 0) return 0;
+    int w = 1;                                  // write position
+    for (int r = 1; r &lt; a.length; r++)
+        if (a[r] != a[r - 1]) a[w++] = a[r];
+    return w;                                   // new length
+}</code></pre>
+<h3 id="move-zeroes-to-the-end-keep-order">Move zeroes to the end (keep order)</h3>
+<pre><code class="language-java">static void moveZeroes(int[] a) {
+    int w = 0;
+    for (int r = 0; r &lt; a.length; r++)
+        if (a[r] != 0) { int t = a[w]; a[w] = a[r]; a[r] = t; w++; }
+}</code></pre>
+<h3 id="merge-two-sorted-arrays">Merge two sorted arrays</h3>
+<pre><code class="language-java">static int[] merge(int[] a, int[] b) {
+    int[] res = new int[a.length + b.length];
+    int i = 0, j = 0, k = 0;
+    while (i &lt; a.length &amp;&amp; j &lt; b.length) res[k++] = a[i] &lt;= b[j] ? a[i++] : b[j++];
+    while (i &lt; a.length) res[k++] = a[i++];
+    while (j &lt; b.length) res[k++] = b[j++];
+    return res;
+}</code></pre>
+<h2 id="two-pointers"><span class="num">03</span>Two Pointers</h2>
+<p>Use two indexes that move through the data, often turning <code>O(n²)</code> into <code>O(n)</code>.</p>
+<div class="table-wrap"><table><thead><tr><th>Variant</th><th>Setup</th><th>Example</th></tr></thead><tbody><tr><td><strong>Opposite ends</strong></td><td><code>l = 0</code>, <code>r = n-1</code>, move inward</td><td>Pair sum in sorted array, palindrome, container with most water</td></tr><tr><td><strong>Same direction (fast/slow)</strong></td><td>Both start left</td><td>Remove duplicates, cycle detection, partitioning</td></tr></tbody></table></div>
+<h3 id="pair-sum-in-a-sorted-array">Pair sum in a sorted array</h3>
+<pre><code class="language-java">static int[] twoSumSorted(int[] a, int target) {
+    int l = 0, r = a.length - 1;
+    while (l &lt; r) {
+        int s = a[l] + a[r];
+        if (s == target) return new int[]{l, r};
+        if (s &lt; target) l++; else r--;          // sorted order tells us which side to move
+    }
+    return new int[]{-1, -1};
+}</code></pre>
+<h3 id="three-sum-all-unique-triplets-that-add-to-0">Three sum (all unique triplets that add to 0)</h3>
+<pre><code class="language-java">static List&lt;List&lt;Integer&gt;&gt; threeSum(int[] a) {
+    Arrays.sort(a);
+    List&lt;List&lt;Integer&gt;&gt; res = new ArrayList&lt;&gt;();
+    for (int i = 0; i &lt; a.length - 2; i++) {
+        if (i &gt; 0 &amp;&amp; a[i] == a[i - 1]) continue;          // skip duplicates
+        int l = i + 1, r = a.length - 1;
+        while (l &lt; r) {
+            int s = a[i] + a[l] + a[r];
+            if (s == 0) {
+                res.add(List.of(a[i], a[l], a[r]));
+                while (l &lt; r &amp;&amp; a[l] == a[l + 1]) l++;
+                while (l &lt; r &amp;&amp; a[r] == a[r - 1]) r--;
+                l++; r--;
+            } else if (s &lt; 0) l++;
+            else r--;
+        }
+    }
+    return res;                                           // O(n²) time
+}</code></pre>
+<h3 id="container-with-most-water">Container with most water</h3>
+<pre><code class="language-java">static int maxArea(int[] h) {
+    int l = 0, r = h.length - 1, best = 0;
+    while (l &lt; r) {
+        best = Math.max(best, Math.min(h[l], h[r]) * (r - l));
+        if (h[l] &lt; h[r]) l++; else r--;          // move the shorter wall
+    }
+    return best;
+}</code></pre>
+<h3 id="dutch-national-flag-sort-0s-1s-and-2s-in-one-pass">Dutch national flag: sort 0s, 1s and 2s in one pass</h3>
+<pre><code class="language-java">static void sortColors(int[] a) {
+    int low = 0, mid = 0, high = a.length - 1;
+    while (mid &lt;= high) {
+        if (a[mid] == 0) swap(a, low++, mid++);
+        else if (a[mid] == 1) mid++;
+        else swap(a, mid, high--);
+    }
+}</code></pre>
+<h2 id="sliding-window"><span class="num">04</span>Sliding Window</h2>
+<p>Maintain a <strong>window</strong> <code>[left, right]</code> over a contiguous range and slide it, updating the answer incrementally instead of recomputing.</p>
+<h3 id="fixed-size-window-maximum-sum-of-k-consecutive-elements">Fixed-size window: maximum sum of k consecutive elements</h3>
+<pre><code class="language-java">static int maxSumK(int[] a, int k) {
+    int sum = 0;
+    for (int i = 0; i &lt; k; i++) sum += a[i];
+    int best = sum;
+    for (int i = k; i &lt; a.length; i++) {
+        sum += a[i] - a[i - k];                  // add new element, drop the old one
+        best = Math.max(best, sum);
+    }
+    return best;
+}</code></pre>
+<h3 id="variable-size-window-longest-substring-without-repeating-characters">Variable-size window: longest substring without repeating characters</h3>
+<pre><code class="language-java">static int lengthOfLongestSubstring(String s) {
+    Map&lt;Character, Integer&gt; last = new HashMap&lt;&gt;();
+    int left = 0, best = 0;
+    for (int right = 0; right &lt; s.length(); right++) {
+        char c = s.charAt(right);
+        if (last.containsKey(c) &amp;&amp; last.get(c) &gt;= left) left = last.get(c) + 1;
+        last.put(c, right);
+        best = Math.max(best, right - left + 1);
+    }
+    return best;                                  // O(n)
+}</code></pre>
+<h3 id="variable-size-window-smallest-subarray-with-sum-target-positives-only">Variable-size window: smallest subarray with sum ≥ target (positives only)</h3>
+<pre><code class="language-java">static int minSubArrayLen(int target, int[] a) {
+    int left = 0, sum = 0, best = Integer.MAX_VALUE;
+    for (int right = 0; right &lt; a.length; right++) {
+        sum += a[right];
+        while (sum &gt;= target) {                   // shrink while still valid
+            best = Math.min(best, right - left + 1);
+            sum -= a[left++];
+        }
+    }
+    return best == Integer.MAX_VALUE ? 0 : best;
+}</code></pre>
+<h3 id="template-for-variable-windows">Template for variable windows</h3>
+<pre><code class="language-text">for right in 0..n-1:
+    add a[right] to the window state
+    while window is invalid (or, for "minimum", while valid):
+        remove a[left]; left++
+    update the answer using the current window</code></pre>
+<h2 id="prefix-sums"><span class="num">05</span>Prefix Sums</h2>
+<p><code>prefix[i]</code> = sum of the first <code>i</code> elements. Then any range sum is <code>O(1)</code> after <code>O(n)</code> preprocessing.</p>
+<pre><code class="language-java">int[] prefix = new int[n + 1];
+for (int i = 0; i &lt; n; i++) prefix[i + 1] = prefix[i] + a[i];
+
+int rangeSum(int l, int r) { return prefix[r + 1] - prefix[l]; }      // sum of a[l..r]</code></pre>
+<ul><li><strong>2D prefix sums</strong> answer rectangle-sum queries in <code>O(1)</code></li><li><strong>Difference arrays</strong> do the reverse: add a value to a range in <code>O(1)</code> (<code>diff[l] += v; diff[r+1] -= v</code>), then prefix-sum once to rebuild</li><li>Combine with a <code>HashMap</code> to count subarrays with a given sum (see the Hashing topic)</li></ul>
+<h3 id="product-of-array-except-self-no-division">Product of array except self (no division)</h3>
+<pre><code class="language-java">static int[] productExceptSelf(int[] a) {
+    int n = a.length;
+    int[] res = new int[n];
+    res[0] = 1;
+    for (int i = 1; i &lt; n; i++) res[i] = res[i - 1] * a[i - 1];     // product of everything to the left
+    int right = 1;
+    for (int i = n - 1; i &gt;= 0; i--) { res[i] *= right; right *= a[i]; }   // multiply by everything to the right
+    return res;
+}</code></pre>
+<h2 id="kadane-s-algorithm-maximum-subarray-sum"><span class="num">06</span>Kadane's Algorithm: Maximum Subarray Sum</h2>
+<pre><code class="language-java">static int maxSubArray(int[] a) {
+    int cur = a[0], best = a[0];
+    for (int i = 1; i &lt; a.length; i++) {
+        cur = Math.max(a[i], cur + a[i]);         // extend the current subarray or start a new one
+        best = Math.max(best, cur);
+    }
+    return best;                                   // O(n) time, O(1) space
+}
+// [-2,1,-3,4,-1,2,1,-5,4] → 6  (subarray [4,-1,2,1])</code></pre>
+<h2 id="majority-element-boyer-moore-voting"><span class="num">07</span>Majority Element: Boyer-Moore Voting</h2>
+<pre><code class="language-java">static int majority(int[] a) {                     // element appearing more than n/2 times
+    int candidate = 0, count = 0;
+    for (int x : a) {
+        if (count == 0) candidate = x;
+        count += (x == candidate) ? 1 : -1;
+    }
+    return candidate;                              // O(n), O(1)
+}</code></pre>
+<h2 id="other-classic-array-problems"><span class="num">08</span>Other Classic Array Problems</h2>
+<div class="table-wrap"><table><thead><tr><th>Problem</th><th>Idea</th></tr></thead><tbody><tr><td>Missing number in <code>0..n</code></td><td>Sum formula <code>n(n+1)/2</code> minus actual sum, or XOR</td></tr><tr><td>Find the duplicate</td><td>Hash set, or Floyd's cycle detection on indexes</td></tr><tr><td>Best time to buy and sell stock</td><td>Track minimum price so far; maximise <code>price - min</code></td></tr><tr><td>Merge intervals</td><td>Sort by start; merge if overlapping</td></tr><tr><td>Next permutation</td><td>Find the first decreasing element from the right, swap, reverse the suffix</td></tr><tr><td>Trapping rain water</td><td>Two pointers with left max and right max</td></tr><tr><td>Subarray with given sum</td><td>Sliding window (positives) or prefix sum + hash map</td></tr></tbody></table></div>
+<h3 id="best-time-to-buy-and-sell-stock">Best time to buy and sell stock</h3>
+<pre><code class="language-java">static int maxProfit(int[] prices) {
+    int min = Integer.MAX_VALUE, best = 0;
+    for (int p : prices) {
+        min = Math.min(min, p);
+        best = Math.max(best, p - min);
+    }
+    return best;
+}</code></pre>
+<h3 id="trapping-rain-water">Trapping rain water</h3>
+<pre><code class="language-java">static int trap(int[] h) {
+    int l = 0, r = h.length - 1, leftMax = 0, rightMax = 0, water = 0;
+    while (l &lt; r) {
+        if (h[l] &lt; h[r]) {
+            leftMax = Math.max(leftMax, h[l]);
+            water += leftMax - h[l++];
+        } else {
+            rightMax = Math.max(rightMax, h[r]);
+            water += rightMax - h[r--];
+        }
+    }
+    return water;
+}</code></pre>
+<h2 id="matrices-2d-arrays"><span class="num">09</span>Matrices (2D Arrays)</h2>
+<h3 id="traversal-and-rotation">Traversal and rotation</h3>
+<pre><code class="language-java">for (int i = 0; i &lt; rows; i++)
+    for (int j = 0; j &lt; cols; j++) { /* grid[i][j] */ }
+
+// Rotate an n×n matrix 90° clockwise in place: transpose, then reverse each row
+static void rotate(int[][] m) {
+    int n = m.length;
+    for (int i = 0; i &lt; n; i++)
+        for (int j = i + 1; j &lt; n; j++) { int t = m[i][j]; m[i][j] = m[j][i]; m[j][i] = t; }
+    for (int[] row : m) reverse(row, 0, n - 1);
+}</code></pre>
+<h3 id="spiral-order">Spiral order</h3>
+<pre><code class="language-java">static List&lt;Integer&gt; spiral(int[][] m) {
+    List&lt;Integer&gt; res = new ArrayList&lt;&gt;();
+    int top = 0, bottom = m.length - 1, left = 0, right = m[0].length - 1;
+    while (top &lt;= bottom &amp;&amp; left &lt;= right) {
+        for (int j = left; j &lt;= right; j++) res.add(m[top][j]);
+        top++;
+        for (int i = top; i &lt;= bottom; i++) res.add(m[i][right]);
+        right--;
+        if (top &lt;= bottom) { for (int j = right; j &gt;= left; j--) res.add(m[bottom][j]); bottom--; }
+        if (left &lt;= right) { for (int i = bottom; i &gt;= top; i--) res.add(m[i][left]); left++; }
+    }
+    return res;
+}</code></pre>
+<h3 id="search-in-a-row-wise-and-column-wise-sorted-matrix-o-m-n">Search in a row-wise and column-wise sorted matrix: O(m + n)</h3>
+<pre><code class="language-java">static boolean search(int[][] m, int target) {
+    int r = 0, c = m[0].length - 1;                 // start at top-right
+    while (r &lt; m.length &amp;&amp; c &gt;= 0) {
+        if (m[r][c] == target) return true;
+        if (m[r][c] &gt; target) c--; else r++;
+    }
+    return false;
+}</code></pre>
+<h3 id="direction-arrays-for-grids">Direction arrays for grids</h3>
+<pre><code class="language-java">int[] dr = {-1, 1, 0, 0};
+int[] dc = {0, 0, -1, 1};
+for (int d = 0; d &lt; 4; d++) {
+    int nr = r + dr[d], nc = c + dc[d];
+    if (nr &lt; 0 || nc &lt; 0 || nr &gt;= rows || nc &gt;= cols) continue;
+}</code></pre>
+<h2 id="strings"><span class="num">10</span>Strings</h2>
+<p>In Java, <code>String</code> is <strong>immutable</strong>. Each "change" creates a new string, so use <code>StringBuilder</code> when modifying repeatedly.</p>
+<h3 id="core-operations">Core operations</h3>
+<pre><code class="language-java">s.length();  s.charAt(i);  s.substring(i, j);  s.indexOf("ab");
+s.toCharArray();  String.valueOf(chars);  s.split(" ");  s.equals(t);  s.compareTo(t);
+s.toLowerCase();  s.trim();  s.isEmpty();  s.contains("x");  s.chars();</code></pre>
+<div class="table-wrap"><table><thead><tr><th>Operation</th><th>Complexity</th></tr></thead><tbody><tr><td><code>charAt</code>, <code>length</code></td><td><code>O(1)</code></td></tr><tr><td><code>substring</code>, <code>concat</code>, <code>equals</code>, <code>indexOf</code></td><td><code>O(n)</code></td></tr><tr><td>Building a string with <code>+</code> in a loop</td><td><code>O(n²)</code></td></tr><tr><td>Building with <code>StringBuilder.append</code></td><td><code>O(n)</code></td></tr></tbody></table></div>
+<h3 id="character-frequency-with-an-array">Character frequency with an array</h3>
+<pre><code class="language-java">int[] freq = new int[26];
+for (char c : s.toCharArray()) freq[c - 'a']++;       // lowercase letters only</code></pre>
+<h3 id="valid-anagram">Valid anagram</h3>
+<pre><code class="language-java">static boolean isAnagram(String a, String b) {
+    if (a.length() != b.length()) return false;
+    int[] f = new int[26];
+    for (int i = 0; i &lt; a.length(); i++) { f[a.charAt(i) - 'a']++; f[b.charAt(i) - 'a']--; }
+    for (int x : f) if (x != 0) return false;
+    return true;
+}</code></pre>
+<h3 id="valid-palindrome-ignore-non-alphanumerics-case-insensitive">Valid palindrome (ignore non-alphanumerics, case-insensitive)</h3>
+<pre><code class="language-java">static boolean isPalindrome(String s) {
+    int l = 0, r = s.length() - 1;
+    while (l &lt; r) {
+        while (l &lt; r &amp;&amp; !Character.isLetterOrDigit(s.charAt(l))) l++;
+        while (l &lt; r &amp;&amp; !Character.isLetterOrDigit(s.charAt(r))) r--;
+        if (Character.toLowerCase(s.charAt(l++)) != Character.toLowerCase(s.charAt(r--))) return false;
+    }
+    return true;
+}</code></pre>
+<h3 id="longest-palindromic-substring-expand-around-centre-o-n">Longest palindromic substring: expand around centre, O(n²)</h3>
+<pre><code class="language-java">static String longestPalindrome(String s) {
+    int start = 0, end = 0;
+    for (int i = 0; i &lt; s.length(); i++) {
+        int len = Math.max(expand(s, i, i), expand(s, i, i + 1));   // odd and even centres
+        if (len &gt; end - start + 1) { start = i - (len - 1) / 2; end = i + len / 2; }
+    }
+    return s.substring(start, end + 1);
+}
+static int expand(String s, int l, int r) {
+    while (l &gt;= 0 &amp;&amp; r &lt; s.length() &amp;&amp; s.charAt(l) == s.charAt(r)) { l--; r++; }
+    return r - l - 1;
+}</code></pre>
+<h3 id="reverse-words-in-a-string">Reverse words in a string</h3>
+<pre><code class="language-java">static String reverseWords(String s) {
+    String[] parts = s.trim().split("\\s+");
+    StringBuilder sb = new StringBuilder();
+    for (int i = parts.length - 1; i &gt;= 0; i--) {
+        sb.append(parts[i]);
+        if (i &gt; 0) sb.append(' ');
+    }
+    return sb.toString();
+}</code></pre>
+<h3 id="longest-common-prefix">Longest common prefix</h3>
+<pre><code class="language-java">static String lcp(String[] strs) {
+    String prefix = strs[0];
+    for (String s : strs)
+        while (!s.startsWith(prefix)) prefix = prefix.substring(0, prefix.length() - 1);
+    return prefix;
+}</code></pre>
+<h3 id="string-compression-aaabb-a3b2">String compression (<code>aaabb</code> → <code>a3b2</code>)</h3>
+<pre><code class="language-java">static String compress(String s) {
+    StringBuilder sb = new StringBuilder();
+    for (int i = 0, j; i &lt; s.length(); i = j) {
+        j = i;
+        while (j &lt; s.length() &amp;&amp; s.charAt(j) == s.charAt(i)) j++;
+        sb.append(s.charAt(i)).append(j - i);
+    }
+    return sb.toString();
+}</code></pre>
+<h3 id="first-non-repeating-character">First non-repeating character</h3>
+<pre><code class="language-java">static int firstUnique(String s) {
+    int[] f = new int[26];
+    for (char c : s.toCharArray()) f[c - 'a']++;
+    for (int i = 0; i &lt; s.length(); i++) if (f[s.charAt(i) - 'a'] == 1) return i;
+    return -1;
+}</code></pre>
+<h2 id="string-matching-algorithms"><span class="num">11</span>String Matching Algorithms</h2>
+<div class="table-wrap"><table><thead><tr><th>Algorithm</th><th>Time</th><th>Idea</th></tr></thead><tbody><tr><td>Naive</td><td><code>O(n·m)</code></td><td>Compare at every position</td></tr><tr><td><strong>KMP</strong></td><td><code>O(n + m)</code></td><td>Precompute the <strong>LPS</strong> (longest proper prefix that is also a suffix) array to skip re-comparisons</td></tr><tr><td><strong>Rabin-Karp</strong></td><td><code>O(n + m)</code> average</td><td>Rolling hash of each window</td></tr><tr><td><strong>Z-algorithm</strong></td><td><code>O(n + m)</code></td><td>Z-array of matches</td></tr></tbody></table></div>
+<pre><code class="language-java">// KMP: build the LPS array
+static int[] lps(String p) {
+    int[] lps = new int[p.length()];
+    for (int i = 1, len = 0; i &lt; p.length(); ) {
+        if (p.charAt(i) == p.charAt(len)) lps[i++] = ++len;
+        else if (len &gt; 0) len = lps[len - 1];
+        else lps[i++] = 0;
+    }
+    return lps;
+}
+
+static int kmpSearch(String text, String p) {
+    int[] lps = lps(p);
+    for (int i = 0, j = 0; i &lt; text.length(); ) {
+        if (text.charAt(i) == p.charAt(j)) { i++; j++; if (j == p.length()) return i - j; }
+        else if (j &gt; 0) j = lps[j - 1];
+        else i++;
+    }
+    return -1;
+}</code></pre>
+<h2 id="edge-cases-checklist"><span class="num">12</span>Edge Cases Checklist</h2>
+<ul><li>Empty array/string, one element, two elements</li><li>All elements equal; already sorted; reverse sorted</li><li>Negative numbers, zeros, <code>Integer.MAX_VALUE</code>/<code>MIN_VALUE</code> (overflow)</li><li>Duplicates; unicode or upper/lower case; leading/trailing spaces</li><li><code>k</code> larger than the array length (use <code>k %= n</code>)</li></ul>
+<h2 id="quick-recap"><span class="num">13</span>Quick Recap</h2>
+<ul><li>Arrays: <code>O(1)</code> access, <code>O(n)</code> middle insert/delete; strings are immutable, use <code>StringBuilder</code></li><li><strong>Two pointers</strong> (sorted data, in-place edits) and <strong>sliding window</strong> (contiguous ranges) cut <code>O(n²)</code> to <code>O(n)</code></li><li><strong>Prefix sums</strong> answer range queries; <strong>Kadane</strong> finds the best subarray; <strong>Boyer-Moore</strong> finds the majority</li><li>Rotate with three reversals; transpose + reverse rows rotates a matrix</li><li>Use <code>int[26]</code> for letter counts; know KMP for linear-time pattern search</li></ul>
+    </article>
+    <nav class="pager" aria-label="Topic navigation">
+      <a class="prev" href="01-intro-big-o.html"><small>← Previous</small><strong>Introduction to DSA and Big-O Analysis</strong></a>
+      <a class="next" href="03-recursion-backtracking.html"><small>Next →</small><strong>Recursion and Backtracking</strong></a>
+    </nav>
+  </main>
+</div>
+</body>
+</html>

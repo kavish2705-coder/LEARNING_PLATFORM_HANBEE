@@ -1,0 +1,332 @@
+<!doctype html>
+<html lang="en" data-track="dsa">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Linked Lists — DSA Notes · Hanbee</title>
+<meta name="description" content="Build singly and doubly linked lists from scratch, then solve the classic interview problems. Reversal, fast and slow pointers, cycle detection, merging, and an LRU cache.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500..700;1,9..144,500&amp;family=Inter:wght@400..700&amp;family=JetBrains+Mono:wght@400..600&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/notes.css">
+<script src="../assets/notes.js" defer></script>
+</head>
+<body>
+<div class="progress" aria-hidden="true"><i></i></div>
+<header class="top">
+  <a class="brand" href="../index.html"><b>H</b>Hanbee · DSA Notes</a>
+  <nav><a class="keep" href="index.html">All topics</a><button id="theme-toggle" type="button" aria-label="Toggle light and dark theme">Theme</button></nav>
+</header>
+<div class="shell">
+  <details class="toc"><summary>On this page</summary><nav aria-label="On this page"><ol><li><a href="#what-is-a-linked-list"><span>01</span>What is a Linked List?</a></li><li><a href="#types-of-linked-lists"><span>02</span>Types of Linked Lists</a></li><li><a href="#singly-linked-list-in-java"><span>03</span>Singly Linked List in Java</a></li><li><a href="#techniques-you-must-know"><span>04</span>Techniques You Must Know</a></li><li><a href="#reverse-a-linked-list"><span>05</span>Reverse a Linked List</a></li><li><a href="#detect-a-cycle"><span>06</span>Detect a Cycle</a></li><li><a href="#merge-two-sorted-lists"><span>07</span>Merge Two Sorted Lists</a></li><li><a href="#remove-the-n-th-node-from-the-end"><span>08</span>Remove the N-th Node from the End</a></li><li><a href="#palindrome-linked-list-o-n-time-o-1-space"><span>09</span>Palindrome Linked List: O(n) time, O(1) space</a></li><li><a href="#intersection-of-two-lists"><span>10</span>Intersection of Two Lists</a></li><li><a href="#other-common-problems"><span>11</span>Other Common Problems</a></li><li><a href="#doubly-linked-list"><span>12</span>Doubly Linked List</a></li><li><a href="#lru-cache-hashmap-doubly-linked-list"><span>13</span>LRU Cache: HashMap + Doubly Linked List</a></li><li><a href="#java-s-linkedlist"><span>14</span>Java's LinkedList</a></li><li><a href="#common-pitfalls"><span>15</span>Common Pitfalls</a></li><li><a href="#quick-recap"><span>16</span>Quick Recap</a></li></ol></nav></details>
+  <main>
+    <header class="hero">
+      <p class="kicker"><span class="pill">Linear Data Structures</span><span>Topic 04</span><span>Beginner</span><span>11 min read</span></p>
+      <h1>Linked Lists</h1>
+      <p class="lede">Build singly and doubly linked lists from scratch, then solve the classic interview problems. Reversal, fast and slow pointers, cycle detection, merging, and an LRU cache.</p>
+    </header>
+    <article>
+<h2 id="what-is-a-linked-list"><span class="num">01</span>What is a Linked List?</h2>
+<p>A linked list is a chain of <strong>nodes</strong>. Each node stores a value and a <strong>reference to the next node</strong>. Nodes live anywhere in memory; the links connect them.</p>
+<pre><code class="language-text">head
+ ↓
+[10 | •]──►[20 | •]──►[30 | •]──►[40 | null]</code></pre>
+<h3 id="array-vs-linked-list">Array vs linked list</h3>
+<div class="table-wrap"><table><thead><tr><th></th><th>Array / <code>ArrayList</code></th><th>Linked list</th></tr></thead><tbody><tr><td>Access by index</td><td><code>O(1)</code></td><td><code>O(n)</code></td></tr><tr><td>Insert / delete at the start</td><td><code>O(n)</code></td><td><strong><code>O(1)</code></strong></td></tr><tr><td>Insert / delete at a known node</td><td><code>O(n)</code></td><td><strong><code>O(1)</code></strong></td></tr><tr><td>Search</td><td><code>O(n)</code></td><td><code>O(n)</code></td></tr><tr><td>Memory</td><td>Compact, cache-friendly</td><td>Extra pointer per node, scattered</td></tr><tr><td>Size</td><td>Resizing needed</td><td>Grows node by node</td></tr></tbody></table></div>
+<aside class="callout note"><span class="label">Note</span><p>In practice <code>ArrayList</code> beats <code>LinkedList</code> for most uses because arrays are cache-friendly. Linked lists matter for understanding pointers, interviews, and structures built on them (queues, LRU caches, adjacency lists).</p></aside>
+<h2 id="types-of-linked-lists"><span class="num">02</span>Types of Linked Lists</h2>
+<div class="table-wrap"><table><thead><tr><th>Type</th><th>Description</th></tr></thead><tbody><tr><td><strong>Singly</strong></td><td>Each node has <code>next</code></td></tr><tr><td><strong>Doubly</strong></td><td>Each node has <code>prev</code> and <code>next</code> (traverse both ways)</td></tr><tr><td><strong>Circular</strong></td><td>The last node points back to the head</td></tr><tr><td><strong>Skip list</strong></td><td>Multiple levels of links for <code>O(log n)</code> search</td></tr></tbody></table></div>
+<h2 id="singly-linked-list-in-java"><span class="num">03</span>Singly Linked List in Java</h2>
+<pre><code class="language-java">class Node {
+    int val;
+    Node next;
+    Node(int val) { this.val = val; }
+}
+
+class SinglyLinkedList {
+    private Node head;
+    private int size;
+
+    void addFirst(int v) {                       // O(1)
+        Node n = new Node(v);
+        n.next = head;
+        head = n;
+        size++;
+    }
+
+    void addLast(int v) {                        // O(n); O(1) if you also keep a tail pointer
+        Node n = new Node(v);
+        if (head == null) { head = n; size++; return; }
+        Node cur = head;
+        while (cur.next != null) cur = cur.next;
+        cur.next = n;
+        size++;
+    }
+
+    void insertAt(int index, int v) {            // O(n)
+        if (index &lt; 0 || index &gt; size) throw new IndexOutOfBoundsException();
+        if (index == 0) { addFirst(v); return; }
+        Node prev = head;
+        for (int i = 0; i &lt; index - 1; i++) prev = prev.next;
+        Node n = new Node(v);
+        n.next = prev.next;
+        prev.next = n;
+        size++;
+    }
+
+    boolean deleteValue(int v) {                 // O(n)
+        if (head == null) return false;
+        if (head.val == v) { head = head.next; size--; return true; }
+        Node cur = head;
+        while (cur.next != null &amp;&amp; cur.next.val != v) cur = cur.next;
+        if (cur.next == null) return false;
+        cur.next = cur.next.next;
+        size--;
+        return true;
+    }
+
+    boolean contains(int v) {
+        for (Node cur = head; cur != null; cur = cur.next) if (cur.val == v) return true;
+        return false;
+    }
+
+    void print() {
+        for (Node cur = head; cur != null; cur = cur.next) System.out.print(cur.val + " -&gt; ");
+        System.out.println("null");
+    }
+}</code></pre>
+<h3 id="operation-complexity">Operation complexity</h3>
+<div class="table-wrap"><table><thead><tr><th>Operation</th><th>Time</th></tr></thead><tbody><tr><td><code>addFirst</code></td><td><code>O(1)</code></td></tr><tr><td><code>addLast</code></td><td><code>O(n)</code> (or <code>O(1)</code> with a tail pointer)</td></tr><tr><td>Insert/delete after a known node</td><td><code>O(1)</code></td></tr><tr><td>Search / get by index</td><td><code>O(n)</code></td></tr></tbody></table></div>
+<h2 id="techniques-you-must-know"><span class="num">04</span>Techniques You Must Know</h2>
+<h3 id="1-the-dummy-sentinel-node">1. The dummy (sentinel) node</h3>
+<p>A fake node before the head removes special cases when the head itself can change.</p>
+<pre><code class="language-java">static Node removeAll(Node head, int target) {
+    Node dummy = new Node(0);
+    dummy.next = head;
+    Node cur = dummy;
+    while (cur.next != null) {
+        if (cur.next.val == target) cur.next = cur.next.next;
+        else cur = cur.next;
+    }
+    return dummy.next;
+}</code></pre>
+<h3 id="2-fast-and-slow-pointers-floyd-s-tortoise-and-hare">2. Fast and slow pointers (Floyd's tortoise and hare)</h3>
+<p>Move <code>slow</code> one step and <code>fast</code> two steps. Useful for the middle, cycles and the k-th from the end.</p>
+<pre><code class="language-java">static Node middle(Node head) {
+    Node slow = head, fast = head;
+    while (fast != null &amp;&amp; fast.next != null) {
+        slow = slow.next;
+        fast = fast.next.next;
+    }
+    return slow;                                  // second middle for even length
+}</code></pre>
+<h3 id="3-reverse-by-relinking-pointers">3. Reverse by relinking pointers</h3>
+<p>Rewire <code>next</code> pointers instead of moving data.</p>
+<h2 id="reverse-a-linked-list"><span class="num">05</span>Reverse a Linked List</h2>
+<h3 id="iterative-o-n-time-o-1-space">Iterative: O(n) time, O(1) space</h3>
+<pre><code class="language-java">static Node reverse(Node head) {
+    Node prev = null, cur = head;
+    while (cur != null) {
+        Node next = cur.next;     // save
+        cur.next = prev;          // flip
+        prev = cur;               // advance
+        cur = next;
+    }
+    return prev;
+}</code></pre>
+<pre><code class="language-text">null ◄─[1]   [2]──►[3]      step by step:  prev=1, cur=2 …</code></pre>
+<h3 id="recursive-o-n-time-o-n-stack">Recursive: O(n) time, O(n) stack</h3>
+<pre><code class="language-java">static Node reverseRec(Node head) {
+    if (head == null || head.next == null) return head;
+    Node newHead = reverseRec(head.next);
+    head.next.next = head;        // make the next node point back to me
+    head.next = null;
+    return newHead;
+}</code></pre>
+<h3 id="reverse-a-sublist-from-position-left-to-right">Reverse a sublist from position left to right</h3>
+<pre><code class="language-java">static Node reverseBetween(Node head, int left, int right) {
+    Node dummy = new Node(0);
+    dummy.next = head;
+    Node prev = dummy;
+    for (int i = 1; i &lt; left; i++) prev = prev.next;
+    Node cur = prev.next;
+    for (int i = 0; i &lt; right - left; i++) {       // pull the next node to the front of the section
+        Node move = cur.next;
+        cur.next = move.next;
+        move.next = prev.next;
+        prev.next = move;
+    }
+    return dummy.next;
+}</code></pre>
+<h2 id="detect-a-cycle"><span class="num">06</span>Detect a Cycle</h2>
+<pre><code class="language-java">static boolean hasCycle(Node head) {
+    Node slow = head, fast = head;
+    while (fast != null &amp;&amp; fast.next != null) {
+        slow = slow.next;
+        fast = fast.next.next;
+        if (slow == fast) return true;            // they meet only if there is a loop
+    }
+    return false;                                  // O(n) time, O(1) space
+}</code></pre>
+<h3 id="find-where-the-cycle-starts">Find where the cycle starts</h3>
+<pre><code class="language-java">static Node cycleStart(Node head) {
+    Node slow = head, fast = head;
+    while (fast != null &amp;&amp; fast.next != null) {
+        slow = slow.next;
+        fast = fast.next.next;
+        if (slow == fast) {
+            slow = head;                           // reset one pointer to the head
+            while (slow != fast) { slow = slow.next; fast = fast.next; }   // move both one step
+            return slow;                           // they meet at the cycle start
+        }
+    }
+    return null;
+}</code></pre>
+<p>Why it works: the distance from the head to the cycle start equals the distance from the meeting point to the cycle start (going around the loop).</p>
+<h2 id="merge-two-sorted-lists"><span class="num">07</span>Merge Two Sorted Lists</h2>
+<pre><code class="language-java">static Node mergeTwo(Node a, Node b) {
+    Node dummy = new Node(0), tail = dummy;
+    while (a != null &amp;&amp; b != null) {
+        if (a.val &lt;= b.val) { tail.next = a; a = a.next; }
+        else                { tail.next = b; b = b.next; }
+        tail = tail.next;
+    }
+    tail.next = (a != null) ? a : b;
+    return dummy.next;                             // O(m + n), O(1) extra space
+}</code></pre>
+<h3 id="merge-sort-on-a-linked-list-o-n-log-n-o-log-n-stack">Merge sort on a linked list: O(n log n), O(log n) stack</h3>
+<pre><code class="language-java">static Node sortList(Node head) {
+    if (head == null || head.next == null) return head;
+    Node slow = head, fast = head.next;            // find the middle
+    while (fast != null &amp;&amp; fast.next != null) { slow = slow.next; fast = fast.next.next; }
+    Node right = slow.next;
+    slow.next = null;                              // cut the list in two
+    return mergeTwo(sortList(head), sortList(right));
+}</code></pre>
+<h2 id="remove-the-n-th-node-from-the-end"><span class="num">08</span>Remove the N-th Node from the End</h2>
+<p>One pass with a gap of <code>n</code> between two pointers.</p>
+<pre><code class="language-java">static Node removeNthFromEnd(Node head, int n) {
+    Node dummy = new Node(0);
+    dummy.next = head;
+    Node fast = dummy, slow = dummy;
+    for (int i = 0; i &lt; n; i++) fast = fast.next;          // create the gap
+    while (fast.next != null) { fast = fast.next; slow = slow.next; }
+    slow.next = slow.next.next;
+    return dummy.next;
+}</code></pre>
+<h2 id="palindrome-linked-list-o-n-time-o-1-space"><span class="num">09</span>Palindrome Linked List: O(n) time, O(1) space</h2>
+<pre><code class="language-java">static boolean isPalindrome(Node head) {
+    if (head == null || head.next == null) return true;
+    Node slow = head, fast = head;
+    while (fast.next != null &amp;&amp; fast.next.next != null) { slow = slow.next; fast = fast.next.next; }
+    Node second = reverse(slow.next);              // reverse the second half
+    Node p1 = head, p2 = second;
+    boolean ok = true;
+    while (p2 != null) {
+        if (p1.val != p2.val) { ok = false; break; }
+        p1 = p1.next; p2 = p2.next;
+    }
+    slow.next = reverse(second);                   // restore the list
+    return ok;
+}</code></pre>
+<h2 id="intersection-of-two-lists"><span class="num">10</span>Intersection of Two Lists</h2>
+<pre><code class="language-java">static Node intersection(Node a, Node b) {
+    Node p = a, q = b;
+    while (p != q) {                               // after switching heads both travel the same total length
+        p = (p == null) ? b : p.next;
+        q = (q == null) ? a : q.next;
+    }
+    return p;                                      // intersection node or null
+}</code></pre>
+<h2 id="other-common-problems"><span class="num">11</span>Other Common Problems</h2>
+<div class="table-wrap"><table><thead><tr><th>Problem</th><th>Approach</th></tr></thead><tbody><tr><td>Add two numbers stored as lists</td><td>Walk both lists with a carry</td></tr><tr><td>Remove duplicates from a sorted list</td><td>Compare <code>cur</code> with <code>cur.next</code></td></tr><tr><td>Reorder list (L0→Ln→L1→Ln-1…)</td><td>Find the middle, reverse the second half, interleave</td></tr><tr><td>Rotate list by k</td><td>Find the length, make it circular, cut at <code>len - k</code></td></tr><tr><td>Swap nodes in pairs</td><td>Pointer rewiring with a dummy node</td></tr><tr><td>Reverse nodes in k-groups</td><td>Reverse each block, link the blocks</td></tr><tr><td>Copy list with random pointer</td><td>Interleave copies, or use a <code>HashMap</code> old → new</td></tr><tr><td>Merge k sorted lists</td><td>Min-heap of list heads: <code>O(N log k)</code></td></tr></tbody></table></div>
+<h2 id="doubly-linked-list"><span class="num">12</span>Doubly Linked List</h2>
+<pre><code class="language-java">class DNode {
+    int val;
+    DNode prev, next;
+    DNode(int val) { this.val = val; }
+}
+
+class DoublyLinkedList {
+    private final DNode head = new DNode(0), tail = new DNode(0);    // sentinels
+    DoublyLinkedList() { head.next = tail; tail.prev = head; }
+
+    void addFirst(DNode n) {                       // O(1)
+        n.next = head.next; n.prev = head;
+        head.next.prev = n; head.next = n;
+    }
+    void remove(DNode n) {                         // O(1): we already hold the node
+        n.prev.next = n.next;
+        n.next.prev = n.prev;
+    }
+    DNode removeLast() {
+        DNode last = tail.prev;
+        if (last == head) return null;
+        remove(last);
+        return last;
+    }
+}</code></pre>
+<p>Advantage: deletion of a given node and backward traversal in <code>O(1)</code> / <code>O(n)</code>; cost: an extra pointer per node.</p>
+<h2 id="lru-cache-hashmap-doubly-linked-list"><span class="num">13</span>LRU Cache: HashMap + Doubly Linked List</h2>
+<p><strong>Least Recently Used</strong> cache: <code>get</code> and <code>put</code> in <code>O(1)</code>, evicting the least recently used entry when full.</p>
+<pre><code class="language-java">class LRUCache {
+    private static class Node {
+        int key, val;
+        Node prev, next;
+        Node(int k, int v) { key = k; val = v; }
+    }
+
+    private final int capacity;
+    private final Map&lt;Integer, Node&gt; map = new HashMap&lt;&gt;();
+    private final Node head = new Node(0, 0), tail = new Node(0, 0);   // head = most recent, tail = least recent
+
+    LRUCache(int capacity) {
+        this.capacity = capacity;
+        head.next = tail; tail.prev = head;
+    }
+
+    int get(int key) {
+        Node n = map.get(key);
+        if (n == null) return -1;
+        remove(n); addFront(n);                     // mark as recently used
+        return n.val;
+    }
+
+    void put(int key, int value) {
+        Node n = map.get(key);
+        if (n != null) { n.val = value; remove(n); addFront(n); return; }
+        if (map.size() == capacity) {
+            Node lru = tail.prev;
+            remove(lru);
+            map.remove(lru.key);
+        }
+        n = new Node(key, value);
+        map.put(key, n);
+        addFront(n);
+    }
+
+    private void remove(Node n) { n.prev.next = n.next; n.next.prev = n.prev; }
+    private void addFront(Node n) { n.next = head.next; n.prev = head; head.next.prev = n; head.next = n; }
+}</code></pre>
+<p>The shortcut in Java:</p>
+<pre><code class="language-java">class LRU&lt;K, V&gt; extends LinkedHashMap&lt;K, V&gt; {
+    private final int capacity;
+    LRU(int capacity) { super(capacity, 0.75f, true); this.capacity = capacity; }   // true = access order
+    @Override protected boolean removeEldestEntry(Map.Entry&lt;K, V&gt; e) { return size() &gt; capacity; }
+}</code></pre>
+<h2 id="java-s-linkedlist"><span class="num">14</span>Java's LinkedList</h2>
+<pre><code class="language-java">LinkedList&lt;Integer&gt; list = new LinkedList&lt;&gt;();     // doubly linked, also implements Deque
+list.addFirst(1);  list.addLast(2);  list.removeFirst();  list.peekLast();
+list.add(1, 99);   list.get(3);     // get(i) is O(n)</code></pre>
+<p>Prefer <code>ArrayDeque</code> for stacks and queues, and <code>ArrayList</code> for lists.</p>
+<h2 id="common-pitfalls"><span class="num">15</span>Common Pitfalls</h2>
+<ul><li><strong>Null pointer errors</strong>: check <code>node != null</code> and <code>node.next != null</code> before dereferencing</li><li>Losing the rest of the list: save <code>next</code> <strong>before</strong> changing pointers</li><li>Forgetting to update <code>head</code>/<code>tail</code> when the first or last node changes</li><li>Off-by-one on "k-th from end"; use a dummy node to avoid special cases</li><li>Infinite loops in cyclic lists; use fast/slow pointers</li><li>Draw boxes and arrows on paper: pointer problems are much easier to see than to imagine</li></ul>
+<h2 id="quick-recap"><span class="num">16</span>Quick Recap</h2>
+<ul><li>A linked list gives <code>O(1)</code> insert/delete at a known node but <code>O(n)</code> access</li><li>Use a <strong>dummy node</strong> to simplify head edge cases; use <strong>fast/slow pointers</strong> for middle, cycles and k-th from end</li><li>Reverse by relinking: save <code>next</code>, flip, advance (3 pointers, <code>O(1)</code> space)</li><li>Detect a cycle with Floyd's algorithm; find its start by resetting one pointer to the head</li><li><strong>LRU cache</strong> = <code>HashMap</code> + doubly linked list for <code>O(1)</code> <code>get</code>/<code>put</code></li></ul>
+    </article>
+    <nav class="pager" aria-label="Topic navigation">
+      <a class="prev" href="03-recursion-backtracking.html"><small>← Previous</small><strong>Recursion and Backtracking</strong></a>
+      <a class="next" href="05-stacks-queues.html"><small>Next →</small><strong>Stacks, Queues and Deques</strong></a>
+    </nav>
+  </main>
+</div>
+</body>
+</html>

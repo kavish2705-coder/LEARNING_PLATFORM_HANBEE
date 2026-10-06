@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="en" data-track="dsa">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sorting Algorithms — DSA Notes · Hanbee</title>
+<meta name="description" content="How the classic sorting algorithms work and when to use each. Bubble, selection, insertion, merge, quick, heap and counting sort, plus stability, Java's built-in sorts and sorting-based interview problems.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500..700;1,9..144,500&amp;family=Inter:wght@400..700&amp;family=JetBrains+Mono:wght@400..600&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/notes.css">
+<script src="../assets/notes.js" defer></script>
+</head>
+<body>
+<div class="progress" aria-hidden="true"><i></i></div>
+<header class="top">
+  <a class="brand" href="../index.html"><b>H</b>Hanbee · DSA Notes</a>
+  <nav><a class="keep" href="index.html">All topics</a><button id="theme-toggle" type="button" aria-label="Toggle light and dark theme">Theme</button></nav>
+</header>
+<div class="shell">
+  <details class="toc"><summary>On this page</summary><nav aria-label="On this page"><ol><li><a href="#why-sorting"><span>01</span>Why Sorting?</a></li><li><a href="#key-terms"><span>02</span>Key Terms</a></li><li><a href="#summary-table"><span>03</span>Summary Table</a></li><li><a href="#elementary-sorts-o-n"><span>04</span>Elementary Sorts (O(n²))</a></li><li><a href="#merge-sort"><span>05</span>Merge Sort</a></li><li><a href="#quick-sort"><span>06</span>Quick Sort</a></li><li><a href="#heap-sort"><span>07</span>Heap Sort</a></li><li><a href="#non-comparison-sorts"><span>08</span>Non-comparison Sorts</a></li><li><a href="#sorting-in-java"><span>09</span>Sorting in Java</a></li><li><a href="#sorting-problems"><span>10</span>Sorting Problems</a></li><li><a href="#choosing-a-sorting-algorithm"><span>11</span>Choosing a Sorting Algorithm</a></li><li><a href="#common-mistakes"><span>12</span>Common Mistakes</a></li><li><a href="#quick-recap"><span>13</span>Quick Recap</a></li></ol></nav></details>
+  <main>
+    <header class="hero">
+      <p class="kicker"><span class="pill">Searching and Sorting</span><span>Topic 08</span><span>Intermediate</span><span>11 min read</span></p>
+      <h1>Sorting Algorithms</h1>
+      <p class="lede">How the classic sorting algorithms work and when to use each. Bubble, selection, insertion, merge, quick, heap and counting sort, plus stability, Java's built-in sorts and sorting-based interview problems.</p>
+    </header>
+    <article>
+<h2 id="why-sorting"><span class="num">01</span>Why Sorting?</h2>
+<p>Sorted data makes many problems easy: binary search, two pointers, finding duplicates, merging intervals, grouping, and closest pairs. Sorting costs <code>O(n log n)</code> at best for comparison sorts, which is often a worthwhile first step.</p>
+<h2 id="key-terms"><span class="num">02</span>Key Terms</h2>
+<div class="table-wrap"><table><thead><tr><th>Term</th><th>Meaning</th></tr></thead><tbody><tr><td><strong>In-place</strong></td><td>Uses <code>O(1)</code> extra memory (beyond the input)</td></tr><tr><td><strong>Stable</strong></td><td>Equal elements keep their original relative order</td></tr><tr><td><strong>Comparison sort</strong></td><td>Sorts using only <code>&lt;</code>/<code>&gt;</code> comparisons; lower bound <code>Ω(n log n)</code></td></tr><tr><td><strong>Adaptive</strong></td><td>Faster when the input is already nearly sorted</td></tr><tr><td><strong>Internal / external</strong></td><td>Fits in memory / data on disk</td></tr></tbody></table></div>
+<aside class="callout note"><span class="label">Note</span><p><strong>Why stability matters:</strong> sort students by marks and then by class: a stable sort keeps the marks order within each class.</p></aside>
+<h2 id="summary-table"><span class="num">03</span>Summary Table</h2>
+<div class="table-wrap"><table><thead><tr><th>Algorithm</th><th>Best</th><th>Average</th><th>Worst</th><th>Space</th><th>Stable</th><th>Notes</th></tr></thead><tbody><tr><td>Bubble</td><td><code>O(n)</code></td><td><code>O(n²)</code></td><td><code>O(n²)</code></td><td><code>O(1)</code></td><td>Yes</td><td>Teaching only</td></tr><tr><td>Selection</td><td><code>O(n²)</code></td><td><code>O(n²)</code></td><td><code>O(n²)</code></td><td><code>O(1)</code></td><td>No</td><td>Fewest swaps (<code>n-1</code>)</td></tr><tr><td>Insertion</td><td><code>O(n)</code></td><td><code>O(n²)</code></td><td><code>O(n²)</code></td><td><code>O(1)</code></td><td>Yes</td><td>Great for small or nearly sorted data</td></tr><tr><td>Merge</td><td><code>O(n log n)</code></td><td><code>O(n log n)</code></td><td><code>O(n log n)</code></td><td><code>O(n)</code></td><td>Yes</td><td>Predictable; good for linked lists</td></tr><tr><td>Quick</td><td><code>O(n log n)</code></td><td><code>O(n log n)</code></td><td><code>O(n²)</code></td><td><code>O(log n)</code></td><td>No</td><td>Fastest in practice</td></tr><tr><td>Heap</td><td><code>O(n log n)</code></td><td><code>O(n log n)</code></td><td><code>O(n log n)</code></td><td><code>O(1)</code></td><td>No</td><td>In-place, guaranteed bound</td></tr><tr><td>Counting</td><td><code>O(n + k)</code></td><td><code>O(n + k)</code></td><td><code>O(n + k)</code></td><td><code>O(k)</code></td><td>Yes</td><td>Small integer range <code>k</code></td></tr><tr><td>Radix</td><td><code>O(d(n + k))</code></td><td></td><td></td><td><code>O(n + k)</code></td><td>Yes</td><td>Integers / strings by digit</td></tr><tr><td>Bucket</td><td><code>O(n + k)</code></td><td><code>O(n + k)</code></td><td><code>O(n²)</code></td><td><code>O(n)</code></td><td>Yes</td><td>Uniformly distributed values</td></tr></tbody></table></div>
+<h2 id="elementary-sorts-o-n"><span class="num">04</span>Elementary Sorts (O(n²))</h2>
+<h3 id="bubble-sort">Bubble sort</h3>
+<p>Repeatedly swap adjacent elements that are out of order; the largest "bubbles" to the end each pass.</p>
+<pre><code class="language-java">static void bubbleSort(int[] a) {
+    for (int i = 0; i &lt; a.length - 1; i++) {
+        boolean swapped = false;
+        for (int j = 0; j &lt; a.length - 1 - i; j++) {
+            if (a[j] &gt; a[j + 1]) { int t = a[j]; a[j] = a[j + 1]; a[j + 1] = t; swapped = true; }
+        }
+        if (!swapped) break;                          // already sorted: best case O(n)
+    }
+}</code></pre>
+<h3 id="selection-sort">Selection sort</h3>
+<p>Select the minimum of the unsorted part and put it in place.</p>
+<pre><code class="language-java">static void selectionSort(int[] a) {
+    for (int i = 0; i &lt; a.length - 1; i++) {
+        int min = i;
+        for (int j = i + 1; j &lt; a.length; j++) if (a[j] &lt; a[min]) min = j;
+        int t = a[i]; a[i] = a[min]; a[min] = t;
+    }
+}</code></pre>
+<h3 id="insertion-sort">Insertion sort</h3>
+<p>Grow a sorted prefix by inserting each new element into its correct position, like sorting playing cards in your hand.</p>
+<pre><code class="language-java">static void insertionSort(int[] a) {
+    for (int i = 1; i &lt; a.length; i++) {
+        int key = a[i], j = i - 1;
+        while (j &gt;= 0 &amp;&amp; a[j] &gt; key) { a[j + 1] = a[j]; j--; }     // shift larger elements right
+        a[j + 1] = key;
+    }
+}</code></pre>
+<p>Fast (<code>O(n)</code>) on nearly sorted data, which is why real libraries use it for small subarrays.</p>
+<h2 id="merge-sort"><span class="num">05</span>Merge Sort</h2>
+<p><strong>Divide and conquer</strong>: split in half, sort each half recursively, <strong>merge</strong> the two sorted halves.</p>
+<pre><code class="language-text">[38, 27, 43, 3, 9, 82, 10]
+ split → [38,27,43,3] [9,82,10] → ... → single elements
+ merge ← [3,27,38,43] [9,10,82] ← ...
+ merge ← [3, 9, 10, 27, 38, 43, 82]</code></pre>
+<pre><code class="language-java">static void mergeSort(int[] a, int lo, int hi) {
+    if (lo &gt;= hi) return;
+    int mid = lo + (hi - lo) / 2;
+    mergeSort(a, lo, mid);
+    mergeSort(a, mid + 1, hi);
+    merge(a, lo, mid, hi);
+}
+
+static void merge(int[] a, int lo, int mid, int hi) {
+    int[] tmp = new int[hi - lo + 1];
+    int i = lo, j = mid + 1, k = 0;
+    while (i &lt;= mid &amp;&amp; j &lt;= hi) tmp[k++] = (a[i] &lt;= a[j]) ? a[i++] : a[j++];    // &lt;= keeps it stable
+    while (i &lt;= mid) tmp[k++] = a[i++];
+    while (j &lt;= hi)  tmp[k++] = a[j++];
+    System.arraycopy(tmp, 0, a, lo, tmp.length);
+}</code></pre>
+<ul><li><strong>Time</strong>: <code>O(n log n)</code> always (<code>log n</code> levels × <code>n</code> work per level)</li><li><strong>Space</strong>: <code>O(n)</code> auxiliary</li><li>Stable; ideal for <strong>linked lists</strong> (<code>O(1)</code> extra space) and <strong>external sorting</strong></li></ul>
+<h3 id="counting-inversions-with-merge-sort">Counting inversions with merge sort</h3>
+<p>While merging, when <code>a[j]</code> is taken before <code>a[i]</code>, all remaining left elements (<code>mid - i + 1</code>) form inversions with it. Total inversions in <code>O(n log n)</code>.</p>
+<h2 id="quick-sort"><span class="num">06</span>Quick Sort</h2>
+<p><strong>Partition</strong> around a <strong>pivot</strong> so smaller elements go left and larger go right, then sort each side recursively.</p>
+<pre><code class="language-java">static void quickSort(int[] a, int lo, int hi) {
+    if (lo &gt;= hi) return;
+    int p = partition(a, lo, hi);
+    quickSort(a, lo, p - 1);
+    quickSort(a, p + 1, hi);
+}
+
+// Lomuto partition: pivot = last element
+static int partition(int[] a, int lo, int hi) {
+    int pivot = a[hi], i = lo;
+    for (int j = lo; j &lt; hi; j++)
+        if (a[j] &lt; pivot) { swap(a, i++, j); }
+    swap(a, i, hi);                                   // pivot into its final place
+    return i;
+}
+static void swap(int[] a, int i, int j) { int t = a[i]; a[i] = a[j]; a[j] = t; }</code></pre>
+<h3 id="choosing-the-pivot">Choosing the pivot</h3>
+<div class="table-wrap"><table><thead><tr><th>Strategy</th><th>Effect</th></tr></thead><tbody><tr><td>Last / first element</td><td><code>O(n²)</code> on already sorted input</td></tr><tr><td><strong>Random pivot</strong></td><td>Expected <code>O(n log n)</code> for every input</td></tr><tr><td>Median of three</td><td>Good practical choice</td></tr></tbody></table></div>
+<pre><code class="language-java">swap(a, lo + new Random().nextInt(hi - lo + 1), hi);     // randomise before partitioning</code></pre>
+<ul><li><strong>Time</strong>: <code>O(n log n)</code> average, <code>O(n²)</code> worst (bad pivots)</li><li><strong>Space</strong>: <code>O(log n)</code> recursion (recurse into the smaller side first to guarantee this)</li><li>Not stable; excellent cache behaviour, so it is usually fastest in practice</li><li>Many equal elements: use <strong>3-way partitioning</strong> (<code>&lt;</code>, <code>=</code>, <code>&gt;</code>)</li></ul>
+<h3 id="quickselect-k-th-smallest-in-expected-o-n">Quickselect: k-th smallest in expected O(n)</h3>
+<pre><code class="language-java">static int quickSelect(int[] a, int k) {                 // k-th smallest, 0-based
+    int lo = 0, hi = a.length - 1;
+    while (lo &lt;= hi) {
+        int p = partition(a, lo, hi);
+        if (p == k) return a[p];
+        if (p &lt; k) lo = p + 1; else hi = p - 1;
+    }
+    return -1;
+}</code></pre>
+<h2 id="heap-sort"><span class="num">07</span>Heap Sort</h2>
+<p>Build a max-heap in <code>O(n)</code>, then repeatedly move the maximum to the end and restore the heap.</p>
+<pre><code class="language-java">static void heapSort(int[] a) {
+    int n = a.length;
+    for (int i = n / 2 - 1; i &gt;= 0; i--) siftDown(a, n, i);       // build max-heap
+    for (int end = n - 1; end &gt; 0; end--) {
+        swap(a, 0, end);                                           // move the max to its final position
+        siftDown(a, end, 0);
+    }
+}
+static void siftDown(int[] a, int n, int i) {
+    while (true) {
+        int largest = i, l = 2 * i + 1, r = 2 * i + 2;
+        if (l &lt; n &amp;&amp; a[l] &gt; a[largest]) largest = l;
+        if (r &lt; n &amp;&amp; a[r] &gt; a[largest]) largest = r;
+        if (largest == i) return;
+        swap(a, i, largest);
+        i = largest;
+    }
+}</code></pre>
+<p><code>O(n log n)</code> guaranteed, <code>O(1)</code> space, but not stable and less cache-friendly than quicksort.</p>
+<h2 id="non-comparison-sorts"><span class="num">08</span>Non-comparison Sorts</h2>
+<p>These beat <code>O(n log n)</code> by using the <strong>structure of the keys</strong>, not comparisons.</p>
+<h3 id="counting-sort-small-integer-range">Counting sort: small integer range</h3>
+<pre><code class="language-java">static void countingSort(int[] a, int max) {              // values in [0, max]
+    int[] count = new int[max + 1];
+    for (int x : a) count[x]++;
+    int idx = 0;
+    for (int v = 0; v &lt;= max; v++)
+        while (count[v]-- &gt; 0) a[idx++] = v;
+}                                                           // O(n + max), O(max) space</code></pre>
+<h3 id="radix-sort">Radix sort</h3>
+<p>Sort by each digit, least significant first, using a <strong>stable</strong> sort (counting sort) per digit: <code>O(d · (n + k))</code>.</p>
+<h3 id="bucket-sort">Bucket sort</h3>
+<p>Distribute values into buckets by range, sort each bucket, concatenate. Great for uniformly distributed floats in <code>[0, 1)</code>.</p>
+<h2 id="sorting-in-java"><span class="num">09</span>Sorting in Java</h2>
+<pre><code class="language-java">int[] a = {5, 2, 9};
+Arrays.sort(a);                                     // primitives: dual-pivot quicksort, O(n log n) avg
+Arrays.sort(a, 1, 3);                                // sort a range
+
+Integer[] b = {5, 2, 9};
+Arrays.sort(b, Collections.reverseOrder());          // objects: TimSort (stable, merge+insertion hybrid)
+
+List&lt;String&gt; list = new ArrayList&lt;&gt;(List.of("pear", "fig", "apple"));
+Collections.sort(list);                              // natural order, stable
+list.sort(Comparator.comparing(String::length).thenComparing(Comparator.naturalOrder()));
+
+int[][] pairs = {{3, 1}, {1, 2}, {3, 0}};
+Arrays.sort(pairs, (x, y) -&gt; x[0] != y[0] ? Integer.compare(x[0], y[0]) : Integer.compare(x[1], y[1]));
+
+Arrays.parallelSort(a);                              // multi-core for large arrays</code></pre>
+<aside class="callout warning"><span class="label">Warning</span><p>Don't write comparators as <code>(x, y) -&gt; x - y</code>. It <strong>overflows</strong> for extreme values. Use <code>Integer.compare(x, y)</code>.</p></aside>
+<h3 id="comparable-vs-comparator">Comparable vs Comparator</h3>
+<pre><code class="language-java">class Student implements Comparable&lt;Student&gt; {
+    String name; int marks;
+    public int compareTo(Student o) { return Integer.compare(o.marks, marks); }   // descending by marks
+}</code></pre>
+<p><code>Comparator</code> defines additional orderings outside the class (<code>Comparator.comparing(Student::name)</code>).</p>
+<aside class="callout note"><span class="label">Note</span><p><code>Arrays.sort(int[])</code> is not stable, but for primitives stability is meaningless. For objects Java guarantees stability, so multi-key sorts can be done by chaining comparators.</p></aside>
+<h2 id="sorting-problems"><span class="num">10</span>Sorting Problems</h2>
+<h3 id="merge-intervals">Merge intervals</h3>
+<pre><code class="language-java">static int[][] merge(int[][] intervals) {
+    Arrays.sort(intervals, (a, b) -&gt; Integer.compare(a[0], b[0]));
+    List&lt;int[]&gt; res = new ArrayList&lt;&gt;();
+    for (int[] cur : intervals) {
+        if (res.isEmpty() || res.get(res.size() - 1)[1] &lt; cur[0]) res.add(cur);
+        else res.get(res.size() - 1)[1] = Math.max(res.get(res.size() - 1)[1], cur[1]);
+    }
+    return res.toArray(new int[0][]);                     // O(n log n)
+}</code></pre>
+<h3 id="largest-number-custom-comparator">Largest number (custom comparator)</h3>
+<pre><code class="language-java">static String largestNumber(int[] nums) {
+    String[] s = Arrays.stream(nums).mapToObj(String::valueOf).toArray(String[]::new);
+    Arrays.sort(s, (a, b) -&gt; (b + a).compareTo(a + b));   // which concatenation is bigger?
+    return s[0].equals("0") ? "0" : String.join("", s);
+}</code></pre>
+<h3 id="kth-largest-element">Kth largest element</h3>
+<div class="table-wrap"><table><thead><tr><th>Approach</th><th>Time</th></tr></thead><tbody><tr><td>Sort and index</td><td><code>O(n log n)</code></td></tr><tr><td>Min-heap of size <code>k</code></td><td><code>O(n log k)</code></td></tr><tr><td><strong>Quickselect</strong></td><td><code>O(n)</code> average</td></tr></tbody></table></div>
+<h3 id="sort-colours-0-1-2">Sort colours (0, 1, 2)</h3>
+<p>Counting or the Dutch national flag in one pass (see Arrays topic).</p>
+<h3 id="other-sorting-based-problems">Other sorting-based problems</h3>
+<div class="table-wrap"><table><thead><tr><th>Problem</th><th>Idea</th></tr></thead><tbody><tr><td>Meeting rooms (can attend all?)</td><td>Sort by start, check overlaps</td></tr><tr><td>Minimum meeting rooms</td><td>Sort starts and ends separately, two pointers; or min-heap of end times</td></tr><tr><td>Two sum / three sum</td><td>Sort + two pointers</td></tr><tr><td>Closest pair, minimum difference</td><td>Sort, compare neighbours</td></tr><tr><td>Group anagrams</td><td>Sort each word to a key</td></tr><tr><td>Sort by frequency</td><td>Count with a map, sort by count</td></tr><tr><td>Relative ranks, sort a nearly sorted (k-sorted) array</td><td>Sort / min-heap of size <code>k+1</code></td></tr></tbody></table></div>
+<h2 id="choosing-a-sorting-algorithm"><span class="num">11</span>Choosing a Sorting Algorithm</h2>
+<div class="table-wrap"><table><thead><tr><th>Situation</th><th>Choice</th></tr></thead><tbody><tr><td>General purpose</td><td><code>Arrays.sort</code> / <code>Collections.sort</code></td></tr><tr><td>Need stability</td><td>Merge sort / TimSort (Java objects)</td></tr><tr><td>Memory is tight</td><td>Heap sort or in-place quicksort</td></tr><tr><td>Tiny or nearly sorted input</td><td>Insertion sort</td></tr><tr><td>Small integer keys</td><td>Counting / radix sort</td></tr><tr><td>Linked list</td><td>Merge sort</td></tr><tr><td>Huge data on disk</td><td>External merge sort</td></tr><tr><td>Only need top K or k-th element</td><td>Heap or quickselect, not a full sort</td></tr></tbody></table></div>
+<h2 id="common-mistakes"><span class="num">12</span>Common Mistakes</h2>
+<ul><li>Overflow in <code>x - y</code> comparators</li><li>Sorting when only a <strong>partial</strong> answer is needed (top K) → use a heap</li><li>Modifying the array while sorting with an incorrect comparator (violating the contract throws <code>Comparison method violates its general contract!</code>)</li><li>Forgetting that <code>Arrays.sort(int[])</code> modifies the array in place</li><li>Expecting <code>Arrays.sort</code> on <code>int[]</code> to accept a comparator (use <code>Integer[]</code> or a stream)</li></ul>
+<h2 id="quick-recap"><span class="num">13</span>Quick Recap</h2>
+<ul><li>Elementary sorts are <code>O(n²)</code>; insertion sort shines on tiny or nearly sorted data</li><li><strong>Merge sort</strong>: <code>O(n log n)</code> always, stable, <code>O(n)</code> space; <strong>quick sort</strong>: <code>O(n log n)</code> average, in-place, randomise the pivot</li><li><strong>Heap sort</strong>: guaranteed <code>O(n log n)</code>, <code>O(1)</code> space; <strong>counting/radix</strong> sorts beat <code>n log n</code> for bounded integer keys</li><li>Comparison sorting cannot beat <code>Ω(n log n)</code></li><li>Java: <code>Arrays.sort</code> for primitives (dual-pivot quicksort), TimSort (stable) for objects; compare with <code>Integer.compare</code></li></ul>
+    </article>
+    <nav class="pager" aria-label="Topic navigation">
+      <a class="prev" href="07-searching-binary-search.html"><small>← Previous</small><strong>Searching and Binary Search</strong></a>
+      <a class="next" href="09-trees.html"><small>Next →</small><strong>Trees and Binary Trees</strong></a>
+    </nav>
+  </main>
+</div>
+</body>
+</html>

@@ -1,0 +1,301 @@
+<!doctype html>
+<html lang="en" data-track="dsa">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Stacks, Queues and Deques — DSA Notes · Hanbee</title>
+<meta name="description" content="LIFO and FIFO structures, their array and linked implementations, and the interview patterns built on them. Balanced brackets, monotonic stacks, min stack, queue from stacks and the sliding-window deque.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500..700;1,9..144,500&amp;family=Inter:wght@400..700&amp;family=JetBrains+Mono:wght@400..600&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/notes.css">
+<script src="../assets/notes.js" defer></script>
+</head>
+<body>
+<div class="progress" aria-hidden="true"><i></i></div>
+<header class="top">
+  <a class="brand" href="../index.html"><b>H</b>Hanbee · DSA Notes</a>
+  <nav><a class="keep" href="index.html">All topics</a><button id="theme-toggle" type="button" aria-label="Toggle light and dark theme">Theme</button></nav>
+</header>
+<div class="shell">
+  <details class="toc"><summary>On this page</summary><nav aria-label="On this page"><ol><li><a href="#stack-last-in-first-out-lifo"><span>01</span>Stack: Last In, First Out (LIFO)</a></li><li><a href="#implementing-a-stack"><span>02</span>Implementing a Stack</a></li><li><a href="#classic-stack-problems"><span>03</span>Classic Stack Problems</a></li><li><a href="#monotonic-stack"><span>04</span>Monotonic Stack</a></li><li><a href="#queue-first-in-first-out-fifo"><span>05</span>Queue: First In, First Out (FIFO)</a></li><li><a href="#queue-and-stack-from-each-other"><span>06</span>Queue and Stack from Each Other</a></li><li><a href="#deque-double-ended-queue"><span>07</span>Deque (Double-Ended Queue)</a></li><li><a href="#priority-queue-preview"><span>08</span>Priority Queue (Preview)</a></li><li><a href="#bfs-with-a-queue-preview"><span>09</span>BFS with a Queue (Preview)</a></li><li><a href="#stack-vs-queue-vs-deque"><span>10</span>Stack vs Queue vs Deque</a></li><li><a href="#problem-patterns"><span>11</span>Problem Patterns</a></li><li><a href="#common-mistakes"><span>12</span>Common Mistakes</a></li><li><a href="#quick-recap"><span>13</span>Quick Recap</a></li></ol></nav></details>
+  <main>
+    <header class="hero">
+      <p class="kicker"><span class="pill">Linear Data Structures</span><span>Topic 05</span><span>Beginner</span><span>10 min read</span></p>
+      <h1>Stacks, Queues and Deques</h1>
+      <p class="lede">LIFO and FIFO structures, their array and linked implementations, and the interview patterns built on them. Balanced brackets, monotonic stacks, min stack, queue from stacks and the sliding-window deque.</p>
+    </header>
+    <article>
+<h2 id="stack-last-in-first-out-lifo"><span class="num">01</span>Stack: Last In, First Out (LIFO)</h2>
+<p>Think of a stack of plates: you add and remove only at the <strong>top</strong>.</p>
+<pre><code class="language-text">push(10) push(20) push(30)        pop() → 30
+        ┌────┐                        ┌────┐
+        │ 30 │ ← top                  │ 20 │ ← top
+        │ 20 │                        │ 10 │
+        │ 10 │                        └────┘
+        └────┘</code></pre>
+<div class="table-wrap"><table><thead><tr><th>Operation</th><th>Meaning</th><th>Time</th></tr></thead><tbody><tr><td><code>push(x)</code></td><td>Add on top</td><td><code>O(1)</code></td></tr><tr><td><code>pop()</code></td><td>Remove and return the top</td><td><code>O(1)</code></td></tr><tr><td><code>peek()</code></td><td>Look at the top</td><td><code>O(1)</code></td></tr><tr><td><code>isEmpty()</code>, <code>size()</code></td><td>State</td><td><code>O(1)</code></td></tr></tbody></table></div>
+<h3 id="where-stacks-are-used">Where stacks are used</h3>
+<ul><li>Function <strong>call stack</strong> and recursion</li><li><strong>Undo / redo</strong> in editors, browser back button</li><li><strong>Expression</strong> evaluation and syntax checking (brackets)</li><li><strong>DFS</strong> (iterative), backtracking</li><li>Monotonic-stack problems (next greater element)</li></ul>
+<h2 id="implementing-a-stack"><span class="num">02</span>Implementing a Stack</h2>
+<h3 id="array-based-fixed-capacity">Array-based (fixed capacity)</h3>
+<pre><code class="language-java">class ArrayStack {
+    private final int[] data;
+    private int top = -1;
+
+    ArrayStack(int capacity) { data = new int[capacity]; }
+
+    void push(int x) {
+        if (top == data.length - 1) throw new IllegalStateException("Stack overflow");
+        data[++top] = x;
+    }
+    int pop() {
+        if (isEmpty()) throw new RuntimeException("Stack underflow");
+        return data[top--];
+    }
+    int peek() {
+        if (isEmpty()) throw new RuntimeException("Stack is empty");
+        return data[top];
+    }
+    boolean isEmpty() { return top == -1; }
+    int size() { return top + 1; }
+}</code></pre>
+<h3 id="linked-list-based-grows-dynamically">Linked-list-based (grows dynamically)</h3>
+<pre><code class="language-java">class LinkedStack {
+    private static class Node { int val; Node next; Node(int v, Node n) { val = v; next = n; } }
+    private Node head;
+    private int size;
+
+    void push(int x) { head = new Node(x, head); size++; }          // add at the head: O(1)
+    int pop() {
+        if (head == null) throw new RuntimeException("Stack underflow");
+        int v = head.val; head = head.next; size--; return v;
+    }
+    int peek() { return head.val; }
+    boolean isEmpty() { return head == null; }
+}</code></pre>
+<h3 id="in-practice-use-arraydeque">In practice: use <code>ArrayDeque</code></h3>
+<pre><code class="language-java">Deque&lt;Integer&gt; stack = new ArrayDeque&lt;&gt;();
+stack.push(1);  stack.push(2);
+stack.peek();   // 2
+stack.pop();    // 2</code></pre>
+<aside class="callout warning"><span class="label">Warning</span><p>Avoid <code>java.util.Stack</code>. It extends <code>Vector</code> (synchronised, slower) and has a confusing API. <code>ArrayDeque</code> is the recommended replacement. Note <code>Deque.push</code> adds at the <strong>front</strong> and <code>pop</code> removes from the front, which is exactly stack behaviour.</p></aside>
+<h2 id="classic-stack-problems"><span class="num">03</span>Classic Stack Problems</h2>
+<h3 id="balanced-parentheses">Balanced parentheses</h3>
+<pre><code class="language-java">static boolean isValid(String s) {
+    Deque&lt;Character&gt; st = new ArrayDeque&lt;&gt;();
+    for (char c : s.toCharArray()) {
+        if (c == '(' || c == '[' || c == '{') st.push(c);
+        else {
+            if (st.isEmpty()) return false;
+            char open = st.pop();
+            if ((c == ')' &amp;&amp; open != '(') || (c == ']' &amp;&amp; open != '[') || (c == '}' &amp;&amp; open != '{')) return false;
+        }
+    }
+    return st.isEmpty();                          // O(n) time, O(n) space
+}</code></pre>
+<h3 id="evaluate-a-postfix-reverse-polish-expression">Evaluate a postfix (reverse Polish) expression</h3>
+<pre><code class="language-java">static int evalRPN(String[] tokens) {
+    Deque&lt;Integer&gt; st = new ArrayDeque&lt;&gt;();
+    for (String t : tokens) {
+        switch (t) {
+            case "+" -&gt; st.push(st.pop() + st.pop());
+            case "*" -&gt; st.push(st.pop() * st.pop());
+            case "-" -&gt; { int b = st.pop(), a = st.pop(); st.push(a - b); }
+            case "/" -&gt; { int b = st.pop(), a = st.pop(); st.push(a / b); }
+            default  -&gt; st.push(Integer.parseInt(t));
+        }
+    }
+    return st.pop();
+}
+// ["2","1","+","3","*"] → 9</code></pre>
+<h3 id="infix-to-postfix-shunting-yard-idea">Infix to postfix (Shunting-yard idea)</h3>
+<p>Scan tokens: operands go to the output; for an operator, pop operators of <strong>higher or equal precedence</strong> to the output, then push it; <code>(</code> is pushed, <code>)</code> pops until <code>(</code>. At the end pop everything.</p>
+<h3 id="min-stack-getmin-in-o-1">Min stack: <code>getMin()</code> in O(1)</h3>
+<pre><code class="language-java">class MinStack {
+    private final Deque&lt;int[]&gt; st = new ArrayDeque&lt;&gt;();       // each entry: {value, min so far}
+
+    void push(int x) {
+        int min = st.isEmpty() ? x : Math.min(x, st.peek()[1]);
+        st.push(new int[]{x, min});
+    }
+    void pop() { st.pop(); }
+    int top() { return st.peek()[0]; }
+    int getMin() { return st.peek()[1]; }
+}</code></pre>
+<h3 id="reverse-a-string-undo-history">Reverse a string / undo history</h3>
+<p>Push characters, then pop them: LIFO reverses the order.</p>
+<h3 id="decode-string-3-a2-c-accaccacc">Decode string (<code>3[a2[c]]</code> → <code>accaccacc</code>)</h3>
+<pre><code class="language-java">static String decode(String s) {
+    Deque&lt;Integer&gt; counts = new ArrayDeque&lt;&gt;();
+    Deque&lt;StringBuilder&gt; strs = new ArrayDeque&lt;&gt;();
+    StringBuilder cur = new StringBuilder();
+    int k = 0;
+    for (char c : s.toCharArray()) {
+        if (Character.isDigit(c)) k = k * 10 + (c - '0');
+        else if (c == '[') { counts.push(k); strs.push(cur); cur = new StringBuilder(); k = 0; }
+        else if (c == ']') {
+            StringBuilder prev = strs.pop();
+            prev.append(String.valueOf(cur).repeat(counts.pop()));
+            cur = prev;
+        } else cur.append(c);
+    }
+    return cur.toString();
+}</code></pre>
+<h2 id="monotonic-stack"><span class="num">04</span>Monotonic Stack</h2>
+<p>Keep the stack <strong>sorted</strong> (increasing or decreasing). Whenever a new element breaks the order, <strong>pop</strong> the elements it dominates, and that pop is exactly when their answer becomes known. Each element is pushed and popped at most once → <code>O(n)</code>.</p>
+<h3 id="next-greater-element">Next greater element</h3>
+<pre><code class="language-java">static int[] nextGreater(int[] a) {
+    int[] res = new int[a.length];
+    Arrays.fill(res, -1);
+    Deque&lt;Integer&gt; st = new ArrayDeque&lt;&gt;();                  // stores indexes, values decreasing
+    for (int i = 0; i &lt; a.length; i++) {
+        while (!st.isEmpty() &amp;&amp; a[i] &gt; a[st.peek()]) res[st.pop()] = a[i];
+        st.push(i);
+    }
+    return res;                                               // O(n)
+}
+// [2,1,2,4,3] → [4,2,4,-1,-1]</code></pre>
+<h3 id="daily-temperatures-days-until-a-warmer-day">Daily temperatures (days until a warmer day)</h3>
+<pre><code class="language-java">static int[] dailyTemperatures(int[] t) {
+    int[] res = new int[t.length];
+    Deque&lt;Integer&gt; st = new ArrayDeque&lt;&gt;();
+    for (int i = 0; i &lt; t.length; i++) {
+        while (!st.isEmpty() &amp;&amp; t[i] &gt; t[st.peek()]) {
+            int j = st.pop();
+            res[j] = i - j;
+        }
+        st.push(i);
+    }
+    return res;
+}</code></pre>
+<h3 id="largest-rectangle-in-a-histogram">Largest rectangle in a histogram</h3>
+<pre><code class="language-java">static int largestRectangle(int[] h) {
+    Deque&lt;Integer&gt; st = new ArrayDeque&lt;&gt;();                  // indexes of increasing bar heights
+    int best = 0;
+    for (int i = 0; i &lt;= h.length; i++) {
+        int cur = (i == h.length) ? 0 : h[i];                // sentinel 0 flushes the stack
+        while (!st.isEmpty() &amp;&amp; cur &lt; h[st.peek()]) {
+            int height = h[st.pop()];
+            int left = st.isEmpty() ? -1 : st.peek();
+            best = Math.max(best, height * (i - left - 1));
+        }
+        st.push(i);
+    }
+    return best;                                              // O(n)
+}</code></pre>
+<p>Related: trapping rain water (stack version), stock span, maximal rectangle in a binary matrix, remove k digits.</p>
+<h2 id="queue-first-in-first-out-fifo"><span class="num">05</span>Queue: First In, First Out (FIFO)</h2>
+<p>Like a line at a ticket counter: add at the <strong>rear</strong>, remove from the <strong>front</strong>.</p>
+<pre><code class="language-text">enqueue(1) enqueue(2) enqueue(3)
+
+front → [ 1 | 2 | 3 ] ← rear        dequeue() → 1</code></pre>
+<div class="table-wrap"><table><thead><tr><th>Operation</th><th>Meaning</th><th>Time</th></tr></thead><tbody><tr><td><code>offer(x)</code> / <code>add(x)</code></td><td>Enqueue at the rear</td><td><code>O(1)</code></td></tr><tr><td><code>poll()</code> / <code>remove()</code></td><td>Dequeue from the front</td><td><code>O(1)</code></td></tr><tr><td><code>peek()</code> / <code>element()</code></td><td>Look at the front</td><td><code>O(1)</code></td></tr></tbody></table></div>
+<h3 id="where-queues-are-used">Where queues are used</h3>
+<ul><li><strong>BFS</strong> on graphs and trees; level-order traversal</li><li>Task scheduling, print queues, <strong>message queues</strong> (Kafka, RabbitMQ)</li><li>Buffering streams, rate limiting, sliding-window problems</li></ul>
+<h3 id="circular-array-queue">Circular array queue</h3>
+<p>Wrapping the indexes around reuses freed space.</p>
+<pre><code class="language-java">class CircularQueue {
+    private final int[] data;
+    private int front = 0, size = 0;
+
+    CircularQueue(int capacity) { data = new int[capacity]; }
+
+    boolean offer(int x) {
+        if (size == data.length) return false;                // full
+        data[(front + size) % data.length] = x;
+        size++;
+        return true;
+    }
+    int poll() {
+        if (size == 0) throw new RuntimeException("Queue is empty");
+        int x = data[front];
+        front = (front + 1) % data.length;
+        size--;
+        return x;
+    }
+    int peek() { return data[front]; }
+    boolean isEmpty() { return size == 0; }
+}</code></pre>
+<h3 id="linked-list-queue">Linked list queue</h3>
+<p>Keep <code>head</code> (dequeue) and <code>tail</code> (enqueue) pointers so both operations are <code>O(1)</code>.</p>
+<h3 id="in-java">In Java</h3>
+<pre><code class="language-java">Queue&lt;Integer&gt; q = new ArrayDeque&lt;&gt;();      // or LinkedList
+q.offer(1); q.offer(2);
+q.peek();    // 1
+q.poll();    // 1</code></pre>
+<p>Prefer <code>offer</code>/<code>poll</code>/<code>peek</code> (return <code>false</code>/<code>null</code> on failure) over <code>add</code>/<code>remove</code>/<code>element</code> (throw exceptions).</p>
+<h2 id="queue-and-stack-from-each-other"><span class="num">06</span>Queue and Stack from Each Other</h2>
+<h3 id="queue-using-two-stacks-amortised-o-1">Queue using two stacks (amortised O(1))</h3>
+<pre><code class="language-java">class MyQueue {
+    private final Deque&lt;Integer&gt; in = new ArrayDeque&lt;&gt;(), out = new ArrayDeque&lt;&gt;();
+
+    void push(int x) { in.push(x); }
+    int pop() { shift(); return out.pop(); }
+    int peek() { shift(); return out.peek(); }
+    boolean empty() { return in.isEmpty() &amp;&amp; out.isEmpty(); }
+
+    private void shift() {                          // move only when `out` is empty
+        if (out.isEmpty()) while (!in.isEmpty()) out.push(in.pop());
+    }
+}</code></pre>
+<h3 id="stack-using-one-queue">Stack using one queue</h3>
+<pre><code class="language-java">class MyStack {
+    private final Queue&lt;Integer&gt; q = new ArrayDeque&lt;&gt;();
+    void push(int x) {
+        q.offer(x);
+        for (int i = 0; i &lt; q.size() - 1; i++) q.offer(q.poll());   // rotate so the new item is at the front
+    }
+    int pop() { return q.poll(); }
+    int top() { return q.peek(); }
+}</code></pre>
+<h2 id="deque-double-ended-queue"><span class="num">07</span>Deque (Double-Ended Queue)</h2>
+<p>Insert and remove at <strong>both</strong> ends in <code>O(1)</code>. It can act as a stack or a queue.</p>
+<pre><code class="language-java">Deque&lt;Integer&gt; dq = new ArrayDeque&lt;&gt;();
+dq.addFirst(1);  dq.addLast(2);
+dq.pollFirst();  dq.pollLast();
+dq.peekFirst();  dq.peekLast();</code></pre>
+<h3 id="sliding-window-maximum-monotonic-deque">Sliding window maximum (monotonic deque)</h3>
+<p>Keep <strong>indexes</strong> in the deque with their values in <strong>decreasing</strong> order. The front is always the current maximum.</p>
+<pre><code class="language-java">static int[] maxSlidingWindow(int[] a, int k) {
+    int n = a.length;
+    int[] res = new int[n - k + 1];
+    Deque&lt;Integer&gt; dq = new ArrayDeque&lt;&gt;();
+    for (int i = 0; i &lt; n; i++) {
+        if (!dq.isEmpty() &amp;&amp; dq.peekFirst() &lt;= i - k) dq.pollFirst();          // index left the window
+        while (!dq.isEmpty() &amp;&amp; a[dq.peekLast()] &lt;= a[i]) dq.pollLast();       // smaller values can never be the max
+        dq.offerLast(i);
+        if (i &gt;= k - 1) res[i - k + 1] = a[dq.peekFirst()];
+    }
+    return res;                                                                 // O(n)
+}</code></pre>
+<h2 id="priority-queue-preview"><span class="num">08</span>Priority Queue (Preview)</h2>
+<p>Removes the <strong>highest-priority</strong> element first rather than the oldest. Implemented with a heap; covered in the Heaps topic.</p>
+<pre><code class="language-java">PriorityQueue&lt;Integer&gt; minHeap = new PriorityQueue&lt;&gt;();
+PriorityQueue&lt;Integer&gt; maxHeap = new PriorityQueue&lt;&gt;(Collections.reverseOrder());</code></pre>
+<h2 id="bfs-with-a-queue-preview"><span class="num">09</span>BFS with a Queue (Preview)</h2>
+<pre><code class="language-java">static void bfs(Map&lt;Integer, List&lt;Integer&gt;&gt; g, int start) {
+    Queue&lt;Integer&gt; q = new ArrayDeque&lt;&gt;();
+    Set&lt;Integer&gt; seen = new HashSet&lt;&gt;();
+    q.offer(start); seen.add(start);
+    while (!q.isEmpty()) {
+        int u = q.poll();
+        for (int v : g.getOrDefault(u, List.of()))
+            if (seen.add(v)) q.offer(v);                  // add returns false if already seen
+    }
+}</code></pre>
+<h2 id="stack-vs-queue-vs-deque"><span class="num">10</span>Stack vs Queue vs Deque</h2>
+<div class="table-wrap"><table><thead><tr><th></th><th>Stack</th><th>Queue</th><th>Deque</th></tr></thead><tbody><tr><td>Order</td><td>LIFO</td><td>FIFO</td><td>Both ends</td></tr><tr><td>Java class</td><td><code>ArrayDeque</code></td><td><code>ArrayDeque</code>, <code>LinkedList</code></td><td><code>ArrayDeque</code></td></tr><tr><td>Typical use</td><td>DFS, undo, parsing</td><td>BFS, scheduling</td><td>Sliding window, palindromes</td></tr></tbody></table></div>
+<h2 id="problem-patterns"><span class="num">11</span>Problem Patterns</h2>
+<div class="table-wrap"><table><thead><tr><th>Clue in the problem</th><th>Technique</th></tr></thead><tbody><tr><td>Matching pairs, nesting, "valid brackets"</td><td>Stack</td></tr><tr><td>"Next greater/smaller", "span", histogram</td><td>Monotonic stack</td></tr><tr><td>Undo/redo, backtracking history</td><td>Stack</td></tr><tr><td>Level by level, shortest steps in an unweighted graph</td><td>Queue (BFS)</td></tr><tr><td>Maximum/minimum in every window</td><td>Monotonic deque</td></tr><tr><td>Process in arrival order</td><td>Queue</td></tr></tbody></table></div>
+<h2 id="common-mistakes"><span class="num">12</span>Common Mistakes</h2>
+<ul><li>Popping or peeking an <strong>empty</strong> stack/queue: always check <code>isEmpty()</code></li><li>Using <code>java.util.Stack</code>/<code>LinkedList</code> out of habit instead of <code>ArrayDeque</code></li><li>Storing <strong>values</strong> in a monotonic stack when you need <strong>indexes</strong> (distances, widths)</li><li>Forgetting that <code>Deque.push/pop</code> work at the <strong>front</strong> and <code>offer/poll</code> at the rear/front respectively</li><li><code>ArrayDeque</code> does not allow <code>null</code> elements</li></ul>
+<h2 id="quick-recap"><span class="num">13</span>Quick Recap</h2>
+<ul><li><strong>Stack</strong> = LIFO (<code>push</code>, <code>pop</code>, <code>peek</code> in <code>O(1)</code>); <strong>Queue</strong> = FIFO (<code>offer</code>, <code>poll</code>, <code>peek</code>)</li><li>Use <code>ArrayDeque</code> for both; avoid <code>Stack</code> and <code>Vector</code></li><li>Stack problems: brackets, postfix evaluation, min stack, decode string</li><li><strong>Monotonic stack</strong> gives next-greater/smaller answers in <code>O(n)</code>; <strong>monotonic deque</strong> gives sliding-window maximum</li><li>Queues drive <strong>BFS</strong>; two stacks can emulate a queue with amortised <code>O(1)</code> operations</li></ul>
+    </article>
+    <nav class="pager" aria-label="Topic navigation">
+      <a class="prev" href="04-linked-lists.html"><small>← Previous</small><strong>Linked Lists</strong></a>
+      <a class="next" href="06-hashing.html"><small>Next →</small><strong>Hashing: HashMap and HashSet Patterns</strong></a>
+    </nav>
+  </main>
+</div>
+</body>
+</html>

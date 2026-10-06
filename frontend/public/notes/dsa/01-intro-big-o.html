@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en" data-track="dsa">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Introduction to DSA and Big-O Analysis — DSA Notes · Hanbee</title>
+<meta name="description" content="What data structures and algorithms are, why interviews test them, and how to measure code with Big-O time and space complexity. Includes a problem-solving framework you can reuse for every question.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500..700;1,9..144,500&amp;family=Inter:wght@400..700&amp;family=JetBrains+Mono:wght@400..600&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/notes.css">
+<script src="../assets/notes.js" defer></script>
+</head>
+<body>
+<div class="progress" aria-hidden="true"><i></i></div>
+<header class="top">
+  <a class="brand" href="../index.html"><b>H</b>Hanbee · DSA Notes</a>
+  <nav><a class="keep" href="index.html">All topics</a><button id="theme-toggle" type="button" aria-label="Toggle light and dark theme">Theme</button></nav>
+</header>
+<div class="shell">
+  <details class="toc"><summary>On this page</summary><nav aria-label="On this page"><ol><li><a href="#what-are-data-structures-and-algorithms"><span>01</span>What are Data Structures and Algorithms?</a></li><li><a href="#properties-of-a-good-algorithm"><span>02</span>Properties of a Good Algorithm</a></li><li><a href="#why-efficiency-matters-a-quick-example"><span>03</span>Why Efficiency Matters: A Quick Example</a></li><li><a href="#complexity-analysis"><span>04</span>Complexity Analysis</a></li><li><a href="#big-o-notation"><span>05</span>Big-O Notation</a></li><li><a href="#common-growth-rates"><span>06</span>Common Growth Rates</a></li><li><a href="#analysing-code"><span>07</span>Analysing Code</a></li><li><a href="#recursion-complexity"><span>08</span>Recursion Complexity</a></li><li><a href="#space-complexity"><span>09</span>Space Complexity</a></li><li><a href="#amortised-analysis"><span>10</span>Amortised Analysis</a></li><li><a href="#complexity-of-java-collections"><span>11</span>Complexity of Java Collections</a></li><li><a href="#constraints-tell-you-the-target-complexity"><span>12</span>Constraints Tell You the Target Complexity</a></li><li><a href="#a-problem-solving-framework"><span>13</span>A Problem-Solving Framework</a></li><li><a href="#practising-in-java"><span>14</span>Practising in Java</a></li><li><a href="#where-to-practise"><span>15</span>Where to Practise</a></li><li><a href="#quick-recap"><span>16</span>Quick Recap</a></li></ol></nav></details>
+  <main>
+    <header class="hero">
+      <p class="kicker"><span class="pill">Foundations</span><span>Topic 01</span><span>Beginner</span><span>11 min read</span></p>
+      <h1>Introduction to DSA and Big-O Analysis</h1>
+      <p class="lede">What data structures and algorithms are, why interviews test them, and how to measure code with Big-O time and space complexity. Includes a problem-solving framework you can reuse for every question.</p>
+    </header>
+    <article>
+<h2 id="what-are-data-structures-and-algorithms"><span class="num">01</span>What are Data Structures and Algorithms?</h2>
+<ul><li>A <strong>data structure</strong> is a way of <strong>organising and storing data</strong> so it can be used efficiently (array, linked list, stack, tree, graph, hash table).</li><li>An <strong>algorithm</strong> is a <strong>step-by-step procedure</strong> that solves a problem (sorting, searching, shortest path).</li></ul>
+<p>Together they decide <strong>how fast</strong> your program runs and <strong>how much memory</strong> it uses.</p>
+<pre><code class="language-text">Program = Data Structures + Algorithms</code></pre>
+<h3 id="why-learn-dsa">Why learn DSA?</h3>
+<ul><li><strong>Interviews</strong>: most product and service companies test DSA in coding rounds</li><li><strong>Performance</strong>: choosing a <code>HashMap</code> over a list can turn minutes into milliseconds</li><li><strong>Problem solving</strong>: you learn to break big problems into known patterns</li><li><strong>Understanding libraries</strong>: you will know what <code>ArrayList</code>, <code>HashMap</code>, <code>PriorityQueue</code> do internally</li><li><strong>Foundation</strong> for databases, operating systems, compilers and system design</li></ul>
+<h2 id="properties-of-a-good-algorithm"><span class="num">02</span>Properties of a Good Algorithm</h2>
+<div class="table-wrap"><table><thead><tr><th>Property</th><th>Meaning</th></tr></thead><tbody><tr><td><strong>Correct</strong></td><td>Gives the right output for every valid input</td></tr><tr><td><strong>Finite</strong></td><td>Always terminates</td></tr><tr><td><strong>Efficient</strong></td><td>Uses reasonable time and memory</td></tr><tr><td><strong>Well-defined</strong></td><td>Each step is precise and unambiguous</td></tr><tr><td><strong>Handles edge cases</strong></td><td>Empty input, one element, duplicates, negatives, huge values</td></tr></tbody></table></div>
+<h2 id="why-efficiency-matters-a-quick-example"><span class="num">03</span>Why Efficiency Matters: A Quick Example</h2>
+<p>Find whether any two numbers in an array add up to a target.</p>
+<pre><code class="language-java">// Approach 1: check every pair  → O(n²)
+static boolean hasPairBrute(int[] a, int target) {
+    for (int i = 0; i &lt; a.length; i++)
+        for (int j = i + 1; j &lt; a.length; j++)
+            if (a[i] + a[j] == target) return true;
+    return false;
+}
+
+// Approach 2: remember what we have seen  → O(n)
+static boolean hasPairFast(int[] a, int target) {
+    Set&lt;Integer&gt; seen = new HashSet&lt;&gt;();
+    for (int x : a) {
+        if (seen.contains(target - x)) return true;
+        seen.add(x);
+    }
+    return false;
+}</code></pre>
+<p>For <code>n = 100,000</code>, approach 1 does about <strong>5 billion</strong> comparisons; approach 2 does <strong>100 thousand</strong> operations. Same answer, completely different speed.</p>
+<h2 id="complexity-analysis"><span class="num">04</span>Complexity Analysis</h2>
+<p>We do <strong>not</strong> measure seconds (they depend on the machine). We measure <strong>how the number of steps grows as the input size <code>n</code> grows</strong>.</p>
+<div class="table-wrap"><table><thead><tr><th></th><th>Measures</th><th>Question it answers</th></tr></thead><tbody><tr><td><strong>Time complexity</strong></td><td>Number of basic operations</td><td>"How does running time grow with <code>n</code>?"</td></tr><tr><td><strong>Space complexity</strong></td><td>Extra memory used</td><td>"How does memory grow with <code>n</code>?"</td></tr></tbody></table></div>
+<h2 id="big-o-notation"><span class="num">05</span>Big-O Notation</h2>
+<p><strong>Big-O</strong> describes an <strong>upper bound</strong> on growth: the worst-case behaviour for large inputs.</p>
+<h3 id="rules-for-simplifying">Rules for simplifying</h3>
+<ol><li><strong>Drop constants</strong>: <code>O(2n)</code> → <code>O(n)</code></li><li><strong>Drop lower-order terms</strong>: <code>O(n² + n)</code> → <code>O(n²)</code></li><li><strong>Different inputs, different variables</strong>: looping over arrays <code>a</code> and <code>b</code> is <code>O(a + b)</code>, not <code>O(n)</code></li><li><strong>Nested loops multiply</strong>, <strong>sequential loops add</strong></li></ol>
+<h3 id="related-notations">Related notations</h3>
+<div class="table-wrap"><table><thead><tr><th>Notation</th><th>Meaning</th><th>Analogy</th></tr></thead><tbody><tr><td><strong>Big-O</strong> <code>O(f)</code></td><td>Upper bound (at most)</td><td>"No slower than…"</td></tr><tr><td><strong>Big-Omega</strong> <code>Ω(f)</code></td><td>Lower bound (at least)</td><td>"No faster than…"</td></tr><tr><td><strong>Big-Theta</strong> <code>Θ(f)</code></td><td>Tight bound (both)</td><td>"Exactly this growth"</td></tr></tbody></table></div>
+<h3 id="best-average-and-worst-case">Best, average and worst case</h3>
+<p>Take linear search for a value in an array:</p>
+<ul><li><strong>Best case</strong>: found at index 0 → <code>O(1)</code></li><li><strong>Average case</strong>: found in the middle → <code>O(n)</code></li><li><strong>Worst case</strong>: not found or at the end → <code>O(n)</code></li></ul>
+<aside class="callout note"><span class="label">Note</span><p>Unless told otherwise, "complexity" means the <strong>worst case</strong>. Interviewers often also ask about the average case (for example quicksort: <code>O(n log n)</code> average, <code>O(n²)</code> worst).</p></aside>
+<h2 id="common-growth-rates"><span class="num">06</span>Common Growth Rates</h2>
+<div class="table-wrap"><table><thead><tr><th>Big-O</th><th>Name</th><th>n = 1,000</th><th>Typical example</th></tr></thead><tbody><tr><td><code>O(1)</code></td><td>Constant</td><td>1</td><td>Array access, hash lookup</td></tr><tr><td><code>O(log n)</code></td><td>Logarithmic</td><td>~10</td><td>Binary search</td></tr><tr><td><code>O(n)</code></td><td>Linear</td><td>1,000</td><td>Scan an array</td></tr><tr><td><code>O(n log n)</code></td><td>Linearithmic</td><td>~10,000</td><td>Merge sort, heap sort</td></tr><tr><td><code>O(n²)</code></td><td>Quadratic</td><td>1,000,000</td><td>Nested loops, bubble sort</td></tr><tr><td><code>O(n³)</code></td><td>Cubic</td><td>10⁹</td><td>Triple loop, naive matrix multiply</td></tr><tr><td><code>O(2ⁿ)</code></td><td>Exponential</td><td>astronomically large</td><td>Subsets, naive Fibonacci</td></tr><tr><td><code>O(n!)</code></td><td>Factorial</td><td>astronomically large</td><td>All permutations</td></tr></tbody></table></div>
+<pre><code class="language-text">Faster  O(1) &lt; O(log n) &lt; O(n) &lt; O(n log n) &lt; O(n²) &lt; O(2ⁿ) &lt; O(n!)  Slower</code></pre>
+<h2 id="analysing-code"><span class="num">07</span>Analysing Code</h2>
+<h3 id="o-1-constant">O(1): constant</h3>
+<pre><code class="language-java">int first = arr[0];                 // one step regardless of array size
+map.get(key);                       // average case for HashMap</code></pre>
+<h3 id="o-n-a-single-loop">O(n): a single loop</h3>
+<pre><code class="language-java">int sum = 0;
+for (int x : arr) sum += x;         // runs n times</code></pre>
+<h3 id="o-log-n-the-problem-shrinks-by-a-constant-factor-each-step">O(log n): the problem shrinks by a constant factor each step</h3>
+<pre><code class="language-java">for (int i = 1; i &lt; n; i *= 2) { }  // i doubles: about log₂(n) iterations
+while (n &gt; 1) n /= 2;               // halving</code></pre>
+<h3 id="o-n-nested-loops">O(n²): nested loops</h3>
+<pre><code class="language-java">for (int i = 0; i &lt; n; i++)
+    for (int j = 0; j &lt; n; j++)
+        count++;                     // n × n</code></pre>
+<pre><code class="language-java">for (int i = 0; i &lt; n; i++)
+    for (int j = i + 1; j &lt; n; j++)  // n + (n-1) + ... + 1 = n(n+1)/2  → still O(n²)
+        count++;</code></pre>
+<h3 id="o-n-log-n">O(n log n)</h3>
+<pre><code class="language-java">for (int i = 0; i &lt; n; i++)          // n times
+    for (int j = 1; j &lt; n; j *= 2)   // log n times
+        count++;</code></pre>
+<h3 id="sequential-steps-add">Sequential steps add</h3>
+<pre><code class="language-java">for (int x : a) { }                  // O(n)
+for (int i = 0; i &lt; n; i++)
+    for (int j = 0; j &lt; n; j++) { }  // O(n²)
+// total O(n + n²) = O(n²)</code></pre>
+<h3 id="two-different-inputs">Two different inputs</h3>
+<pre><code class="language-java">for (int x : a) { }                  // O(a)
+for (int y : b) { }                  // O(b)
+// total O(a + b); nested would be O(a × b)</code></pre>
+<h3 id="hidden-costs">Hidden costs</h3>
+<pre><code class="language-java">for (int i = 0; i &lt; n; i++) {
+    s = s + "x";                     // string concat copies: O(n) each → O(n²) total
+    list.remove(0);                  // ArrayList shift: O(n) each → O(n²) total
+    list.contains(x);                // O(n) each → O(n²) total
+}</code></pre>
+<p>Library calls have their own complexity: always check <code>sort</code> (<code>O(n log n)</code>), <code>substring</code> (<code>O(k)</code>), <code>String.equals</code> (<code>O(length)</code>), <code>list.contains</code> (<code>O(n)</code>).</p>
+<h2 id="recursion-complexity"><span class="num">08</span>Recursion Complexity</h2>
+<p>Count <strong>calls × work per call</strong>.</p>
+<pre><code class="language-java">int sum(int n) { return n == 0 ? 0 : n + sum(n - 1); }   // n calls, O(1) each → O(n) time, O(n) stack space
+int fib(int n) { return n &lt; 2 ? n : fib(n-1) + fib(n-2); } // ~2ⁿ calls → O(2ⁿ)</code></pre>
+<h3 id="recurrence-relations">Recurrence relations</h3>
+<div class="table-wrap"><table><thead><tr><th>Recurrence</th><th>Result</th><th>Example</th></tr></thead><tbody><tr><td><code>T(n) = T(n-1) + O(1)</code></td><td><code>O(n)</code></td><td>Linear recursion</td></tr><tr><td><code>T(n) = T(n/2) + O(1)</code></td><td><code>O(log n)</code></td><td>Binary search</td></tr><tr><td><code>T(n) = 2T(n/2) + O(n)</code></td><td><code>O(n log n)</code></td><td>Merge sort</td></tr><tr><td><code>T(n) = 2T(n-1) + O(1)</code></td><td><code>O(2ⁿ)</code></td><td>Naive subsets/Fibonacci</td></tr><tr><td><code>T(n) = T(n-1) + O(n)</code></td><td><code>O(n²)</code></td><td>Selection-style recursion</td></tr></tbody></table></div>
+<p><strong>Master theorem</strong> for <code>T(n) = a·T(n/b) + O(nᵈ)</code>:</p>
+<ul><li>if <code>d &gt; log_b(a)</code> → <code>O(nᵈ)</code></li><li>if <code>d = log_b(a)</code> → <code>O(nᵈ log n)</code></li><li>if <code>d &lt; log_b(a)</code> → <code>O(n^(log_b a))</code></li></ul>
+<h2 id="space-complexity"><span class="num">09</span>Space Complexity</h2>
+<p>Count the <strong>extra</strong> memory you allocate, not the input itself.</p>
+<div class="table-wrap"><table><thead><tr><th>Code</th><th>Space</th></tr></thead><tbody><tr><td>A few variables</td><td><code>O(1)</code></td></tr><tr><td>New array/list of size <code>n</code></td><td><code>O(n)</code></td></tr><tr><td><code>n × n</code> grid</td><td><code>O(n²)</code></td></tr><tr><td>Recursion depth <code>d</code></td><td><code>O(d)</code> (call stack)</td></tr><tr><td>In-place swap, two pointers</td><td><code>O(1)</code></td></tr></tbody></table></div>
+<pre><code class="language-java">int[] copy = Arrays.copyOf(arr, arr.length);   // O(n) extra space
+reverseInPlace(arr);                            // O(1) extra space</code></pre>
+<aside class="callout tip"><span class="label">Tip</span><p>There is often a <strong>time-space trade-off</strong>: a <code>HashMap</code> uses <code>O(n)</code> memory to make lookups <code>O(1)</code>.</p></aside>
+<h2 id="amortised-analysis"><span class="num">10</span>Amortised Analysis</h2>
+<p>Some operations are usually cheap but occasionally expensive. <strong>Amortised</strong> cost is the average over a sequence of operations.</p>
+<p><strong>Dynamic array</strong> (<code>ArrayList</code>): <code>add</code> is normally <code>O(1)</code>. When the array is full it allocates a bigger one (about 1.5× in Java's <code>ArrayList</code>) and copies everything, which is <code>O(n)</code>. Because resizes become rarer as the array grows, the <strong>amortised cost of <code>add</code> is <code>O(1)</code></strong>.</p>
+<h2 id="complexity-of-java-collections"><span class="num">11</span>Complexity of Java Collections</h2>
+<div class="table-wrap"><table><thead><tr><th>Structure</th><th>Access</th><th>Search</th><th>Insert</th><th>Delete</th><th>Notes</th></tr></thead><tbody><tr><td>Array</td><td>O(1)</td><td>O(n)</td><td>O(n)</td><td>O(n)</td><td>Fixed size</td></tr><tr><td><code>ArrayList</code></td><td>O(1)</td><td>O(n)</td><td>O(1) amortised at end; O(n) middle</td><td>O(n)</td><td></td></tr><tr><td><code>LinkedList</code></td><td>O(n)</td><td>O(n)</td><td>O(1) at ends / known node</td><td>O(1) at ends / known node</td><td></td></tr><tr><td><code>HashMap</code> / <code>HashSet</code></td><td>n/a</td><td>O(1) avg</td><td>O(1) avg</td><td>O(1) avg</td><td>Worst case O(log n) with tree bins</td></tr><tr><td><code>TreeMap</code> / <code>TreeSet</code></td><td>n/a</td><td>O(log n)</td><td>O(log n)</td><td>O(log n)</td><td>Sorted</td></tr><tr><td><code>PriorityQueue</code></td><td>peek O(1)</td><td>O(n)</td><td>O(log n)</td><td>poll O(log n)</td><td>Binary heap</td></tr><tr><td><code>ArrayDeque</code></td><td>ends O(1)</td><td>O(n)</td><td>O(1) at ends</td><td>O(1) at ends</td><td>Stack / queue</td></tr></tbody></table></div>
+<h2 id="constraints-tell-you-the-target-complexity"><span class="num">12</span>Constraints Tell You the Target Complexity</h2>
+<p>A computer does roughly <strong>10⁷ to 10⁸ simple operations per second</strong>. Use the input limit to guess the needed complexity.</p>
+<div class="table-wrap"><table><thead><tr><th>Max <code>n</code></th><th>Acceptable complexity</th></tr></thead><tbody><tr><td>≤ 10 to 12</td><td><code>O(n!)</code>, <code>O(2ⁿ · n)</code> (brute force, backtracking)</td></tr><tr><td>≤ 20 to 25</td><td><code>O(2ⁿ)</code> (subsets, bitmask)</td></tr><tr><td>≤ 100</td><td><code>O(n³)</code></td></tr><tr><td>≤ 1,000 to 5,000</td><td><code>O(n²)</code></td></tr><tr><td>≤ 10⁵ to 10⁶</td><td><code>O(n log n)</code> or <code>O(n)</code></td></tr><tr><td>≤ 10⁹</td><td><code>O(log n)</code> or <code>O(1)</code> (maths, binary search)</td></tr></tbody></table></div>
+<h2 id="a-problem-solving-framework"><span class="num">13</span>A Problem-Solving Framework</h2>
+<p>Use the same steps for every question, in interviews and in practice.</p>
+<ol><li><strong>Understand</strong>: restate the problem; ask about input size, types, duplicates, negatives, sorted or not, empty input</li><li><strong>Examples</strong>: work through a small example and an edge case by hand</li><li><strong>Brute force</strong>: say the simplest solution and its complexity (it proves you understand)</li><li><strong>Optimise</strong>: look for repeated work, a better data structure, sorting, two pointers, hashing, recursion/DP</li><li><strong>Plan</strong>: describe the approach and confirm before coding</li><li><strong>Code</strong>: clean names, small helpers</li><li><strong>Test</strong>: dry-run with your examples and edge cases</li><li><strong>Analyse</strong>: state final time and space complexity</li></ol>
+<h3 id="common-optimisation-ideas">Common optimisation ideas</h3>
+<div class="table-wrap"><table><thead><tr><th>Clue</th><th>Try</th></tr></thead><tbody><tr><td>Need fast lookups / counts / "seen before"</td><td>HashMap / HashSet</td></tr><tr><td>Sorted array or "find in sorted data"</td><td>Binary search, two pointers</td></tr><tr><td>Subarray / substring with a condition</td><td>Sliding window, prefix sums</td></tr><tr><td>Next greater/smaller element</td><td>Monotonic stack</td></tr><tr><td>Top K / k-th largest</td><td>Heap</td></tr><tr><td>All combinations / permutations</td><td>Backtracking</td></tr><tr><td>Overlapping subproblems</td><td>Dynamic programming</td></tr><tr><td>Shortest path / levels</td><td>BFS</td></tr><tr><td>Connected components / dependencies</td><td>DFS, union-find, topological sort</td></tr></tbody></table></div>
+<h2 id="practising-in-java"><span class="num">14</span>Practising in Java</h2>
+<h3 id="fast-input-competitive-programming">Fast input (competitive programming)</h3>
+<pre><code class="language-java">import java.io.*;
+import java.util.*;
+
+public class Main {
+    public static void main(String[] args) throws IOException {
+        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+        int n = Integer.parseInt(br.readLine().trim());
+        StringTokenizer st = new StringTokenizer(br.readLine());
+        int[] a = new int[n];
+        for (int i = 0; i &lt; n; i++) a[i] = Integer.parseInt(st.nextToken());
+
+        StringBuilder out = new StringBuilder();
+        out.append(a.length).append('\n');
+        System.out.print(out);
+    }
+}</code></pre>
+<h3 id="measuring-time">Measuring time</h3>
+<pre><code class="language-java">long start = System.nanoTime();
+solve();
+System.out.println((System.nanoTime() - start) / 1_000_000 + " ms");</code></pre>
+<h3 id="java-specific-pitfalls">Java-specific pitfalls</h3>
+<ul><li><code>int</code> overflows at about 2.1 × 10⁹: use <code>long</code> for sums/products (<code>mid = lo + (hi - lo) / 2</code>)</li><li>Compare boxed values with <code>equals</code>, not <code>==</code> (<code>Integer</code> cache trap)</li><li>Use <code>StringBuilder</code> for building strings in loops</li><li>Don't remove from a list while iterating; use an <code>Iterator</code> or index loop backwards</li><li><code>Arrays.sort(int[])</code> is fast, but sorting <code>Integer[]</code> with a lambda comparator avoids subtraction overflow: use <code>Integer.compare(a, b)</code></li></ul>
+<h2 id="where-to-practise"><span class="num">15</span>Where to Practise</h2>
+<ul><li>Start with arrays and strings, then follow the order of these notes</li><li>Solve <strong>2 to 3 problems per topic</strong> before moving on; revisit failures after a few days</li><li>Platforms: LeetCode, HackerRank, GeeksforGeeks, Codeforces, CodeChef, NeetCode roadmap</li><li>Write the solution <strong>by hand first</strong>, then in an IDE; always state complexity</li></ul>
+<h2 id="quick-recap"><span class="num">16</span>Quick Recap</h2>
+<ul><li>DSA decides speed and memory; efficient solutions matter at scale</li><li><strong>Big-O</strong> describes worst-case growth; drop constants and lower-order terms</li><li>Loops multiply when nested, add when sequential; halving gives <code>log n</code></li><li>Recursion cost = number of calls × work per call; know the common recurrences</li><li>Know the complexity of Java collections; use constraints to pick a target complexity</li><li>Follow a framework: understand → examples → brute force → optimise → code → test → analyse</li></ul>
+    </article>
+    <nav class="pager" aria-label="Topic navigation">
+      
+      <a class="next" href="02-arrays-strings.html"><small>Next →</small><strong>Arrays and Strings: Core Techniques</strong></a>
+    </nav>
+  </main>
+</div>
+</body>
+</html>

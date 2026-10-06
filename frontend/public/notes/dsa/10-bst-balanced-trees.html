@@ -1,0 +1,250 @@
+<!doctype html>
+<html lang="en" data-track="dsa">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Binary Search Trees and Balanced Trees — DSA Notes · Hanbee</title>
+<meta name="description" content="Ordered trees with fast search. BST operations including deletion, validation and k-th smallest, why balance matters, AVL rotations, red-black and B-trees, and range-query structures.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500..700;1,9..144,500&amp;family=Inter:wght@400..700&amp;family=JetBrains+Mono:wght@400..600&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/notes.css">
+<script src="../assets/notes.js" defer></script>
+</head>
+<body>
+<div class="progress" aria-hidden="true"><i></i></div>
+<header class="top">
+  <a class="brand" href="../index.html"><b>H</b>Hanbee · DSA Notes</a>
+  <nav><a class="keep" href="index.html">All topics</a><button id="theme-toggle" type="button" aria-label="Toggle light and dark theme">Theme</button></nav>
+</header>
+<div class="shell">
+  <details class="toc"><summary>On this page</summary><nav aria-label="On this page"><ol><li><a href="#binary-search-tree-bst"><span>01</span>Binary Search Tree (BST)</a></li><li><a href="#bst-operations"><span>02</span>BST Operations</a></li><li><a href="#classic-bst-problems"><span>03</span>Classic BST Problems</a></li><li><a href="#why-balance-matters"><span>04</span>Why Balance Matters</a></li><li><a href="#avl-tree"><span>05</span>AVL Tree</a></li><li><a href="#red-black-tree-overview"><span>06</span>Red-Black Tree (Overview)</a></li><li><a href="#java-s-ordered-collections"><span>07</span>Java's Ordered Collections</a></li><li><a href="#b-trees-and-b-trees"><span>08</span>B-Trees and B+ Trees</a></li><li><a href="#range-query-structures-preview"><span>09</span>Range Query Structures (Preview)</a></li><li><a href="#bst-vs-hash-table-vs-sorted-array"><span>10</span>BST vs Hash Table vs Sorted Array</a></li><li><a href="#common-mistakes"><span>11</span>Common Mistakes</a></li><li><a href="#quick-recap"><span>12</span>Quick Recap</a></li></ol></nav></details>
+  <main>
+    <header class="hero">
+      <p class="kicker"><span class="pill">Trees and Graphs</span><span>Topic 10</span><span>Intermediate</span><span>11 min read</span></p>
+      <h1>Binary Search Trees and Balanced Trees</h1>
+      <p class="lede">Ordered trees with fast search. BST operations including deletion, validation and k-th smallest, why balance matters, AVL rotations, red-black and B-trees, and range-query structures.</p>
+    </header>
+    <article>
+<h2 id="binary-search-tree-bst"><span class="num">01</span>Binary Search Tree (BST)</h2>
+<p>A binary tree where, for <strong>every node</strong>:</p>
+<ul><li>all values in the <strong>left</strong> subtree are <strong>smaller</strong></li><li>all values in the <strong>right</strong> subtree are <strong>larger</strong></li><li>both subtrees are themselves BSTs</li></ul>
+<pre><code class="language-text">            8
+          /   \
+         3     10
+        / \      \
+       1   6      14
+          / \    /
+         4   7  13</code></pre>
+<p><strong>Inorder traversal of a BST gives the values in sorted order</strong>: <code>1 3 4 6 7 8 10 13 14</code>.</p>
+<div class="table-wrap"><table><thead><tr><th>Operation</th><th>Balanced</th><th>Skewed (worst)</th></tr></thead><tbody><tr><td>Search</td><td><code>O(log n)</code></td><td><code>O(n)</code></td></tr><tr><td>Insert</td><td><code>O(log n)</code></td><td><code>O(n)</code></td></tr><tr><td>Delete</td><td><code>O(log n)</code></td><td><code>O(n)</code></td></tr><tr><td>Min / max</td><td><code>O(log n)</code></td><td><code>O(n)</code></td></tr></tbody></table></div>
+<p>Inserting already sorted data into a plain BST creates a linked-list-shaped tree, so <code>O(n)</code> operations. That is the reason balanced trees exist.</p>
+<h2 id="bst-operations"><span class="num">02</span>BST Operations</h2>
+<h3 id="search">Search</h3>
+<pre><code class="language-java">static TreeNode search(TreeNode root, int key) {
+    while (root != null &amp;&amp; root.val != key)
+        root = key &lt; root.val ? root.left : root.right;
+    return root;
+}</code></pre>
+<h3 id="insert">Insert</h3>
+<pre><code class="language-java">static TreeNode insert(TreeNode root, int key) {
+    if (root == null) return new TreeNode(key);
+    if (key &lt; root.val) root.left = insert(root.left, key);
+    else if (key &gt; root.val) root.right = insert(root.right, key);
+    return root;                                             // duplicates ignored
+}</code></pre>
+<h3 id="minimum-and-maximum">Minimum and maximum</h3>
+<pre><code class="language-java">static TreeNode min(TreeNode n) { while (n.left != null) n = n.left; return n; }
+static TreeNode max(TreeNode n) { while (n.right != null) n = n.right; return n; }</code></pre>
+<h3 id="delete-three-cases">Delete: three cases</h3>
+<ol><li><strong>Leaf</strong>: just remove it</li><li><strong>One child</strong>: replace the node with its child</li><li><strong>Two children</strong>: replace its value with the <strong>inorder successor</strong> (smallest in the right subtree), then delete that successor</li></ol>
+<pre><code class="language-java">static TreeNode delete(TreeNode root, int key) {
+    if (root == null) return null;
+    if (key &lt; root.val) root.left = delete(root.left, key);
+    else if (key &gt; root.val) root.right = delete(root.right, key);
+    else {
+        if (root.left == null) return root.right;           // cases 1 and 2
+        if (root.right == null) return root.left;
+        TreeNode succ = min(root.right);                    // case 3
+        root.val = succ.val;
+        root.right = delete(root.right, succ.val);
+    }
+    return root;
+}</code></pre>
+<h3 id="inorder-successor-and-predecessor">Inorder successor and predecessor</h3>
+<pre><code class="language-java">static TreeNode successor(TreeNode root, int key) {          // smallest value greater than key
+    TreeNode succ = null;
+    while (root != null) {
+        if (key &lt; root.val) { succ = root; root = root.left; }
+        else root = root.right;
+    }
+    return succ;
+}</code></pre>
+<h3 id="floor-and-ceiling">Floor and ceiling</h3>
+<pre><code class="language-java">static Integer floor(TreeNode root, int key) {               // greatest value &lt;= key
+    Integer res = null;
+    while (root != null) {
+        if (root.val == key) return key;
+        if (root.val &lt; key) { res = root.val; root = root.right; }
+        else root = root.left;
+    }
+    return res;
+}</code></pre>
+<h2 id="classic-bst-problems"><span class="num">03</span>Classic BST Problems</h2>
+<h3 id="validate-a-bst">Validate a BST</h3>
+<p>Checking only <code>left &lt; node &lt; right</code> locally is <strong>wrong</strong>; every node must satisfy the bounds inherited from its ancestors.</p>
+<pre><code class="language-java">static boolean isValidBST(TreeNode n) { return valid(n, Long.MIN_VALUE, Long.MAX_VALUE); }
+static boolean valid(TreeNode n, long lo, long hi) {
+    if (n == null) return true;
+    if (n.val &lt;= lo || n.val &gt;= hi) return false;
+    return valid(n.left, lo, n.val) &amp;&amp; valid(n.right, n.val, hi);
+}</code></pre>
+<p>Alternative: inorder traversal must be <strong>strictly increasing</strong>.</p>
+<h3 id="k-th-smallest-element">K-th smallest element</h3>
+<pre><code class="language-java">static int kthSmallest(TreeNode root, int k) {
+    Deque&lt;TreeNode&gt; st = new ArrayDeque&lt;&gt;();
+    TreeNode cur = root;
+    while (cur != null || !st.isEmpty()) {
+        while (cur != null) { st.push(cur); cur = cur.left; }
+        cur = st.pop();
+        if (--k == 0) return cur.val;                        // O(h + k)
+        cur = cur.right;
+    }
+    return -1;
+}</code></pre>
+<p>If the tree is queried often and modified, store <strong>subtree sizes</strong> in each node for <code>O(h)</code> rank queries.</p>
+<h3 id="lca-in-a-bst-o-h">LCA in a BST: O(h)</h3>
+<pre><code class="language-java">static TreeNode lcaBST(TreeNode root, int p, int q) {
+    while (root != null) {
+        if (p &lt; root.val &amp;&amp; q &lt; root.val) root = root.left;
+        else if (p &gt; root.val &amp;&amp; q &gt; root.val) root = root.right;
+        else return root;                                    // the split point
+    }
+    return null;
+}</code></pre>
+<h3 id="sorted-array-to-a-height-balanced-bst">Sorted array to a height-balanced BST</h3>
+<pre><code class="language-java">static TreeNode sortedArrayToBST(int[] a, int lo, int hi) {
+    if (lo &gt; hi) return null;
+    int mid = lo + (hi - lo) / 2;
+    TreeNode n = new TreeNode(a[mid]);
+    n.left = sortedArrayToBST(a, lo, mid - 1);
+    n.right = sortedArrayToBST(a, mid + 1, hi);
+    return n;
+}</code></pre>
+<h3 id="range-sum-of-a-bst-prune-with-the-ordering">Range sum of a BST (prune with the ordering)</h3>
+<pre><code class="language-java">static int rangeSum(TreeNode n, int lo, int hi) {
+    if (n == null) return 0;
+    if (n.val &lt; lo) return rangeSum(n.right, lo, hi);
+    if (n.val &gt; hi) return rangeSum(n.left, lo, hi);
+    return n.val + rangeSum(n.left, lo, hi) + rangeSum(n.right, lo, hi);
+}</code></pre>
+<h3 id="other-bst-problems">Other BST problems</h3>
+<div class="table-wrap"><table><thead><tr><th>Problem</th><th>Idea</th></tr></thead><tbody><tr><td>Two sum in a BST</td><td>Inorder to array + two pointers, or two iterators</td></tr><tr><td>Recover a BST with two swapped nodes</td><td>Inorder; find the two out-of-order spots</td></tr><tr><td>Convert BST to a greater tree</td><td>Reverse inorder with a running sum</td></tr><tr><td>Trim a BST</td><td>Recurse, discarding out-of-range subtrees</td></tr><tr><td>Construct a BST from preorder</td><td>Use upper bounds</td></tr><tr><td>BST iterator</td><td>Controlled inorder with an explicit stack: <code>O(h)</code> memory</td></tr><tr><td>Count BSTs with <code>n</code> nodes</td><td>Catalan number (DP)</td></tr></tbody></table></div>
+<h2 id="why-balance-matters"><span class="num">04</span>Why Balance Matters</h2>
+<p>A self-balancing tree keeps its height at <code>O(log n)</code> automatically after inserts and deletes, guaranteeing <code>O(log n)</code> operations regardless of insertion order.</p>
+<div class="table-wrap"><table><thead><tr><th>Tree</th><th>Balance rule</th><th>Notes</th></tr></thead><tbody><tr><td><strong>AVL</strong></td><td>Height difference of the two subtrees (balance factor) is -1, 0 or +1</td><td>Strictly balanced, faster lookups, more rotations</td></tr><tr><td><strong>Red-Black</strong></td><td>Colour rules guarantee longest path ≤ 2 × shortest</td><td>Fewer rotations; used by <code>TreeMap</code>, <code>TreeSet</code>, Linux kernel</td></tr><tr><td><strong>B-tree / B+ tree</strong></td><td>Nodes hold many keys; all leaves at the same depth</td><td>Databases and file systems (fewer disk reads)</td></tr><tr><td><strong>Treap, Splay, Skip list</strong></td><td>Randomised / self-adjusting</td><td>Simpler implementations</td></tr></tbody></table></div>
+<h2 id="avl-tree"><span class="num">05</span>AVL Tree</h2>
+<p><strong>Balance factor</strong> = <code>height(left) - height(right)</code>. After an insert or delete, if any node has a balance factor of ±2, fix it with <strong>rotations</strong>.</p>
+<h3 id="rotations">Rotations</h3>
+<pre><code class="language-text">Right rotation (left-heavy, "LL" case)        Left rotation (right-heavy, "RR" case)
+
+      z                  y                       z                     y
+     / \                / \                     / \                   / \
+    y   T4   ──►       x   z                  T1   y     ──►        z   x
+   / \                / \ / \                      / \              / \ / \
+  x   T3             T1 T2 T3 T4                 T2   x           T1 T2 T3 T4
+ / \                                                 / \
+T1 T2                                               T3 T4</code></pre>
+<div class="table-wrap"><table><thead><tr><th>Case</th><th>Cause</th><th>Fix</th></tr></thead><tbody><tr><td><strong>LL</strong></td><td>Inserted into the left child's left subtree</td><td>Right rotation</td></tr><tr><td><strong>RR</strong></td><td>Inserted into the right child's right subtree</td><td>Left rotation</td></tr><tr><td><strong>LR</strong></td><td>Inserted into the left child's right subtree</td><td>Left-rotate the child, then right-rotate the node</td></tr><tr><td><strong>RL</strong></td><td>Inserted into the right child's left subtree</td><td>Right-rotate the child, then left-rotate the node</td></tr></tbody></table></div>
+<pre><code class="language-java">class AVLNode {
+    int key, height = 1;
+    AVLNode left, right;
+    AVLNode(int k) { key = k; }
+}
+
+static int h(AVLNode n) { return n == null ? 0 : n.height; }
+static void update(AVLNode n) { n.height = 1 + Math.max(h(n.left), h(n.right)); }
+static int balance(AVLNode n) { return n == null ? 0 : h(n.left) - h(n.right); }
+
+static AVLNode rotateRight(AVLNode z) {
+    AVLNode y = z.left;
+    z.left = y.right;
+    y.right = z;
+    update(z); update(y);
+    return y;                                               // new subtree root
+}
+static AVLNode rotateLeft(AVLNode z) {
+    AVLNode y = z.right;
+    z.right = y.left;
+    y.left = z;
+    update(z); update(y);
+    return y;
+}
+
+static AVLNode insert(AVLNode n, int key) {
+    if (n == null) return new AVLNode(key);
+    if (key &lt; n.key) n.left = insert(n.left, key);
+    else if (key &gt; n.key) n.right = insert(n.right, key);
+    else return n;
+
+    update(n);
+    int bf = balance(n);
+    if (bf &gt; 1 &amp;&amp; key &lt; n.left.key)  return rotateRight(n);                          // LL
+    if (bf &lt; -1 &amp;&amp; key &gt; n.right.key) return rotateLeft(n);                          // RR
+    if (bf &gt; 1 &amp;&amp; key &gt; n.left.key)  { n.left = rotateLeft(n.left); return rotateRight(n); }    // LR
+    if (bf &lt; -1 &amp;&amp; key &lt; n.right.key) { n.right = rotateRight(n.right); return rotateLeft(n); } // RL
+    return n;
+}</code></pre>
+<p>AVL height is at most about <code>1.44 log₂ n</code>; insertion needs at most one rebalancing (single or double rotation), deletion may need <code>O(log n)</code> rotations.</p>
+<h2 id="red-black-tree-overview"><span class="num">06</span>Red-Black Tree (Overview)</h2>
+<p>Each node is <strong>red</strong> or <strong>black</strong> with these rules:</p>
+<ol><li>The root is black</li><li>A red node cannot have a red child</li><li>Every path from a node to its null descendants has the <strong>same number of black nodes</strong></li></ol>
+<p>These guarantee height ≤ <code>2 log₂(n + 1)</code>. Inserts and deletes use recolouring and at most 2 to 3 rotations. It is the structure behind Java's <code>TreeMap</code>/<code>TreeSet</code> and <code>HashMap</code> tree bins.</p>
+<div class="table-wrap"><table><thead><tr><th></th><th>AVL</th><th>Red-Black</th></tr></thead><tbody><tr><td>Balance</td><td>Stricter</td><td>Looser</td></tr><tr><td>Lookups</td><td>Slightly faster</td><td>Slightly slower</td></tr><tr><td>Insert/delete</td><td>More rotations</td><td>Fewer rotations</td></tr><tr><td>Best for</td><td>Read-heavy</td><td>Write-heavy / general library use</td></tr></tbody></table></div>
+<h2 id="java-s-ordered-collections"><span class="num">07</span>Java's Ordered Collections</h2>
+<pre><code class="language-java">TreeMap&lt;Integer, String&gt; map = new TreeMap&lt;&gt;();
+map.put(5, "e"); map.put(1, "a"); map.put(9, "i");
+map.firstKey();         map.lastKey();
+map.floorKey(6);        // 5   greatest key &lt;= 6
+map.ceilingKey(6);      // 9   smallest key &gt;= 6
+map.lowerKey(5);        // 1   strictly less
+map.higherKey(5);       // 9   strictly greater
+map.headMap(5);         map.tailMap(5);   map.subMap(1, 9);
+map.pollFirstEntry();   map.descendingMap();
+
+TreeSet&lt;Integer&gt; set = new TreeSet&lt;&gt;(List.of(10, 20, 30));
+set.floor(25);  set.ceiling(25);  set.first();  set.last();  set.subSet(10, true, 20, true);</code></pre>
+<p>All in <code>O(log n)</code>. Typical uses: calendar booking, "find the nearest value", sliding-window median, sorted streams.</p>
+<h2 id="b-trees-and-b-trees"><span class="num">08</span>B-Trees and B+ Trees</h2>
+<ul><li>Each node stores <strong>many keys</strong> (hundreds) and has many children, so the tree is <strong>very shallow</strong> (3 to 4 levels for millions of rows)</li><li>Designed to minimise <strong>disk reads</strong>: one node = one disk page</li><li><strong>B+ tree</strong>: data only in leaves, leaves linked in order → fast <strong>range scans</strong>. Used by MySQL InnoDB, PostgreSQL indexes and most file systems</li></ul>
+<pre><code class="language-text">Search cost ≈ height of the tree ≈ log_m(n) page reads   (m = keys per node)</code></pre>
+<h2 id="range-query-structures-preview"><span class="num">09</span>Range Query Structures (Preview)</h2>
+<div class="table-wrap"><table><thead><tr><th>Structure</th><th>Solves</th><th>Build</th><th>Query / update</th></tr></thead><tbody><tr><td><strong>Prefix sums</strong></td><td>Static range sum</td><td><code>O(n)</code></td><td><code>O(1)</code> query</td></tr><tr><td><strong>Fenwick tree (BIT)</strong></td><td>Range sum with point updates</td><td><code>O(n)</code></td><td><code>O(log n)</code></td></tr><tr><td><strong>Segment tree</strong></td><td>Range sum/min/max with updates (and lazy range updates)</td><td><code>O(n)</code></td><td><code>O(log n)</code></td></tr><tr><td><strong>Sparse table</strong></td><td>Static range min/max</td><td><code>O(n log n)</code></td><td><code>O(1)</code> query</td></tr></tbody></table></div>
+<pre><code class="language-java">class FenwickTree {
+    private final long[] bit;
+    FenwickTree(int n) { bit = new long[n + 1]; }
+
+    void add(int i, long delta) {                           // 1-indexed
+        for (; i &lt; bit.length; i += i &amp; -i) bit[i] += delta;
+    }
+    long prefixSum(int i) {
+        long s = 0;
+        for (; i &gt; 0; i -= i &amp; -i) s += bit[i];
+        return s;
+    }
+    long rangeSum(int l, int r) { return prefixSum(r) - prefixSum(l - 1); }
+}</code></pre>
+<h2 id="bst-vs-hash-table-vs-sorted-array"><span class="num">10</span>BST vs Hash Table vs Sorted Array</h2>
+<div class="table-wrap"><table><thead><tr><th></th><th>BST (balanced)</th><th>Hash table</th><th>Sorted array</th></tr></thead><tbody><tr><td>Search</td><td><code>O(log n)</code></td><td><code>O(1)</code> avg</td><td><code>O(log n)</code></td></tr><tr><td>Insert / delete</td><td><code>O(log n)</code></td><td><code>O(1)</code> avg</td><td><code>O(n)</code></td></tr><tr><td>Sorted iteration</td><td><code>O(n)</code></td><td>Needs sorting</td><td><code>O(n)</code></td></tr><tr><td>Min / max, floor / ceiling, range queries</td><td><strong><code>O(log n)</code></strong></td><td>Not supported</td><td><code>O(log n)</code></td></tr></tbody></table></div>
+<p>Choose a <strong>BST/TreeMap</strong> when you need order-based queries; a <strong>hash table</strong> when you only need exact-match lookups.</p>
+<h2 id="common-mistakes"><span class="num">11</span>Common Mistakes</h2>
+<ul><li>Validating a BST by comparing only parent and child (use bounds)</li><li>Using <code>int</code> bounds when node values can equal <code>Integer.MIN_VALUE</code>/<code>MAX_VALUE</code> (use <code>long</code> or <code>null</code> bounds)</li><li>Forgetting the two-children case in deletion</li><li>Assuming a plain BST is balanced</li><li>Allowing duplicates without a rule (count field, or always left/right)</li></ul>
+<h2 id="quick-recap"><span class="num">12</span>Quick Recap</h2>
+<ul><li>BST property: left &lt; node &lt; right; <strong>inorder is sorted</strong>; operations are <code>O(h)</code></li><li>Delete has three cases (leaf, one child, two children → use the inorder successor)</li><li>Validate with ranges, not just parent-child comparisons</li><li>Self-balancing trees (<strong>AVL</strong>, <strong>red-black</strong>) keep <code>h = O(log n)</code> using rotations; Java's <code>TreeMap</code> is red-black</li><li><strong>B+ trees</strong> power database indexes; <strong>Fenwick/segment trees</strong> answer range queries with updates</li></ul>
+    </article>
+    <nav class="pager" aria-label="Topic navigation">
+      <a class="prev" href="09-trees.html"><small>← Previous</small><strong>Trees and Binary Trees</strong></a>
+      <a class="next" href="11-heaps-tries.html"><small>Next →</small><strong>Heaps, Priority Queues and Tries</strong></a>
+    </nav>
+  </main>
+</div>
+</body>
+</html>
