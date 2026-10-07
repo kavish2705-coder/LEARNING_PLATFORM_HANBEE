@@ -11,11 +11,7 @@ import {
   readStoredSession,
   updateAccountProfile,
   updatePassword,
-  listMfaFactors,
-  enrollMfaFactor,
-  challengeMfaFactor,
-  verifyMfaFactor,
-  unenrollMfaFactor,
+
 } from "../../../lib/supabaseAuth";
 
 const NOTIFICATION_KINDS: { kind: string; label: string }[] = [
@@ -144,62 +140,7 @@ export default function SettingsPage() {
     }
   }
 
-  const { data: factors, refetch: refetchFactors } = useQuery({
-    queryKey: ["mfa-factors", profile?.id],
-    queryFn: listMfaFactors,
-    enabled: Boolean(profile?.id),
-  });
-  const verifiedFactor = factors?.find((f) => f.status === "verified") ?? null;
-  const [enrolling, setEnrolling] = useState<{ factorId: string; qrCode: string; secret: string } | null>(null);
-  const [mfaCode, setMfaCode] = useState("");
-  const [mfaBusy, setMfaBusy] = useState(false);
 
-  async function startMfaEnrollment() {
-    setStatus(null);
-    setMfaBusy(true);
-    try {
-      const res = await enrollMfaFactor();
-      setEnrolling({ factorId: res.id, qrCode: res.totp.qr_code, secret: res.totp.secret });
-    } catch (reason) {
-      setStatus({ tone: "error", text: reason instanceof Error ? reason.message : "We couldn't start two-factor setup." });
-    } finally {
-      setMfaBusy(false);
-    }
-  }
-
-  async function confirmMfaEnrollment(event: React.FormEvent) {
-    event.preventDefault();
-    if (!enrolling) return;
-    setMfaBusy(true);
-    setStatus(null);
-    try {
-      const challenge = await challengeMfaFactor(enrolling.factorId);
-      await verifyMfaFactor(enrolling.factorId, challenge.id, mfaCode);
-      setEnrolling(null);
-      setMfaCode("");
-      await refetchFactors();
-      setStatus({ tone: "ok", text: "Two-factor authentication is on." });
-    } catch (reason) {
-      setStatus({ tone: "error", text: reason instanceof Error ? reason.message : "That code didn't work." });
-    } finally {
-      setMfaBusy(false);
-    }
-  }
-
-  async function disableMfa() {
-    if (!verifiedFactor) return;
-    setMfaBusy(true);
-    setStatus(null);
-    try {
-      await unenrollMfaFactor(verifiedFactor.id);
-      await refetchFactors();
-      setStatus({ tone: "ok", text: "Two-factor authentication is off." });
-    } catch (reason) {
-      setStatus({ tone: "error", text: reason instanceof Error ? reason.message : "We couldn't turn it off." });
-    } finally {
-      setMfaBusy(false);
-    }
-  }
 
   const initial = (profile?.full_name ?? "H").charAt(0).toUpperCase();
 
@@ -254,37 +195,7 @@ export default function SettingsPage() {
             </button>
           </form>
 
-          <div style={{ marginTop: 24, paddingTop: 20, borderTop: "1px solid var(--border, rgba(255,255,255,0.1))" }}>
-            <h3 style={{ fontSize: 15, fontWeight: 600, marginBottom: 8 }}>Two-Factor Authentication</h3>
-            {verifiedFactor ? (
-              <>
-                <p style={{ marginBottom: 12 }}>Two-factor authentication is on. You'll need a code from your authenticator app each time you sign in.</p>
-                <button type="button" className={styles.saveBtn} onClick={() => void disableMfa()} disabled={mfaBusy}>
-                  {mfaBusy ? "Turning off..." : "Turn off two-factor authentication"}
-                </button>
-              </>
-            ) : enrolling ? (
-              <form onSubmit={confirmMfaEnrollment}>
-                <p style={{ marginBottom: 12 }}>Scan this QR code with your authenticator app (Google Authenticator, Authy, 1Password), or enter the key manually: <code>{enrolling.secret}</code></p>
-                <div style={{ marginBottom: 12, background: "#fff", padding: 12, borderRadius: 8, width: "fit-content" }} dangerouslySetInnerHTML={{ __html: enrolling.qrCode }} />
-                <div className={styles.formGroup}>
-                  <label className={styles.label} htmlFor="mfa-code">6-digit code</label>
-                  <input id="mfa-code" type="text" inputMode="numeric" maxLength={6} className={styles.input} value={mfaCode} onChange={(e) => setMfaCode(e.target.value)} required />
-                </div>
-                <div style={{ display: "flex", gap: 8 }}>
-                  <button type="submit" className={styles.saveBtn} disabled={mfaBusy}>{mfaBusy ? "Verifying..." : "Confirm"}</button>
-                  <button type="button" className={styles.saveBtn} onClick={() => { setEnrolling(null); setMfaCode(""); }} disabled={mfaBusy}>Cancel</button>
-                </div>
-              </form>
-            ) : (
-              <>
-                <p style={{ marginBottom: 12 }}>Add a second step at sign-in using an authenticator app.</p>
-                <button type="button" className={styles.saveBtn} onClick={() => void startMfaEnrollment()} disabled={mfaBusy}>
-                  {mfaBusy ? "Starting..." : "Set up two-factor authentication"}
-                </button>
-              </>
-            )}
-          </div>
+
         </section>
 
         <section className={styles.sectionCard}>
