@@ -139,7 +139,10 @@ export default function Home() {
           zIndex: 10,
           backgroundColor: "#1c1c1e",
           backgroundImage:
-            "radial-gradient(ellipse 70% 55% at 12% -8%, rgba(8, 145, 178, 0.16), transparent 60%), radial-gradient(ellipse 60% 50% at 100% 0%, rgba(79, 70, 229, 0.10), transparent 60%)",
+            "linear-gradient(rgba(28, 28, 30, 0.82), rgba(28, 28, 30, 0.96)), url('/bg_dark.png')",
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          backgroundRepeat: "no-repeat",
           padding: "140px 40px",
         }}
       >
@@ -213,7 +216,20 @@ export default function Home() {
       </section>
 
       {/* For schools */}
-      <section id="educators" style={{ position: "relative", zIndex: 10, backgroundColor: "#1c1c1e", padding: "0 40px 140px" }}>
+      <section
+        id="educators"
+        style={{
+          position: "relative",
+          zIndex: 10,
+          backgroundColor: "#1c1c1e",
+          backgroundImage:
+            "linear-gradient(rgba(28, 28, 30, 0.88), rgba(28, 28, 30, 0.98)), url('/bg_dark.png')",
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          backgroundRepeat: "no-repeat",
+          padding: "0 40px 140px",
+        }}
+      >
         <div style={{ maxWidth: "1200px", margin: "0 auto", background: "linear-gradient(135deg, rgba(8,145,178,0.12), rgba(79,70,229,0.08))", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "32px", padding: "64px 48px", display: "grid", gridTemplateColumns: "1.1fr 1fr", gap: "56px", alignItems: "center" }}>
           <motion.div
             initial={{ opacity: 0, x: -30 }}
