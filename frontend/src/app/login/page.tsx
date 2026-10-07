@@ -6,7 +6,7 @@ import styles from "./login.module.css";
 import { Suspense, useState, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useRole, Role } from "../RoleContext";
-import { AUTH_SESSION_KEY, signInWithPassword, signInWithProvider, completeMfaSignIn, type SupabaseSession, type HanbeeRole } from "../../lib/supabaseAuth";
+import { AUTH_SESSION_KEY, signInWithPassword, signInWithProvider, completeMfaSignIn, requestPasswordReset, type SupabaseSession, type HanbeeRole } from "../../lib/supabaseAuth";
 
 function LoginContent() {
   const searchParams = useSearchParams();
@@ -57,6 +57,9 @@ function LoginContent() {
   const [submitting, setSubmitting] = useState(false);
   const [mfa, setMfa] = useState<{ factorId: string; session: SupabaseSession } | null>(null);
   const [mfaCode, setMfaCode] = useState("");
+  const [forgotMode, setForgotMode] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState("");
+  const [forgotSent, setForgotSent] = useState(false);
 
   const finishLogin = (role: HanbeeRole) => {
     const target: Record<string, string> = {
@@ -85,6 +88,20 @@ function LoginContent() {
       finishLogin(result.role);
     } catch (reason) {
       setAuthError(reason instanceof Error ? reason.message : "We couldn't sign you in. Please try again.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleForgotSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setAuthError("");
+    setSubmitting(true);
+    try {
+      await requestPasswordReset(forgotEmail.trim());
+      setForgotSent(true);
+    } catch (reason) {
+      setAuthError(reason instanceof Error ? reason.message : "We couldn't send the reset email. Please try again.");
     } finally {
       setSubmitting(false);
     }
@@ -122,17 +139,58 @@ function LoginContent() {
         transition={{ duration: 0.6, ease: [0.2, 0.65, 0.3, 0.9] }}
       >
         <h1 className={styles.welcomeTitle}>
-          {mfa ? "Enter your code." : isLogin ? "Welcome back." : "Create an account."}
+          {forgotMode ? "Reset your password." : mfa ? "Enter your code." : isLogin ? "Welcome back." : "Create an account."}
         </h1>
         <p className={styles.welcomeSub}>
-          {mfa
-            ? "Open your authenticator app and enter the 6-digit code."
-            : isLogin
-              ? "Access your race and learning workspace."
-              : "Join the next generation of autonomous racing."}
+          {forgotMode
+            ? forgotSent
+              ? "Check your inbox for a reset link."
+              : "Enter your email and we'll send you a reset link."
+            : mfa
+              ? "Open your authenticator app and enter the 6-digit code."
+              : isLogin
+                ? "Access your race and learning workspace."
+                : "Join the next generation of autonomous racing."}
         </p>
 
-        {mfa && (
+        {forgotMode && (
+          <>
+            {forgotSent ? (
+              <p style={{ textAlign: "center", marginTop: "16px" }}>
+                If an account exists for <strong>{forgotEmail}</strong>, a reset link is on its way.
+              </p>
+            ) : (
+              <form onSubmit={handleForgotSubmit}>
+                <div className={styles.formGroup}>
+                  <input
+                    type="email"
+                    className={styles.input}
+                    placeholder="Email"
+                    value={forgotEmail}
+                    onChange={(event) => setForgotEmail(event.target.value)}
+                    autoFocus
+                    required
+                  />
+                </div>
+                {authError && <p role="alert" style={{ color: "var(--color-danger)", marginBottom: 10 }}>{authError}</p>}
+                <button type="submit" className={styles.submitBtn} disabled={submitting}>
+                  {submitting ? "Sending…" : "Send reset link →"}
+                </button>
+              </form>
+            )}
+            <p style={{ textAlign: "center", marginTop: "16px", fontSize: "13px" }}>
+              <button
+                type="button"
+                onClick={() => { setForgotMode(false); setForgotSent(false); setForgotEmail(""); setAuthError(""); }}
+                style={{ background: "none", border: "none", color: "rgba(255,255,255,0.6)", cursor: "pointer", textDecoration: "underline" }}
+              >
+                Back to sign in
+              </button>
+            </p>
+          </>
+        )}
+
+        {!forgotMode && mfa && (
           <form onSubmit={handleMfaSubmit}>
             <div className={styles.formGroup}>
               <input
@@ -164,7 +222,7 @@ function LoginContent() {
           </form>
         )}
 
-        {!mfa && <>
+        {!forgotMode && !mfa && <>
         <div className={styles.tabContainer}>
           <button
             className={`${styles.tabBtn} ${isLogin ? styles.tabBtnActive : ''}`}
@@ -244,7 +302,7 @@ function LoginContent() {
                 <input type="checkbox" defaultChecked />
                 Remember this device
               </label>
-              <Link href="#" className={styles.forgotLink}>Forgot Password?</Link>
+              <button type="button" className={styles.forgotLink} onClick={() => { setForgotMode(true); setForgotEmail(email); setAuthError(""); }} style={{ background: "none", border: "none", cursor: "pointer" }}>Forgot Password?</button>
             </div>
           )}
 
