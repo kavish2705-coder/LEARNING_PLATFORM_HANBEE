@@ -139,7 +139,7 @@ export default function Home() {
           zIndex: 10,
           backgroundColor: "#1c1c1e",
           backgroundImage:
-            "linear-gradient(rgba(28, 28, 30, 0.82), rgba(28, 28, 30, 0.96)), url('/bg_dark.png')",
+            "linear-gradient(rgba(26, 20, 16, 0.78), rgba(22, 19, 20, 0.95)), url('/bg_light.png')",
           backgroundSize: "cover",
           backgroundPosition: "center",
           backgroundRepeat: "no-repeat",
@@ -223,7 +223,7 @@ export default function Home() {
           zIndex: 10,
           backgroundColor: "#1c1c1e",
           backgroundImage:
-            "linear-gradient(rgba(28, 28, 30, 0.88), rgba(28, 28, 30, 0.98)), url('/bg_dark.png')",
+            "linear-gradient(rgba(26, 20, 16, 0.85), rgba(22, 19, 20, 0.97)), url('/bg_light.png')",
           backgroundSize: "cover",
           backgroundPosition: "center",
           backgroundRepeat: "no-repeat",
