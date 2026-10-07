@@ -15,6 +15,7 @@ type Tab = "video" | "notes";
 export default function LessonViewer() {
   const params = useParams<{ id: string }>();
   const courseId = params.id;
+  const isValidCourseId = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(courseId ?? "");
   const queryClient = useQueryClient();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [tab, setTab] = useState<Tab | null>(null);
@@ -27,7 +28,7 @@ export default function LessonViewer() {
   const { data: course, isLoading, error } = useQuery({
     queryKey: ["course-content", courseId],
     queryFn: () => fetchCourseContent(courseId),
-    enabled: Boolean(courseId),
+    enabled: Boolean(courseId) && isValidCourseId,
   });
 
   const lessons = useMemo(
@@ -98,8 +99,9 @@ export default function LessonViewer() {
     setMessage("");
   }
 
+  if (!isValidCourseId) return <p role="alert">We couldn't find that course.</p>;
   if (isLoading) return <Shimmer rows={4} />;
-  if (error) return <p role="alert">{error instanceof Error ? error.message : "We couldn't load this course."}</p>;
+  if (error) return <p role="alert">We couldn't load this course. Please try again.</p>;
   if (!course) return null;
 
   return (
