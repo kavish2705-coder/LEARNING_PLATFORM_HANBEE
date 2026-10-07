@@ -242,11 +242,11 @@ export default function SettingsPage() {
             <div className={styles.formRow}>
               <div className={styles.formGroup}>
                 <label className={styles.label} htmlFor="new-password">New Password</label>
-                <input id="new-password" type="password" className={styles.input} value={newPassword} onChange={(e) => setNewPassword(e.target.value)} minLength={8} required />
+                <input id="new-password" type="password" autoComplete="new-password" className={styles.input} value={newPassword} onChange={(e) => setNewPassword(e.target.value)} minLength={8} required />
               </div>
               <div className={styles.formGroup}>
                 <label className={styles.label} htmlFor="confirm-password">Confirm New Password</label>
-                <input id="confirm-password" type="password" className={styles.input} value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} minLength={8} required />
+                <input id="confirm-password" type="password" autoComplete="new-password" className={styles.input} value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} minLength={8} required />
               </div>
             </div>
             <button type="submit" className={styles.saveBtn} disabled={busy !== ""}>

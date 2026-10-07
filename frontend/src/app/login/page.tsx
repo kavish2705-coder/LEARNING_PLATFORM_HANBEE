@@ -222,6 +222,7 @@ function LoginContent() {
           <div className={styles.formGroup}>
             <input
               type={showPassword ? "text" : "password"}
+              autoComplete="current-password"
               className={styles.input}
               placeholder="Password"
               value={password}
