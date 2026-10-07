@@ -9,22 +9,22 @@ export default function Hero() {
     visible: {
       opacity: 1,
       transition: {
-        staggerChildren: 0.05, // Slower, more deliberate typing
-        delayChildren: 0.4,
+        staggerChildren: 0.018,
+        delayChildren: 0.3,
       },
     },
   };
 
   const charVariant: any = {
-    hidden: { opacity: 0, y: 20, filter: "blur(10px)" },
-    visible: { 
-      opacity: 1, 
-      y: 0, 
+    hidden: { opacity: 0, y: 14, filter: "blur(6px)" },
+    visible: {
+      opacity: 1,
+      y: 0,
       filter: "blur(0px)",
-      transition: { 
-        duration: 1.2, // Ultra-long, silky smooth duration
-        ease: [0.2, 0.65, 0.3, 0.9] // Buttery smooth cubic bezier (Apple style)
-      }
+      transition: {
+        duration: 0.5,
+        ease: [0.2, 0.65, 0.3, 0.9],
+      },
     },
   };
 

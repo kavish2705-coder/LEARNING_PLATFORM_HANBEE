@@ -13,12 +13,18 @@ function LoginContent() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLogin, setIsLogin] = useState(true);
 
+  const [activeRole, setActiveRole] = useState(() => {
+    const role = searchParams.get("role");
+    return role === "School" || role === "Staff" || role === "Manager" || role === "Student" ? role : "Student";
+  });
+
   useEffect(() => {
-    if (searchParams.get("mode") === "signup") {
+    if (searchParams.get("mode") === "signup" && (activeRole === "School" || activeRole === "Staff")) {
       setIsLogin(false);
     }
-  }, [searchParams]);
-  const [activeRole, setActiveRole] = useState("Student");
+    // Only run this once, on mount - switching roles afterward is handled below.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     if (activeRole !== "School" && activeRole !== "Staff") setIsLogin(true);
