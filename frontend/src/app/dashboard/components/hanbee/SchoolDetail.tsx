@@ -60,6 +60,24 @@ export default function SchoolDetail({ directoryHref = "/dashboard/manager/schoo
     await act(() => rpc("set_school_status", { p_org: orgId, p_status: "closed", p_reason: "Closed from school detail" }), "School closed.");
   }
 
+  async function decideSchool(decision: "verify" | "reject") {
+    if (decision === "reject" && !(await ask({ title: "Reject this school?", message: "This closes the school and its owner can't sign in.", confirmLabel: "Reject school", tone: "danger" }))) return;
+    setBusy(true); setError(""); setNotice("");
+    try {
+      const result = await rpc<{ result: string; status?: string; by?: string }>(decision === "verify" ? "verify_school" : "reject_school", { p_org: orgId });
+      if (result.result === "already_decided") {
+        setNotice(`This school was already ${result.status} by ${result.by ?? "someone else"}.`);
+      } else {
+        setNotice(decision === "verify" ? "School verified." : "School rejected.");
+      }
+      await load();
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "We couldn't decide on this school.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function act(action: () => Promise<unknown>, success: string) {
     setBusy(true); setError(""); setNotice("");
     try { await action(); setNotice(success); await load(); }
@@ -103,8 +121,13 @@ export default function SchoolDetail({ directoryHref = "/dashboard/manager/schoo
       </header>
       {error && <p role="alert" style={{ marginBottom: 12 }}>{error}</p>}{notice && <p role="status" style={{ marginBottom: 12 }}>{notice}</p>}
       <div className={styles.sectionCard} style={{ marginBottom: 22 }}>
-        <div className={styles.sectionHeader} style={{ marginBottom: 0 }}><div><strong>School access</strong><p style={{ color: "var(--text-muted)", marginTop: 5 }}>Status changes are recorded and apply to the whole school.</p></div>
-          {!closed && <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+        <div className={styles.sectionHeader} style={{ marginBottom: 0 }}><div><strong>School access</strong><p style={{ color: "var(--text-muted)", marginTop: 5 }}>{school.status === "pending" ? "This school hasn't been verified yet." : "Status changes are recorded and apply to the whole school."}</p></div>
+          {school.status === "pending" ? (
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+              <button type="button" disabled={busy} onClick={() => void decideSchool("verify")}><CheckCircle2 size={15} /> Verify school</button>
+              <button type="button" disabled={busy} onClick={() => void decideSchool("reject")}>Reject school</button>
+            </div>
+          ) : !closed && <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
             <button type="button" disabled={busy} onClick={() => void act(() => rpc("set_school_status", { p_org: orgId, p_status: school.status === "active" ? "suspended" : "active", p_reason: "Updated from school detail" }), school.status === "active" ? "School suspended." : "School reactivated.")}>{school.status === "active" ? <><PauseCircle size={15} /> Suspend school</> : <><PlayCircle size={15} /> Reactivate school</>}</button>
             <button type="button" disabled={busy} onClick={() => void closeSchool()}>Close school</button>
           </div>}
