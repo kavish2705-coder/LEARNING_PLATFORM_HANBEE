@@ -66,23 +66,42 @@ async function supabaseFetch<T>(path: string, init: RequestInit = {}): Promise<T
   return JSON.parse(text) as T;
 }
 
-export async function signInWithPassword(email: string, password: string): Promise<SignedInAccount> {
+export type SignInResult =
+  | SignedInAccount
+  | { mfaRequired: true; factorId: string; session: SupabaseSession };
+
+export async function signInWithPassword(email: string, password: string): Promise<SignInResult> {
   const auth = await supabaseFetch<AuthSessionResponse>("/auth/v1/token?grant_type=password", {
     method: "POST",
     body: JSON.stringify({ email: email.trim(), password }),
   });
 
+  const session = toSupabaseSession(auth);
+
+  // If the account has a verified TOTP factor, the password alone isn't enough:
+  // stop here and let the caller collect the 6-digit code.
+  const user = await supabaseFetch<{ factors?: MfaFactor[] }>("/auth/v1/user", {
+    headers: { Authorization: `Bearer ${session.access_token}` },
+  });
+  const verified = (user.factors ?? []).find((f) => f.factor_type === "totp" && f.status === "verified");
+  if (verified) {
+    return { mfaRequired: true, factorId: verified.id, session };
+  }
+
   const account = await loadAccount(auth);
-
-  const session: SupabaseSession = {
-    access_token: auth.access_token,
-    refresh_token: auth.refresh_token,
-    token_type: auth.token_type,
-    user: auth.user,
-    ...(auth.expires_in ? { expires_at: Math.floor(Date.now() / 1000) + auth.expires_in } : {}),
-  };
-
   return { session, ...account };
+}
+
+export async function completeMfaSignIn(
+  session: SupabaseSession,
+  factorId: string,
+  code: string,
+): Promise<SignedInAccount> {
+  const challenge = await challengeMfaFactor(factorId, session.access_token);
+  const verified = await verifyMfaFactor(factorId, challenge.id, code, session.access_token);
+  const elevatedSession = toSupabaseSession(verified);
+  const account = await loadAccount(elevatedSession);
+  return { session: elevatedSession, ...account };
 }
 
 async function loadAccount(session: Pick<SupabaseSession, "access_token" | "user">) {
@@ -268,4 +287,73 @@ export async function updateAccountProfile(input: Pick<AccountProfile, "id"> & {
     headers: { Prefer: "return=minimal" },
     body: JSON.stringify({ full_name: input.full_name.trim() }),
   });
+}
+
+// --- Two-factor authentication (TOTP), via Supabase Auth's built-in MFA API ---
+
+export interface MfaFactor {
+  id: string;
+  friendly_name?: string;
+  factor_type: "totp";
+  status: "verified" | "unverified";
+}
+
+// GoTrue has no GET /auth/v1/factors list endpoint; enrolled factors come
+// back on the user object from GET /auth/v1/user.
+export async function listMfaFactors() {
+  const user = await authenticatedSupabaseFetch<{ factors?: MfaFactor[] }>("/auth/v1/user");
+  return (user.factors ?? []).filter((f) => f.factor_type === "totp");
+}
+
+export async function enrollMfaFactor() {
+  // Returns a QR code (as an SVG string) and the TOTP secret for manual entry.
+  return authenticatedSupabaseFetch<{ id: string; totp: { qr_code: string; secret: string; uri: string } }>(
+    "/auth/v1/factors",
+    { method: "POST", body: JSON.stringify({ factor_type: "totp" }) },
+  );
+}
+
+export async function challengeMfaFactor(factorId: string, accessToken?: string) {
+  const path = `/auth/v1/factors/${encodeURIComponent(factorId)}/challenge`;
+  if (accessToken) {
+    return supabaseFetch<{ id: string }>(path, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+  }
+  return authenticatedSupabaseFetch<{ id: string }>(path, { method: "POST" });
+}
+
+export async function verifyMfaFactor(
+  factorId: string,
+  challengeId: string,
+  code: string,
+  accessToken?: string,
+): Promise<AuthSessionResponse> {
+  const path = `/auth/v1/factors/${encodeURIComponent(factorId)}/verify`;
+  const body = JSON.stringify({ challenge_id: challengeId, code: code.trim() });
+  if (accessToken) {
+    return supabaseFetch<AuthSessionResponse>(path, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${accessToken}` },
+      body,
+    });
+  }
+  return authenticatedSupabaseFetch<AuthSessionResponse>(path, { method: "POST", body });
+}
+
+export async function unenrollMfaFactor(factorId: string) {
+  return authenticatedSupabaseFetch<undefined>(`/auth/v1/factors/${encodeURIComponent(factorId)}`, {
+    method: "DELETE",
+  });
+}
+
+export function toSupabaseSession(auth: AuthSessionResponse): SupabaseSession {
+  return {
+    access_token: auth.access_token,
+    refresh_token: auth.refresh_token,
+    token_type: auth.token_type,
+    user: auth.user,
+    ...(auth.expires_in ? { expires_at: Math.floor(Date.now() / 1000) + auth.expires_in } : {}),
+  };
 }

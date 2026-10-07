@@ -6,7 +6,7 @@ import styles from "./login.module.css";
 import { Suspense, useState, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useRole, Role } from "../RoleContext";
-import { AUTH_SESSION_KEY, signInWithPassword, signInWithProvider } from "../../lib/supabaseAuth";
+import { AUTH_SESSION_KEY, signInWithPassword, signInWithProvider, completeMfaSignIn, type SupabaseSession, type HanbeeRole } from "../../lib/supabaseAuth";
 
 function LoginContent() {
   const searchParams = useSearchParams();
@@ -55,6 +55,20 @@ function LoginContent() {
   const [password, setPassword] = useState("");
   const [authError, setAuthError] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [mfa, setMfa] = useState<{ factorId: string; session: SupabaseSession } | null>(null);
+  const [mfaCode, setMfaCode] = useState("");
+
+  const finishLogin = (role: HanbeeRole) => {
+    const target: Record<string, string> = {
+      student: "/dashboard",
+      school_staff: "/dashboard/school/overview",
+      staff: "/dashboard/hanbee/my-space",
+      manager: "/dashboard/manager/monitor",
+    };
+    const internalRole: Role = role === "school_staff" ? "school_staff" : role === "manager" ? "manager" : role === "staff" ? "teacher" : "student";
+    setRole(internalRole);
+    router.push(target[role] ?? "/dashboard");
+  };
 
   const handleAuthSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -62,19 +76,31 @@ function LoginContent() {
     setAuthError("");
     setSubmitting(true);
     try {
-      const account = await signInWithPassword(email.trim(), password);
-      window.localStorage.setItem(AUTH_SESSION_KEY, JSON.stringify(account.session));
-      const target: Record<string, string> = {
-        student: "/dashboard",
-        school_staff: "/dashboard/school/overview",
-        staff: "/dashboard/hanbee/my-space",
-        manager: "/dashboard/manager/monitor",
-      };
-      const internalRole: Role = account.role === "school_staff" ? "school_staff" : account.role === "manager" ? "manager" : account.role === "staff" ? "teacher" : "student";
-      setRole(internalRole);
-      router.push(target[account.role] ?? "/dashboard");
+      const result = await signInWithPassword(email.trim(), password);
+      if ("mfaRequired" in result) {
+        setMfa({ factorId: result.factorId, session: result.session });
+        return;
+      }
+      window.localStorage.setItem(AUTH_SESSION_KEY, JSON.stringify(result.session));
+      finishLogin(result.role);
     } catch (reason) {
       setAuthError(reason instanceof Error ? reason.message : "We couldn't sign you in. Please try again.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleMfaSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!mfa) return;
+    setAuthError("");
+    setSubmitting(true);
+    try {
+      const account = await completeMfaSignIn(mfa.session, mfa.factorId, mfaCode);
+      window.localStorage.setItem(AUTH_SESSION_KEY, JSON.stringify(account.session));
+      finishLogin(account.role);
+    } catch (reason) {
+      setAuthError(reason instanceof Error ? reason.message : "That code didn't work. Please try again.");
     } finally {
       setSubmitting(false);
     }
@@ -96,14 +122,51 @@ function LoginContent() {
         transition={{ duration: 0.6, ease: [0.2, 0.65, 0.3, 0.9] }}
       >
         <h1 className={styles.welcomeTitle}>
-          {isLogin ? "Welcome back." : "Create an account."}
+          {mfa ? "Enter your code." : isLogin ? "Welcome back." : "Create an account."}
         </h1>
         <p className={styles.welcomeSub}>
-          {isLogin ? "Access your race and learning workspace." : "Join the next generation of autonomous racing."}
+          {mfa
+            ? "Open your authenticator app and enter the 6-digit code."
+            : isLogin
+              ? "Access your race and learning workspace."
+              : "Join the next generation of autonomous racing."}
         </p>
 
+        {mfa && (
+          <form onSubmit={handleMfaSubmit}>
+            <div className={styles.formGroup}>
+              <input
+                type="text"
+                inputMode="numeric"
+                autoComplete="one-time-code"
+                className={styles.input}
+                placeholder="6-digit code"
+                value={mfaCode}
+                onChange={(event) => setMfaCode(event.target.value)}
+                maxLength={6}
+                autoFocus
+                required
+              />
+            </div>
+            {authError && <p role="alert" style={{ color: "var(--color-danger)", marginBottom: 10 }}>{authError}</p>}
+            <button type="submit" className={styles.submitBtn} disabled={submitting}>
+              {submitting ? "Verifying…" : "Verify →"}
+            </button>
+            <p style={{ textAlign: "center", marginTop: "16px", fontSize: "13px" }}>
+              <button
+                type="button"
+                onClick={() => { setMfa(null); setMfaCode(""); setAuthError(""); }}
+                style={{ background: "none", border: "none", color: "rgba(255,255,255,0.6)", cursor: "pointer", textDecoration: "underline" }}
+              >
+                Back to sign in
+              </button>
+            </p>
+          </form>
+        )}
+
+        {!mfa && <>
         <div className={styles.tabContainer}>
-          <button 
+          <button
             className={`${styles.tabBtn} ${isLogin ? styles.tabBtnActive : ''}`}
             onClick={() => setIsLogin(true)}
           >
@@ -214,6 +277,7 @@ function LoginContent() {
             ← Back to Home
           </Link>
         </p>
+        </>}
 
       </motion.div>
     </>
