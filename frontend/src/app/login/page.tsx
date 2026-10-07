@@ -6,7 +6,7 @@ import styles from "./login.module.css";
 import { Suspense, useState, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useRole, Role } from "../RoleContext";
-import { AUTH_SESSION_KEY, signInWithPassword, signInWithProvider, completeMfaSignIn, requestPasswordReset, type SupabaseSession, type HanbeeRole } from "../../lib/supabaseAuth";
+import { AUTH_SESSION_KEY, signInWithPassword, signInWithProvider, requestPasswordReset, type SupabaseSession, type HanbeeRole } from "../../lib/supabaseAuth";
 
 function LoginContent() {
   const searchParams = useSearchParams();
@@ -55,8 +55,6 @@ function LoginContent() {
   const [password, setPassword] = useState("");
   const [authError, setAuthError] = useState("");
   const [submitting, setSubmitting] = useState(false);
-  const [mfa, setMfa] = useState<{ factorId: string; session: SupabaseSession } | null>(null);
-  const [mfaCode, setMfaCode] = useState("");
   const [forgotMode, setForgotMode] = useState(false);
   const [forgotEmail, setForgotEmail] = useState("");
   const [forgotSent, setForgotSent] = useState(false);
@@ -80,10 +78,6 @@ function LoginContent() {
     setSubmitting(true);
     try {
       const result = await signInWithPassword(email.trim(), password);
-      if ("mfaRequired" in result) {
-        setMfa({ factorId: result.factorId, session: result.session });
-        return;
-      }
       window.localStorage.setItem(AUTH_SESSION_KEY, JSON.stringify(result.session));
       finishLogin(result.role);
     } catch (reason) {
@@ -107,21 +101,6 @@ function LoginContent() {
     }
   };
 
-  const handleMfaSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!mfa) return;
-    setAuthError("");
-    setSubmitting(true);
-    try {
-      const account = await completeMfaSignIn(mfa.session, mfa.factorId, mfaCode);
-      window.localStorage.setItem(AUTH_SESSION_KEY, JSON.stringify(account.session));
-      finishLogin(account.role);
-    } catch (reason) {
-      setAuthError(reason instanceof Error ? reason.message : "That code didn't work. Please try again.");
-    } finally {
-      setSubmitting(false);
-    }
-  };
 
   const getPrimaryPlaceholder = () => {
     if (activeRole === "Staff") return "Email / Staff ID";
@@ -139,18 +118,16 @@ function LoginContent() {
         transition={{ duration: 0.6, ease: [0.2, 0.65, 0.3, 0.9] }}
       >
         <h1 className={styles.welcomeTitle}>
-          {forgotMode ? "Reset your password." : mfa ? "Enter your code." : isLogin ? "Welcome back." : "Create an account."}
+          {forgotMode ? "Reset your password." : isLogin ? "Welcome back." : "Create an account."}
         </h1>
         <p className={styles.welcomeSub}>
           {forgotMode
             ? forgotSent
               ? "Check your inbox for a reset link."
               : "Enter your email and we'll send you a reset link."
-            : mfa
-              ? "Open your authenticator app and enter the 6-digit code."
-              : isLogin
-                ? "Access your race and learning workspace."
-                : "Join the next generation of autonomous racing."}
+            : isLogin
+              ? "Access your race and learning workspace."
+              : "Join the next generation of autonomous racing."}
         </p>
 
         {forgotMode && (
@@ -190,39 +167,8 @@ function LoginContent() {
           </>
         )}
 
-        {!forgotMode && mfa && (
-          <form onSubmit={handleMfaSubmit}>
-            <div className={styles.formGroup}>
-              <input
-                type="text"
-                inputMode="numeric"
-                autoComplete="one-time-code"
-                className={styles.input}
-                placeholder="6-digit code"
-                value={mfaCode}
-                onChange={(event) => setMfaCode(event.target.value)}
-                maxLength={6}
-                autoFocus
-                required
-              />
-            </div>
-            {authError && <p role="alert" style={{ color: "var(--color-danger)", marginBottom: 10 }}>{authError}</p>}
-            <button type="submit" className={styles.submitBtn} disabled={submitting}>
-              {submitting ? "Verifying…" : "Verify →"}
-            </button>
-            <p style={{ textAlign: "center", marginTop: "16px", fontSize: "13px" }}>
-              <button
-                type="button"
-                onClick={() => { setMfa(null); setMfaCode(""); setAuthError(""); }}
-                style={{ background: "none", border: "none", color: "rgba(255,255,255,0.6)", cursor: "pointer", textDecoration: "underline" }}
-              >
-                Back to sign in
-              </button>
-            </p>
-          </form>
-        )}
 
-        {!forgotMode && !mfa && <>
+        {!forgotMode && <>
         <div className={styles.tabContainer}>
           <button
             className={`${styles.tabBtn} ${isLogin ? styles.tabBtnActive : ''}`}
