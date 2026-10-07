@@ -1,6 +1,6 @@
 .pageHeader {
   margin-bottom: 32px;
-  animation: fadeInUp 0.4s ease-out forwards;
+  animation: fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
   /* Ensure readability over busy background images */
   background: var(--bg-card);
   padding: 24px 32px;
@@ -16,16 +16,18 @@
 
 .pageTitle {
   font-family: var(--font-heading);
-  font-size: 28px;
+  font-size: clamp(24px, 2.4vw, 32px);
   font-weight: 500;
   margin: 0;
-  letter-spacing: -0.5px;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
 }
 
 .pageSubtitle {
   font-size: 14px;
   color: var(--text-muted);
   margin: 0;
+  letter-spacing: -0.01em;
 }
 
 /* Overview Cards */
@@ -45,10 +47,24 @@
   flex-direction: column;
   position: relative;
   overflow: hidden;
-  animation: fadeInUp 0.5s ease-out forwards;
+  animation: fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s ease, border-color 0.3s ease;
+  border: 1px solid transparent;
 }
+
+.metricCard:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--clay-shadow-elevated);
+  border-color: rgba(8, 145, 178, 0.18);
+}
+
+.metricCard:nth-child(1) { animation-delay: 0ms; }
+.metricCard:nth-child(2) { animation-delay: 60ms; }
+.metricCard:nth-child(3) { animation-delay: 120ms; }
+.metricCard:nth-child(4) { animation-delay: 180ms; }
+.metricCard:nth-child(5) { animation-delay: 240ms; }
 
 .metricCardHeader {
   display: flex;
@@ -69,9 +85,11 @@
 }
 
 .metricValue {
-  font-size: 28px;
-  font-weight: 500;
+  font-size: clamp(24px, 2vw, 30px);
+  font-weight: 600;
   font-family: monospace;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
   margin-bottom: 4px;
 }
 
@@ -103,7 +121,8 @@
   border-radius: var(--clay-radius-md);
   padding: 24px;
   margin-bottom: 32px;
-  animation: fadeInUp 0.6s ease-out forwards;
+  animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: 80ms;
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
 }
@@ -169,15 +188,40 @@
   font-size: 14px;
   color: var(--text-muted);
   border-bottom: 1px solid rgba(255, 255, 255, 0.02);
+  transition: color 0.2s ease;
+}
+
+.dataTable tbody tr {
+  transition: background-color 0.2s ease;
+}
+
+.dataTable tbody tr:hover {
+  background-color: var(--bg-card-hover);
+}
+
+.dataTable tbody tr:hover td {
+  color: var(--text-main);
 }
 
 .badge {
-  padding: 4px 10px;
-  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 12px;
+  border-radius: 999px;
   font-size: 10px;
-  font-weight: 500;
+  font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.06em;
+}
+
+.badge::before {
+  content: "";
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: currentColor;
+  flex-shrink: 0;
 }
 
 .badgeTeam { background: var(--bg-input); color: var(--text-muted); }
@@ -204,7 +248,7 @@
   align-items: center;
   justify-content: space-between;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease, background-color 0.25s ease;
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
 }
@@ -214,6 +258,11 @@
   box-shadow: var(--clay-shadow-elevated);
   transform: translateY(-2px);
   border-color: var(--border-subtle);
+}
+
+.actionBtn:active {
+  transform: translateY(0);
+  transition-duration: 0.1s;
 }
 
 .actionIcon {
@@ -231,17 +280,22 @@
   border-radius: 12px;
   text-decoration: none;
   font-weight: 600;
+  letter-spacing: -0.01em;
   box-shadow: 0 4px 12px rgba(0,0,0,0.15);
   border: none;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease, background-color 0.2s ease;
 }
 
 .primaryBtn:hover {
   background: var(--color-primary-hover);
-  box-shadow: 0 6px 16px rgba(0,0,0,0.2);
+  box-shadow: var(--accent-glow);
   transform: translateY(-2px);
   color: var(--color-primary-text);
+}
+
+.primaryBtn:active {
+  transform: translateY(0) scale(0.98);
 }
 
 .actionIcon {
@@ -313,7 +367,7 @@
   box-shadow: var(--clay-shadow-outer);
   border-radius: var(--clay-radius-md);
   padding: 24px;
-  animation: fadeInUp 0.6s ease-out forwards;
+  animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
 }
@@ -326,5 +380,16 @@
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pageHeader, .metricCard, .tableSection, .sectionCard {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+  .actionBtn, .primaryBtn, .metricCard {
+    transition: none;
   }
 }

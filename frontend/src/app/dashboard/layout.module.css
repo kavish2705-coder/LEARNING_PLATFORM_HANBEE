@@ -2,6 +2,7 @@
   display: flex;
   height: 100vh;
   background-color: var(--bg-page);
+  background-image: var(--bg-page-image);
   color: var(--text-main);
   font-family: var(--font-body);
   overflow: hidden;
