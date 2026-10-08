@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import styles from "../dashboard.module.css";
 import Shimmer from "../components/ui/Shimmer";
 import { getLeaderboard, listTournaments } from "../../../lib/tournamentAdminApi";
+import { authenticatedSupabaseFetch } from "../../../lib/supabaseAuth";
 
 export default function LeaderboardPage() {
   const { data: tournaments, isLoading: loadingTournaments, error: tournamentError } = useQuery({
@@ -27,6 +28,8 @@ export default function LeaderboardPage() {
         <h1 className={styles.pageTitle}>Tournament Leaderboard</h1>
         <p className={styles.pageSubtitle}>{tournament ? tournament.title : "See the latest tournament results"}</p>
       </div>
+
+      <MyRank />
 
       {failure && <p role="alert">{failure instanceof Error ? failure.message : "We couldn't load the leaderboard."}</p>}
       {loading && <Shimmer rows={5} />}
@@ -65,6 +68,22 @@ export default function LeaderboardPage() {
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+function MyRank() {
+  const { data } = useQuery({
+    queryKey: ["my-leaderboard-rank"],
+    queryFn: () => authenticatedSupabaseFetch<{ tournament_title: string; team_name: string; rank: number; points: number; field_size: number }[]>("/rest/v1/rpc/my_leaderboard_rank", { method: "POST", body: "{}" }),
+  });
+  const row = data?.[0];
+  if (!row) return null;
+  return (
+    <div className={styles.sectionCard} style={{ marginBottom: 24 }}>
+      <span className={styles.metricLabel}>Your team in {row.tournament_title}</span>
+      <h2 className={styles.sectionTitle} style={{ marginTop: 8 }}>{row.team_name}: #{row.rank} of {row.field_size}</h2>
+      <p style={{ color: "var(--text-muted)", marginTop: 6 }}>{row.points} points</p>
     </div>
   );
 }

@@ -35,8 +35,17 @@ export default function Home() {
         style={{
           position: "relative",
           zIndex: 10,
-          background: "#1c1c1e",
+          backgroundColor: "#1c1c1e",
+          backgroundImage:
+            "linear-gradient(rgba(20, 16, 10, 0.82), rgba(20, 16, 10, 0.93)), url('/hero-waterfall.jpg')",
+          backgroundSize: "cover",
+          backgroundPosition: "center 30%",
+          backgroundRepeat: "no-repeat",
           padding: "120px 40px",
+        }}
+      >
+      <div
+        style={{
           display: "grid",
           gridTemplateColumns: "0.9fr 1.3fr",
           gap: "64px",
@@ -48,7 +57,7 @@ export default function Home() {
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-100px" }}
-          transition={{ duration: 0.7, ease: [0.2, 0.65, 0.3, 0.9] }}
+          transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
           style={{ position: "sticky", top: "140px", alignSelf: "start" }}
         >
           <span style={{ fontFamily: "var(--font-body)", fontSize: "13px", letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)" }}>
@@ -88,7 +97,8 @@ export default function Home() {
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-50px" }}
-              transition={{ duration: 0.5, delay: i * 0.08, ease: "easeOut" }}
+              transition={{ duration: 0.6, delay: i * 0.08, ease: [0.16, 1, 0.3, 1] }}
+              whileHover={{ x: 10, transition: { duration: 0.3, ease: [0.16, 1, 0.3, 1] } }}
             >
               <span className={styles.featureNum}>{String(i + 1).padStart(2, "0")}</span>
               <h3 className={styles.featureTitle}>{feature.title}</h3>
@@ -96,6 +106,7 @@ export default function Home() {
             </motion.div>
           ))}
         </div>
+      </div>
       </div>
 
       {/* Two tracks, one platform */}
@@ -118,7 +129,7 @@ export default function Home() {
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-100px" }}
-            transition={{ duration: 0.7, ease: [0.2, 0.65, 0.3, 0.9] }}
+            transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
             style={{ textAlign: "center", maxWidth: "680px", margin: "0 auto 72px" }}
           >
             <span style={{ fontFamily: "var(--font-body)", fontSize: "13px", letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)" }}>
@@ -149,7 +160,7 @@ export default function Home() {
                 initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: "-60px" }}
-                transition={{ duration: 0.6, delay: i * 0.12, ease: "easeOut" }}
+                transition={{ duration: 0.65, delay: i * 0.12, ease: [0.16, 1, 0.3, 1] }}
                 style={{
                   background: "rgba(255,255,255,0.03)",
                   border: "1px solid rgba(255,255,255,0.08)",
@@ -179,6 +190,45 @@ export default function Home() {
               </motion.div>
             ))}
           </div>
+
+          <div style={{ marginTop: "72px" }}>
+            <motion.p
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-40px" }}
+              transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+              style={{ fontFamily: "var(--font-body)", fontSize: "13px", letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)", marginBottom: "20px" }}
+            >
+              Inside the RC track
+            </motion.p>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "20px" }}>
+              {[
+                { stage: "Flight controller fundamentals", desc: "Wire and program the brain of your car." },
+                { stage: "Chassis & tuning", desc: "Suspension, gearing, and getting the balance right." },
+                { stage: "Race strategy & telemetry", desc: "Read the data, plan the lap." },
+                { stage: "Track day & competition rules", desc: "What it takes to line up at the Hanbee RC Cup." },
+              ].map((item, i) => (
+                <motion.div
+                  key={item.stage}
+                  initial={{ opacity: 0, y: 16 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: "-40px" }}
+                  transition={{ duration: 0.5, delay: i * 0.07, ease: [0.16, 1, 0.3, 1] }}
+                  whileHover={{ y: -4, transition: { duration: 0.25, ease: [0.16, 1, 0.3, 1] } }}
+                  style={{
+                    background: "rgba(255,255,255,0.03)",
+                    border: "1px solid rgba(255,255,255,0.08)",
+                    borderRadius: "18px",
+                    padding: "24px",
+                  }}
+                >
+                  <div style={{ fontFamily: "monospace", fontSize: "13px", color: "#7dd3e8", marginBottom: "10px" }}>{String(i + 1).padStart(2, "0")}</div>
+                  <div style={{ fontFamily: "var(--font-heading)", fontSize: "18px", color: "#fff", marginBottom: "8px" }}>{item.stage}</div>
+                  <div style={{ fontFamily: "var(--font-body)", fontSize: "14px", color: "rgba(255,255,255,0.5)", lineHeight: 1.5 }}>{item.desc}</div>
+                </motion.div>
+              ))}
+            </div>
+          </div>
         </div>
       </section>
 
@@ -202,7 +252,7 @@ export default function Home() {
             initial={{ opacity: 0, x: -30 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true, margin: "-100px" }}
-            transition={{ duration: 0.7, ease: [0.2, 0.65, 0.3, 0.9] }}
+            transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
           >
             <span style={{ fontFamily: "var(--font-body)", fontSize: "13px", letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)" }}>
               For schools
@@ -228,7 +278,7 @@ export default function Home() {
             initial={{ opacity: 0, x: 30 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true, margin: "-100px" }}
-            transition={{ duration: 0.7, delay: 0.1, ease: [0.2, 0.65, 0.3, 0.9] }}
+            transition={{ duration: 0.7, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
             style={{ display: "flex", flexDirection: "column", gap: "20px" }}
           >
             {[
@@ -250,12 +300,26 @@ export default function Home() {
       </section>
 
       {/* About */}
-      <section id="about" style={{ position: "relative", zIndex: 10, backgroundColor: "#1c1c1e", padding: "0 40px 160px" }}>
+      <section
+        id="about"
+        style={{
+          position: "relative",
+          zIndex: 10,
+          backgroundColor: "#1c1c1e",
+          backgroundImage:
+            "linear-gradient(rgba(20, 20, 22, 0.88), rgba(20, 20, 22, 0.95)), radial-gradient(ellipse 60% 70% at 50% 100%, rgba(8, 145, 178, 0.14), transparent 65%), url('/rc-detail.jpg')",
+          backgroundSize: "cover, cover, cover",
+          backgroundPosition: "center, center, center 35%",
+          backgroundRepeat: "no-repeat",
+          padding: "100px 40px",
+          overflow: "hidden",
+        }}
+      >
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-100px" }}
-          transition={{ duration: 0.7, ease: [0.2, 0.65, 0.3, 0.9] }}
+          transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
           style={{ maxWidth: "800px", margin: "0 auto", textAlign: "center" }}
         >
           <span style={{ fontFamily: "var(--font-body)", fontSize: "13px", letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)" }}>
@@ -264,7 +328,92 @@ export default function Home() {
           <h2 style={{ fontFamily: "var(--font-heading)", fontSize: "clamp(26px, 3.2vw, 36px)", fontWeight: 400, color: "#fff", margin: "16px 0 0", lineHeight: 1.4, letterSpacing: "-0.01em" }}>
             Most courses end where the real learning starts. We built Hanbee so the thing you coded actually has to work — on a track, against the clock, against other teams.
           </h2>
+          <motion.a
+            href="/login?mode=signup"
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.97 }}
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "10px",
+              marginTop: "40px",
+              background: "#fff",
+              color: "#1c1c1e",
+              padding: "14px 28px",
+              borderRadius: "999px",
+              fontFamily: "var(--font-body)",
+              fontWeight: 600,
+              fontSize: "15px",
+            }}
+          >
+            Start learning
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14" /><path d="M12 5l7 7-7 7" /></svg>
+          </motion.a>
         </motion.div>
+      </section>
+
+      {/* FAQ */}
+      <section style={{ position: "relative", zIndex: 10, backgroundColor: "#1c1c1e", padding: "100px 40px" }}>
+        <div style={{ maxWidth: "820px", margin: "0 auto" }}>
+          <motion.p
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-60px" }}
+            transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+            style={{ fontFamily: "var(--font-body)", fontSize: "13px", letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)", textAlign: "center", marginBottom: "16px" }}
+          >
+            Questions
+          </motion.p>
+          <motion.h2
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-60px" }}
+            transition={{ duration: 0.6, delay: 0.05, ease: [0.16, 1, 0.3, 1] }}
+            style={{ fontFamily: "var(--font-heading)", fontSize: "clamp(28px, 3vw, 38px)", fontWeight: 400, color: "#fff", textAlign: "center", marginBottom: "56px", letterSpacing: "-0.02em" }}
+          >
+            Before you start
+          </motion.h2>
+
+          {[
+            {
+              q: "Do I need to be part of a school to enter the tournament?",
+              a: "No. You can enter solo as a team of one, or join through your school if it's registered and verified on Hanbee.",
+            },
+            {
+              q: "How does payment work?",
+              a: "You confirm payment with the QR code shown at checkout, then a Hanbee staff member verifies it before your entry or course enrollment is confirmed.",
+            },
+            {
+              q: "What do I need to actually enter the tournament?",
+              a: "An RC car with a flight controller you've built and programmed yourself — that's what the tournament track teaches you to do.",
+            },
+            {
+              q: "What happens if my school closes or I leave it?",
+              a: "Your course progress and tournament history stay with you. You can continue as a solo student or join a new school later.",
+            },
+          ].map((item, i) => (
+            <motion.details
+              key={item.q}
+              className={styles.faqItem}
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-40px" }}
+              transition={{ duration: 0.5, delay: i * 0.06, ease: [0.16, 1, 0.3, 1] }}
+              style={{
+                borderBottom: "1px solid rgba(255,255,255,0.08)",
+                padding: "22px 0",
+                cursor: "pointer",
+              }}
+            >
+              <summary style={{ fontFamily: "var(--font-heading)", fontSize: "18px", fontWeight: 400, color: "#fff", listStyle: "none" }}>
+                {item.q}
+              </summary>
+              <p style={{ fontFamily: "var(--font-body)", fontSize: "15px", color: "rgba(255,255,255,0.55)", lineHeight: 1.65, marginTop: "14px" }}>
+                {item.a}
+              </p>
+            </motion.details>
+          ))}
+        </div>
       </section>
 
       {/* Footer */}

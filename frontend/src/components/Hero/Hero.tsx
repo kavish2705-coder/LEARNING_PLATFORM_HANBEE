@@ -22,8 +22,8 @@ export default function Hero() {
       y: 0,
       filter: "blur(0px)",
       transition: {
-        duration: 0.5,
-        ease: [0.2, 0.65, 0.3, 0.9],
+        duration: 0.55,
+        ease: [0.16, 1, 0.3, 1],
       },
     },
   };
@@ -44,9 +44,9 @@ export default function Hero() {
         {/* Tagline */}
         <motion.p
           className={styles.tagline}
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3, duration: 0.7, ease: "easeOut" }}
+          transition={{ delay: 0.2, duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
         >
           LEARN · GROW · BELONG
         </motion.p>
@@ -77,11 +77,11 @@ export default function Hero() {
         {/* Subtitle */}
         <motion.p
           className={styles.subtitle}
-          initial={{ opacity: 0, y: 30 }}
+          initial={{ opacity: 0, y: 22 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.7, duration: 0.7, ease: "easeOut" }}
+          transition={{ delay: 0.55, duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
         >
-          A learning space for curious minds — built to help you gain real skills, achieve your goals, and create a life you&apos;re proud of.
+          Write the code. Build the car. Race it for real — at the Hanbee RC Cup.
         </motion.p>
 
         {/* CTA Button */}
@@ -89,14 +89,14 @@ export default function Hero() {
           href="/login?mode=signup"
           className={styles.ctaButton}
           initial={{ opacity: 0, y: 20 }}
-          animate={{ 
-            opacity: 1, 
+          animate={{
+            opacity: 1,
             y: 0,
-            transition: { delay: 0.9, duration: 0.6, ease: "easeOut" }
+            transition: { delay: 0.8, duration: 0.7, ease: [0.16, 1, 0.3, 1] }
           }}
           whileHover={{
             scale: 1.04,
-            transition: { type: "spring", stiffness: 400, damping: 17 },
+            transition: { type: "spring", stiffness: 350, damping: 20 },
           }}
           whileTap={{ scale: 0.97 }}
         >

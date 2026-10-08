@@ -6,6 +6,7 @@ import { ArrowLeft, Check, ChevronRight, Trophy, Users, Palette, Flag } from "lu
 import wizardStyles from "./wizard.module.css";
 import { useRouter } from "next/navigation";
 import { fetchUpcomingTournament, startStudentTeam } from "../../../../lib/teamFormationApi";
+import { authenticatedSupabaseFetch } from "../../../../lib/supabaseAuth";
 
 export default function StartTeamWizard() {
   const [step, setStep] = useState(1);
@@ -24,7 +25,12 @@ export default function StartTeamWizard() {
     try {
       const tournament = await fetchUpcomingTournament();
       if (!tournament) throw new Error("There is no open tournament to join right now.");
-      await startStudentTeam(tournament.id, teamName.trim());
+      const teamId = await startStudentTeam(tournament.id, teamName.trim());
+      await authenticatedSupabaseFetch(`/rest/v1/tournament_teams?id=eq.${teamId}`, {
+        method: "PATCH",
+        headers: { Prefer: "return=minimal" },
+        body: JSON.stringify({ color: teamColor }),
+      });
       router.push("/dashboard/team");
     } catch (reason) {
       setSubmitError(reason instanceof Error ? reason.message : "We couldn't create your team.");
