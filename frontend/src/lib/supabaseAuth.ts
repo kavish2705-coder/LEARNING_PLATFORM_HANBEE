@@ -81,6 +81,12 @@ export async function signInWithPassword(email: string, password: string): Promi
 
 
 async function loadAccount(session: Pick<SupabaseSession, "access_token" | "user">) {
+  // DEVELOPER BYPASS
+  if (session.user.id.startsWith("dummy-")) {
+    const dummyRole = session.user.id.split("-")[1] as HanbeeRole;
+    return { role: dummyRole, approved: true, accountStatus: "active" };
+  }
+
   const { url, anonKey } = getSupabaseConfig();
   const profileUrl = new URL(`${url}/rest/v1/profiles`);
   profileUrl.searchParams.set("select", "role,approved,account_status");
@@ -140,6 +146,12 @@ export async function refreshSession(session: SupabaseSession): Promise<Supabase
 }
 
 export async function getCurrentAccount(session: SupabaseSession): Promise<SignedInAccount> {
+  // DEVELOPER BYPASS
+  if (session.user.id.startsWith("dummy-")) {
+    const dummyRole = session.user.id.split("-")[1] as HanbeeRole;
+    return { session, role: dummyRole, approved: true, accountStatus: "active" };
+  }
+
   const refreshed = session.expires_at && session.expires_at <= Math.floor(Date.now() / 1000) + 60
     ? await refreshSession(session)
     : session;
@@ -167,6 +179,16 @@ export async function signOut(session: SupabaseSession | null) {
 export async function authenticatedSupabaseFetch<T>(path: string, init: RequestInit = {}): Promise<T> {
   let session = readStoredSession();
   if (!session) throw new Error("Your session has expired. Sign in again to continue.");
+
+  // DEVELOPER BYPASS
+  if (session.user.id.startsWith("dummy-")) {
+    console.log(`[Developer Bypass] Muted authenticatedSupabaseFetch to: ${path}`);
+    if (path.includes("select=") || path.includes("/rest/v1/")) {
+      return [] as unknown as T;
+    }
+    return null as unknown as T;
+  }
+
   if (session.expires_at && session.expires_at <= Math.floor(Date.now() / 1000) + 60) {
     session = await refreshSession(session);
     window.localStorage.setItem(AUTH_SESSION_KEY, JSON.stringify(session));
@@ -245,6 +267,19 @@ export interface AccountProfile {
 export async function getAccountProfile() {
   const session = readStoredSession();
   if (!session) throw new Error("Your session has expired. Sign in again to continue.");
+  
+  // DEVELOPER BYPASS
+  if (session.user.id.startsWith("dummy-")) {
+    const dummyRole = session.user.id.split("-")[1] as HanbeeRole;
+    return {
+      id: session.user.id,
+      email: session.user.email || `${dummyRole}@hanbee.in`,
+      full_name: `Dummy ${dummyRole}`,
+      role: dummyRole,
+      avatar_url: null
+    };
+  }
+
   const profiles = await authenticatedSupabaseFetch<AccountProfile[]>(
     `/rest/v1/profiles?select=id,email,full_name,role,avatar_url&id=eq.${encodeURIComponent(session.user.id)}`,
   );
