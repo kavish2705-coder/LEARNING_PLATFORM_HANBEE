@@ -66,9 +66,7 @@ async function supabaseFetch<T>(path: string, init: RequestInit = {}): Promise<T
   return JSON.parse(text) as T;
 }
 
-export type SignInResult =
-  | SignedInAccount
-  | { mfaRequired: true; factorId: string; session: SupabaseSession };
+export type SignInResult = SignedInAccount;
 
 export async function signInWithPassword(email: string, password: string): Promise<SignInResult> {
   const auth = await supabaseFetch<AuthSessionResponse>("/auth/v1/token?grant_type=password", {
@@ -77,32 +75,10 @@ export async function signInWithPassword(email: string, password: string): Promi
   });
 
   const session = toSupabaseSession(auth);
-
-  // If the account has a verified TOTP factor, the password alone isn't enough:
-  // stop here and let the caller collect the 6-digit code.
-  const user = await supabaseFetch<{ factors?: MfaFactor[] }>("/auth/v1/user", {
-    headers: { Authorization: `Bearer ${session.access_token}` },
-  });
-  const verified = (user.factors ?? []).find((f) => f.factor_type === "totp" && f.status === "verified");
-  if (verified) {
-    return { mfaRequired: true, factorId: verified.id, session };
-  }
-
   const account = await loadAccount(auth);
   return { session, ...account };
 }
 
-export async function completeMfaSignIn(
-  session: SupabaseSession,
-  factorId: string,
-  code: string,
-): Promise<SignedInAccount> {
-  const challenge = await challengeMfaFactor(factorId, session.access_token);
-  const verified = await verifyMfaFactor(factorId, challenge.id, code, session.access_token);
-  const elevatedSession = toSupabaseSession(verified);
-  const account = await loadAccount(elevatedSession);
-  return { session: elevatedSession, ...account };
-}
 
 async function loadAccount(session: Pick<SupabaseSession, "access_token" | "user">) {
   const { url, anonKey } = getSupabaseConfig();
