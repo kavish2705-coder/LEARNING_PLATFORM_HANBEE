@@ -171,7 +171,6 @@ export default function Home() {
                 <span style={{ position: "relative", zIndex: 2, fontFamily: "var(--font-body)", fontSize: "12px", letterSpacing: "0.1em", textTransform: "uppercase", color: "#7dd3e8", textShadow: "0 0 10px rgba(125, 211, 232, 0.4)" }}>
                   {track.tag}
                 </span>
-                </span>
                 <h3 style={{ position: "relative", zIndex: 2, fontFamily: "var(--font-heading)", fontSize: "26px", fontWeight: 400, color: "#fff", margin: "14px 0 12px" }}>
                   {track.title}
                 </h3>
