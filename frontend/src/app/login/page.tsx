@@ -76,6 +76,41 @@ function LoginContent() {
     if (!isLogin) return;
     setAuthError("");
     setSubmitting(true);
+    
+    // DEVELOPER BYPASS: Allows frontend testing without a backend database
+    if (password === "password") {
+      const e = email.trim().toLowerCase();
+      let dummyRole: HanbeeRole | null = null;
+      if (e === "student@hanbee.in") dummyRole = "student";
+      else if (e === "staff@hanbee.in") dummyRole = "staff";
+      else if (e === "manager@hanbee.in") dummyRole = "manager";
+      else if (e === "school@hanbee.in") dummyRole = "school_staff";
+
+      if (dummyRole) {
+        const fakeSession = {
+          access_token: "dummy-token",
+          refresh_token: "dummy-refresh",
+          token_type: "bearer",
+          user: { id: `dummy-${dummyRole}`, email: e, role: "authenticated", app_metadata: {}, user_metadata: {}, aud: "authenticated", created_at: "" },
+          expires_at: Math.floor(Date.now() / 1000) + 3600
+        };
+        window.localStorage.setItem(AUTH_SESSION_KEY, JSON.stringify(fakeSession));
+        
+        // Mock the profile API response for useSessionProfile hook
+        const originalFetch = window.fetch;
+        window.fetch = async (...args) => {
+          if (args[0] && typeof args[0] === 'string' && args[0].includes('/rest/v1/profiles')) {
+            return new Response(JSON.stringify([{ role: dummyRole, approved: true, account_status: "active" }]), { status: 200 });
+          }
+          return originalFetch(...args);
+        };
+
+        finishLogin(dummyRole);
+        setSubmitting(false);
+        return;
+      }
+    }
+
     try {
       const result = await signInWithPassword(email.trim(), password);
       window.localStorage.setItem(AUTH_SESSION_KEY, JSON.stringify(result.session));
