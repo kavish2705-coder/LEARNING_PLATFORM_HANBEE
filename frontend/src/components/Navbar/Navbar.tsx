@@ -67,28 +67,6 @@ export default function Navbar() {
 
         {/* Right Section */}
         <div className={styles.navRight}>
-          {/* Search Icon */}
-          <motion.button
-            className={styles.searchBtn}
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.95 }}
-            aria-label="Search"
-          >
-            <svg
-              width="22"
-              height="22"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <circle cx="11" cy="11" r="8" />
-              <path d="M21 21l-4.35-4.35" />
-            </svg>
-          </motion.button>
-
           {/* Sign In */}
           <motion.a
             href="/login"
