@@ -77,7 +77,13 @@ function labelRole(role: AccountProfile["role"]) {
   return role.replaceAll("_", " ").replace(/\b\w/g, (letter) => letter.toUpperCase());
 }
 
-export default function Sidebar() {
+export default function Sidebar({ 
+  isMobileMenuOpen = false, 
+  setIsMobileMenuOpen 
+}: { 
+  isMobileMenuOpen?: boolean; 
+  setIsMobileMenuOpen?: (val: boolean) => void; 
+}) {
   const pathname = usePathname();
   const { mode } = useMode();
   const { data: profile } = useSessionProfile();
@@ -106,48 +112,60 @@ export default function Sidebar() {
   }
 
   return (
-    <aside className={styles.sidebar}>
-      <div className={styles.logo}>
-        HANBEE
-      </div>
+    <>
+      {/* Mobile overlay */}
+      {isMobileMenuOpen && (
+        <div 
+          className={styles.sidebarOverlay} 
+          onClick={() => setIsMobileMenuOpen?.(false)}
+        />
+      )}
       
-      {profile?.role === "student" && <ModeSwitcher />}
-
-      <nav className={styles.navMenu}>
-        {items.map((item) => {
-          const isActive = pathname === item.href || (item.href !== "/dashboard" && pathname.startsWith(`${item.href}/`));
-          const Icon = item.icon;
-          
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={`${styles.navLink} ${isActive ? styles.navLinkActive : ""}`}
-            >
-              <Icon size={18} />
-              {item.name}
-            </Link>
-          );
-        })}
-      </nav>
-
-      <div className={styles.userProfile}>
-        <div className={styles.avatar}>{initials || "H"}</div>
-        <div className={styles.userInfo}>
-          <span className={styles.userName}>{displayName}</span>
-          <span className={styles.userRole}>{profile ? labelRole(profile.role) : ""}</span>
+      <aside className={`${styles.sidebar} ${isMobileMenuOpen ? styles.sidebarOpen : ""}`}>
+        <div className={styles.logo}>
+          HANBEE
         </div>
-      </div>
-      
-      <button 
-        type="button" 
-        className={styles.navLink} 
-        onClick={() => void handleSignOut()} 
-        style={{ marginTop: 10, border: 0, width: "100%", cursor: "pointer", textAlign: "left", background: "transparent", color: "inherit", fontFamily: "inherit", fontSize: "inherit" }}
-      >
-        <LogOut size={18} />
-        Sign out
-      </button>
-    </aside>
+        
+        {profile?.role === "student" && <ModeSwitcher />}
+
+        <nav className={styles.navMenu}>
+          {items.map((item) => {
+            const isActive = pathname === item.href || (item.href !== "/dashboard" && pathname.startsWith(`${item.href}/`));
+            const Icon = item.icon;
+            
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`${styles.navLink} ${isActive ? styles.navLinkActive : ""}`}
+                onClick={() => setIsMobileMenuOpen?.(false)}
+              >
+                <Icon size={18} />
+                {item.name}
+              </Link>
+            );
+          })}
+        </nav>
+
+        <div className={styles.userProfile}>
+          <div className={styles.avatar}>{initials || "H"}</div>
+          <div className={styles.userInfo}>
+            <span className={styles.userName}>{displayName}</span>
+            <span className={styles.userRole}>{profile ? labelRole(profile.role) : ""}</span>
+          </div>
+        </div>
+        
+        <button 
+          type="button" 
+          className={styles.navLink} 
+          onClick={() => void handleSignOut()} 
+          style={{ marginTop: 10, border: 0, width: "100%", cursor: "pointer", textAlign: "left", background: "transparent", color: "inherit", fontFamily: "inherit", fontSize: "inherit" }}
+        >
+          <LogOut size={18} />
+          Sign out
+        </button>
+      </aside>
+    </>
   );
 }
+

@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Sidebar from "./components/Sidebar";
 import Header from "./components/Header";
 import styles from "./layout.module.css";
@@ -8,6 +9,7 @@ import { useTheme } from "./ThemeProvider";
 
 export default function ClientLayout({ children }: { children: React.ReactNode }) {
   const { activeTheme } = useTheme();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   return (
     <div 
@@ -15,9 +17,11 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
       data-theme={activeTheme}
     >
       {/* Sidebar navigation */}
-      <Sidebar />
+      <Sidebar isMobileMenuOpen={isMobileMenuOpen} setIsMobileMenuOpen={setIsMobileMenuOpen} />
+      
+      {/* Main Content */}
       <div className={styles.mainArea}>
-        <Header />
+        <Header toggleMobileMenu={() => setIsMobileMenuOpen(!isMobileMenuOpen)} />
         <main className={styles.contentScroll}>
           {children}
         </main>
@@ -25,3 +29,4 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
     </div>
   );
 }
+

@@ -1,6 +1,6 @@
 "use client";
 
-import { Search } from "lucide-react";
+import { Search, Menu } from "lucide-react";
 import styles from "../layout.module.css";
 import NotificationBell from "./NotificationBell";
 import { useSessionProfile } from "../../../lib/hooks/useSessionProfile";
@@ -19,7 +19,7 @@ function greeting() {
   return "Good evening,";
 }
 
-export default function Header() {
+export default function Header({ toggleMobileMenu }: { toggleMobileMenu?: () => void }) {
   const { data: profile } = useSessionProfile();
   const name = profile?.full_name ?? "";
   const initial = name.charAt(0).toUpperCase() || "H";
@@ -28,8 +28,13 @@ export default function Header() {
   return (
     <header className={styles.header}>
       <div className={styles.headerLeft}>
-        <div className={styles.greeting}>{greeting()}</div>
-        <div className={styles.greetingName}>{name}</div>
+        <button className={styles.mobileMenuBtn} onClick={toggleMobileMenu} aria-label="Toggle Menu">
+          <Menu size={24} />
+        </button>
+        <div className={styles.greetingWrapper}>
+          <div className={styles.greeting}>{greeting()}</div>
+          <div className={styles.greetingName}>{name}</div>
+        </div>
       </div>
 
       <div className={styles.searchBar}>
@@ -52,3 +57,4 @@ export default function Header() {
     </header>
   );
 }
+

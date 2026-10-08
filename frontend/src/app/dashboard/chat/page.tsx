@@ -17,6 +17,7 @@ import {
 import { readStoredSession } from "../../../lib/supabaseAuth";
 import { getRealtimeClient } from "../../../lib/realtime";
 import { fetchChatReadReceipts } from "../../../lib/messagingApi";
+import { useSessionProfile } from "../../../lib/hooks/useSessionProfile";
 
 function dayKey(value: string) {
   return new Date(value).toDateString();
@@ -46,6 +47,9 @@ export default function ChatPage() {
   const queryClient = useQueryClient();
 
   useEffect(() => { setCurrentUserId(readStoredSession()?.user.id ?? ""); }, []);
+
+  const { data: profile } = useSessionProfile();
+  const myRole = profile?.role;
 
   const { data: conversations, isLoading: conversationsLoading } = useQuery({
     queryKey: ["chat-conversations"],
@@ -141,6 +145,17 @@ export default function ChatPage() {
     sendMessage.mutate(body);
   }
 
+  function isAllowedContact(theirRole: string | null | undefined) {
+    if (!myRole || !theirRole) return true; // If unknown, allow by default
+    switch (myRole) {
+      case "manager": return theirRole === "staff" || theirRole === "school_staff";
+      case "student": return theirRole === "staff" || theirRole === "school_staff";
+      case "staff": return theirRole === "student" || theirRole === "manager";
+      case "school_staff": return theirRole === "student" || theirRole === "manager";
+      default: return true;
+    }
+  }
+
   const conversationList = conversations ?? [];
   const contactList = contacts ?? [];
   const activeConversation = conversationList.find((conversation) => conversation.id === activeConversationId);
@@ -148,10 +163,16 @@ export default function ChatPage() {
   const title = activeConversation?.kind === "direct"
     ? activeConversation.other_full_name ?? "Conversation"
     : activeConversation?.title ?? "Hanbee chat";
-  const visibleConversations = conversationList.filter((conversation) =>
-    (conversation.title ?? conversation.other_full_name ?? "Group chat").toLowerCase().includes(search.toLowerCase()),
-  );
-  const visibleContacts = contactList.filter((contact) => contact.full_name.toLowerCase().includes(search.toLowerCase()));
+    
+  const visibleConversations = conversationList.filter((conversation) => {
+    if (conversation.kind === "direct" && !isAllowedContact(conversation.other_role)) return false;
+    return (conversation.title ?? conversation.other_full_name ?? "Group chat").toLowerCase().includes(search.toLowerCase());
+  });
+  
+  const visibleContacts = contactList.filter((contact) => {
+    if (!isAllowedContact(contact.role)) return false;
+    return contact.full_name.toLowerCase().includes(search.toLowerCase());
+  });
 
   const formatTime = (value: string | null) => value ? new Date(value).toLocaleString([], { dateStyle: "short", timeStyle: "short" }) : "";
 
