@@ -8,7 +8,6 @@ const navLinks = [
   { label: "Home", href: "#" },
   { label: "Courses", href: "#courses" },
   { label: "For Educators", href: "#educators" },
-  { label: "Community", href: "#community" },
   { label: "About", href: "#about" },
 ];
 
@@ -18,9 +17,9 @@ export default function Navbar() {
   return (
     <motion.nav
       className={styles.navbar}
-      initial={{ y: -100, opacity: 0 }}
+      initial={{ y: -24, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
-      transition={{ duration: 0.8, ease: [0.25, 0.46, 0.45, 0.94] }}
+      transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
     >
       <div className={styles.navContent}>
         {/* Logo */}
@@ -40,9 +39,9 @@ export default function Navbar() {
             return (
               <motion.li
                 key={link.label}
-                initial={{ y: -20, opacity: 0 }}
+                initial={{ y: -14, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
-                transition={{ delay: 0.1 * (index + 1), duration: 0.5 }}
+                transition={{ delay: 0.08 * (index + 1), duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
               >
                 <motion.a
                   href={link.href}
@@ -68,28 +67,6 @@ export default function Navbar() {
 
         {/* Right Section */}
         <div className={styles.navRight}>
-          {/* Search Icon */}
-          <motion.button
-            className={styles.searchBtn}
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.95 }}
-            aria-label="Search"
-          >
-            <svg
-              width="22"
-              height="22"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <circle cx="11" cy="11" r="8" />
-              <path d="M21 21l-4.35-4.35" />
-            </svg>
-          </motion.button>
-
           {/* Sign In */}
           <motion.a
             href="/login"

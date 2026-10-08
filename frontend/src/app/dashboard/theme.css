@@ -1,5 +1,8 @@
 :root, [data-theme="dark"] {
-  --bg-page: #222222;
+  --bg-page: #1c1c1e;
+  --bg-page-image:
+    radial-gradient(ellipse 70% 55% at 12% -8%, rgba(8, 145, 178, 0.16), transparent 60%),
+    radial-gradient(ellipse 60% 50% at 100% 0%, rgba(79, 70, 229, 0.10), transparent 60%);
   --bg-card: rgba(20, 20, 20, 0.7);
   --bg-card-hover: rgba(30, 30, 30, 0.8);
   --bg-input: rgba(10, 10, 10, 0.6);
@@ -14,26 +17,31 @@
   --color-success: #10B981; /* Emerald */
   --color-warning: #F59E0B; /* Amber */
   --color-danger: #EF4444; /* Red */
-  
+
   /* Classic Dark Neumorphism with Glass */
-  --clay-shadow-subtle: 0 4px 12px rgba(0, 0, 0, 0.2);
-  --clay-shadow-outer: 0 8px 24px rgba(0, 0, 0, 0.3);
+  --clay-shadow-subtle: 0 1px 2px rgba(0, 0, 0, 0.2), 0 4px 12px rgba(0, 0, 0, 0.2);
+  --clay-shadow-outer: 0 1px 2px rgba(0, 0, 0, 0.24), 0 8px 24px rgba(0, 0, 0, 0.28), 0 24px 48px -16px rgba(0, 0, 0, 0.3);
   --clay-shadow-inner: none;
-  --clay-shadow-elevated: 0 12px 32px rgba(0, 0, 0, 0.4);
-  
+  --clay-shadow-elevated: 0 2px 4px rgba(0, 0, 0, 0.3), 0 16px 32px rgba(0, 0, 0, 0.36), 0 32px 64px -20px rgba(0, 0, 0, 0.4);
+
   /* Buttons and Active States */
   --clay-shadow-button: 0 4px 12px rgba(0, 0, 0, 0.25);
   --clay-shadow-active: inset 0 2px 4px rgba(0, 0, 0, 0.3);
-  
+  --accent-glow: 0 0 0 1px rgba(8, 145, 178, 0.4), 0 8px 24px -4px rgba(8, 145, 178, 0.35);
+  --focus-ring: 0 0 0 3px rgba(8, 145, 178, 0.35);
+
   --clay-radius-lg: 32px;
   --clay-radius-md: 24px;
   --clay-radius-sm: 16px;
-  
+
   --border-subtle: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 [data-theme="light"] {
-  --bg-page: #ebe6db;
+  --bg-page: #f1ede3;
+  --bg-page-image:
+    radial-gradient(ellipse 70% 55% at 12% -8%, rgba(79, 70, 229, 0.08), transparent 60%),
+    radial-gradient(ellipse 60% 50% at 100% 0%, rgba(8, 145, 178, 0.07), transparent 60%);
   --bg-card: rgba(255, 255, 255, 0.7);
   --bg-card-hover: rgba(255, 255, 255, 0.9);
   --bg-input: rgba(240, 240, 240, 0.7);
@@ -50,21 +58,26 @@
   --color-danger: #DC2626; /* Red */
   
   /* Glass shadows for light mode */
-  --clay-shadow-subtle: 0 4px 12px rgba(0, 0, 0, 0.05);
-  --clay-shadow-outer: 0 8px 24px rgba(0, 0, 0, 0.08);
+  --clay-shadow-subtle: 0 1px 2px rgba(17, 17, 17, 0.04), 0 4px 12px rgba(17, 17, 17, 0.05);
+  --clay-shadow-outer: 0 1px 2px rgba(17, 17, 17, 0.05), 0 8px 24px rgba(17, 17, 17, 0.07), 0 24px 48px -16px rgba(17, 17, 17, 0.1);
   --clay-shadow-inner: none;
-  --clay-shadow-elevated: 0 12px 32px rgba(0, 0, 0, 0.12);
-  
+  --clay-shadow-elevated: 0 2px 4px rgba(17, 17, 17, 0.06), 0 16px 32px rgba(17, 17, 17, 0.1), 0 32px 64px -20px rgba(17, 17, 17, 0.14);
+
   /* Buttons and Active States */
   --clay-shadow-button: 0 4px 12px rgba(0, 0, 0, 0.1);
   --clay-shadow-active: inset 0 2px 4px rgba(0, 0, 0, 0.1);
-  
+  --accent-glow: 0 0 0 1px rgba(79, 70, 229, 0.25), 0 8px 24px -4px rgba(79, 70, 229, 0.25);
+  --focus-ring: 0 0 0 3px rgba(79, 70, 229, 0.3);
+
   --border-subtle: 1px solid rgba(0, 0, 0, 0.08);
 }
 
 [data-theme="personalized"] {
   /* Static Dark Mode Base */
-  --bg-page: #222222;
+  --bg-page: #1c1c1e;
+  --bg-page-image:
+    radial-gradient(ellipse 70% 55% at 12% -8%, hsla(var(--user-hue, 215), 80%, 50%, 0.14), transparent 60%),
+    radial-gradient(ellipse 60% 50% at 100% 0%, hsla(var(--user-hue, 215), 80%, 50%, 0.08), transparent 60%);
   --bg-card: #222222;
   --bg-card-hover: #2a2a2a;
   --bg-input: #1a1a1a;
@@ -88,10 +101,18 @@
   --clay-shadow-active: inset 2px 2px 4px rgba(0, 0, 0, 0.3), inset -1px -1px 2px rgba(255, 255, 255, 0.02);
   
   --border-subtle: 1px solid rgba(255, 255, 255, 0.05);
-  
+  --accent-glow: 0 0 0 1px hsla(var(--user-hue, 215), 80%, 60%, 0.4), 0 8px 24px -4px hsla(var(--user-hue, 215), 80%, 50%, 0.35);
+  --focus-ring: 0 0 0 3px hsla(var(--user-hue, 215), 80%, 60%, 0.35);
+
   --color-success: #10B981;
   --color-warning: #F59E0B;
   --color-danger: #EF4444;
+}
+
+/* Focus-visible ring everywhere in the dashboard, using the active theme's accent */
+[data-theme] :is(button, a, input, select, textarea, [tabindex]):focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
 }
 
 /* Base resets */

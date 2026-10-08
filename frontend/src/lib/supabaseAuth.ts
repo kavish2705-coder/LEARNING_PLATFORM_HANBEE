@@ -187,8 +187,6 @@ export async function signUpWithPassword(input: {
   inviteToken?: string;
   joinToken?: string;
   schoolName?: string;
-  registrationNo?: string;
-  officialEmail?: string;
   guardianConsent?: boolean;
 }) {
   const data: Record<string, string> = {
@@ -199,8 +197,6 @@ export async function signUpWithPassword(input: {
   if (input.joinToken) data.join_token = input.joinToken.trim();
   if (input.role === "school_staff") {
     data.school_name = input.schoolName?.trim() ?? "";
-    data.registration_no = input.registrationNo?.trim() ?? "";
-    data.official_email = input.officialEmail?.trim() ?? "";
     data.guardian_consent = input.guardianConsent ? "true" : "false";
   }
 

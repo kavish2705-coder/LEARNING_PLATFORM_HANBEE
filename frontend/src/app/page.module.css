@@ -1,0 +1,121 @@
+.marqueeWrap {
+  overflow: hidden;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  background: #141416;
+}
+
+.marqueeTrack {
+  display: flex;
+  width: max-content;
+  animation: marquee 28s linear infinite;
+}
+
+.marqueeItem {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 22px 36px;
+  font-family: var(--font-heading);
+  font-size: 22px;
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.8);
+  white-space: nowrap;
+  letter-spacing: -0.01em;
+}
+
+.marqueeDot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #0891b2;
+  flex-shrink: 0;
+}
+
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .marqueeTrack {
+    animation: none;
+  }
+}
+
+.featureRow {
+  display: flex;
+  align-items: baseline;
+  gap: 32px;
+  padding: 36px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  transition: border-color 0.3s ease;
+}
+
+.featureRow:first-child {
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.featureRow:hover {
+  border-color: rgba(8, 145, 178, 0.4);
+}
+
+.featureNum {
+  font-family: monospace;
+  font-size: 15px;
+  color: rgba(255, 255, 255, 0.3);
+  min-width: 32px;
+  flex-shrink: 0;
+}
+
+.featureTitle {
+  font-family: var(--font-heading);
+  font-size: clamp(20px, 2vw, 26px);
+  font-weight: 400;
+  color: #fff;
+  min-width: 260px;
+  flex-shrink: 0;
+  letter-spacing: -0.01em;
+}
+
+.featureDesc {
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.5);
+  max-width: 460px;
+}
+
+.faqItem summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.faqItem summary::-webkit-details-marker {
+  display: none;
+}
+
+.faqItem summary::after {
+  content: "+";
+  font-family: var(--font-heading);
+  font-size: 22px;
+  color: rgba(255, 255, 255, 0.4);
+  flex-shrink: 0;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.faqItem[open] summary::after {
+  transform: rotate(45deg);
+}
+
+@media (max-width: 800px) {
+  .featureRow {
+    flex-direction: column;
+    gap: 8px;
+  }
+  .featureTitle {
+    min-width: 0;
+  }
+}
