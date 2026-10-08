@@ -1,9 +1,12 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { motion, useScroll, useTransform } from "framer-motion";
 import styles from "./Hero.module.css";
 
 export default function Hero() {
+  const { scrollY } = useScroll();
+  const yBg = useTransform(scrollY, [0, 1000], [0, 300]);
+  const opacityText = useTransform(scrollY, [0, 400], [1, 0]);
   const containerVariant = {
     hidden: { opacity: 1 },
     visible: {
@@ -33,14 +36,20 @@ export default function Hero() {
 
   return (
     <section className={styles.hero}>
-      {/* Background Image */}
-      <div className={styles.bgImage} />
+      {/* Background Image with Parallax */}
+      <motion.div className={styles.bgImage} style={{ y: yBg }} />
+
+      {/* Futuristic Grid Overlay */}
+      <div className={styles.gridOverlay} />
+      
+      {/* Animated Glowing Orb */}
+      <div className={styles.glowingOrb} />
 
       {/* Gradient Overlay for text readability */}
       <div className={styles.overlay} />
 
       {/* Hero Content */}
-      <div className={styles.content}>
+      <motion.div className={styles.content} style={{ opacity: opacityText }}>
         {/* Tagline */}
         <motion.p
           className={styles.tagline}
@@ -100,7 +109,7 @@ export default function Hero() {
           }}
           whileTap={{ scale: 0.97 }}
         >
-          Start Learning
+          <span className={styles.ctaText}>Start Learning</span>
           <motion.svg
             width="18"
             height="18"
@@ -115,8 +124,9 @@ export default function Hero() {
             <path d="M5 12h14" />
             <path d="M12 5l7 7-7 7" />
           </motion.svg>
+          <div className={styles.ctaGlow}></div>
         </motion.a>
-      </div>
+      </motion.div>
 
     </section>
   );

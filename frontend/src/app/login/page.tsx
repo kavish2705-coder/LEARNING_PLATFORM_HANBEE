@@ -170,10 +170,17 @@ function LoginContent() {
     }
   };
 
+
+  const getPrimaryPlaceholder = () => {
+    if (activeRole === "Staff") return "Email / Staff ID";
+    if (activeRole === "Manager") return "Email / Manager ID";
+    if (activeRole === "School") return "Email / School Admin ID";
+    return "Email / Student ID";
+  };
+
   return (
     <>
       <motion.div 
-
         className={styles.glassCard}
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -246,6 +253,7 @@ function LoginContent() {
               Create Account
             </button>
           )}
+
         </div>
 
         <span className={styles.sectionLabel}>SELECT ROLE</span>
@@ -285,7 +293,7 @@ function LoginContent() {
             <input
               type="email"
               className={styles.input}
-              placeholder="Email"
+              placeholder={getPrimaryPlaceholder()}
               value={email}
               onChange={(event) => setEmail(event.target.value)}
               required
