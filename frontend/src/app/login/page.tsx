@@ -18,11 +18,6 @@ function LoginContent() {
       setIsLogin(false);
     }
   }, [searchParams]);
-  const [activeRole, setActiveRole] = useState("Student");
-
-  useEffect(() => {
-    if (activeRole === "Student") setIsLogin(true);
-  }, [activeRole]);
   
   const { setRole } = useRole();
   const router = useRouter();
@@ -136,17 +131,10 @@ function LoginContent() {
     }
   };
 
-
-  const getPrimaryPlaceholder = () => {
-    if (activeRole === "Staff") return "Email / Staff ID";
-    if (activeRole === "Manager") return "Email / Manager ID";
-    if (activeRole === "School") return "Email / School Admin ID";
-    return "Email / Student ID";
-  };
-
   return (
     <>
       <motion.div 
+
         className={styles.glassCard}
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -211,27 +199,12 @@ function LoginContent() {
           >
             Sign In
           </button>
-          {activeRole !== "Student" && (
-            <button
-              className={`${styles.tabBtn} ${!isLogin ? styles.tabBtnActive : ''}`}
-              onClick={() => setIsLogin(false)}
-            >
-              Create Account
-            </button>
-          )}
-        </div>
-
-        <span className={styles.sectionLabel}>SELECT ROLE</span>
-        <div className={styles.roleSegment}>
-          {["Student", "School", "Staff", "Manager"].map(role => (
-            <button 
-              key={role}
-              className={`${styles.roleBtn} ${activeRole === role ? styles.roleBtnActive : ''}`}
-              onClick={() => setActiveRole(role)}
-            >
-              {role}
-            </button>
-          ))}
+          <button
+            className={`${styles.tabBtn} ${!isLogin ? styles.tabBtnActive : ''}`}
+            onClick={() => setIsLogin(false)}
+          >
+            Create Account
+          </button>
         </div>
 
         <form onSubmit={handleAuthSubmit}>
@@ -251,7 +224,7 @@ function LoginContent() {
             <input
               type="email"
               className={styles.input}
-              placeholder={getPrimaryPlaceholder()}
+              placeholder="Email"
               value={email}
               onChange={(event) => setEmail(event.target.value)}
               required
