@@ -180,3 +180,25 @@
   pointer-events: none;
   z-index: 0;
 }
+
+.schoolGrid {
+  display: grid;
+  grid-template-columns: 1.1fr 1fr;
+  gap: 56px;
+  align-items: center;
+}
+
+.aboutGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+  align-items: start;
+}
+
+@media (max-width: 800px) {
+  .schoolGrid, .aboutGrid {
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
+}
+

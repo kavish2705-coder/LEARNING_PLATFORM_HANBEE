@@ -240,7 +240,7 @@ export default function Home() {
           padding: "0 40px 140px",
         }}
       >
-        <div className={styles.glassCard} style={{ maxWidth: "1200px", margin: "0 auto", borderRadius: "32px", padding: "64px 48px", display: "grid", gridTemplateColumns: "1.1fr 1fr", gap: "56px", alignItems: "center" }}>
+        <div className={`${styles.glassCard} ${styles.schoolGrid}`} style={{ maxWidth: "1200px", margin: "0 auto", borderRadius: "32px", padding: "64px 48px" }}>
           <div className={styles.orbBackground} style={{ opacity: 0.6 }}></div>
           <motion.div
             initial={{ opacity: 0, x: -30 }}
