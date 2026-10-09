@@ -237,10 +237,12 @@ export default function Home() {
           position: "relative",
           zIndex: 10,
           backgroundColor: "#1c1c1e",
-          padding: "0 40px 140px",
+          padding: "100px 40px 140px",
+          display: "flex",
+          justifyContent: "center",
         }}
       >
-        <div className={`${styles.glassCard} ${styles.schoolGrid}`} style={{ maxWidth: "1200px", margin: "0 auto", borderRadius: "32px", padding: "64px 48px" }}>
+        <div className={`${styles.glassCard} ${styles.schoolGrid}`} style={{ width: "100%", maxWidth: "1200px", borderRadius: "32px", padding: "64px 48px" }}>
           <div className={styles.orbBackground} style={{ opacity: 0.6 }}></div>
           <motion.div
             initial={{ opacity: 0, x: -30 }}
