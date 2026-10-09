@@ -8,6 +8,7 @@ import { Input, Select, Textarea } from "../../../../components/ui/FormField";
 import Shimmer from "../../../../components/ui/Shimmer";
 import { useConfirm } from "../../../../../../components/ui/useConfirm";
 import { authenticatedSupabaseFetch, getAccountProfile } from "../../../../../../lib/supabaseAuth";
+import AssessmentEditor from "./AssessmentEditor";
 
 type Lesson = {
   id: string;
@@ -45,6 +46,7 @@ export default function EditCoursePage() {
   const { ask, dialog } = useConfirm();
 
   const [course, setCourse] = useState<Course | null>(null);
+  const [profileId, setProfileId] = useState("");
   const [modules, setModules] = useState<Module[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -57,6 +59,7 @@ export default function EditCoursePage() {
   const load = useCallback(async () => {
     const account = await getAccountProfile();
     if (account.role !== "staff" && account.role !== "manager") throw new Error("Only approved Hanbee staff can edit course content.");
+    setProfileId(account.id);
     const [courseRows, moduleRows] = await Promise.all([
       authenticatedSupabaseFetch<Course[]>(`/rest/v1/courses?select=id,title,description&id=eq.${courseId}`),
       authenticatedSupabaseFetch<Omit<Module, "lessons">[]>(`/rest/v1/modules?select=id,course_id,title,sort_order&course_id=eq.${courseId}&order=sort_order.asc`),
@@ -201,17 +204,20 @@ export default function EditCoursePage() {
               {mod.lessons.length === 0 && <p style={{ color: "var(--text-muted)", marginBottom: 16 }}>No lessons yet.</p>}
               <div style={{ display: "grid", gap: 10, marginBottom: 20 }}>
                 {[...mod.lessons].sort((a, b) => a.sort_order - b.sort_order).map((lesson) => (
-                  <div key={lesson.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, padding: "10px 14px", background: "var(--bg-input)", borderRadius: 10, flexWrap: "wrap" }}>
-                    <div>
-                      <strong>{lesson.title}</strong>
-                      <span style={{ color: "var(--text-muted)", marginLeft: 10, fontSize: 13 }}>
-                        {lesson.content_type}{lesson.content_type === "video" && lesson.youtube_id ? ` · ${lesson.youtube_id}` : ""}{lesson.content_type === "document" && lesson.external_url ? ` · ${lesson.external_url}` : ""} · {lesson.published ? "Published" : "Draft"}
-                      </span>
+                  <div key={lesson.id} style={{ padding: "10px 14px", background: "var(--bg-input)", borderRadius: 10 }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+                      <div>
+                        <strong>{lesson.title}</strong>
+                        <span style={{ color: "var(--text-muted)", marginLeft: 10, fontSize: 13 }}>
+                          {lesson.content_type}{lesson.content_type === "video" && lesson.youtube_id ? ` · ${lesson.youtube_id}` : ""}{lesson.content_type === "document" && lesson.external_url ? ` · ${lesson.external_url}` : ""} · {lesson.published ? "Published" : "Draft"}
+                        </span>
+                      </div>
+                      <div style={{ display: "flex", gap: 8 }}>
+                        <button type="button" className={styles.actionBtn} disabled={busy} onClick={() => void togglePublished(lesson)}>{lesson.published ? "Unpublish" : "Publish"}</button>
+                        <button type="button" className={styles.actionBtn} disabled={busy} onClick={() => void deleteLesson(lesson)}>Delete</button>
+                      </div>
                     </div>
-                    <div style={{ display: "flex", gap: 8 }}>
-                      <button type="button" className={styles.actionBtn} disabled={busy} onClick={() => void togglePublished(lesson)}>{lesson.published ? "Unpublish" : "Publish"}</button>
-                      <button type="button" className={styles.actionBtn} disabled={busy} onClick={() => void deleteLesson(lesson)}>Delete</button>
-                    </div>
+                    <AssessmentEditor lessonId={lesson.id} createdBy={profileId} />
                   </div>
                 ))}
               </div>
