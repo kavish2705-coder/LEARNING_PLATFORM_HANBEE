@@ -1,12 +1,9 @@
 "use client";
 
-import { motion, useScroll, useTransform } from "framer-motion";
+import { motion } from "framer-motion";
 import styles from "./Hero.module.css";
 
 export default function Hero() {
-  const { scrollY } = useScroll();
-  const yBg = useTransform(scrollY, [0, 1000], [0, 300]);
-  const opacityText = useTransform(scrollY, [0, 400], [1, 0]);
   const containerVariant = {
     hidden: { opacity: 1 },
     visible: {
@@ -36,8 +33,8 @@ export default function Hero() {
 
   return (
     <section className={styles.hero}>
-      {/* Background Image with Parallax */}
-      <motion.div className={styles.bgImage} style={{ y: yBg }} />
+      {/* Background Image */}
+      <div className={styles.bgImage} />
 
       {/* Futuristic Grid Overlay */}
       <div className={styles.gridOverlay} />
@@ -49,7 +46,7 @@ export default function Hero() {
       <div className={styles.overlay} />
 
       {/* Hero Content */}
-      <motion.div className={styles.content} style={{ opacity: opacityText }}>
+      <div className={styles.content}>
         {/* Tagline */}
         <motion.p
           className={styles.tagline}
@@ -57,7 +54,7 @@ export default function Hero() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2, duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
         >
-          LEARN · GROW · BELONG
+          BEYOND STANDARD LEARNING
         </motion.p>
 
         {/* Main Heading */}
@@ -68,15 +65,8 @@ export default function Hero() {
           animate="visible"
         >
           <span className={styles.headingLine}>
-            {line1.split("").map((char, index) => (
+            {"An LMS built for doers.".split("").map((char, index) => (
               <motion.span key={`l1-${index}`} variants={charVariant} style={{ display: "inline-block" }}>
-                {char === " " ? "\u00A0" : char}
-              </motion.span>
-            ))}
-          </span>
-          <span className={styles.headingLine}>
-            {line2.split("").map((char, index) => (
-              <motion.span key={`l2-${index}`} variants={charVariant} style={{ display: "inline-block" }}>
                 {char === " " ? "\u00A0" : char}
               </motion.span>
             ))}
@@ -90,7 +80,7 @@ export default function Hero() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.55, duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
         >
-          Write the code. Build the car. Race it for real — at the Hanbee RC Cup.
+          From mastering core engineering concepts to building and programming your own FC racing car, Hanbee bridges the gap between theory and adrenaline-pumping reality.
         </motion.p>
 
         {/* CTA Button */}
@@ -126,7 +116,7 @@ export default function Hero() {
           </motion.svg>
           <div className={styles.ctaGlow}></div>
         </motion.a>
-      </motion.div>
+      </div>
 
     </section>
   );
