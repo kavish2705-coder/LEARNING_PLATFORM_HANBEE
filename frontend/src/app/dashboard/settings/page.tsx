@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import QRCode from "qrcode";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Moon, Sun, Monitor, Palette } from "lucide-react";
 import styles from "./settings.module.css";
@@ -150,7 +151,8 @@ export default function SettingsPage() {
     enabled: Boolean(profile?.id),
   });
   const verifiedFactor = factors?.find((f) => f.status === "verified") ?? null;
-  const [enrolling, setEnrolling] = useState<{ factorId: string; qrCode: string; secret: string } | null>(null);
+  const [enrolling, setEnrolling] = useState<{ factorId: string; uri: string; secret: string } | null>(null);
+  const [qrDataUrl, setQrDataUrl] = useState("");
   const [mfaCode, setMfaCode] = useState("");
   const [mfaBusy, setMfaBusy] = useState(false);
 
@@ -159,13 +161,27 @@ export default function SettingsPage() {
     setMfaBusy(true);
     try {
       const res = await enrollMfaFactor();
-      setEnrolling({ factorId: res.id, qrCode: res.totp.qr_code, secret: res.totp.secret });
+      setEnrolling({ factorId: res.id, uri: res.totp.uri, secret: res.totp.secret });
     } catch (reason) {
       setStatus({ tone: "error", text: reason instanceof Error ? reason.message : "We couldn't start two-factor setup." });
     } finally {
       setMfaBusy(false);
     }
   }
+
+  useEffect(() => {
+    if (!enrolling) {
+      setQrDataUrl("");
+      return;
+    }
+    let active = true;
+    // Rendered client-side from the otpauth:// URI, never from server-supplied
+    // HTML - avoids trusting raw markup from the auth response.
+    QRCode.toDataURL(enrolling.uri, { margin: 1, width: 200 })
+      .then((url) => { if (active) setQrDataUrl(url); })
+      .catch(() => { if (active) setQrDataUrl(""); });
+    return () => { active = false; };
+  }, [enrolling]);
 
   async function confirmMfaEnrollment(event: React.FormEvent) {
     event.preventDefault();
@@ -266,7 +282,9 @@ export default function SettingsPage() {
             ) : enrolling ? (
               <form onSubmit={confirmMfaEnrollment}>
                 <p style={{ marginBottom: 12 }}>Scan this QR code with your authenticator app (Google Authenticator, Authy, 1Password), or enter the key manually: <code>{enrolling.secret}</code></p>
-                <div style={{ marginBottom: 12, background: "#fff", padding: 12, borderRadius: 8, width: "fit-content" }} dangerouslySetInnerHTML={{ __html: enrolling.qrCode }} />
+                <div style={{ marginBottom: 12, background: "#fff", padding: 12, borderRadius: 8, width: "fit-content" }}>
+                  {qrDataUrl ? <img src={qrDataUrl} alt="Two-factor authentication QR code" width={200} height={200} /> : <p>Generating QR code…</p>}
+                </div>
                 <div className={styles.formGroup}>
                   <label className={styles.label} htmlFor="mfa-code">6-digit code</label>
                   <input id="mfa-code" type="text" inputMode="numeric" maxLength={6} className={styles.input} value={mfaCode} onChange={(e) => setMfaCode(e.target.value)} required />
