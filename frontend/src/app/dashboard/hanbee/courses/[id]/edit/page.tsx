@@ -87,12 +87,12 @@ export default function EditCoursePage() {
   async function addModule(event: FormEvent) {
     event.preventDefault();
     if (!newModuleTitle.trim()) return;
-    const nextOrder = modules.length ? Math.max(...modules.map((m) => m.sort_order)) + 1 : 0;
+    // sort_order is computed server-side, under a row lock on the course,
+    // so two staff adding to the same course at once can't collide.
     await act(
-      () => authenticatedSupabaseFetch("/rest/v1/modules", {
+      () => authenticatedSupabaseFetch("/rest/v1/rpc/add_module", {
         method: "POST",
-        headers: { Prefer: "return=minimal" },
-        body: JSON.stringify({ course_id: courseId, title: newModuleTitle.trim(), sort_order: nextOrder }),
+        body: JSON.stringify({ p_course: courseId, p_title: newModuleTitle.trim() }),
       }),
       "Module added.",
     );
@@ -124,19 +124,18 @@ export default function EditCoursePage() {
     event.preventDefault();
     const draft = draftFor(mod.id);
     if (!draft.title.trim()) return;
-    const nextOrder = mod.lessons.length ? Math.max(...mod.lessons.map((l) => l.sort_order)) + 1 : 0;
+    // sort_order is computed server-side, under a row lock on the module,
+    // so two staff adding to the same module at once can't collide.
     await act(
-      () => authenticatedSupabaseFetch("/rest/v1/lessons", {
+      () => authenticatedSupabaseFetch("/rest/v1/rpc/add_lesson", {
         method: "POST",
-        headers: { Prefer: "return=minimal" },
         body: JSON.stringify({
-          module_id: mod.id,
-          title: draft.title.trim(),
-          content_type: draft.contentType,
-          published: draft.published,
-          youtube_id: draft.contentType === "video" ? extractYoutubeId(draft.videoInput) : null,
-          external_url: draft.contentType === "document" ? draft.notesPath.trim() : "",
-          sort_order: nextOrder,
+          p_module: mod.id,
+          p_title: draft.title.trim(),
+          p_content_type: draft.contentType,
+          p_published: draft.published,
+          p_youtube_id: draft.contentType === "video" ? extractYoutubeId(draft.videoInput) : null,
+          p_external_url: draft.contentType === "document" ? draft.notesPath.trim() : "",
         }),
       }),
       "Lesson added.",
