@@ -58,7 +58,7 @@ export default function Home() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-100px" }}
           transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-          style={{ position: "sticky", top: "140px", alignSelf: "start" }}
+          style={{ position: "relative", zIndex: 2, alignSelf: "start" }}
         >
           <span style={{ fontFamily: "var(--font-body)", fontSize: "13px", letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)" }}>
             Beyond standard learning
