@@ -105,14 +105,15 @@ export default function EditCoursePage() {
   }
 
   async function moveModule(mod: Module, direction: -1 | 1) {
-    const sorted = [...modules].sort((a, b) => a.sort_order - b.sort_order);
-    const index = sorted.findIndex((m) => m.id === mod.id);
-    const swapWith = sorted[index + direction];
-    if (!swapWith) return;
-    await act(async () => {
-      await authenticatedSupabaseFetch(`/rest/v1/modules?id=eq.${mod.id}`, { method: "PATCH", headers: { Prefer: "return=minimal" }, body: JSON.stringify({ sort_order: swapWith.sort_order }) });
-      await authenticatedSupabaseFetch(`/rest/v1/modules?id=eq.${swapWith.id}`, { method: "PATCH", headers: { Prefer: "return=minimal" }, body: JSON.stringify({ sort_order: mod.sort_order }) });
-    }, "Reordered.");
+    // Swapped atomically server-side (reorder_module RPC) so a failed
+    // second request can never leave two modules with the same sort_order.
+    await act(
+      () => authenticatedSupabaseFetch("/rest/v1/rpc/reorder_module", {
+        method: "POST",
+        body: JSON.stringify({ p_module: mod.id, p_direction: direction === -1 ? "up" : "down" }),
+      }),
+      "Reordered.",
+    );
   }
 
   function draftFor(moduleId: string) {
