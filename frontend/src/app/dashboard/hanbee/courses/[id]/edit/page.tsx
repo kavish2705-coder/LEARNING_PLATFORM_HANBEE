@@ -41,6 +41,7 @@ function extractYoutubeId(input: string): string {
 export default function EditCoursePage() {
   const params = useParams<{ id: string }>();
   const courseId = params.id;
+  const isValidCourseId = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(courseId ?? "");
   const { ask, dialog } = useConfirm();
 
   const [course, setCourse] = useState<Course | null>(null);
@@ -71,11 +72,12 @@ export default function EditCoursePage() {
   }, [courseId]);
 
   useEffect(() => {
+    if (!isValidCourseId) { setLoading(false); return; }
     let active = true;
     load().catch((reason: unknown) => { if (active) setError(reason instanceof Error ? reason.message : "We couldn't load this course."); })
       .finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
-  }, [load]);
+  }, [load, isValidCourseId]);
 
   async function act(action: () => Promise<unknown>, success: string) {
     setBusy(true); setError(""); setNotice("");
@@ -155,8 +157,9 @@ export default function EditCoursePage() {
     );
   }
 
+  if (!isValidCourseId) return <div className={styles.sectionCard} role="alert"><p>We couldn't find that course.</p></div>;
   if (loading) return <Shimmer rows={4} />;
-  if (error && !course) return <div className={styles.sectionCard} role="alert"><p>{error}</p></div>;
+  if (error && !course) return <div className={styles.sectionCard} role="alert"><p>We couldn't load this course. Please try again.</p></div>;
   if (!course) return null;
 
   return (
