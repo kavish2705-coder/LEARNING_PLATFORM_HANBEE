@@ -55,6 +55,11 @@ export default function EditCoursePage() {
 
   const [newModuleTitle, setNewModuleTitle] = useState("");
   const [lessonDraft, setLessonDraft] = useState<Record<string, { title: string; contentType: Lesson["content_type"]; videoInput: string; notesPath: string; published: boolean }>>({});
+  const [draggedModuleId, setDraggedModuleId] = useState<string | null>(null);
+  const [draggedLesson, setDraggedLesson] = useState<{ moduleId: string; lessonId: string } | null>(null);
+  const [bulkOpenFor, setBulkOpenFor] = useState<string | null>(null);
+  const [bulkText, setBulkText] = useState("");
+  const [bulkResult, setBulkResult] = useState("");
 
   const load = useCallback(async () => {
     const account = await getAccountProfile();
@@ -119,6 +124,79 @@ export default function EditCoursePage() {
       }),
       "Reordered.",
     );
+  }
+
+  async function dropModule(targetMod: Module) {
+    if (!draggedModuleId || draggedModuleId === targetMod.id) { setDraggedModuleId(null); return; }
+    const sorted = [...modules].sort((a, b) => a.sort_order - b.sort_order);
+    const fromIndex = sorted.findIndex((m) => m.id === draggedModuleId);
+    const toIndex = sorted.findIndex((m) => m.id === targetMod.id);
+    setDraggedModuleId(null);
+    if (fromIndex === -1 || toIndex === -1) return;
+    const reordered = [...sorted];
+    const [moved] = reordered.splice(fromIndex, 1);
+    reordered.splice(toIndex, 0, moved);
+    await act(
+      () => authenticatedSupabaseFetch("/rest/v1/rpc/set_module_order", {
+        method: "POST",
+        body: JSON.stringify({ p_course: courseId, p_ordered_ids: reordered.map((m) => m.id) }),
+      }),
+      "Reordered.",
+    );
+  }
+
+  async function dropLesson(mod: Module, targetLesson: Lesson) {
+    if (!draggedLesson || draggedLesson.moduleId !== mod.id || draggedLesson.lessonId === targetLesson.id) { setDraggedLesson(null); return; }
+    const sorted = [...mod.lessons].sort((a, b) => a.sort_order - b.sort_order);
+    const fromIndex = sorted.findIndex((l) => l.id === draggedLesson.lessonId);
+    const toIndex = sorted.findIndex((l) => l.id === targetLesson.id);
+    setDraggedLesson(null);
+    if (fromIndex === -1 || toIndex === -1) return;
+    const reordered = [...sorted];
+    const [moved] = reordered.splice(fromIndex, 1);
+    reordered.splice(toIndex, 0, moved);
+    await act(
+      () => authenticatedSupabaseFetch("/rest/v1/rpc/set_lesson_order", {
+        method: "POST",
+        body: JSON.stringify({ p_module: mod.id, p_ordered_ids: reordered.map((l) => l.id) }),
+      }),
+      "Reordered.",
+    );
+  }
+
+  // One lesson per line: "Title | video | <youtube url or id>" or
+  // "Title | document | /notes/path". Each line becomes its own add_lesson
+  // call - a bad line is reported and skipped, not a reason to abort the rest.
+  async function runBulkImport(mod: Module) {
+    const lines = bulkText.split("\n").map((l) => l.trim()).filter(Boolean);
+    if (!lines.length) return;
+    setBusy(true); setBulkResult(""); setError("");
+    let added = 0;
+    const failed: string[] = [];
+    for (const line of lines) {
+      const parts = line.split("|").map((p) => p.trim());
+      const [title, type, value] = parts;
+      if (!title || (type !== "video" && type !== "document")) { failed.push(line); continue; }
+      try {
+        await authenticatedSupabaseFetch("/rest/v1/rpc/add_lesson", {
+          method: "POST",
+          body: JSON.stringify({
+            p_module: mod.id,
+            p_title: title,
+            p_content_type: type,
+            p_published: true,
+            p_youtube_id: type === "video" ? extractYoutubeId(value ?? "") : null,
+            p_external_url: type === "document" ? (value ?? "") : "",
+          }),
+        });
+        added += 1;
+      } catch {
+        failed.push(line);
+      }
+    }
+    setBulkResult(`${added} lesson${added === 1 ? "" : "s"} added.${failed.length ? ` ${failed.length} line(s) couldn't be added: ${failed.join(" / ")}` : ""}`);
+    setBusy(false);
+    await load();
   }
 
   function draftFor(moduleId: string) {
@@ -191,9 +269,17 @@ export default function EditCoursePage() {
         {[...modules].sort((a, b) => a.sort_order - b.sort_order).map((mod, modIndex, sortedModules) => {
           const draft = draftFor(mod.id);
           return (
-            <section key={mod.id} className={styles.sectionCard}>
+            <section
+              key={mod.id}
+              className={styles.sectionCard}
+              draggable
+              onDragStart={() => setDraggedModuleId(mod.id)}
+              onDragOver={(e) => e.preventDefault()}
+              onDrop={() => void dropModule(mod)}
+              style={{ opacity: draggedModuleId === mod.id ? 0.5 : 1, cursor: "grab" }}
+            >
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, marginBottom: 16, flexWrap: "wrap" }}>
-                <h2 className={styles.sectionTitle}>{mod.title}</h2>
+                <h2 className={styles.sectionTitle}>⠿ {mod.title}</h2>
                 <div style={{ display: "flex", gap: 8 }}>
                   <button type="button" className={styles.actionBtn} disabled={busy || modIndex === 0} onClick={() => void moveModule(mod, -1)}>↑</button>
                   <button type="button" className={styles.actionBtn} disabled={busy || modIndex === sortedModules.length - 1} onClick={() => void moveModule(mod, 1)}>↓</button>
@@ -204,10 +290,17 @@ export default function EditCoursePage() {
               {mod.lessons.length === 0 && <p style={{ color: "var(--text-muted)", marginBottom: 16 }}>No lessons yet.</p>}
               <div style={{ display: "grid", gap: 10, marginBottom: 20 }}>
                 {[...mod.lessons].sort((a, b) => a.sort_order - b.sort_order).map((lesson) => (
-                  <div key={lesson.id} style={{ padding: "10px 14px", background: "var(--bg-input)", borderRadius: 10 }}>
+                  <div
+                    key={lesson.id}
+                    draggable
+                    onDragStart={(e) => { e.stopPropagation(); setDraggedLesson({ moduleId: mod.id, lessonId: lesson.id }); }}
+                    onDragOver={(e) => e.preventDefault()}
+                    onDrop={(e) => { e.stopPropagation(); void dropLesson(mod, lesson); }}
+                    style={{ padding: "10px 14px", background: "var(--bg-input)", borderRadius: 10, opacity: draggedLesson?.lessonId === lesson.id ? 0.5 : 1, cursor: "grab" }}
+                  >
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
                       <div>
-                        <strong>{lesson.title}</strong>
+                        <strong>⠿ {lesson.title}</strong>
                         <span style={{ color: "var(--text-muted)", marginLeft: 10, fontSize: 13 }}>
                           {lesson.content_type}{lesson.content_type === "video" && lesson.youtube_id ? ` · ${lesson.youtube_id}` : ""}{lesson.content_type === "document" && lesson.external_url ? ` · ${lesson.external_url}` : ""} · {lesson.published ? "Published" : "Draft"}
                         </span>
@@ -253,6 +346,33 @@ export default function EditCoursePage() {
                 </label>
                 <button type="submit" className={styles.actionBtn} disabled={busy || !draft.title.trim()} style={{ justifySelf: "start" }}>Add lesson</button>
               </form>
+
+              <div style={{ marginTop: 14 }}>
+                <button
+                  type="button"
+                  className={styles.actionBtn}
+                  onClick={() => { setBulkOpenFor(bulkOpenFor === mod.id ? null : mod.id); setBulkResult(""); }}
+                >
+                  {bulkOpenFor === mod.id ? "Hide bulk import" : "Bulk import lessons"}
+                </button>
+                {bulkOpenFor === mod.id && (
+                  <div style={{ marginTop: 10 }}>
+                    <p style={{ color: "var(--text-muted)", fontSize: 13, marginBottom: 8 }}>
+                      One lesson per line: <code>Title | video | youtube-url-or-id</code> or <code>Title | document | /notes/path</code>. All added as published.
+                    </p>
+                    <Textarea
+                      value={bulkText}
+                      onChange={(e) => setBulkText(e.target.value)}
+                      rows={5}
+                      placeholder={"Intro to sensors | video | https://www.youtube.com/watch?v=...\nSensor wiring diagram | document | /notes/sensors.html"}
+                    />
+                    <button type="button" className={styles.actionBtn} disabled={busy || !bulkText.trim()} style={{ marginTop: 8 }} onClick={() => void runBulkImport(mod)}>
+                      Import lessons
+                    </button>
+                    {bulkResult && <p role="status" style={{ marginTop: 8 }}>{bulkResult}</p>}
+                  </div>
+                )}
+              </div>
             </section>
           );
         })}
