@@ -179,16 +179,21 @@
   text-transform: uppercase;
   letter-spacing: 1px;
   color: var(--text-muted);
-  padding-bottom: 16px;
+  padding: 0 16px 16px 0;
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .dataTable td {
-  padding: 20px 0;
+  padding: 20px 16px 20px 0;
   font-size: 14px;
   color: var(--text-muted);
   border-bottom: 1px solid rgba(255, 255, 255, 0.02);
   transition: color 0.2s ease;
+}
+
+.dataTable th:last-child,
+.dataTable td:last-child {
+  padding-right: 0;
 }
 
 .dataTable tbody tr {

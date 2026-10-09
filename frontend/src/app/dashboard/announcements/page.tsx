@@ -3,6 +3,7 @@
 import { FormEvent, useEffect, useState } from "react";
 import { Info } from "lucide-react";
 import styles from "./announcements.module.css";
+import { Input, Select, Textarea } from "../components/ui/FormField";
 import { useSessionProfile } from "../../../lib/hooks/useSessionProfile";
 import ConfirmDialog from "../../../components/ui/ConfirmDialog";
 import { useToast } from "../../../components/ui/Toast";
@@ -160,13 +161,13 @@ export default function AnnouncementsPage() {
       {canPublish && <form onSubmit={submit} style={{ marginBottom: 28, padding: 22, borderRadius: 16, background: "var(--bg-card)", border: "1px solid var(--border-subtle)" }}>
         <h2 style={{ fontSize: 18, marginBottom: 14 }}>{editingId ? "Edit announcement" : isSchoolStaff ? "Post to your school" : "Publish site announcement"}</h2>
         <label htmlFor="announcement-title">Title</label>
-        <input id="announcement-title" value={title} onChange={(event) => setTitle(event.target.value)} required maxLength={180} style={{ display: "block", width: "100%", margin: "6px 0 14px" }} />
+        <Input id="announcement-title" value={title} onChange={(event) => setTitle(event.target.value)} required maxLength={180} style={{ display: "block", width: "100%", margin: "6px 0 14px" }} />
         <label htmlFor="announcement-body">Message</label>
-        <textarea id="announcement-body" value={body} onChange={(event) => setBody(event.target.value)} required maxLength={12000} rows={5} style={{ display: "block", width: "100%", margin: "6px 0 14px" }} />
+        <Textarea id="announcement-body" value={body} onChange={(event) => setBody(event.target.value)} required maxLength={12000} rows={5} style={{ display: "block", width: "100%", margin: "6px 0 14px" }} />
         <label htmlFor="announcement-audience">Audience</label>
-        <select id="announcement-audience" value={audience} onChange={(event) => setAudience(event.target.value as AnnouncementAudience)} style={{ display: "block", margin: "6px 0 14px" }}>
+        <Select id="announcement-audience" value={audience} onChange={(event) => setAudience(event.target.value as AnnouncementAudience)} style={{ display: "block", margin: "6px 0 14px" }}>
           <option value="all">Everyone in this scope</option><option value="student">Students</option><option value="staff">School staff</option>
-        </select>
+        </Select>
         <button type="submit" disabled={busy || (isSchoolStaff && !organizationId)}>{busy ? "Saving…" : editingId ? "Save changes" : "Publish announcement"}</button>
         {editingId && <button type="button" disabled={busy} onClick={() => { setEditingId(null); setTitle(""); setBody(""); }}>Cancel edit</button>}
       </form>}
