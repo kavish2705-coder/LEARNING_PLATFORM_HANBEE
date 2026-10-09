@@ -211,10 +211,11 @@ export default function Home() {
                 <motion.div
                   key={item.stage}
                   className={styles.glassCard}
-                  initial={{ opacity: 0, y: 16 }}
-                  whileInView={{ opacity: 1, y: 0 }}
+                  initial={{ opacity: 0, y: 30, scale: 0.95 }}
+                  whileInView={{ opacity: 1, y: 0, scale: 1 }}
                   viewport={{ once: true, margin: "-40px" }}
-                  transition={{ duration: 0.5, delay: i * 0.07, ease: [0.16, 1, 0.3, 1] }}
+                  transition={{ type: "spring", stiffness: 120, damping: 14, delay: i * 0.1 }}
+                  whileHover={{ y: -8, scale: 1.02, transition: { type: "spring", stiffness: 300, damping: 20 } }}
                   style={{
                     borderRadius: "18px",
                     padding: "24px",

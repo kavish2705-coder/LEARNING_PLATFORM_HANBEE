@@ -1,9 +1,12 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { motion, useScroll, useTransform } from "framer-motion";
 import styles from "./Hero.module.css";
 
 export default function Hero() {
+  const { scrollY } = useScroll();
+  const yBg = useTransform(scrollY, [0, 1000], [0, 300]);
+  const opacityText = useTransform(scrollY, [0, 400], [1, 0]);
   const containerVariant = {
     hidden: { opacity: 1 },
     visible: {
@@ -16,14 +19,18 @@ export default function Hero() {
   };
 
   const charVariant: any = {
-    hidden: { opacity: 0, y: 14, filter: "blur(6px)" },
+    hidden: { opacity: 0, y: 30, scale: 0.9, filter: "blur(8px)", rotateX: -30 },
     visible: {
       opacity: 1,
       y: 0,
+      scale: 1,
       filter: "blur(0px)",
+      rotateX: 0,
       transition: {
-        duration: 0.55,
-        ease: [0.16, 1, 0.3, 1],
+        type: "spring",
+        stiffness: 150,
+        damping: 12,
+        mass: 0.8
       },
     },
   };
@@ -33,8 +40,8 @@ export default function Hero() {
 
   return (
     <section className={styles.hero}>
-      {/* Background Image */}
-      <div className={styles.bgImage} />
+      {/* Background Image with Parallax */}
+      <motion.div className={styles.bgImage} style={{ y: yBg }} />
 
       {/* Futuristic Grid Overlay */}
       <div className={styles.gridOverlay} />
@@ -46,7 +53,7 @@ export default function Hero() {
       <div className={styles.overlay} />
 
       {/* Hero Content */}
-      <div className={styles.content}>
+      <motion.div className={styles.content} style={{ opacity: opacityText }}>
         {/* Tagline */}
         <motion.p
           className={styles.tagline}
@@ -54,7 +61,7 @@ export default function Hero() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2, duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
         >
-          BEYOND STANDARD LEARNING
+          LEARN · GROW · BELONG
         </motion.p>
 
         {/* Main Heading */}
@@ -65,8 +72,15 @@ export default function Hero() {
           animate="visible"
         >
           <span className={styles.headingLine}>
-            {"An LMS built for doers.".split("").map((char, index) => (
+            {line1.split("").map((char, index) => (
               <motion.span key={`l1-${index}`} variants={charVariant} style={{ display: "inline-block" }}>
+                {char === " " ? "\u00A0" : char}
+              </motion.span>
+            ))}
+          </span>
+          <span className={styles.headingLine}>
+            {line2.split("").map((char, index) => (
+              <motion.span key={`l2-${index}`} variants={charVariant} style={{ display: "inline-block" }}>
                 {char === " " ? "\u00A0" : char}
               </motion.span>
             ))}
@@ -80,24 +94,25 @@ export default function Hero() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.55, duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
         >
-          From mastering core engineering concepts to building and programming your own FC racing car, Hanbee bridges the gap between theory and adrenaline-pumping reality.
+          Write the code. Build the car. Race it for real — at the Hanbee RC Cup.
         </motion.p>
 
         {/* CTA Button */}
         <motion.a
-          href="/login?mode=signup"
+          href="/login"
           className={styles.ctaButton}
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 20, scale: 0.95 }}
           animate={{
             opacity: 1,
             y: 0,
-            transition: { delay: 0.8, duration: 0.7, ease: [0.16, 1, 0.3, 1] }
+            scale: 1,
+            transition: { delay: 0.9, type: "spring", stiffness: 200, damping: 20 }
           }}
           whileHover={{
-            scale: 1.04,
-            transition: { type: "spring", stiffness: 350, damping: 20 },
+            scale: 1.06,
+            transition: { type: "spring", stiffness: 400, damping: 15 },
           }}
-          whileTap={{ scale: 0.97 }}
+          whileTap={{ scale: 0.95 }}
         >
           <span className={styles.ctaText}>Start Learning</span>
           <motion.svg
@@ -116,7 +131,7 @@ export default function Hero() {
           </motion.svg>
           <div className={styles.ctaGlow}></div>
         </motion.a>
-      </div>
+      </motion.div>
 
     </section>
   );
