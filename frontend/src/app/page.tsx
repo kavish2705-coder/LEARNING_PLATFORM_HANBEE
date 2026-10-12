@@ -262,12 +262,13 @@ export default function Home() {
             </p>
             <motion.a
               href="/login?mode=signup&role=School"
-              whileHover={{ scale: 1.03 }}
+              className={styles.liquidGlassBtn}
+              whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.97 }}
-              style={{ display: "inline-flex", alignItems: "center", gap: "10px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.2)", backdropFilter: "blur(10px)", color: "#fff", padding: "14px 28px", borderRadius: "999px", fontFamily: "var(--font-body)", fontWeight: 500, fontSize: "15px", boxShadow: "0 10px 30px -10px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.15)" }}
+              transition={{ type: "spring", stiffness: 400, damping: 17 }}
             >
               Register your school
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14" /><path d="M12 5l7 7-7 7" /></svg>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14" /><path d="M12 5l7 7-7 7" /></svg>
             </motion.a>
           </motion.div>
 
@@ -326,26 +327,15 @@ export default function Home() {
             Most courses end where the real learning starts. We built Hanbee so the thing you coded actually has to work — on a track, against the clock, against other teams.
           </h2>
           <motion.a
-            href="/login?mode=signup"
-            whileHover={{ scale: 1.03 }}
+            href="/login"
+            className={styles.liquidGlassBtn}
+            style={{ marginTop: "40px" }}
+            whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.97 }}
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: "10px",
-              marginTop: "40px",
-              background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.2)", backdropFilter: "blur(10px)",
-              color: "#fff",
-              padding: "14px 28px",
-              borderRadius: "999px",
-              fontFamily: "var(--font-body)",
-              fontWeight: 500,
-              fontSize: "15px",
-              boxShadow: "0 10px 30px -10px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.15)"
-            }}
+            transition={{ type: "spring", stiffness: 400, damping: 17 }}
           >
             Start learning
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14" /><path d="M12 5l7 7-7 7" /></svg>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14" /><path d="M12 5l7 7-7 7" /></svg>
           </motion.a>
         </motion.div>
       </section>

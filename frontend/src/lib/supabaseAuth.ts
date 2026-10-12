@@ -5,7 +5,7 @@ export interface SupabaseSession {
   refresh_token: string;
   expires_at?: number;
   token_type: string;
-  user: { id: string; email?: string };
+  user: { id: string; email?: string; user_metadata?: Record<string, any> };
 }
 
 export interface SignedInAccount {
@@ -131,6 +131,14 @@ export function readStoredSession(): SupabaseSession | null {
   }
 }
 
+export function writeStoredSession(session: SupabaseSession): void {
+  try {
+    window.localStorage.setItem(AUTH_SESSION_KEY, JSON.stringify(session));
+  } catch {
+    // ignore
+  }
+}
+
 export async function refreshSession(session: SupabaseSession): Promise<SupabaseSession> {
   const refreshed = await supabaseFetch<AuthSessionResponse>("/auth/v1/token?grant_type=refresh_token", {
     method: "POST",
@@ -249,6 +257,9 @@ export async function requestPasswordReset(email: string) {
 }
 
 export async function updatePassword(accessToken: string, password: string) {
+  if (accessToken === "dummy-token") {
+    return { id: "dummy-student", email: "student@hanbee.in" };
+  }
   return supabaseFetch<{ id: string; email?: string }>("/auth/v1/user", {
     method: "PUT",
     headers: { Authorization: `Bearer ${accessToken}` },
@@ -274,7 +285,7 @@ export async function getAccountProfile() {
     return {
       id: session.user.id,
       email: session.user.email || `${dummyRole}@hanbee.in`,
-      full_name: `Dummy ${dummyRole}`,
+      full_name: session.user.user_metadata?.full_name || `Dummy ${dummyRole}`,
       role: dummyRole,
       avatar_url: null
     };
@@ -289,6 +300,15 @@ export async function getAccountProfile() {
 }
 
 export async function updateAccountProfile(input: Pick<AccountProfile, "id"> & { full_name: string }) {
+  if (input.id.startsWith("dummy-")) {
+    const session = readStoredSession();
+    if (session) {
+      session.user.user_metadata = session.user.user_metadata || {};
+      session.user.user_metadata.full_name = input.full_name.trim();
+      writeStoredSession(session);
+    }
+    return;
+  }
   return authenticatedSupabaseFetch<undefined>(`/rest/v1/profiles?id=eq.${encodeURIComponent(input.id)}`, {
     method: "PATCH",
     headers: { Prefer: "return=minimal" },

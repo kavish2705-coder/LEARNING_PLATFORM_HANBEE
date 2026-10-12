@@ -101,35 +101,26 @@ export default function Hero() {
         <motion.a
           href="/login"
           className={styles.ctaButton}
-          initial={{ opacity: 0, y: 20, scale: 0.95 }}
-          animate={{
-            opacity: 1,
-            y: 0,
-            scale: 1,
-            transition: { delay: 0.9, type: "spring", stiffness: 200, damping: 20 }
-          }}
-          whileHover={{
-            scale: 1.06,
-            transition: { type: "spring", stiffness: 400, damping: 15 },
-          }}
-          whileTap={{ scale: 0.95 }}
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.8, duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.97 }}
         >
-          <span className={styles.ctaText}>Start Learning</span>
-          <motion.svg
-            width="18"
-            height="18"
+          <span>Start Learning</span>
+          <svg
+            width="14"
+            height="14"
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
-            strokeWidth="2"
+            strokeWidth="2.5"
             strokeLinecap="round"
             strokeLinejoin="round"
-            className={styles.ctaArrow}
           >
             <path d="M5 12h14" />
             <path d="M12 5l7 7-7 7" />
-          </motion.svg>
-          <div className={styles.ctaGlow}></div>
+          </svg>
         </motion.a>
       </motion.div>
 

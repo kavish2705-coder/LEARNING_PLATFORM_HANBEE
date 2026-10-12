@@ -12,10 +12,10 @@ const ROLE_HOME: Record<string, string> = {
   manager: "/dashboard/manager/monitor",
 };
 
-const SHARED = ["/dashboard", "/dashboard/chat", "/dashboard/announcements", "/dashboard/settings"];
+const SHARED = ["/dashboard/chat", "/dashboard/announcements", "/dashboard/settings"];
 
 const ROLE_AREAS: Record<string, string[]> = {
-  student: [...SHARED, "/dashboard/courses", "/dashboard/attendance", "/dashboard/achievements", "/dashboard/certificate", "/dashboard/ai-assistant", "/dashboard/leaderboard", "/dashboard/team", "/dashboard/join-school"],
+  student: ["/dashboard", ...SHARED, "/dashboard/courses", "/dashboard/attendance", "/dashboard/achievements", "/dashboard/certificate", "/dashboard/ai-assistant", "/dashboard/leaderboard", "/dashboard/team", "/dashboard/license", "/dashboard/join-school"],
   school_staff: [...SHARED, "/dashboard/school"],
   staff: [...SHARED, "/dashboard/hanbee", "/dashboard/courses", "/dashboard/users"],
   manager: [...SHARED, "/dashboard/manager", "/dashboard/hanbee", "/dashboard/courses", "/dashboard/users"],

@@ -2,16 +2,15 @@
 
 import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Moon, Sun, Monitor, Palette } from "lucide-react";
+import { Moon, Sun, Monitor, Palette, Check, Lock, Save, CheckCircle2, AlertCircle } from "lucide-react";
 import styles from "./settings.module.css";
 import { useTheme } from "../ThemeProvider";
+import { useSessionProfile, sessionProfileKey } from "../../../lib/hooks/useSessionProfile";
 import {
   authenticatedSupabaseFetch,
-  getAccountProfile,
   readStoredSession,
   updateAccountProfile,
   updatePassword,
-
 } from "../../../lib/supabaseAuth";
 
 const NOTIFICATION_KINDS: { kind: string; label: string }[] = [
@@ -28,7 +27,7 @@ export default function SettingsPage() {
   const { theme, setTheme, accentHue, setAccentHue, accentLightness, setAccentLightness } = useTheme();
   const queryClient = useQueryClient();
 
-  const { data: profile } = useQuery({ queryKey: ["account-profile"], queryFn: getAccountProfile });
+  const { data: profile } = useSessionProfile();
   const [fullName, setFullName] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -102,8 +101,9 @@ export default function SettingsPage() {
     setStatus(null);
     try {
       await updateAccountProfile({ id: profile.id, full_name: fullName.trim() });
+      await queryClient.invalidateQueries({ queryKey: sessionProfileKey });
       await queryClient.invalidateQueries({ queryKey: ["account-profile"] });
-      setStatus({ tone: "ok", text: "Profile saved." });
+      setStatus({ tone: "ok", text: "Profile details updated successfully." });
     } catch (reason) {
       setStatus({ tone: "error", text: reason instanceof Error ? reason.message : "We couldn't save your profile." });
     } finally {
@@ -132,15 +132,13 @@ export default function SettingsPage() {
       await updatePassword(session.access_token, newPassword);
       setNewPassword("");
       setConfirmPassword("");
-      setStatus({ tone: "ok", text: "Password changed." });
+      setStatus({ tone: "ok", text: "Password changed successfully." });
     } catch (reason) {
       setStatus({ tone: "error", text: reason instanceof Error ? reason.message : "We couldn't change your password." });
     } finally {
       setBusy("");
     }
   }
-
-
 
   const initial = (profile?.full_name ?? "H").charAt(0).toUpperCase();
 
@@ -151,7 +149,15 @@ export default function SettingsPage() {
         <p className={styles.pageSubtitle}>Manage your account and preferences</p>
       </div>
 
-      {status && <p role={status.tone === "error" ? "alert" : "status"} style={{ marginBottom: 12 }}>{status.text}</p>}
+      {status && (
+        <div 
+          className={status.tone === "error" ? styles.statusAlertError : styles.statusAlertOk} 
+          role={status.tone === "error" ? "alert" : "status"}
+        >
+          {status.tone === "error" ? <AlertCircle size={18} /> : <CheckCircle2 size={18} />}
+          <span>{status.text}</span>
+        </div>
+      )}
 
       <div className={styles.settingsLayout}>
         <section className={styles.sectionCard}>
@@ -170,8 +176,9 @@ export default function SettingsPage() {
               <label className={styles.label} htmlFor="full-name">Full Name</label>
               <input id="full-name" type="text" className={styles.input} value={fullName} onChange={(e) => setFullName(e.target.value)} maxLength={120} required />
             </div>
-            <button type="submit" className={styles.saveBtn} disabled={busy !== "" || !profile}>
-              {busy === "profile" ? "Saving..." : "Save Changes"}
+            <button type="submit" className={styles.saveBtn} disabled={busy !== ""}>
+              <Check size={16} />
+              <span>{busy === "profile" ? "Saving..." : "Save Changes"}</span>
             </button>
           </form>
         </section>
@@ -191,10 +198,10 @@ export default function SettingsPage() {
               </div>
             </div>
             <button type="submit" className={styles.saveBtn} disabled={busy !== ""}>
-              {busy === "password" ? "Changing..." : "Change Password"}
+              <Lock size={16} />
+              <span>{busy === "password" ? "Changing..." : "Change Password"}</span>
             </button>
           </form>
-
 
         </section>
 
@@ -209,7 +216,10 @@ export default function SettingsPage() {
               <label className={styles.label} htmlFor="preferred-team">Preferred Team Name</label>
               <input id="preferred-team" type="text" className={styles.input} value={preferredTeam} onChange={(e) => setPreferredTeam(e.target.value)} maxLength={60} />
             </div>
-            <button type="submit" className={styles.saveBtn} disabled={busy !== ""}>Save Team Name</button>
+            <button type="submit" className={styles.saveBtn} disabled={busy !== ""}>
+              <Save size={16} />
+              <span>{busy === "profile" ? "Saving..." : "Save Team Name"}</span>
+            </button>
           </form>
         </section>
 

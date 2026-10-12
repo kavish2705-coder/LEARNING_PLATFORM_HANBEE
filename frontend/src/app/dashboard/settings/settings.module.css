@@ -111,21 +111,75 @@
 }
 
 .saveBtn {
-  background: var(--bg-card);
-  box-shadow: var(--clay-shadow-outer);
-  color: var(--text-main);
-  border: 1px solid transparent;
-  padding: 10px 24px;
-  border-radius: 8px;
-  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: var(--color-primary);
+  color: var(--color-primary-text);
+  border: 1px solid var(--accent-subtle-border);
+  padding: 12px 26px;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 14px;
+  letter-spacing: 0.3px;
   cursor: pointer;
-  margin-top: 8px;
-  transition: all 0.2s;
+  margin-top: 12px;
+  box-shadow: var(--clay-shadow-button), var(--accent-glow);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.saveBtn:hover {
-  background: var(--bg-input);
+.saveBtn:hover:not(:disabled) {
+  background: var(--color-primary-hover);
+  color: var(--color-primary-text);
+  transform: translateY(-2px);
+  box-shadow: var(--clay-shadow-elevated), var(--accent-glow);
+  border-color: var(--accent);
+}
+
+.saveBtn:active:not(:disabled) {
+  transform: translateY(0);
   box-shadow: var(--clay-shadow-active);
+}
+
+.saveBtn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+  filter: grayscale(0.3);
+}
+
+.statusAlertOk {
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  color: #10b981;
+  padding: 12px 18px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.15);
+  animation: fadeIn 0.3s ease;
+}
+
+.statusAlertError {
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  color: #ef4444;
+  padding: 12px 18px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.15);
+  animation: fadeIn 0.3s ease;
 }
 
 .settingRow {

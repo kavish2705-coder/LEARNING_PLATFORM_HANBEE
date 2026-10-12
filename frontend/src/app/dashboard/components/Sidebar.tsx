@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { 
   LayoutDashboard, BookOpen, Clock, Bell, Settings, Trophy, 
   Users, MessageSquare, Bot, School, CalendarDays, ClipboardList, 
-  UserCheck, LogOut, ClipboardCheck, Activity
+  UserCheck, LogOut, ClipboardCheck, Activity, IdCard
 } from "lucide-react";
 import styles from "../layout.module.css";
 import ModeSwitcher from "./ModeSwitcher";
@@ -16,6 +16,7 @@ import { useSessionProfile } from "../../../lib/hooks/useSessionProfile";
 
 const studentTournamentMenu = [
   { name: "Overview", href: "/dashboard", icon: LayoutDashboard },
+  { name: "Driver License", href: "/dashboard/license", icon: IdCard },
   { name: "Leaderboard", href: "/dashboard/leaderboard", icon: Trophy },
   { name: "My Team", href: "/dashboard/team", icon: Users },
   { name: "Announcements", href: "/dashboard/announcements", icon: Bell },
@@ -99,7 +100,7 @@ export default function Sidebar({
         : mode === "tournament" ? studentTournamentMenu : studentLearningMenu;
 
   const displayName = profile?.full_name ?? "";
-  const initials = displayName.split(/\s+/).slice(0, 2).map((part) => part[0]).join("").toUpperCase();
+  const initials = displayName.split(/\s+/).slice(0, 2).map((part: string) => part[0]).join("").toUpperCase();
 
   async function handleSignOut() {
     try {
