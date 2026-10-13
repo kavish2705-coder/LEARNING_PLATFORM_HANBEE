@@ -11,6 +11,7 @@ import { authenticatedSupabaseFetch } from "../../../../lib/supabaseAuth";
 export default function StartTeamWizard() {
   const [step, setStep] = useState(1);
   const [teamName, setTeamName] = useState("");
+  const [division, setDivision] = useState("Robotics 101");
   const [teamColor, setTeamColor] = useState("#0891b2");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const router = useRouter();
@@ -25,7 +26,7 @@ export default function StartTeamWizard() {
     try {
       const tournament = await fetchUpcomingTournament();
       if (!tournament) throw new Error("There is no open tournament to join right now.");
-      const teamId = await startStudentTeam(tournament.id, teamName.trim());
+      const teamId = await startStudentTeam(tournament.id, teamName.trim(), division);
       await authenticatedSupabaseFetch(`/rest/v1/tournament_teams?id=eq.${teamId}`, {
         method: "PATCH",
         headers: { Prefer: "return=minimal" },
@@ -72,11 +73,16 @@ export default function StartTeamWizard() {
               </div>
 
               <div className={wizardStyles.inputGroup}>
-                <label>Class/Division</label>
-                <select className={wizardStyles.inputField}>
-                  <option>Robotics 101</option>
-                  <option>Advanced Engineering</option>
-                  <option>Open Class</option>
+                <label htmlFor="team-division">Class/Division</label>
+                <select
+                  id="team-division"
+                  className={wizardStyles.inputField}
+                  value={division}
+                  onChange={(event) => setDivision(event.target.value)}
+                >
+                  <option value="Robotics 101">Robotics 101</option>
+                  <option value="Advanced Engineering">Advanced Engineering</option>
+                  <option value="Open Class">Open Class</option>
                 </select>
               </div>
             </div>
@@ -111,7 +117,7 @@ export default function StartTeamWizard() {
                 <div className={wizardStyles.summaryColor} style={{ backgroundColor: teamColor }}></div>
                 <div className={wizardStyles.summaryInfo}>
                   <h3>{teamName || "Unnamed Team"}</h3>
-                  <span>Division: Advanced Engineering</span>
+                  <span>Division: {division}</span>
                 </div>
               </div>
             </div>

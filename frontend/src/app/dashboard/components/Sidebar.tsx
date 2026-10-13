@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { 
   LayoutDashboard, BookOpen, Clock, Bell, Settings, Trophy, 
   Users, MessageSquare, Bot, School, CalendarDays, ClipboardList, 
-  UserCheck, LogOut, ClipboardCheck, Activity
+  UserCheck, LogOut, ClipboardCheck, Activity, Award
 } from "lucide-react";
 import styles from "../layout.module.css";
 import ModeSwitcher from "./ModeSwitcher";
@@ -17,6 +17,7 @@ import { useSessionProfile } from "../../../lib/hooks/useSessionProfile";
 const studentTournamentMenu = [
   { name: "Overview", href: "/dashboard", icon: LayoutDashboard },
   { name: "Leaderboard", href: "/dashboard/leaderboard", icon: Trophy },
+  { name: "Achievements", href: "/dashboard/achievements", icon: Award },
   { name: "My Team", href: "/dashboard/team", icon: Users },
   { name: "Announcements", href: "/dashboard/announcements", icon: Bell },
   { name: "Chat", href: "/dashboard/chat", icon: MessageSquare },
@@ -26,6 +27,7 @@ const studentLearningMenu = [
   { name: "Overview", href: "/dashboard", icon: LayoutDashboard },
   { name: "My Courses", href: "/dashboard/courses", icon: BookOpen },
   { name: "Certificates", href: "/dashboard/certificate", icon: Trophy },
+  { name: "Achievements", href: "/dashboard/achievements", icon: Award },
   { name: "AI Assistant", href: "/dashboard/ai-assistant", icon: Bot },
   { name: "Live Attendance", href: "/dashboard/attendance", icon: Clock },
   { name: "Announcements", href: "/dashboard/announcements", icon: Bell },

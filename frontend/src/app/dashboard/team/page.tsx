@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useCallback, useEffect, useState } from "react";
+import Link from "next/link";
 import styles from "../dashboard.module.css";
 import {
   answerTeamInvitation,
@@ -64,7 +65,7 @@ export default function MyTeamPage() {
   async function createTeam(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!tournament) return;
-    await runAction(() => startStudentTeam(tournament.id, teamName), "Team created.");
+    await runAction(() => startStudentTeam(tournament.id, teamName, "Robotics 101"), "Team created.");
     setTeamName("");
   }
 
@@ -121,6 +122,11 @@ export default function MyTeamPage() {
                   ? "Your school staff haven't opened team slots yet."
                   : `${formation.slots.remaining ?? 0} of ${formation.slots.max_teams} school team slots remain.`}
               </p>
+              {formation.slots?.remaining !== 0 && formation.slots?.max_teams != null && (
+                <p style={{ marginBottom: 16 }}>
+                  <Link href="/dashboard/team/start">Create a team with the setup wizard</Link>
+                </p>
+              )}
               {formation.slots?.remaining !== 0 && formation.slots?.max_teams != null && (
                 <form onSubmit={createTeam} style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
                   <label htmlFor="new-team-name" className="sr-only">Team name</label>

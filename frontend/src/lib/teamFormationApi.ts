@@ -172,8 +172,8 @@ export function fetchTeamStatistics(teamId: string) {
   return rpc<TeamStatistics>("team_statistics", { p_team: teamId });
 }
 
-export function startStudentTeam(tournamentId: string, name: string) {
-  return rpc<string>("student_start_team", { p_tournament: tournamentId, p_name: name });
+export function startStudentTeam(tournamentId: string, name: string, division: string) {
+  return rpc<string>("student_start_team", { p_tournament: tournamentId, p_name: name, p_division: division });
 }
 
 export function inviteStudentToTeam(teamId: string, studentId: string) {
