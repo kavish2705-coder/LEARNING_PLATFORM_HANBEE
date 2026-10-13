@@ -1,12 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { Search, Menu, Zap } from "lucide-react";
+import { Menu, Zap } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import styles from "../layout.module.css";
 import NotificationBell from "./NotificationBell";
 import { useSessionProfile } from "../../../lib/hooks/useSessionProfile";
 import { useUserXp } from "../../../lib/hooks/useUserXp";
+
+import SearchBar from "./SearchBar";
 
 const ROLE_LABEL: Record<string, string> = {
   student: "Student",
@@ -41,10 +43,7 @@ export default function Header({ toggleMobileMenu }: { toggleMobileMenu?: () => 
         </div>
       </div>
 
-      <div className={styles.searchBar}>
-        <Search size={16} className={styles.searchIcon} />
-        <input type="text" placeholder="Search..." className={styles.searchInput} aria-label="Search" />
-      </div>
+      <SearchBar />
 
       <div className={styles.headerRight}>
         {/* Student-only Gamification & Driver License */}
