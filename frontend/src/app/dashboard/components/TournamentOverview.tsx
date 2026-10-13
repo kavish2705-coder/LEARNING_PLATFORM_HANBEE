@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import styles from "./TournamentOverview.module.css";
-import { fetchUpcomingTournament, fetchMyTeamFormation, type MyTeamFormation, type UpcomingTournament } from "../../../lib/teamFormationApi";
+import { fetchUpcomingTournament, fetchMyTeamFormation, fetchMySchool, type MyTeamFormation, type UpcomingTournament } from "../../../lib/teamFormationApi";
 import { getLeaderboard } from "../../../lib/tournamentAdminApi";
 import { useSessionProfile } from "../../../lib/hooks/useSessionProfile";
 import { useUserXp } from "../../../lib/hooks/useUserXp";
@@ -18,6 +18,7 @@ import { useUserXp } from "../../../lib/hooks/useUserXp";
 export default function TournamentOverview() {
   const [tournament, setTournament] = useState<UpcomingTournament | null>(null);
   const [team, setTeam] = useState<MyTeamFormation["my_team"]>(null);
+  const [schoolName, setSchoolName] = useState("Delhi Tech Academy");
   const [teamHref, setTeamHref] = useState("/dashboard/team");
   const [canManageTeam, setCanManageTeam] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -152,9 +153,13 @@ export default function TournamentOverview() {
     let active = true;
     async function loadOverview() {
       try {
-        const event = await fetchUpcomingTournament();
+        const [event, schoolInfo] = await Promise.all([
+          fetchUpcomingTournament(),
+          fetchMySchool(),
+        ]);
         if (!active) return;
         setTournament(event);
+        if (schoolInfo?.name) setSchoolName(schoolInfo.name);
         if (profile?.role === "student") setCanManageTeam(true);
         if (profile?.role === "school_staff") {
           setTeamHref("/dashboard/school/teams");
@@ -336,7 +341,6 @@ export default function TournamentOverview() {
   const driverName = profile?.full_name || "Alex Mitchell";
   const driverInitials = driverName.split(/\s+/).slice(0, 2).map((n: string) => n[0]).join("").toUpperCase() || "AM";
   const teamName = team?.name || "Vortex Racing";
-  const schoolName = "Delhi Tech Academy";
 
   // Dummy Teams & Live Metrics
   const baseDummyTeams = [

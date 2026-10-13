@@ -211,3 +211,20 @@ export function setSchoolTeamSlots(tournamentId: string, organizationId: string,
     p_max: maxTeams,
   });
 }
+
+export interface MySchoolInfo {
+  org_id: string;
+  name: string;
+  status: string;
+  member_role: string;
+  member_status: string;
+}
+
+export async function fetchMySchool(): Promise<MySchoolInfo | null> {
+  try {
+    const rows = await authenticatedSupabaseFetch<MySchoolInfo[]>("/rest/v1/rpc/my_school");
+    return rows[0] ?? null;
+  } catch {
+    return null;
+  }
+}

@@ -12,7 +12,7 @@ import { useRouter } from "next/navigation";
 import styles from "./license.module.css";
 import { useSessionProfile } from "../../../lib/hooks/useSessionProfile";
 import { useUserXp } from "../../../lib/hooks/useUserXp";
-import { fetchUpcomingTournament, fetchMyTeamFormation, type MyTeamFormation } from "../../../lib/teamFormationApi";
+import { fetchUpcomingTournament, fetchMyTeamFormation, fetchMySchool, type MyTeamFormation } from "../../../lib/teamFormationApi";
 
 export default function DriverLicensePage() {
   const router = useRouter();
@@ -21,6 +21,7 @@ export default function DriverLicensePage() {
   const [isFlipped, setIsFlipped] = useState(false);
   const [copied, setCopied] = useState(false);
   const [team, setTeam] = useState<MyTeamFormation["my_team"]>(null);
+  const [schoolName, setSchoolName] = useState("Delhi Tech Academy");
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   // Guard: Driver License is strictly student-only
@@ -77,20 +78,23 @@ export default function DriverLicensePage() {
     .join("")
     .toUpperCase() || "AM";
   const teamName = team?.name || "Vortex Racing";
-  const schoolName = "Delhi Tech Academy";
   const serialNumber = "HB-2026-9042";
 
   useEffect(() => {
     let active = true;
     async function loadTeam() {
       try {
-        const tournament = await fetchUpcomingTournament();
+        const [tournament, schoolInfo] = await Promise.all([
+          fetchUpcomingTournament(),
+          fetchMySchool(),
+        ]);
+        if (schoolInfo?.name && active) setSchoolName(schoolInfo.name);
         if (tournament && active) {
           const formation = await fetchMyTeamFormation(tournament.id);
           if (active) setTeam(formation.my_team);
         }
       } catch {
-        // Fallback team name is used
+        // Fallback team and school names are used
       }
     }
     void loadTeam();
