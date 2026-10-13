@@ -29,7 +29,7 @@ Status: `[ ]` todo, `[~]` in progress, `[x]` done and proven live. Each fix is p
   left join auth.users u on lower(u.email) = lower(wanted.email)
   order by wanted.email;
   ```
-- [ ] **S6. Rotate secrets** that were pasted into chat: database password, Gemini API key.
+- [~] **S6. Rotate secrets** that were pasted into chat. GitHub OAuth client secret and `JWT_SECRET` rotated 2026-10-13. Database password and Gemini API key still use the values pasted into chat; Gemini key rotation deferred to deploy time, database password not yet rotated.
 - [ ] **S7. Public application form.** Add rate limit and CAPTCHA to `course_applications`.
 - [~] **S8. AI function origin and quota.** The Edge Function now uses an exact `ALLOWED_ORIGINS` allow-list; migration 0040 adds an atomic shared daily cap (`GEMINI_DAILY_REQUEST_LIMIT`, default 100), alongside the per-user hourly limit. Still configure the production origins and quota as Supabase secrets, apply migration 0040, and deploy the function.
 - **Unused function secret:** `JWT_SECRET` is not referenced by the checked-in Edge Function or any migration/SQL function. Supabase Auth manages signing and verification of its own session JWTs; this function validates callers through `auth.getUser()` and does not need a custom signing secret. The dashboard secret is likely removable after confirming it is not used by anything outside this repository; remove it there manually.
