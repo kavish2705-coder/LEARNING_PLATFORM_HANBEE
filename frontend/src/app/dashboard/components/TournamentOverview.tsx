@@ -955,7 +955,7 @@ export default function TournamentOverview() {
               </h4>
               <p>{allRankedTeams[1].school} • {allRankedTeams[1].car}</p>
             </div>
-            <div className={styles.podiumPts} style={{ color: "#e5e7eb" }}>{allRankedTeams[1].points.toLocaleString()} pts</div>
+            <div className={styles.podiumPts} style={{ color: "#9ca3af" }}>{allRankedTeams[1].points.toLocaleString()} pts</div>
           </motion.div>
 
           {/* Bronze - P3 */}
