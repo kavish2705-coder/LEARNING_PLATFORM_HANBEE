@@ -33,6 +33,14 @@ interface ChatMessage {
   content: string;
 }
 
+async function trySupabase<T>(request: PromiseLike<T>): Promise<T | null> {
+  try {
+    return await request;
+  } catch {
+    return null;
+  }
+}
+
 Deno.serve(async (req) => {
   const origin = req.headers.get("Origin");
   const allowedOrigins = (Deno.env.get("ALLOWED_ORIGINS") ?? "")
@@ -75,10 +83,14 @@ Deno.serve(async (req) => {
   const authClient = createClient(supabaseUrl, anonKey, {
     global: { headers: { Authorization: req.headers.get("Authorization") ?? "" } },
   });
+  const authResult = await trySupabase(authClient.auth.getUser());
+  if (!authResult) {
+    return respond({ error: "Authentication is temporarily unavailable. Please try again." }, 503);
+  }
   const {
     data: { user },
     error: authError,
-  } = await authClient.auth.getUser();
+  } = authResult;
 
   if (authError || !user) {
     return respond({ error: "You must be signed in to use the AI Assistant." }, 401);
@@ -89,11 +101,15 @@ Deno.serve(async (req) => {
   // The AI Assistant is a student-facing study aid only. Any other role
   // (school_staff, staff, manager) gets no access at all — there was
   // previously no role check here, so any signed-in account could call it.
-  const { data: callerProfile, error: profileError } = await adminClient
+  const profileResult = await trySupabase(adminClient
     .from("profiles")
     .select("role, approved, account_status")
     .eq("id", user.id)
-    .single();
+    .single());
+  if (!profileResult) {
+    return respond({ error: "Account verification is temporarily unavailable. Please try again." }, 503);
+  }
+  const { data: callerProfile, error: profileError } = profileResult;
   if (profileError || !callerProfile) {
     return respond({ error: "Your account could not be verified." }, 403);
   }
@@ -104,19 +120,29 @@ Deno.serve(async (req) => {
   // GET returns the caller's own saved history (so a reload can resume the
   // conversation); DELETE clears it ("start a new conversation").
   if (req.method === "GET") {
-    const { data: rows, error: historyError } = await adminClient
+    const historyResult = await trySupabase(adminClient
       .from("ai_chat_messages")
       .select("role, content, created_at")
       .eq("user_id", user.id)
       .order("created_at", { ascending: true })
-      .limit(MAX_HISTORY_TURNS * 2);
+      .limit(MAX_HISTORY_TURNS * 2));
+    if (!historyResult) {
+      return respond({ error: "History is temporarily unavailable. Please try again." }, 503);
+    }
+    const { data: rows, error: historyError } = historyResult;
     if (historyError) {
       return respond({ error: "Something went wrong loading your history. Please try again." }, 500);
     }
     return respond({ history: rows ?? [] });
   }
   if (req.method === "DELETE") {
-    const { error: deleteError } = await adminClient.from("ai_chat_messages").delete().eq("user_id", user.id);
+    const deleteResult = await trySupabase(
+      adminClient.from("ai_chat_messages").delete().eq("user_id", user.id),
+    );
+    if (!deleteResult) {
+      return respond({ error: "History is temporarily unavailable. Please try again." }, 503);
+    }
+    const { error: deleteError } = deleteResult;
     if (deleteError) {
       return respond({ error: "Something went wrong clearing your history. Please try again." }, 500);
     }
@@ -144,10 +170,14 @@ Deno.serve(async (req) => {
   // atomic RPC — not a separate read then a separate write — so two
   // requests from the same user arriving close together can't both read
   // the same pre-increment count and both slip through the limit.
-  const { data: hourlyUsage, error: hourlyError } = await adminClient.rpc(
+  const hourlyResult = await trySupabase(adminClient.rpc(
     "reserve_ai_user_hourly_capacity",
     { p_user: user.id, p_limit: RATE_LIMIT_PER_HOUR, p_window_seconds: WINDOW_MS / 1000 },
-  );
+  ));
+  if (!hourlyResult) {
+    return respond({ error: "Usage checks are temporarily unavailable. Please try again." }, 503);
+  }
+  const { data: hourlyUsage, error: hourlyError } = hourlyResult;
   if (hourlyError) {
     return respond({ error: "Something went wrong checking your usage. Please try again." }, 500);
   }
@@ -161,10 +191,14 @@ Deno.serve(async (req) => {
 
   const perMinuteLimit = Number(Deno.env.get("GEMINI_PER_MINUTE_LIMIT") ?? "");
   if (Number.isSafeInteger(perMinuteLimit) && perMinuteLimit >= 1) {
-    const { data: minuteUsage, error: minuteError } = await adminClient.rpc(
+    const minuteResult = await trySupabase(adminClient.rpc(
       "reserve_ai_user_minute_capacity",
       { p_user: user.id, p_limit: perMinuteLimit, p_window_seconds: 60 },
-    );
+    ));
+    if (!minuteResult) {
+      return respond({ error: "Usage checks are temporarily unavailable. Please try again." }, 503);
+    }
+    const { data: minuteUsage, error: minuteError } = minuteResult;
     if (minuteError) {
       return respond({ error: "Something went wrong checking your usage. Please try again." }, 500);
     }
@@ -183,10 +217,14 @@ Deno.serve(async (req) => {
   if (!Number.isSafeInteger(dailyLimit) || dailyLimit < 1 || dailyLimit > 100000) {
     return respond({ error: "AI Assistant daily capacity is not configured correctly." }, 500);
   }
-  const { data: dailyCapacity, error: dailyCapacityError } = await adminClient.rpc(
+  const dailyCapacityResult = await trySupabase(adminClient.rpc(
     "reserve_ai_daily_capacity",
     { p_daily_limit: dailyLimit },
-  );
+  ));
+  if (!dailyCapacityResult) {
+    return respond({ error: "AI capacity checks are temporarily unavailable. Please try again." }, 503);
+  }
+  const { data: dailyCapacity, error: dailyCapacityError } = dailyCapacityResult;
   if (dailyCapacityError) {
     return respond({ error: "Something went wrong checking AI capacity. Please try again." }, 500);
   }
@@ -254,10 +292,13 @@ Deno.serve(async (req) => {
 
     const trimmedReply = reply.trim();
     // Best-effort: a failed save shouldn't fail the reply the user already got.
-    await adminClient.from("ai_chat_messages").insert([
+    const saveResult = await trySupabase(adminClient.from("ai_chat_messages").insert([
       { user_id: user.id, role: "user", content: message },
       { user_id: user.id, role: "model", content: trimmedReply.slice(0, MAX_MESSAGE_CHARS) },
-    ]);
+    ]));
+    if (!saveResult || saveResult.error) {
+      console.error("Failed to save AI assistant conversation history.");
+    }
 
     return respond({ reply: trimmedReply });
   } catch {

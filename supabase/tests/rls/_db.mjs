@@ -17,7 +17,11 @@ function urlFromEnvFile() {
 export async function connect() {
   const url = process.env.SUPABASE_DB_URL ?? urlFromEnvFile();
   if (!url) throw new Error("Set SUPABASE_DB_URL, or run create-test-role.mjs to create supabase/tests/.env.test.");
-  const c = new pg.Client({ connectionString: url, ssl: { rejectUnauthorized: false } });
+  const host = new URL(url).hostname;
+  const ssl = ["localhost", "127.0.0.1", "::1"].includes(host)
+    ? false
+    : { rejectUnauthorized: false };
+  const c = new pg.Client({ connectionString: url, ssl });
   await c.connect();
   return c;
 }

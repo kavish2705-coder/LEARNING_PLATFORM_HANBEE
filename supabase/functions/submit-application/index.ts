@@ -117,6 +117,9 @@ Deno.serve(async (req) => {
         ...(remoteIp ? { remoteip: remoteIp } : {}),
       }),
     });
+    if (!verifyResponse.ok) {
+      return respond({ error: "Couldn't verify the CAPTCHA. Please try again shortly." }, 502);
+    }
     const verifyData = await verifyResponse.json();
     if (!verifyData?.success) {
       return respond({ error: "CAPTCHA verification failed. Please try again." }, 400);
@@ -130,20 +133,24 @@ Deno.serve(async (req) => {
   // exactly as they would to a direct client insert — triggers are not
   // bypassed by the service role, only RLS is.
   const adminClient = createClient(supabaseUrl, serviceRoleKey);
-  const { error: insertError } = await adminClient.from("course_applications").insert({
-    full_name: fullName,
-    email,
-    phone,
-    message,
-    course_title: courseTitle,
-  });
+  try {
+    const { error: insertError } = await adminClient.from("course_applications").insert({
+      full_name: fullName,
+      email,
+      phone,
+      message,
+      course_title: courseTitle,
+    });
 
-  if (insertError) {
-    const tooMany = /too many applications/i.test(insertError.message);
-    return respond(
-      { error: tooMany ? insertError.message : "Something went wrong submitting your application. Please try again." },
-      tooMany ? 429 : 500,
-    );
+    if (insertError) {
+      const tooMany = /too many applications/i.test(insertError.message);
+      return respond(
+        { error: tooMany ? insertError.message : "Something went wrong submitting your application. Please try again." },
+        tooMany ? 429 : 500,
+      );
+    }
+  } catch {
+    return respond({ error: "Something went wrong submitting your application. Please try again." }, 500);
   }
 
   return respond({ ok: true });
