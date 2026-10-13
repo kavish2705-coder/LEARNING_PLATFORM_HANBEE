@@ -51,9 +51,12 @@ jobs:
       - name: Dump Postgres/auth logs on failure
         if: failure()
         run: |
-          supabase status
-          docker logs supabase_auth_hanbeelms-supabase-seed 2>&1 | tail -200 || docker ps -a
-          docker logs supabase_db_hanbeelms-supabase-seed 2>&1 | tail -200 || true
+          docker ps -a
+          for name in $(docker ps -a --format '{{.Names}}' | grep -iE 'auth|_db_'); do
+            echo "::group::docker logs $name"
+            docker logs "$name" 2>&1 | tail -300
+            echo "::endgroup::"
+          done
 
       - name: Run all RLS suites
         shell: bash
