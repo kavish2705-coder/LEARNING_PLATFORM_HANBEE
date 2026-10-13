@@ -86,6 +86,21 @@ Deno.serve(async (req) => {
 
   const adminClient = createClient(supabaseUrl, serviceRoleKey);
 
+  // The AI Assistant is a student-facing study aid only. Any other role
+  // (school_staff, staff, manager) gets no access at all — there was
+  // previously no role check here, so any signed-in account could call it.
+  const { data: callerProfile, error: profileError } = await adminClient
+    .from("profiles")
+    .select("role, approved, account_status")
+    .eq("id", user.id)
+    .single();
+  if (profileError || !callerProfile) {
+    return respond({ error: "Your account could not be verified." }, 403);
+  }
+  if (callerProfile.role !== "student" || callerProfile.account_status !== "active") {
+    return respond({ error: "The AI Assistant is only available to active student accounts." }, 403);
+  }
+
   // GET returns the caller's own saved history (so a reload can resume the
   // conversation); DELETE clears it ("start a new conversation").
   if (req.method === "GET") {
@@ -190,7 +205,10 @@ Deno.serve(async (req) => {
           "content, RC racing basics (setup, rules, technique), and how to use the HanbeeLms platform " +
           "(courses, lessons, assessments, tournament registration, etc). Keep answers concise — a few " +
           "sentences, not essays. Stay strictly on-topic for HanbeeLms, its courses, and RC racing. Politely " +
-          "decline requests unrelated to that scope (e.g. writing unrelated code, or anything harmful).",
+          "decline requests unrelated to that scope (e.g. writing unrelated code, or anything harmful). " +
+          "You are a study aid, not a shortcut: if asked to directly solve a graded assessment, quiz, or " +
+          "assignment question, do not give the final answer — explain the relevant concept and guide the " +
+          "student toward working it out themselves instead.",
       },
     ],
   };
