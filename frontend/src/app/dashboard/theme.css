@@ -1,23 +1,22 @@
 :root, [data-theme="dark"] {
-  --bg-page: #14161c;
-  --bg-page-image: none;
-  --bg-card: #1c1f27;
-  --bg-card-hover: #242832;
-  --bg-input: #1c1f27;
-  --text-main: #e9e8e4;
-  --text-muted: #9a9ea8;
-  --accent: #5b7fe0;
+  --bg-page: #1c1c1e;
+  --bg-page-image:
+    radial-gradient(ellipse 70% 55% at 12% -8%, rgba(8, 145, 178, 0.16), transparent 60%),
+    radial-gradient(ellipse 60% 50% at 100% 0%, rgba(79, 70, 229, 0.10), transparent 60%);
+  --bg-card: rgba(20, 20, 20, 0.7);
+  --bg-card-hover: rgba(30, 30, 30, 0.8);
+  --bg-input: rgba(10, 10, 10, 0.6);
+  --text-main: #f5f5f5;
+  --text-muted: #aaaaaa;
+  --accent: #0891b2; /* Cyan */
   
-  --color-primary: #5b7fe0;
-  --color-primary-hover: #6f8fe8;
+  --color-primary: #0891b2; /* Muted Cyan */
+  --color-primary-hover: #0e7490; /* Darker Cyan */
   --color-primary-text: #ffffff;
   
-  --color-success: #5fc98a;
-  --color-warning: #e0b94a;
-  --color-danger: #e0665f;
-  --color-gold: #e0b94a;
-  --color-silver: #b4b8c2;
-  --color-bronze: #d97d4a;
+  --color-success: #10B981; /* Emerald */
+  --color-warning: #F59E0B; /* Amber */
+  --color-danger: #EF4444; /* Red */
 
   /* Classic Dark Neumorphism with Glass */
   --clay-shadow-subtle: 0 1px 2px rgba(0, 0, 0, 0.2), 0 4px 12px rgba(0, 0, 0, 0.2);
@@ -31,49 +30,68 @@
   --accent-glow: 0 0 0 1px rgba(8, 145, 178, 0.4), 0 8px 24px -4px rgba(8, 145, 178, 0.35);
   --focus-ring: 0 0 0 3px rgba(8, 145, 178, 0.35);
 
+  /* Surface & Accent Tokens */
+  --accent-subtle-bg: rgba(8, 145, 178, 0.15);
+  --accent-subtle-border: rgba(125, 211, 232, 0.35);
+  --accent-subtle-text: #7dd3e8;
+  --bg-surface-elevated: rgba(0, 0, 0, 0.35);
+  --border-elevated: rgba(255, 255, 255, 0.08);
+  --btn-secondary-bg: rgba(255, 255, 255, 0.06);
+  --btn-secondary-hover: rgba(255, 255, 255, 0.12);
+  --btn-secondary-text: #ffffff;
+  --btn-secondary-border: rgba(255, 255, 255, 0.16);
+
   --clay-radius-lg: 32px;
   --clay-radius-md: 24px;
   --clay-radius-sm: 16px;
 
-  --border-subtle: 1px solid #2e323d;
+  --border-subtle: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 [data-theme="light"] {
-  --bg-page: #f4f0e6;
+  --bg-page: #f5f3ec;
   --bg-page-image:
-    radial-gradient(ellipse 70% 55% at 12% -8%, rgba(23, 65, 108, 0.08), transparent 60%),
-    radial-gradient(ellipse 60% 50% at 100% 0%, rgba(126, 43, 56, 0.045), transparent 60%);
-  --bg-card: rgba(255, 254, 250, 0.94);
-  --bg-card-hover: #fffefa;
-  --bg-input: #f8f5ed;
-  --text-main: #202a36;
-  --text-muted: #4f5a67;
-  --accent: #17416c;
+    radial-gradient(ellipse 70% 55% at 12% -8%, rgba(79, 70, 229, 0.08), transparent 60%),
+    radial-gradient(ellipse 60% 50% at 100% 0%, rgba(8, 145, 178, 0.07), transparent 60%);
+  --bg-card: rgba(255, 255, 255, 0.85);
+  --bg-card-hover: rgba(255, 255, 255, 0.98);
+  --bg-input: rgba(238, 235, 227, 0.8);
+  --text-main: #111827; /* Near black high contrast */
+  --text-muted: #4b5563; /* High contrast dark gray (WCAG AAA) */
+  --accent: #4f46e5; /* Indigo */
   
-  --color-primary: #17416c;
-  --color-primary-hover: #102f50;
+  --color-primary: #4f46e5; /* Indigo */
+  --color-primary-hover: #4338ca; /* Darker Indigo */
   --color-primary-text: #ffffff;
   
-  --color-success: #28704d;
-  --color-warning: #8a5a12;
-  --color-danger: #8d2f3b;
-  --color-gold: #fbbf24;
-  --color-silver: #9ca3af;
-  --color-bronze: #b45309;
+  --color-success: #059669; /* Emerald */
+  --color-warning: #D97706; /* Amber */
+  --color-danger: #DC2626; /* Red */
+
+  /* High contrast light theme tokens */
+  --accent-subtle-bg: rgba(79, 70, 229, 0.09);
+  --accent-subtle-border: rgba(79, 70, 229, 0.28);
+  --accent-subtle-text: #4338ca; /* Deep indigo text with strong contrast on light cards */
+  --bg-surface-elevated: rgba(0, 0, 0, 0.04);
+  --border-elevated: rgba(0, 0, 0, 0.09);
+  --btn-secondary-bg: rgba(0, 0, 0, 0.05);
+  --btn-secondary-hover: rgba(0, 0, 0, 0.09);
+  --btn-secondary-text: #111827;
+  --btn-secondary-border: rgba(0, 0, 0, 0.14);
   
   /* Glass shadows for light mode */
-  --clay-shadow-subtle: 0 1px 2px rgba(32, 42, 54, 0.04), 0 4px 12px rgba(32, 42, 54, 0.05);
-  --clay-shadow-outer: 0 1px 2px rgba(32, 42, 54, 0.05), 0 8px 24px rgba(32, 42, 54, 0.07), 0 24px 48px -16px rgba(32, 42, 54, 0.1);
+  --clay-shadow-subtle: 0 1px 2px rgba(17, 17, 17, 0.04), 0 4px 12px rgba(17, 17, 17, 0.05);
+  --clay-shadow-outer: 0 1px 2px rgba(17, 17, 17, 0.05), 0 8px 24px rgba(17, 17, 17, 0.07), 0 24px 48px -16px rgba(17, 17, 17, 0.1);
   --clay-shadow-inner: none;
-  --clay-shadow-elevated: 0 2px 4px rgba(32, 42, 54, 0.06), 0 16px 32px rgba(32, 42, 54, 0.1), 0 32px 64px -20px rgba(32, 42, 54, 0.14);
+  --clay-shadow-elevated: 0 2px 4px rgba(17, 17, 17, 0.06), 0 16px 32px rgba(17, 17, 17, 0.1), 0 32px 64px -20px rgba(17, 17, 17, 0.14);
 
   /* Buttons and Active States */
   --clay-shadow-button: 0 4px 12px rgba(0, 0, 0, 0.1);
   --clay-shadow-active: inset 0 2px 4px rgba(0, 0, 0, 0.1);
-  --accent-glow: 0 0 0 1px rgba(23, 65, 108, 0.2), 0 8px 24px -4px rgba(23, 65, 108, 0.2);
-  --focus-ring: 0 0 0 3px rgba(23, 65, 108, 0.28);
+  --accent-glow: 0 0 0 1px rgba(79, 70, 229, 0.25), 0 8px 24px -4px rgba(79, 70, 229, 0.25);
+  --focus-ring: 0 0 0 3px rgba(79, 70, 229, 0.3);
 
-  --border-subtle: 1px solid rgba(32, 42, 54, 0.1);
+  --border-subtle: 1px solid rgba(0, 0, 0, 0.08);
 }
 
 [data-theme="personalized"] {
@@ -95,6 +113,17 @@
   
   /* Text flips to dark when button is light, and light when button is dark */
   --color-primary-text: hsl(var(--user-hue, 215), 10%, clamp(15%, calc((var(--user-lightness, 50%) - 63%) * -1000), 95%));
+
+  /* Personalized Tokens */
+  --accent-subtle-bg: hsla(var(--user-hue, 215), 80%, 50%, 0.15);
+  --accent-subtle-border: hsla(var(--user-hue, 215), 80%, 60%, 0.35);
+  --accent-subtle-text: hsl(var(--user-hue, 215), 90%, 70%);
+  --bg-surface-elevated: rgba(0, 0, 0, 0.35);
+  --border-elevated: rgba(255, 255, 255, 0.07);
+  --btn-secondary-bg: rgba(255, 255, 255, 0.06);
+  --btn-secondary-hover: rgba(255, 255, 255, 0.12);
+  --btn-secondary-text: #ffffff;
+  --btn-secondary-border: rgba(255, 255, 255, 0.16);
   
   /* Static Dark Mode Shadows */
   --clay-shadow-subtle: 1px 1px 3px rgba(0, 0, 0, 0.2), -1px -1px 2px rgba(255, 255, 255, 0.02);
@@ -123,3 +152,4 @@
 [data-theme] {
   color: var(--text-main);
 }
+

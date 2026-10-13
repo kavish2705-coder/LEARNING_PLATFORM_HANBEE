@@ -1,22 +1,16 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import QRCode from "qrcode";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Moon, Sun, Monitor, Palette } from "lucide-react";
+import { Moon, Sun, Monitor, Palette, Check, Lock, Save, CheckCircle2, AlertCircle } from "lucide-react";
 import styles from "./settings.module.css";
 import { useTheme } from "../ThemeProvider";
+import { useSessionProfile, sessionProfileKey } from "../../../lib/hooks/useSessionProfile";
 import {
   authenticatedSupabaseFetch,
-  getAccountProfile,
   readStoredSession,
   updateAccountProfile,
   updatePassword,
-  listMfaFactors,
-  enrollMfaFactor,
-  challengeMfaFactor,
-  verifyMfaFactor,
-  unenrollMfaFactor,
 } from "../../../lib/supabaseAuth";
 
 const NOTIFICATION_KINDS: { kind: string; label: string }[] = [
@@ -33,7 +27,7 @@ export default function SettingsPage() {
   const { theme, setTheme, accentHue, setAccentHue, accentLightness, setAccentLightness } = useTheme();
   const queryClient = useQueryClient();
 
-  const { data: profile } = useQuery({ queryKey: ["account-profile"], queryFn: getAccountProfile });
+  const { data: profile } = useSessionProfile();
   const [fullName, setFullName] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -107,8 +101,9 @@ export default function SettingsPage() {
     setStatus(null);
     try {
       await updateAccountProfile({ id: profile.id, full_name: fullName.trim() });
+      await queryClient.invalidateQueries({ queryKey: sessionProfileKey });
       await queryClient.invalidateQueries({ queryKey: ["account-profile"] });
-      setStatus({ tone: "ok", text: "Profile saved." });
+      setStatus({ tone: "ok", text: "Profile details updated successfully." });
     } catch (reason) {
       setStatus({ tone: "error", text: reason instanceof Error ? reason.message : "We couldn't save your profile." });
     } finally {
@@ -137,83 +132,11 @@ export default function SettingsPage() {
       await updatePassword(session.access_token, newPassword);
       setNewPassword("");
       setConfirmPassword("");
-      setStatus({ tone: "ok", text: "Password changed." });
+      setStatus({ tone: "ok", text: "Password changed successfully." });
     } catch (reason) {
       setStatus({ tone: "error", text: reason instanceof Error ? reason.message : "We couldn't change your password." });
     } finally {
       setBusy("");
-    }
-  }
-
-  const { data: factors, refetch: refetchFactors } = useQuery({
-    queryKey: ["mfa-factors", profile?.id],
-    queryFn: listMfaFactors,
-    enabled: Boolean(profile?.id),
-  });
-  const verifiedFactor = factors?.find((f) => f.status === "verified") ?? null;
-  const [enrolling, setEnrolling] = useState<{ factorId: string; uri: string; secret: string } | null>(null);
-  const [qrDataUrl, setQrDataUrl] = useState("");
-  const [mfaCode, setMfaCode] = useState("");
-  const [mfaBusy, setMfaBusy] = useState(false);
-
-  async function startMfaEnrollment() {
-    setStatus(null);
-    setMfaBusy(true);
-    try {
-      const res = await enrollMfaFactor();
-      setEnrolling({ factorId: res.id, uri: res.totp.uri, secret: res.totp.secret });
-    } catch (reason) {
-      setStatus({ tone: "error", text: reason instanceof Error ? reason.message : "We couldn't start two-factor setup." });
-    } finally {
-      setMfaBusy(false);
-    }
-  }
-
-  useEffect(() => {
-    if (!enrolling) {
-      setQrDataUrl("");
-      return;
-    }
-    let active = true;
-    // Rendered client-side from the otpauth:// URI, never from server-supplied
-    // HTML - avoids trusting raw markup from the auth response.
-    QRCode.toDataURL(enrolling.uri, { margin: 1, width: 200 })
-      .then((url) => { if (active) setQrDataUrl(url); })
-      .catch(() => { if (active) setQrDataUrl(""); });
-    return () => { active = false; };
-  }, [enrolling]);
-
-  async function confirmMfaEnrollment(event: React.FormEvent) {
-    event.preventDefault();
-    if (!enrolling) return;
-    setMfaBusy(true);
-    setStatus(null);
-    try {
-      const challenge = await challengeMfaFactor(enrolling.factorId);
-      await verifyMfaFactor(enrolling.factorId, challenge.id, mfaCode);
-      setEnrolling(null);
-      setMfaCode("");
-      await refetchFactors();
-      setStatus({ tone: "ok", text: "Two-factor authentication is on." });
-    } catch (reason) {
-      setStatus({ tone: "error", text: reason instanceof Error ? reason.message : "That code didn't work." });
-    } finally {
-      setMfaBusy(false);
-    }
-  }
-
-  async function disableMfa() {
-    if (!verifiedFactor) return;
-    setMfaBusy(true);
-    setStatus(null);
-    try {
-      await unenrollMfaFactor(verifiedFactor.id);
-      await refetchFactors();
-      setStatus({ tone: "ok", text: "Two-factor authentication is off." });
-    } catch (reason) {
-      setStatus({ tone: "error", text: reason instanceof Error ? reason.message : "We couldn't turn it off." });
-    } finally {
-      setMfaBusy(false);
     }
   }
 
@@ -226,7 +149,15 @@ export default function SettingsPage() {
         <p className={styles.pageSubtitle}>Manage your account and preferences</p>
       </div>
 
-      {status && <p role={status.tone === "error" ? "alert" : "status"} style={{ marginBottom: 12 }}>{status.text}</p>}
+      {status && (
+        <div 
+          className={status.tone === "error" ? styles.statusAlertError : styles.statusAlertOk} 
+          role={status.tone === "error" ? "alert" : "status"}
+        >
+          {status.tone === "error" ? <AlertCircle size={18} /> : <CheckCircle2 size={18} />}
+          <span>{status.text}</span>
+        </div>
+      )}
 
       <div className={styles.settingsLayout}>
         <section className={styles.sectionCard}>
@@ -245,8 +176,9 @@ export default function SettingsPage() {
               <label className={styles.label} htmlFor="full-name">Full Name</label>
               <input id="full-name" type="text" className={styles.input} value={fullName} onChange={(e) => setFullName(e.target.value)} maxLength={120} required />
             </div>
-            <button type="submit" className={styles.saveBtn} disabled={busy !== "" || !profile}>
-              {busy === "profile" ? "Saving..." : "Save Changes"}
+            <button type="submit" className={styles.saveBtn} disabled={busy !== ""}>
+              <Check size={16} />
+              <span>{busy === "profile" ? "Saving..." : "Save Changes"}</span>
             </button>
           </form>
         </section>
@@ -266,43 +198,11 @@ export default function SettingsPage() {
               </div>
             </div>
             <button type="submit" className={styles.saveBtn} disabled={busy !== ""}>
-              {busy === "password" ? "Changing..." : "Change Password"}
+              <Lock size={16} />
+              <span>{busy === "password" ? "Changing..." : "Change Password"}</span>
             </button>
           </form>
 
-          <div style={{ marginTop: 24, paddingTop: 20, borderTop: "1px solid var(--border, rgba(255,255,255,0.1))" }}>
-            <h3 style={{ fontSize: 15, fontWeight: 600, marginBottom: 8 }}>Two-Factor Authentication</h3>
-            {verifiedFactor ? (
-              <>
-                <p style={{ marginBottom: 12 }}>Two-factor authentication is on. You'll need a code from your authenticator app each time you sign in.</p>
-                <button type="button" className={styles.saveBtn} onClick={() => void disableMfa()} disabled={mfaBusy}>
-                  {mfaBusy ? "Turning off..." : "Turn off two-factor authentication"}
-                </button>
-              </>
-            ) : enrolling ? (
-              <form onSubmit={confirmMfaEnrollment}>
-                <p style={{ marginBottom: 12 }}>Scan this QR code with your authenticator app (Google Authenticator, Authy, 1Password), or enter the key manually: <code>{enrolling.secret}</code></p>
-                <div style={{ marginBottom: 12, background: "#fff", padding: 12, borderRadius: 8, width: "fit-content" }}>
-                  {qrDataUrl ? <img src={qrDataUrl} alt="Two-factor authentication QR code" width={200} height={200} /> : <p>Generating QR code…</p>}
-                </div>
-                <div className={styles.formGroup}>
-                  <label className={styles.label} htmlFor="mfa-code">6-digit code</label>
-                  <input id="mfa-code" type="text" inputMode="numeric" maxLength={6} className={styles.input} value={mfaCode} onChange={(e) => setMfaCode(e.target.value)} required />
-                </div>
-                <div style={{ display: "flex", gap: 8 }}>
-                  <button type="submit" className={styles.saveBtn} disabled={mfaBusy}>{mfaBusy ? "Verifying..." : "Confirm"}</button>
-                  <button type="button" className={styles.saveBtn} onClick={() => { setEnrolling(null); setMfaCode(""); }} disabled={mfaBusy}>Cancel</button>
-                </div>
-              </form>
-            ) : (
-              <>
-                <p style={{ marginBottom: 12 }}>Add a second step at sign-in using an authenticator app.</p>
-                <button type="button" className={styles.saveBtn} onClick={() => void startMfaEnrollment()} disabled={mfaBusy}>
-                  {mfaBusy ? "Starting..." : "Set up two-factor authentication"}
-                </button>
-              </>
-            )}
-          </div>
         </section>
 
         <section className={styles.sectionCard}>
@@ -316,7 +216,10 @@ export default function SettingsPage() {
               <label className={styles.label} htmlFor="preferred-team">Preferred Team Name</label>
               <input id="preferred-team" type="text" className={styles.input} value={preferredTeam} onChange={(e) => setPreferredTeam(e.target.value)} maxLength={60} />
             </div>
-            <button type="submit" className={styles.saveBtn} disabled={busy !== ""}>Save Team Name</button>
+            <button type="submit" className={styles.saveBtn} disabled={busy !== ""}>
+              <Save size={16} />
+              <span>{busy === "profile" ? "Saving..." : "Save Team Name"}</span>
+            </button>
           </form>
         </section>
 

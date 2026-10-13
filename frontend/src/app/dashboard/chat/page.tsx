@@ -17,6 +17,7 @@ import {
 import { readStoredSession } from "../../../lib/supabaseAuth";
 import { getRealtimeClient } from "../../../lib/realtime";
 import { fetchChatReadReceipts } from "../../../lib/messagingApi";
+import { useSessionProfile } from "../../../lib/hooks/useSessionProfile";
 
 function dayKey(value: string) {
   return new Date(value).toDateString();
@@ -36,13 +37,6 @@ function initials(name: string) {
   return name.split(/\s+/).slice(0, 2).map((part) => part[0] ?? "").join("").toUpperCase();
 }
 
-function avatarTone(key: string) {
-  let hash = 0;
-  for (const character of key) hash = (hash * 31 + character.charCodeAt(0)) | 0;
-  const tones = [styles.avatarTone0, styles.avatarTone1, styles.avatarTone2, styles.avatarTone3, styles.avatarTone4, styles.avatarTone5];
-  return tones[Math.abs(hash) % tones.length];
-}
-
 export default function ChatPage() {
   const [currentUserId, setCurrentUserId] = useState("");
   const [activeConversationId, setActiveConversationId] = useState("");
@@ -54,19 +48,14 @@ export default function ChatPage() {
 
   useEffect(() => { setCurrentUserId(readStoredSession()?.user.id ?? ""); }, []);
 
-  const {
-    data: conversations,
-    isLoading: conversationsLoading,
-    error: conversationsError,
-  } = useQuery({
+  const { data: profile } = useSessionProfile();
+  const myRole = profile?.role;
+
+  const { data: conversations, isLoading: conversationsLoading } = useQuery({
     queryKey: ["chat-conversations"],
     queryFn: fetchChatConversations,
   });
-  const {
-    data: contacts,
-    isLoading: contactsLoading,
-    error: contactsError,
-  } = useQuery({ queryKey: ["chat-contacts"], queryFn: fetchChatContacts });
+  const { data: contacts } = useQuery({ queryKey: ["chat-contacts"], queryFn: fetchChatContacts });
 
   // Pick the conversation named in the URL (?conversation=...) or the first
   // one, once the list has actually loaded - only runs until a choice is made.
@@ -156,29 +145,34 @@ export default function ChatPage() {
     sendMessage.mutate(body);
   }
 
+  function isAllowedContact(theirRole: string | null | undefined) {
+    if (!myRole || !theirRole) return true; // If unknown, allow by default
+    switch (myRole) {
+      case "manager": return theirRole === "staff" || theirRole === "school_staff";
+      case "student": return theirRole === "staff" || theirRole === "school_staff";
+      case "staff": return theirRole === "student" || theirRole === "manager";
+      case "school_staff": return theirRole === "student" || theirRole === "manager";
+      default: return true;
+    }
+  }
+
   const conversationList = conversations ?? [];
   const contactList = contacts ?? [];
-  const directConversationUserIds = new Set(
-    conversationList
-      .filter((conversation) => conversation.kind === "direct")
-      .map((conversation) => conversation.other_user_id)
-      .filter((userId): userId is string => Boolean(userId)),
-  );
   const activeConversation = conversationList.find((conversation) => conversation.id === activeConversationId);
   const activeContact = contactList.find((contact) => contact.user_id === activeConversation?.other_user_id);
   const title = activeConversation?.kind === "direct"
-    ? activeConversation.other_full_name ?? activeContact?.full_name ?? "Direct message"
+    ? activeConversation.other_full_name ?? "Conversation"
     : activeConversation?.title ?? "Hanbee chat";
-  const subtitle = activeConversation?.kind === "direct"
-    ? activeContact?.relation.replaceAll("_", " ") ?? activeConversation.other_role
-    : activeConversation ? `${activeConversation.participant_count} participants` : "";
-  const visibleConversations = conversationList.filter((conversation) =>
-    (conversation.title ?? conversation.other_full_name ?? "Group chat").toLowerCase().includes(search.toLowerCase()),
-  );
-  const visibleContacts = contactList.filter((contact) =>
-    !directConversationUserIds.has(contact.user_id) &&
-    contact.full_name.toLowerCase().includes(search.toLowerCase()),
-  );
+    
+  const visibleConversations = conversationList.filter((conversation) => {
+    if (conversation.kind === "direct" && !isAllowedContact(conversation.other_role)) return false;
+    return (conversation.title ?? conversation.other_full_name ?? "Group chat").toLowerCase().includes(search.toLowerCase());
+  });
+  
+  const visibleContacts = contactList.filter((contact) => {
+    if (!isAllowedContact(contact.role)) return false;
+    return contact.full_name.toLowerCase().includes(search.toLowerCase());
+  });
 
   const formatTime = (value: string | null) => value ? new Date(value).toLocaleString([], { dateStyle: "short", timeStyle: "short" }) : "";
 
@@ -188,40 +182,36 @@ export default function ChatPage() {
         <div className={styles.sidebarHeader}>
           <h2>Messages</h2>
           <div className={styles.inputWrapper}>
-            <Search size={16} className={styles.searchIcon} aria-hidden="true" />
-            <input type="search" className={styles.searchInput} placeholder="Search conversations and contacts…" value={search} onChange={(event) => setSearch(event.target.value)} />
+            <Search size={16} style={{ position: "absolute", left: 16, top: "50%", transform: "translateY(-50%)", color: "var(--text-muted)" }} />
+            <input type="search" className={styles.searchInput} placeholder="Search conversations and contacts…" value={search} onChange={(event) => setSearch(event.target.value)} style={{ paddingLeft: 40 }} />
           </div>
         </div>
         <div className={styles.contactsList}>
-          {conversationsError && <p role="alert" className={styles.error}>{conversationsError instanceof Error ? conversationsError.message : "We couldn't load your conversations."}</p>}
-          {contactsError && <p role="alert" className={styles.error}>{contactsError instanceof Error ? contactsError.message : "We couldn't load people you can message."}</p>}
-          {conversationsLoading && <p role="status" className={styles.emptyList}>Loading conversations…</p>}
+          {conversationsLoading && <p role="status">Loading conversations…</p>}
           {visibleConversations.map((conversation) => {
-            const contactName = conversation.kind === "direct" ? conversation.other_full_name ?? "Direct message" : conversation.title ?? "Group chat";
+            const contactName = conversation.kind === "direct" ? conversation.other_full_name ?? "Hanbee user" : conversation.title ?? "Group chat";
             return (
-              <button key={conversation.id} type="button" aria-pressed={activeConversationId === conversation.id} className={`${styles.contactItem} ${activeConversationId === conversation.id ? styles.active : ""}`} onClick={() => setActiveConversationId(conversation.id)}>
-                <div className={`${styles.contactAvatar} ${avatarTone(conversation.other_user_id ?? conversation.id)}`}>{initials(contactName)}</div>
+              <button key={conversation.id} type="button" className={`${styles.contactItem} ${activeConversationId === conversation.id ? styles.active : ""}`} onClick={() => setActiveConversationId(conversation.id)}>
+                <div className={styles.contactAvatar}>{initials(contactName)}</div>
                 <div className={styles.contactInfo}>
                   <div className={styles.contactName}>{contactName}</div>
                   <div className={styles.contactPreview}>{conversation.last_body ?? "No messages yet"}</div>
                 </div>
-                {conversation.unread_count > 0 && <span className={styles.unreadCount} aria-label={`${conversation.unread_count} unread messages`}>{conversation.unread_count}</span>}
-                {activeConversationId === conversation.id && <span className={styles.activeIndicator} aria-hidden="true" />}
+                {conversation.unread_count > 0 && <span aria-label={`${conversation.unread_count} unread messages`}>{conversation.unread_count}</span>}
               </button>
             );
           })}
-          {contactsLoading && <p role="status" className={styles.emptyList}>Loading available people…</p>}
-          {visibleContacts.length > 0 && <h3 className={styles.listHeading}>Start a conversation</h3>}
+          {visibleContacts.length > 0 && <h3 style={{ padding: "12px 16px 4px" }}>Start a conversation</h3>}
           {visibleContacts.map((contact: ChatContact) => (
-            <button key={contact.user_id} type="button" className={`${styles.contactItem} ${styles.contactStart}`} onClick={() => openContact.mutate(contact.user_id)} disabled={openContact.isPending}>
-              <div className={`${styles.contactAvatar} ${avatarTone(contact.user_id)}`}>{initials(contact.full_name)}</div>
+            <button key={contact.user_id} type="button" className={styles.contactItem} onClick={() => openContact.mutate(contact.user_id)} disabled={openContact.isPending}>
+              <div className={styles.contactAvatar}>{initials(contact.full_name)}</div>
               <div className={styles.contactInfo}>
                 <div className={styles.contactName}>{contact.full_name}</div>
                 <div className={styles.contactPreview}>{contact.relation.replaceAll("_", " ")}{contact.org_name ? ` · ${contact.org_name}` : ""}</div>
               </div>
             </button>
           ))}
-          {!conversationsLoading && visibleConversations.length === 0 && visibleContacts.length === 0 && <p className={styles.emptyList}>No conversations or contacts found.</p>}
+          {!conversationsLoading && visibleConversations.length === 0 && visibleContacts.length === 0 && <p>No conversations or contacts found.</p>}
         </div>
       </div>
 
@@ -229,22 +219,14 @@ export default function ChatPage() {
         {activeConversation ? (
           <>
             <header className={styles.chatHeader}>
-              <div className={`${styles.contactAvatar} ${avatarTone(activeConversation.other_user_id ?? activeConversation.id)}`}>{initials(title)}</div>
-              <div className={styles.chatHeaderInfo}><h2>{title}</h2>{subtitle && <p>{subtitle}</p>}</div>
+              <div className={styles.contactAvatar}>{initials(title)}</div>
+              <div className={styles.chatHeaderInfo}><h2>{title}</h2><p>{activeConversation.kind === "direct" ? activeContact?.relation.replaceAll("_", " ") ?? activeConversation.other_role : `${activeConversation.participant_count} participants`}</p></div>
             </header>
-            {error && <p role="alert" className={styles.error}>{error}</p>}
+            {error && <p role="alert" style={{ padding: "8px 16px" }}>{error}</p>}
             <div className={styles.chatHistory}>
-              {messagesQuery.error && <p role="alert" className={styles.error}>{messagesQuery.error instanceof Error ? messagesQuery.error.message : "We couldn't load these messages."}</p>}
-              {messagesQuery.isLoading && <p role="status" className={styles.threadState}>Loading messages…</p>}
-              {!messagesQuery.isLoading && !messagesQuery.error && messages.length === 0 && (
-                <div className={styles.threadState}>
-                  <p>{activeConversation.last_body ? "Recent activity is listed, but the conversation history is unavailable." : "No messages yet. Send a message to start the conversation."}</p>
-                  {activeConversation.last_body && <button type="button" className={styles.historyButton} onClick={() => void messagesQuery.refetch()}>Retry loading</button>}
-                </div>
-              )}
               {messagesQuery.hasNextPage && (
-                <div className={styles.historyAction}>
-                  <button type="button" className={styles.historyButton} disabled={messagesQuery.isFetchingNextPage} onClick={() => messagesQuery.fetchNextPage()}>
+                <div style={{ textAlign: "center", padding: "8px 0 16px" }}>
+                  <button type="button" className={styles.contactItem} style={{ display: "inline-flex", width: "auto", padding: "6px 16px" }} disabled={messagesQuery.isFetchingNextPage} onClick={() => messagesQuery.fetchNextPage()}>
                     {messagesQuery.isFetchingNextPage ? "Loading…" : "Load earlier messages"}
                   </button>
                 </div>
@@ -274,12 +256,12 @@ export default function ChatPage() {
             <div className={styles.inputArea}>
               <div className={styles.inputWrapper}>
                 <input type="text" className={styles.input} maxLength={4000} placeholder={`Message ${title}…`} value={inputValue} onChange={(event) => setInputValue(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter" && !event.shiftKey) { event.preventDefault(); handleSend(); } }} />
-                <button type="button" className={styles.sendBtn} onClick={handleSend} disabled={!inputValue.trim() || sendMessage.isPending} aria-label="Send message"><Send size={18} /></button>
+                <button className={styles.sendBtn} onClick={handleSend} disabled={!inputValue.trim() || sendMessage.isPending} aria-label="Send message"><Send size={18} /></button>
               </div>
             </div>
           </>
         ) : (
-          <div className={styles.emptyConversation}>
+          <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", color: "var(--text-muted)" }}>
             {error || "Select a conversation or contact to start chatting."}
           </div>
         )}

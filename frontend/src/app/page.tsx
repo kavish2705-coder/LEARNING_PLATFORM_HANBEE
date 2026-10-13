@@ -58,7 +58,7 @@ export default function Home() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-100px" }}
           transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-          style={{ position: "sticky", top: "140px", alignSelf: "start" }}
+          style={{ position: "relative", zIndex: 2, alignSelf: "start" }}
         >
           <span style={{ fontFamily: "var(--font-body)", fontSize: "13px", letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)" }}>
             Beyond standard learning
@@ -157,27 +157,27 @@ export default function Home() {
             ].map((track, i) => (
               <motion.div
                 key={track.tag}
+                className={styles.glassCard}
                 initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: "-60px" }}
                 transition={{ duration: 0.65, delay: i * 0.12, ease: [0.16, 1, 0.3, 1] }}
                 style={{
-                  background: "rgba(255,255,255,0.03)",
-                  border: "1px solid rgba(255,255,255,0.08)",
                   borderRadius: "28px",
                   padding: "40px",
                 }}
               >
-                <span style={{ fontFamily: "var(--font-body)", fontSize: "12px", letterSpacing: "0.1em", textTransform: "uppercase", color: "#7dd3e8" }}>
+                <div className={styles.orbBackground}></div>
+                <span style={{ position: "relative", zIndex: 2, fontFamily: "var(--font-body)", fontSize: "12px", letterSpacing: "0.1em", textTransform: "uppercase", color: "#7dd3e8", textShadow: "0 0 10px rgba(125, 211, 232, 0.4)" }}>
                   {track.tag}
                 </span>
-                <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "26px", fontWeight: 400, color: "#fff", margin: "14px 0 12px" }}>
+                <h3 style={{ position: "relative", zIndex: 2, fontFamily: "var(--font-heading)", fontSize: "26px", fontWeight: 400, color: "#fff", margin: "14px 0 12px" }}>
                   {track.title}
                 </h3>
-                <p style={{ fontFamily: "var(--font-body)", fontSize: "16px", color: "rgba(255,255,255,0.55)", lineHeight: 1.6, marginBottom: "24px" }}>
+                <p style={{ position: "relative", zIndex: 2, fontFamily: "var(--font-body)", fontSize: "16px", color: "rgba(255,255,255,0.55)", lineHeight: 1.6, marginBottom: "24px" }}>
                   {track.desc}
                 </p>
-                <ul style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                <ul style={{ position: "relative", zIndex: 2, display: "flex", flexDirection: "column", gap: "12px" }}>
                   {track.points.map((point) => (
                     <li key={point} style={{ display: "flex", alignItems: "center", gap: "10px", fontFamily: "var(--font-body)", fontSize: "14px", color: "rgba(255,255,255,0.7)" }}>
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7dd3e8" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
@@ -210,21 +210,20 @@ export default function Home() {
               ].map((item, i) => (
                 <motion.div
                   key={item.stage}
-                  initial={{ opacity: 0, y: 16 }}
-                  whileInView={{ opacity: 1, y: 0 }}
+                  className={styles.glassCard}
+                  initial={{ opacity: 0, y: 30, scale: 0.95 }}
+                  whileInView={{ opacity: 1, y: 0, scale: 1 }}
                   viewport={{ once: true, margin: "-40px" }}
-                  transition={{ duration: 0.5, delay: i * 0.07, ease: [0.16, 1, 0.3, 1] }}
-                  whileHover={{ y: -4, transition: { duration: 0.25, ease: [0.16, 1, 0.3, 1] } }}
+                  transition={{ type: "spring", stiffness: 120, damping: 14, delay: i * 0.1 }}
+                  whileHover={{ y: -8, scale: 1.02, transition: { type: "spring", stiffness: 300, damping: 20 } }}
                   style={{
-                    background: "rgba(255,255,255,0.03)",
-                    border: "1px solid rgba(255,255,255,0.08)",
                     borderRadius: "18px",
                     padding: "24px",
                   }}
                 >
-                  <div style={{ fontFamily: "monospace", fontSize: "13px", color: "#7dd3e8", marginBottom: "10px" }}>{String(i + 1).padStart(2, "0")}</div>
-                  <div style={{ fontFamily: "var(--font-heading)", fontSize: "18px", color: "#fff", marginBottom: "8px" }}>{item.stage}</div>
-                  <div style={{ fontFamily: "var(--font-body)", fontSize: "14px", color: "rgba(255,255,255,0.5)", lineHeight: 1.5 }}>{item.desc}</div>
+                  <div className={styles.glowingNumber}>{String(i + 1).padStart(2, "0")}</div>
+                  <div style={{ position: "relative", zIndex: 2, fontFamily: "var(--font-heading)", fontSize: "18px", color: "#fff", marginBottom: "8px" }}>{item.stage}</div>
+                  <div style={{ position: "relative", zIndex: 2, fontFamily: "var(--font-body)", fontSize: "14px", color: "rgba(255,255,255,0.5)", lineHeight: 1.5 }}>{item.desc}</div>
                 </motion.div>
               ))}
             </div>
@@ -239,15 +238,13 @@ export default function Home() {
           position: "relative",
           zIndex: 10,
           backgroundColor: "#1c1c1e",
-          backgroundImage:
-            "linear-gradient(rgba(26, 20, 16, 0.85), rgba(22, 19, 20, 0.97)), url('/bg_light.png')",
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-          backgroundRepeat: "no-repeat",
-          padding: "0 40px 140px",
+          padding: "100px 40px 140px",
+          display: "flex",
+          justifyContent: "center",
         }}
       >
-        <div style={{ maxWidth: "1200px", margin: "0 auto", background: "linear-gradient(135deg, rgba(8,145,178,0.12), rgba(79,70,229,0.08))", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "32px", padding: "64px 48px", display: "grid", gridTemplateColumns: "1.1fr 1fr", gap: "56px", alignItems: "center" }}>
+        <div className={`${styles.glassCard} ${styles.schoolGrid}`} style={{ width: "100%", maxWidth: "1200px", borderRadius: "32px", padding: "64px 48px" }}>
+          <div className={styles.orbBackground} style={{ opacity: 0.6 }}></div>
           <motion.div
             initial={{ opacity: 0, x: -30 }}
             whileInView={{ opacity: 1, x: 0 }}
@@ -265,12 +262,13 @@ export default function Home() {
             </p>
             <motion.a
               href="/login?mode=signup&role=School"
-              whileHover={{ scale: 1.03 }}
+              className={styles.liquidGlassBtn}
+              whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.97 }}
-              style={{ display: "inline-flex", alignItems: "center", gap: "10px", background: "#fff", color: "#0a0a0c", padding: "14px 28px", borderRadius: "999px", fontFamily: "var(--font-body)", fontWeight: 600, fontSize: "15px" }}
+              transition={{ type: "spring", stiffness: 400, damping: 17 }}
             >
               Register your school
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14" /><path d="M12 5l7 7-7 7" /></svg>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14" /><path d="M12 5l7 7-7 7" /></svg>
             </motion.a>
           </motion.div>
 
@@ -287,8 +285,8 @@ export default function Home() {
               { n: "03", t: "Invite your students", d: "Send join links by email, bulk or one at a time." },
               { n: "04", t: "Track and compete", d: "Form teams for the tournament and follow classroom progress." },
             ].map((step) => (
-              <li key={step.n} style={{ display: "flex", gap: "16px", alignItems: "flex-start" }}>
-                <span style={{ fontFamily: "monospace", fontSize: "14px", color: "rgba(255,255,255,0.35)", minWidth: "28px" }}>{step.n}</span>
+              <li key={step.n} style={{ display: "flex", gap: "16px", alignItems: "flex-start", position: "relative", zIndex: 2 }}>
+                <span className={styles.glowingNumber} style={{ minWidth: "28px", margin: 0, marginTop: "2px" }}>{step.n}</span>
                 <div>
                   <strong style={{ fontFamily: "var(--font-heading)", fontWeight: 500, fontSize: "16px", color: "#fff", display: "block", marginBottom: "4px" }}>{step.t}</strong>
                   <span style={{ fontFamily: "var(--font-body)", fontSize: "14px", color: "rgba(255,255,255,0.5)" }}>{step.d}</span>
@@ -329,25 +327,15 @@ export default function Home() {
             Most courses end where the real learning starts. We built Hanbee so the thing you coded actually has to work — on a track, against the clock, against other teams.
           </h2>
           <motion.a
-            href="/login?mode=signup"
-            whileHover={{ scale: 1.03 }}
+            href="/login"
+            className={styles.liquidGlassBtn}
+            style={{ marginTop: "40px" }}
+            whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.97 }}
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: "10px",
-              marginTop: "40px",
-              background: "#fff",
-              color: "#1c1c1e",
-              padding: "14px 28px",
-              borderRadius: "999px",
-              fontFamily: "var(--font-body)",
-              fontWeight: 600,
-              fontSize: "15px",
-            }}
+            transition={{ type: "spring", stiffness: 400, damping: 17 }}
           >
             Start learning
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14" /><path d="M12 5l7 7-7 7" /></svg>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14" /><path d="M12 5l7 7-7 7" /></svg>
           </motion.a>
         </motion.div>
       </section>

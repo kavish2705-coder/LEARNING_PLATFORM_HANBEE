@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { 
   LayoutDashboard, BookOpen, Clock, Bell, Settings, Trophy, 
   Users, MessageSquare, Bot, School, CalendarDays, ClipboardList, 
-  UserCheck, LogOut, ClipboardCheck, Activity, Award
+  UserCheck, LogOut, ClipboardCheck, Activity, IdCard
 } from "lucide-react";
 import styles from "../layout.module.css";
 import ModeSwitcher from "./ModeSwitcher";
@@ -16,8 +16,8 @@ import { useSessionProfile } from "../../../lib/hooks/useSessionProfile";
 
 const studentTournamentMenu = [
   { name: "Overview", href: "/dashboard", icon: LayoutDashboard },
+  { name: "Driver License", href: "/dashboard/license", icon: IdCard },
   { name: "Leaderboard", href: "/dashboard/leaderboard", icon: Trophy },
-  { name: "Achievements", href: "/dashboard/achievements", icon: Award },
   { name: "My Team", href: "/dashboard/team", icon: Users },
   { name: "Announcements", href: "/dashboard/announcements", icon: Bell },
   { name: "Chat", href: "/dashboard/chat", icon: MessageSquare },
@@ -27,7 +27,6 @@ const studentLearningMenu = [
   { name: "Overview", href: "/dashboard", icon: LayoutDashboard },
   { name: "My Courses", href: "/dashboard/courses", icon: BookOpen },
   { name: "Certificates", href: "/dashboard/certificate", icon: Trophy },
-  { name: "Achievements", href: "/dashboard/achievements", icon: Award },
   { name: "AI Assistant", href: "/dashboard/ai-assistant", icon: Bot },
   { name: "Live Attendance", href: "/dashboard/attendance", icon: Clock },
   { name: "Announcements", href: "/dashboard/announcements", icon: Bell },
@@ -79,7 +78,13 @@ function labelRole(role: AccountProfile["role"]) {
   return role.replaceAll("_", " ").replace(/\b\w/g, (letter) => letter.toUpperCase());
 }
 
-export default function Sidebar() {
+export default function Sidebar({ 
+  isMobileMenuOpen = false, 
+  setIsMobileMenuOpen 
+}: { 
+  isMobileMenuOpen?: boolean; 
+  setIsMobileMenuOpen?: (val: boolean) => void; 
+}) {
   const pathname = usePathname();
   const { mode } = useMode();
   const { data: profile } = useSessionProfile();
@@ -95,7 +100,7 @@ export default function Sidebar() {
         : mode === "tournament" ? studentTournamentMenu : studentLearningMenu;
 
   const displayName = profile?.full_name ?? "";
-  const initials = displayName.split(/\s+/).slice(0, 2).map((part) => part[0]).join("").toUpperCase();
+  const initials = displayName.split(/\s+/).slice(0, 2).map((part: string) => part[0]).join("").toUpperCase();
 
   async function handleSignOut() {
     try {
@@ -108,47 +113,60 @@ export default function Sidebar() {
   }
 
   return (
-    <aside className={styles.sidebar}>
-      <div className={styles.logo}>
-        HANBEE
-      </div>
+    <>
+      {/* Mobile overlay */}
+      {isMobileMenuOpen && (
+        <div 
+          className={styles.sidebarOverlay} 
+          onClick={() => setIsMobileMenuOpen?.(false)}
+        />
+      )}
       
-      {profile?.role === "student" && <ModeSwitcher />}
-
-      <nav className={styles.navMenu}>
-        {items.map((item) => {
-          const isActive = pathname === item.href || (item.href !== "/dashboard" && pathname.startsWith(`${item.href}/`));
-          const Icon = item.icon;
-          
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={`${styles.navLink} ${isActive ? styles.navLinkActive : ""}`}
-            >
-              <Icon size={18} className={styles.navIcon} aria-hidden="true" />
-              {item.name}
-            </Link>
-          );
-        })}
-      </nav>
-
-      <div className={styles.userProfile}>
-        <div className={styles.avatar}>{initials || "H"}</div>
-        <div className={styles.userInfo}>
-          <span className={styles.userName}>{displayName}</span>
-          <span className={styles.userRole}>{profile ? labelRole(profile.role) : ""}</span>
+      <aside className={`${styles.sidebar} ${isMobileMenuOpen ? styles.sidebarOpen : ""}`}>
+        <div className={styles.logo}>
+          HANBEE
         </div>
-      </div>
-      
-      <button 
-        type="button" 
-        className={`${styles.navLink} ${styles.signOutButton}`}
-        onClick={() => void handleSignOut()} 
-      >
-        <LogOut size={18} />
-        Sign out
-      </button>
-    </aside>
+        
+        {profile?.role === "student" && <ModeSwitcher />}
+
+        <nav className={styles.navMenu}>
+          {items.map((item) => {
+            const isActive = pathname === item.href || (item.href !== "/dashboard" && pathname.startsWith(`${item.href}/`));
+            const Icon = item.icon;
+            
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`${styles.navLink} ${isActive ? styles.navLinkActive : ""}`}
+                onClick={() => setIsMobileMenuOpen?.(false)}
+              >
+                <Icon size={18} />
+                {item.name}
+              </Link>
+            );
+          })}
+        </nav>
+
+        <div className={styles.userProfile}>
+          <div className={styles.avatar}>{initials || "H"}</div>
+          <div className={styles.userInfo}>
+            <span className={styles.userName}>{displayName}</span>
+            <span className={styles.userRole}>{profile ? labelRole(profile.role) : ""}</span>
+          </div>
+        </div>
+        
+        <button 
+          type="button" 
+          className={styles.navLink} 
+          onClick={() => void handleSignOut()} 
+          style={{ marginTop: 10, border: 0, width: "100%", cursor: "pointer", textAlign: "left", background: "transparent", color: "inherit", fontFamily: "inherit", fontSize: "inherit" }}
+        >
+          <LogOut size={18} />
+          Sign out
+        </button>
+      </aside>
+    </>
   );
 }
+
