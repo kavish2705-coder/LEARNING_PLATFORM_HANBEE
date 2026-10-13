@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en" data-track="java">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Language Basics — Java Notes · Hanbee</title>
+<meta name="description" content="Variables, data types, literals, operators, type casting and reading input. The building blocks every Java program is made from.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500..700;1,9..144,500&amp;family=Inter:wght@400..700&amp;family=JetBrains+Mono:wght@400..600&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/notes.css">
+<script src="../assets/notes.js" defer></script>
+</head>
+<body>
+<div class="progress" aria-hidden="true"><i></i></div>
+<header class="top">
+  <a class="brand" href="../index.html"><b>H</b>Hanbee · Java Notes</a>
+  <nav><a class="keep" href="index.html">All topics</a><button id="theme-toggle" type="button" aria-label="Toggle light and dark theme">Theme</button></nav>
+</header>
+<div class="shell">
+  <details class="toc"><summary>On this page</summary><nav aria-label="On this page"><ol><li><a href="#program-structure-and-tokens"><span>01</span>Program Structure and Tokens</a></li><li><a href="#variables"><span>02</span>Variables</a></li><li><a href="#data-types"><span>03</span>Data Types</a></li><li><a href="#literals"><span>04</span>Literals</a></li><li><a href="#type-inference-with-var"><span>05</span>Type Inference with var</a></li><li><a href="#operators"><span>06</span>Operators</a></li><li><a href="#type-conversion-and-casting"><span>07</span>Type Conversion and Casting</a></li><li><a href="#input-and-output"><span>08</span>Input and Output</a></li><li><a href="#integer-overflow-and-special-values"><span>09</span>Integer Overflow and Special Values</a></li><li><a href="#quick-recap"><span>10</span>Quick Recap</a></li></ol></nav></details>
+  <main>
+    <header class="hero">
+      <p class="kicker"><span class="pill">Foundations</span><span>Topic 02</span><span>Beginner</span><span>7 min read</span></p>
+      <h1>Language Basics</h1>
+      <p class="lede">Variables, data types, literals, operators, type casting and reading input. The building blocks every Java program is made from.</p>
+    </header>
+    <article>
+<h2 id="program-structure-and-tokens"><span class="num">01</span>Program Structure and Tokens</h2>
+<p>A Java source file is made of <strong>tokens</strong>: keywords, identifiers, literals, operators, separators and comments.</p>
+<pre><code class="language-java">package com.hanbee.demo;          // 1. package (optional)
+
+import java.util.Scanner;         // 2. imports (optional)
+
+public class Demo {               // 3. class declaration
+    public static void main(String[] args) {   // 4. methods
+        int x = 10;               // 5. statements end with ;
+    }
+}</code></pre>
+<h3 id="keywords-and-identifiers">Keywords and identifiers</h3>
+<ul><li><strong>Keywords</strong> are reserved words such as <code>class</code>, <code>int</code>, <code>if</code>, <code>for</code>, <code>static</code>. They cannot be used as names.</li><li><strong>Identifiers</strong> are names you choose for classes, variables and methods.</li><li>Rules: start with a letter, <code>_</code> or <code>$</code>; may contain digits after the first character; cannot be a keyword; case-sensitive.</li></ul>
+<h2 id="variables"><span class="num">02</span>Variables</h2>
+<p>A variable is a named memory location that holds a value of a declared type.</p>
+<pre><code class="language-java">int age = 20;            // declaration + initialisation
+double price;            // declaration only
+price = 99.5;            // assignment later
+int a = 1, b = 2, c = 3; // several at once
+final double PI = 3.14159; // constant: cannot change</code></pre>
+<h3 id="types-of-variables">Types of variables</h3>
+<div class="table-wrap"><table><thead><tr><th>Kind</th><th>Declared</th><th>Lifetime</th><th>Default value</th></tr></thead><tbody><tr><td><strong>Local</strong></td><td>Inside a method or block</td><td>Until the block ends</td><td>None. Must be initialised before use.</td></tr><tr><td><strong>Instance</strong></td><td>Inside a class, outside methods</td><td>As long as the object lives</td><td><code>0</code>, <code>false</code>, <code>null</code></td></tr><tr><td><strong>Static (class)</strong></td><td>Inside a class with <code>static</code></td><td>As long as the class is loaded</td><td><code>0</code>, <code>false</code>, <code>null</code></td></tr></tbody></table></div>
+<h3 id="scope">Scope</h3>
+<p>A variable is visible only inside the <code>{ }</code> block where it is declared.</p>
+<pre><code class="language-java">for (int i = 0; i &lt; 3; i++) {
+    int square = i * i;
+}
+// i and square are NOT accessible here</code></pre>
+<h2 id="data-types"><span class="num">03</span>Data Types</h2>
+<p>Java has two families: <strong>primitive types</strong> (store the value directly) and <strong>reference types</strong> (store the address of an object).</p>
+<h3 id="primitive-types">Primitive types</h3>
+<div class="table-wrap"><table><thead><tr><th>Type</th><th>Size</th><th>Range / values</th><th>Default</th></tr></thead><tbody><tr><td><code>byte</code></td><td>8 bit</td><td>-128 to 127</td><td>0</td></tr><tr><td><code>short</code></td><td>16 bit</td><td>-32,768 to 32,767</td><td>0</td></tr><tr><td><code>int</code></td><td>32 bit</td><td>about ±2.1 billion</td><td>0</td></tr><tr><td><code>long</code></td><td>64 bit</td><td>about ±9.2 × 10¹⁸</td><td>0L</td></tr><tr><td><code>float</code></td><td>32 bit</td><td>~7 decimal digits</td><td>0.0f</td></tr><tr><td><code>double</code></td><td>64 bit</td><td>~15 decimal digits</td><td>0.0</td></tr><tr><td><code>char</code></td><td>16 bit</td><td>one UTF-16 character, <code>'A'</code></td><td><code>'\u0000'</code></td></tr><tr><td><code>boolean</code></td><td>JVM dependent</td><td><code>true</code> or <code>false</code></td><td>false</td></tr></tbody></table></div>
+<pre><code class="language-java">int count = 100;
+long population = 8_000_000_000L;   // L suffix for long, _ for readability
+float temp = 36.6f;                  // f suffix for float
+double pi = 3.14159265359;
+char grade = 'A';
+boolean passed = true;</code></pre>
+<h3 id="reference-types">Reference types</h3>
+<p>Classes, interfaces, arrays, enums and <code>String</code>. A reference variable holds <code>null</code> or the address of an object on the heap.</p>
+<pre><code class="language-java">String name = "Hanbee";
+int[] marks = {80, 90, 75};</code></pre>
+<h3 id="primitive-vs-reference">Primitive vs reference</h3>
+<div class="table-wrap"><table><thead><tr><th></th><th>Primitive</th><th>Reference</th></tr></thead><tbody><tr><td>Stores</td><td>the actual value</td><td>address of an object</td></tr><tr><td>Memory</td><td>stack (when local)</td><td>object on heap, reference on stack</td></tr><tr><td>Can be <code>null</code></td><td>No</td><td>Yes</td></tr><tr><td>Has methods</td><td>No</td><td>Yes</td></tr></tbody></table></div>
+<h2 id="literals"><span class="num">04</span>Literals</h2>
+<ul><li>Integer: <code>42</code>, <code>0b1010</code> (binary), <code>0x1F</code> (hex), <code>017</code> (octal)</li><li>Floating: <code>3.14</code>, <code>1.5e3</code>, <code>2.5f</code></li><li>Character: <code>'a'</code>, <code>'\n'</code>, <code>'A'</code></li><li>String: <code>"Hello"</code>; <strong>text block</strong> (Java 15+) uses <code>"""</code></li><li>Boolean: <code>true</code>, <code>false</code></li><li>Null: <code>null</code></li></ul>
+<h3 id="escape-sequences">Escape sequences</h3>
+<div class="table-wrap"><table><thead><tr><th>Sequence</th><th>Meaning</th></tr></thead><tbody><tr><td><code>\n</code></td><td>New line</td></tr><tr><td><code>\t</code></td><td>Tab</td></tr><tr><td><code>\\</code></td><td>Backslash</td></tr><tr><td><code>\"</code></td><td>Double quote</td></tr><tr><td><code>\'</code></td><td>Single quote</td></tr></tbody></table></div>
+<h2 id="type-inference-with-var"><span class="num">05</span>Type Inference with var</h2>
+<p>From Java 10, the compiler can infer the type of a <strong>local</strong> variable.</p>
+<pre><code class="language-java">var message = "Hello";           // String
+var list = new ArrayList&lt;String&gt;(); // ArrayList&lt;String&gt;</code></pre>
+<aside class="callout note"><span class="label">Note</span><p><code>var</code> is only for local variables with an initialiser. It is not a keyword and not dynamic typing: the type is still fixed at compile time.</p></aside>
+<h2 id="operators"><span class="num">06</span>Operators</h2>
+<h3 id="arithmetic">Arithmetic</h3>
+<p><code>+  -  *  /  %</code>. Integer division discards the fraction.</p>
+<pre><code class="language-java">System.out.println(7 / 2);    // 3
+System.out.println(7 % 2);    // 1
+System.out.println(7 / 2.0);  // 3.5</code></pre>
+<h3 id="increment-and-decrement">Increment and decrement</h3>
+<pre><code class="language-java">int x = 5;
+int a = x++;  // a = 5, x = 6  (post: use then increase)
+int b = ++x;  // x = 7, b = 7  (pre: increase then use)</code></pre>
+<h3 id="assignment-and-compound-assignment">Assignment and compound assignment</h3>
+<p><code>=  +=  -=  *=  /=  %=  &amp;=  |=  ^=  &lt;&lt;=  &gt;&gt;=  &gt;&gt;&gt;=</code></p>
+<h3 id="relational-and-logical">Relational and logical</h3>
+<div class="table-wrap"><table><thead><tr><th>Operators</th><th>Meaning</th></tr></thead><tbody><tr><td><code>==  !=  &lt;  &gt;  &lt;=  &gt;=</code></td><td>Comparison, result is <code>boolean</code></td></tr><tr><td><code>&amp;&amp;</code></td><td>Logical AND (short-circuit)</td></tr><tr><td><code>||</code></td><td>Logical OR (short-circuit)</td></tr><tr><td><code>!</code></td><td>Logical NOT</td></tr></tbody></table></div>
+<h3 id="bitwise-and-shift">Bitwise and shift</h3>
+<div class="table-wrap"><table><thead><tr><th>Operator</th><th>Meaning</th></tr></thead><tbody><tr><td><code>&amp;</code> <code>|</code> <code>^</code> <code>~</code></td><td>AND, OR, XOR, NOT on bits</td></tr><tr><td><code>&lt;&lt;</code></td><td>Left shift (multiply by 2ⁿ)</td></tr><tr><td><code>&gt;&gt;</code></td><td>Signed right shift</td></tr><tr><td><code>&gt;&gt;&gt;</code></td><td>Unsigned right shift</td></tr></tbody></table></div>
+<h3 id="ternary-operator">Ternary operator</h3>
+<pre><code class="language-java">int max = (a &gt; b) ? a : b;
+String result = (marks &gt;= 40) ? "Pass" : "Fail";</code></pre>
+<h3 id="instanceof">instanceof</h3>
+<pre><code class="language-java">if (obj instanceof String s) {   // pattern matching, Java 16+
+    System.out.println(s.length());
+}</code></pre>
+<h3 id="operator-precedence-high-to-low">Operator precedence (high to low)</h3>
+<ol><li>Postfix <code>x++</code>, parentheses, method calls</li><li>Unary <code>++x</code>, <code>!</code>, <code>~</code>, <code>-x</code></li><li>Multiplicative <code>* / %</code></li><li>Additive <code>+ -</code></li><li>Shift <code>&lt;&lt; &gt;&gt; &gt;&gt;&gt;</code></li><li>Relational <code>&lt; &gt; &lt;= &gt;= instanceof</code></li><li>Equality <code>== !=</code></li><li><code>&amp;</code>, then <code>^</code>, then <code>|</code></li><li><code>&amp;&amp;</code>, then <code>||</code></li><li>Ternary <code>? :</code></li><li>Assignment <code>= += -=</code></li></ol>
+<aside class="callout tip"><span class="label">Tip</span><p>When in doubt, use parentheses. They cost nothing and make intent obvious.</p></aside>
+<h2 id="type-conversion-and-casting"><span class="num">07</span>Type Conversion and Casting</h2>
+<h3 id="widening-automatic">Widening (automatic)</h3>
+<p>A smaller type converts to a larger type with no data loss.</p>
+<pre><code class="language-text">byte → short → int → long → float → double
+              char → int</code></pre>
+<pre><code class="language-java">int i = 100;
+double d = i;   // 100.0</code></pre>
+<h3 id="narrowing-explicit-cast">Narrowing (explicit cast)</h3>
+<p>A larger type to a smaller type needs a cast and can lose data.</p>
+<pre><code class="language-java">double d = 9.78;
+int i = (int) d;        // 9 (fraction dropped)
+int big = 130;
+byte b = (byte) big;    // -126 (overflow wraps around)</code></pre>
+<h3 id="promotion-in-expressions">Promotion in expressions</h3>
+<p><code>byte</code>, <code>short</code> and <code>char</code> are promoted to <code>int</code> in arithmetic.</p>
+<pre><code class="language-java">byte a = 10, b = 20;
+// byte c = a + b;      // compile error: result is int
+byte c = (byte) (a + b);</code></pre>
+<aside class="callout warning"><span class="label">Warning</span><p><code>0.1 + 0.2</code> is <strong>not</strong> exactly <code>0.3</code> in floating point. For money use <code>BigDecimal</code>, never <code>double</code>.</p></aside>
+<h2 id="input-and-output"><span class="num">08</span>Input and Output</h2>
+<h3 id="output">Output</h3>
+<pre><code class="language-java">System.out.println("with newline");
+System.out.print("no newline");
+System.out.printf("Name: %s, Age: %d, Score: %.2f%n", "Asha", 20, 88.456);</code></pre>
+<div class="table-wrap"><table><thead><tr><th>Format</th><th>Meaning</th></tr></thead><tbody><tr><td><code>%d</code></td><td>integer</td></tr><tr><td><code>%f</code> / <code>%.2f</code></td><td>decimal / 2 decimals</td></tr><tr><td><code>%s</code></td><td>string</td></tr><tr><td><code>%c</code></td><td>character</td></tr><tr><td><code>%b</code></td><td>boolean</td></tr><tr><td><code>%n</code></td><td>platform new line</td></tr></tbody></table></div>
+<h3 id="input-with-scanner">Input with Scanner</h3>
+<pre><code class="language-java">import java.util.Scanner;
+
+public class InputDemo {
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+        System.out.print("Enter name: ");
+        String name = sc.nextLine();
+        System.out.print("Enter age: ");
+        int age = sc.nextInt();
+        System.out.println(name + " is " + age);
+        sc.close();
+    }
+}</code></pre>
+<aside class="callout warning"><span class="label">Warning</span><p>After <code>nextInt()</code> the newline stays in the buffer, so the next <code>nextLine()</code> returns an empty string. Call <code>sc.nextLine()</code> once to consume it.</p></aside>
+<h3 id="command-line-arguments">Command-line arguments</h3>
+<pre><code class="language-java">public static void main(String[] args) {
+    System.out.println(args.length + " arguments");
+    for (String a : args) System.out.println(a);
+}</code></pre>
+<h2 id="integer-overflow-and-special-values"><span class="num">09</span>Integer Overflow and Special Values</h2>
+<pre><code class="language-java">int max = Integer.MAX_VALUE;
+System.out.println(max + 1);        // -2147483648 (wraps around)
+System.out.println(1.0 / 0);        // Infinity
+System.out.println(0.0 / 0);        // NaN</code></pre>
+<p>Use <code>Math.addExact()</code> to throw an exception on overflow.</p>
+<h2 id="quick-recap"><span class="num">10</span>Quick Recap</h2>
+<ul><li>Eight primitives; everything else is a reference type</li><li>Local variables have no default value, fields do</li><li>Widening is automatic, narrowing needs a cast</li><li><code>&amp;&amp;</code> and <code>||</code> short-circuit, <code>&amp;</code> and <code>|</code> do not</li><li>Use <code>var</code> for local inference, <code>BigDecimal</code> for money</li></ul>
+    </article>
+    <nav class="pager" aria-label="Topic navigation">
+      <a class="prev" href="01-introduction.html"><small>← Previous</small><strong>Introduction to Java</strong></a>
+      <a class="next" href="03-control-flow.html"><small>Next →</small><strong>Control Flow Statements</strong></a>
+    </nav>
+  </main>
+</div>
+</body>
+</html>

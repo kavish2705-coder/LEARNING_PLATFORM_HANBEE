@@ -49,9 +49,10 @@ async function upsertAuthUser(email, password, fullName, role) {
 
 async function main() {
   console.log("Creating demo accounts...");
-  const staffId = await upsertAuthUser("jamie@hanbeelms.edu", "staff123", "Jamie Rivera", "staff");
-  const studentId = await upsertAuthUser("ava@student.edu", "student123", "Ava Chen", "student");
-  const managerId = await upsertAuthUser("morgan@hanbeelms.edu", "manager123", "Morgan Ellis", "manager");
+  const staffId = await upsertAuthUser("staff@hanbee.in", "password", "Hanbee Staff", "staff");
+  const studentId = await upsertAuthUser("student@hanbee.in", "password", "Hanbee Student", "student");
+  const managerId = await upsertAuthUser("manager@hanbee.in", "password", "Hanbee Manager", "manager");
+  const schoolId = await upsertAuthUser("school@hanbee.in", "password", "Hanbee School", "school_staff");
   // The handle_new_user trigger creates the profiles row automatically.
 
   console.log("Seeding course content...");

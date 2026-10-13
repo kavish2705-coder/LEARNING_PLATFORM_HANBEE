@@ -1,0 +1,667 @@
+/* Driver License Dedicated Page Styling */
+
+.licensePage {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  max-width: 1200px;
+  margin: 0 auto;
+  animation: fadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Header */
+.pageHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 20px;
+  background: var(--bg-card);
+  padding: 24px 32px;
+  border-radius: var(--clay-radius-md, 24px);
+  box-shadow: var(--clay-shadow-outer);
+  border: var(--border-subtle);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+.headerLeft {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.federationPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: monospace;
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--accent-subtle-text);
+  background: var(--accent-subtle-bg);
+  border: 1px solid var(--accent-subtle-border);
+  padding: 4px 12px;
+  border-radius: 999px;
+  width: fit-content;
+}
+
+.pageTitle {
+  font-family: var(--font-heading);
+  font-size: clamp(26px, 2.6vw, 34px);
+  font-weight: 600;
+  color: var(--text-main);
+  letter-spacing: -0.02em;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.pageSubtitle {
+  font-size: 14px;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.actionBtnSecondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--btn-secondary-bg);
+  border: 1px solid var(--btn-secondary-border);
+  color: var(--btn-secondary-text);
+  font-weight: 500;
+  font-size: 13px;
+  padding: 10px 18px;
+  border-radius: 999px;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.actionBtnSecondary:hover {
+  background: var(--btn-secondary-hover);
+  border-color: var(--accent-subtle-border);
+  color: var(--btn-secondary-text);
+  transform: translateY(-1px);
+}
+
+.actionBtnPrimary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--color-primary);
+  color: var(--color-primary-text);
+  border: 1px solid var(--accent-subtle-border);
+  font-weight: 600;
+  font-size: 13px;
+  padding: 10px 20px;
+  border-radius: 999px;
+  cursor: pointer;
+  box-shadow: var(--clay-shadow-button), var(--accent-glow);
+  transition: all 0.2s ease;
+}
+
+.actionBtnPrimary:hover {
+  background: var(--color-primary-hover);
+  color: var(--color-primary-text);
+  transform: translateY(-1px);
+  box-shadow: var(--clay-shadow-elevated), var(--accent-glow);
+}
+
+/* Main Layout Grid */
+.licenseGrid {
+  display: grid;
+  grid-template-columns: 1.15fr 0.85fr;
+  gap: 32px;
+  align-items: start;
+}
+
+@media (max-width: 950px) {
+  .licenseGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ===== 3D License Card Container ===== */
+.licensePerspectiveWrapper {
+  perspective: 1200px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.licenseCard {
+  position: relative;
+  border-radius: 26px;
+  background: linear-gradient(135deg, rgba(24, 25, 32, 0.98) 0%, rgba(12, 13, 18, 0.99) 100%);
+  border: 1px solid rgba(125, 211, 232, 0.3);
+  box-shadow: 
+    0 24px 60px -12px rgba(0, 0, 0, 0.85),
+    0 0 40px rgba(8, 145, 178, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25);
+  padding: 32px;
+  overflow: hidden;
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  transform-style: preserve-3d;
+  will-change: transform;
+  transition: box-shadow 0.4s ease;
+}
+
+.licenseCard:hover {
+  box-shadow: 
+    0 34px 75px -14px rgba(0, 0, 0, 0.95),
+    0 0 55px rgba(125, 211, 232, 0.32),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+
+/* Dynamic Interactive Specular Glare Spot */
+.cardSpecularGlare {
+  position: absolute;
+  inset: 0;
+  border-radius: 26px;
+  pointer-events: none;
+  mix-blend-mode: screen;
+  z-index: 2;
+  transition: opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Holographic Rainbow Sheen */
+.licenseCard::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(
+    45deg,
+    transparent 35%,
+    rgba(255, 255, 255, 0.05) 45%,
+    rgba(125, 211, 232, 0.1) 50%,
+    rgba(236, 72, 153, 0.06) 55%,
+    transparent 65%
+  );
+  transform: rotate(-25deg);
+  pointer-events: none;
+  animation: holoSheen 9s ease-in-out infinite alternate;
+}
+
+@keyframes holoSheen {
+  0% { transform: translateY(-20%) rotate(-25deg); opacity: 0.3; }
+  50% { transform: translateY(15%) rotate(-20deg); opacity: 0.8; }
+  100% { transform: translateY(-20%) rotate(-25deg); opacity: 0.3; }
+}
+
+/* Card Header */
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding-bottom: 18px;
+  margin-bottom: 24px;
+}
+
+.cardFederationTitle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: monospace;
+  font-size: 11px;
+  letter-spacing: 2px;
+  color: #7dd3e8;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.licenseSuperBadge {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.2) 0%, rgba(239, 68, 68, 0.2) 100%);
+  border: 1px solid rgba(245, 158, 11, 0.4);
+  color: #fbbf24;
+  font-family: monospace;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  padding: 4px 12px;
+  border-radius: 6px;
+  text-transform: uppercase;
+  box-shadow: 0 0 12px rgba(245, 158, 11, 0.2);
+}
+
+/* Driver Profile Info */
+.driverRow {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  margin-bottom: 28px;
+}
+
+.avatarContainer {
+  position: relative;
+  width: 76px;
+  height: 76px;
+  border-radius: 20px;
+  background: var(--color-primary);
+  border: 2px solid var(--accent-subtle-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-heading);
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--color-primary-text);
+  box-shadow: var(--clay-shadow-button), var(--accent-glow);
+  flex-shrink: 0;
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.avatarContainer:hover {
+  transform: scale(1.05) rotate(2deg);
+}
+
+.driverInfoMeta {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.driverName {
+  font-family: var(--font-heading);
+  font-size: 24px;
+  font-weight: 700;
+  color: #fff;
+  margin: 0;
+  letter-spacing: -0.02em;
+}
+
+.driverCallsign {
+  font-family: monospace;
+  font-size: 12px;
+  color: #7dd3e8;
+  margin: 0;
+}
+
+.driverChassis {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.65);
+  margin: 2px 0 0;
+}
+
+/* Stats Triple Row */
+.statsTriple {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 16px;
+  padding: 16px;
+  margin-bottom: 24px;
+}
+
+.statItem {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.statLabel {
+  font-size: 10px;
+  font-family: monospace;
+  letter-spacing: 1px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+.statValue {
+  font-size: 18px;
+  font-weight: 700;
+  color: #fff;
+  font-family: monospace;
+}
+
+.statValueAccent {
+  color: #7dd3e8;
+  text-shadow: 0 0 10px rgba(125, 211, 232, 0.3);
+}
+
+/* XP Tier Progression */
+.xpBox {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 26px;
+}
+
+.xpHeader {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.xpTrack {
+  width: 100%;
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+}
+
+.xpFill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--color-primary) 0%, var(--accent) 100%);
+  box-shadow: var(--accent-glow);
+  position: relative;
+  overflow: hidden;
+}
+
+.xpFill::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg, 
+    transparent 0%, 
+    rgba(255, 255, 255, 0.45) 50%, 
+    transparent 100%
+  );
+  animation: xpBeam 2.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+@keyframes xpBeam {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+/* Technical Specs Sheet (Flipped view) */
+.specsSheet {
+  background: rgba(0, 0, 0, 0.45);
+  border-radius: 18px;
+  border: 1px solid rgba(125, 211, 232, 0.2);
+  padding: 20px;
+  margin-bottom: 24px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.specRow {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.specKey {
+  font-size: 10px;
+  font-family: monospace;
+  color: var(--accent-subtle-text);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+}
+
+.specVal {
+  font-weight: 500;
+  color: #fff;
+  font-size: 12.5px;
+}
+
+/* Barcode & Flip Toggle Footer */
+.cardFooter {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  padding-top: 20px;
+}
+
+.barcodeArea {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  height: 32px;
+}
+
+.barcodeBar {
+  background: rgba(255, 255, 255, 0.7);
+  height: 100%;
+  border-radius: 1px;
+}
+
+.licenseSerial {
+  font-family: monospace;
+  font-size: 12px;
+  color: var(--text-muted);
+  letter-spacing: 1.5px;
+  margin-left: 10px;
+}
+
+.flipCardBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #7dd3e8;
+  padding: 8px 16px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.flipCardBtn:hover {
+  background: rgba(8, 145, 178, 0.2);
+  border-color: #7dd3e8;
+  color: #fff;
+  transform: scale(1.02);
+}
+
+/* ===== Right Column: Career Badges & Vehicle Registry ===== */
+.sidebarCol {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.infoCard {
+  background: var(--bg-card);
+  border: var(--border-subtle);
+  border-radius: var(--clay-radius-md, 24px);
+  box-shadow: var(--clay-shadow-outer);
+  padding: 24px;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.cardTitle {
+  font-family: var(--font-heading);
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-main);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.badgesGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.badgeCard {
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--border-elevated);
+  border-radius: 16px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  cursor: pointer;
+  transition: border-color 0.25s cubic-bezier(0.16, 1, 0.3, 1), background 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.badgeCard:hover {
+  border-color: var(--accent-subtle-border);
+  background: var(--bg-card-hover);
+  box-shadow: 0 10px 24px -6px rgba(0, 0, 0, 0.25), var(--accent-glow);
+}
+
+.badgeTop {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.badgeIconWrap {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: var(--accent-subtle-bg);
+  color: var(--accent-subtle-text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.badgeName {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-main);
+  margin: 0;
+}
+
+.badgeDesc {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+/* Machine Registry Card */
+.registryList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.registryRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--border-elevated);
+}
+
+.registryLabel {
+  color: var(--text-muted);
+}
+
+.registryVal {
+  color: var(--text-main);
+  font-weight: 500;
+}
+
+.registryStatusOk {
+  color: #10b981;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.returnPaddockLink {
+  margin-top: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: var(--accent-subtle-bg);
+  border: 1px solid var(--accent-subtle-border);
+  color: var(--accent-subtle-text);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 12px;
+  border-radius: 12px;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.returnPaddockLink:hover {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: var(--color-primary-text);
+}
+
+/* ===== Responsive Breakpoints ===== */
+@media (max-width: 768px) {
+  .pageHeader {
+    padding: 18px 16px;
+    gap: 14px;
+  }
+
+  .licenseCard {
+    padding: 24px 18px;
+    border-radius: 20px;
+  }
+
+  .badgeGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .pageHeader {
+    padding: 14px 12px;
+  }
+
+  .headerActions {
+    width: 100%;
+    gap: 8px;
+  }
+
+  .actionBtnSecondary,
+  .actionBtnPrimary {
+    flex: 1;
+    justify-content: center;
+    padding: 8px 12px;
+    font-size: 12px;
+  }
+
+  .licenseCard {
+    padding: 18px 14px;
+  }
+
+  .cardDriverRow {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+}
+

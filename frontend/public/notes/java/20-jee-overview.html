@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en" data-track="java">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Jakarta EE (JEE) Overview and Architecture — Java Notes · Hanbee</title>
+<meta name="description" content="What enterprise Java is. Jakarta EE specifications, containers, multi-tier architecture, web servers versus application servers, WAR/EAR packaging and how the Spring ecosystem relates.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500..700;1,9..144,500&amp;family=Inter:wght@400..700&amp;family=JetBrains+Mono:wght@400..600&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/notes.css">
+<script src="../assets/notes.js" defer></script>
+</head>
+<body>
+<div class="progress" aria-hidden="true"><i></i></div>
+<header class="top">
+  <a class="brand" href="../index.html"><b>H</b>Hanbee · Java Notes</a>
+  <nav><a class="keep" href="index.html">All topics</a><button id="theme-toggle" type="button" aria-label="Toggle light and dark theme">Theme</button></nav>
+</header>
+<div class="shell">
+  <details class="toc"><summary>On this page</summary><nav aria-label="On this page"><ol><li><a href="#what-is-jee"><span>01</span>What is JEE?</a></li><li><a href="#specification-vs-implementation"><span>02</span>Specification vs Implementation</a></li><li><a href="#jakarta-ee-technology-map"><span>03</span>Jakarta EE Technology Map</a></li><li><a href="#multi-tier-architecture"><span>04</span>Multi-tier Architecture</a></li><li><a href="#containers"><span>05</span>Containers</a></li><li><a href="#web-server-vs-application-server"><span>06</span>Web Server vs Application Server</a></li><li><a href="#packaging-and-deployment"><span>07</span>Packaging and Deployment</a></li><li><a href="#core-technologies-in-one-look"><span>08</span>Core Technologies in One Look</a></li><li><a href="#jee-vs-spring"><span>09</span>JEE vs Spring</a></li><li><a href="#typical-request-flow"><span>10</span>Typical Request Flow</a></li><li><a href="#setting-up-a-development-environment"><span>11</span>Setting Up a Development Environment</a></li><li><a href="#quick-recap"><span>12</span>Quick Recap</a></li></ol></nav></details>
+  <main>
+    <header class="hero">
+      <p class="kicker"><span class="pill">Enterprise Java (JEE)</span><span>Topic 20</span><span>Intermediate</span><span>6 min read</span></p>
+      <h1>Jakarta EE (JEE) Overview and Architecture</h1>
+      <p class="lede">What enterprise Java is. Jakarta EE specifications, containers, multi-tier architecture, web servers versus application servers, WAR/EAR packaging and how the Spring ecosystem relates.</p>
+    </header>
+    <article>
+<h2 id="what-is-jee"><span class="num">01</span>What is JEE?</h2>
+<p><strong>Java EE</strong> (Java Enterprise Edition) is a set of <strong>specifications</strong> built on top of Java SE for developing large, distributed, secure, multi-user business applications: web sites, REST services, messaging systems, banking back-ends.</p>
+<p>In 2017 Oracle donated it to the Eclipse Foundation. It was renamed <strong>Jakarta EE</strong>, and the package names changed from <code>javax.*</code> to <code>jakarta.*</code> in Jakarta EE 9.</p>
+<div class="table-wrap"><table><thead><tr><th>Name</th><th>Period</th><th>Package prefix</th></tr></thead><tbody><tr><td>J2EE</td><td>1999 to 2005</td><td><code>javax.*</code></td></tr><tr><td>Java EE 5 to 8</td><td>2006 to 2017</td><td><code>javax.*</code></td></tr><tr><td>Jakarta EE 8</td><td>2019</td><td><code>javax.*</code> (same as Java EE 8)</td></tr><tr><td><strong>Jakarta EE 9+</strong> (10, 11)</td><td>2020 onward</td><td><strong><code>jakarta.*</code></strong></td></tr></tbody></table></div>
+<aside class="callout warning"><span class="label">Warning</span><p><code>javax.servlet.*</code> and <code>jakarta.servlet.*</code> are <strong>not</strong> compatible. Tomcat 10+ and Spring Boot 3+ use <code>jakarta.*</code>; older Tomcat 9 and Spring Boot 2 use <code>javax.*</code>. Mixing them gives <code>ClassNotFoundException</code> or <code>NoClassDefFoundError</code>.</p></aside>
+<h2 id="specification-vs-implementation"><span class="num">02</span>Specification vs Implementation</h2>
+<p>A <strong>specification</strong> is an API plus rules (an interface contract). Many vendors provide <strong>implementations</strong>, so your code is portable.</p>
+<div class="table-wrap"><table><thead><tr><th>Specification</th><th>Popular implementations</th></tr></thead><tbody><tr><td>Servlet, JSP</td><td>Apache Tomcat, Jetty, Undertow</td></tr><tr><td>JPA</td><td>Hibernate, EclipseLink</td></tr><tr><td>CDI</td><td>Weld, OpenWebBeans</td></tr><tr><td>JAX-RS (REST)</td><td>Jersey, RESTEasy</td></tr><tr><td>Full platform</td><td>WildFly, Payara, Open Liberty, GlassFish, WebLogic, WebSphere</td></tr></tbody></table></div>
+<h2 id="jakarta-ee-technology-map"><span class="num">03</span>Jakarta EE Technology Map</h2>
+<div class="table-wrap"><table><thead><tr><th>Area</th><th>Specifications</th></tr></thead><tbody><tr><td><strong>Web</strong></td><td>Servlet, JSP, JSTL, Expression Language, WebSocket, Jakarta Faces (JSF)</td></tr><tr><td><strong>REST / services</strong></td><td>JAX-RS (Jakarta REST), JSON-B, JSON-P, SOAP/JAX-WS (legacy)</td></tr><tr><td><strong>Persistence</strong></td><td>JPA (Jakarta Persistence), JDBC, JTA (transactions)</td></tr><tr><td><strong>Business components</strong></td><td>EJB (Enterprise JavaBeans), CDI (Contexts and Dependency Injection), Bean Validation</td></tr><tr><td><strong>Messaging</strong></td><td>JMS (Jakarta Messaging), MDB</td></tr><tr><td><strong>Security</strong></td><td>Jakarta Security, Authentication, Authorization</td></tr><tr><td><strong>Other</strong></td><td>Mail, Concurrency, Batch, Connectors (JCA), Interceptors</td></tr></tbody></table></div>
+<p>The platform has <strong>Web Profile</strong> (web essentials) and <strong>Core Profile</strong> (microservices) as smaller subsets of the <strong>Full Platform</strong>.</p>
+<h2 id="multi-tier-architecture"><span class="num">04</span>Multi-tier Architecture</h2>
+<pre><code class="language-text">┌────────────────┐   HTTP    ┌────────────────────────────┐   JDBC   ┌──────────┐
+│ Client tier     │ ───────► │ Application server          │ ───────► │ Database │
+│ Browser / App   │          │  Web tier   : Servlet, JSP  │          │  tier    │
+└────────────────┘           │  Business   : EJB / CDI     │          └──────────┘
+                              │  Integration: JPA, JMS     │
+                              └────────────────────────────┘</code></pre>
+<div class="table-wrap"><table><thead><tr><th>Tier</th><th>Responsibility</th><th>Technology</th></tr></thead><tbody><tr><td><strong>Client</strong></td><td>User interface</td><td>Browser, mobile app, JavaScript SPA</td></tr><tr><td><strong>Web</strong></td><td>Handle requests, build responses</td><td>Servlets, JSP, JAX-RS, JSF</td></tr><tr><td><strong>Business</strong></td><td>Core rules and transactions</td><td>EJB, CDI beans, services</td></tr><tr><td><strong>Data / EIS</strong></td><td>Persistence and legacy systems</td><td>JPA, JDBC, JMS, databases</td></tr></tbody></table></div>
+<h3 id="layered-code-structure-inside-a-project">Layered code structure inside a project</h3>
+<pre><code class="language-text">controller (web)  →  service (business)  →  repository/DAO (data)  →  database
+        ↑ DTOs / models flow between layers</code></pre>
+<h2 id="containers"><span class="num">05</span>Containers</h2>
+<p>A <strong>container</strong> is the runtime that hosts your components and provides <strong>services</strong>: lifecycle management, security, transactions, threading, resource pooling and dependency injection. You write business code; the container does the plumbing (the <em>Hollywood principle</em>: "don't call us, we'll call you").</p>
+<div class="table-wrap"><table><thead><tr><th>Container</th><th>Hosts</th><th>Provided by</th></tr></thead><tbody><tr><td><strong>Web (Servlet) container</strong></td><td>Servlets, JSP, filters</td><td>Tomcat, Jetty</td></tr><tr><td><strong>EJB container</strong></td><td>Enterprise beans</td><td>Full app servers</td></tr><tr><td><strong>CDI container</strong></td><td>Managed beans</td><td>Weld etc.</td></tr><tr><td><strong>Client container</strong></td><td>Standalone clients</td><td>Rare</td></tr></tbody></table></div>
+<h2 id="web-server-vs-application-server"><span class="num">06</span>Web Server vs Application Server</h2>
+<div class="table-wrap"><table><thead><tr><th></th><th>Web server</th><th>Servlet container</th><th>Application server</th></tr></thead><tbody><tr><td>Serves</td><td>Static files (HTML, images)</td><td>Servlets, JSP</td><td>Servlets, JSP, EJB, JMS, JTA, JPA...</td></tr><tr><td>Examples</td><td>Nginx, Apache httpd</td><td>Tomcat, Jetty</td><td>WildFly, Payara, WebLogic</td></tr><tr><td>Footprint</td><td>Tiny</td><td>Small</td><td>Large</td></tr></tbody></table></div>
+<p>Typical production: <strong>Nginx → Tomcat/Spring Boot app → Database</strong>.</p>
+<h2 id="packaging-and-deployment"><span class="num">07</span>Packaging and Deployment</h2>
+<div class="table-wrap"><table><thead><tr><th>Archive</th><th>Contents</th><th>Deployed to</th></tr></thead><tbody><tr><td><strong>JAR</strong></td><td>Classes, libraries, EJB modules</td><td>Classpath</td></tr><tr><td><strong>WAR</strong> (Web Archive)</td><td>Web app: servlets, JSPs, static files, <code>WEB-INF</code></td><td>Servlet container</td></tr><tr><td><strong>EAR</strong> (Enterprise Archive)</td><td>WARs + EJB JARs, one deployable unit</td><td>Full application server</td></tr></tbody></table></div>
+<h3 id="war-structure">WAR structure</h3>
+<pre><code class="language-text">myapp.war
+├── index.html, css/, js/              ← public static content
+├── WEB-INF/                           ← NOT directly accessible from the browser
+│   ├── web.xml                        ← deployment descriptor (optional with annotations)
+│   ├── classes/                       ← compiled classes
+│   └── lib/                           ← dependency jars
+└── META-INF/context.xml</code></pre>
+<h3 id="deployment-descriptor-web-xml">Deployment descriptor (web.xml)</h3>
+<pre data-file="web.xml"><code class="language-xml">&lt;web-app xmlns="https://jakarta.ee/xml/ns/jakartaee" version="6.0"&gt;
+  &lt;servlet&gt;
+    &lt;servlet-name&gt;hello&lt;/servlet-name&gt;
+    &lt;servlet-class&gt;com.hanbee.HelloServlet&lt;/servlet-class&gt;
+  &lt;/servlet&gt;
+  &lt;servlet-mapping&gt;
+    &lt;servlet-name&gt;hello&lt;/servlet-name&gt;
+    &lt;url-pattern&gt;/hello&lt;/url-pattern&gt;
+  &lt;/servlet-mapping&gt;
+  &lt;session-config&gt;&lt;session-timeout&gt;30&lt;/session-timeout&gt;&lt;/session-config&gt;
+  &lt;welcome-file-list&gt;&lt;welcome-file&gt;index.html&lt;/welcome-file&gt;&lt;/welcome-file-list&gt;
+&lt;/web-app&gt;</code></pre>
+<p>Since Servlet 3.0 most of this can be replaced by annotations such as <code>@WebServlet("/hello")</code>.</p>
+<h2 id="core-technologies-in-one-look"><span class="num">08</span>Core Technologies in One Look</h2>
+<h3 id="servlet">Servlet</h3>
+<p>Java class that handles HTTP requests and responses (next topics).</p>
+<h3 id="ejb-enterprise-javabeans">EJB (Enterprise JavaBeans)</h3>
+<p>Server-side business components with built-in transactions, security and pooling.</p>
+<div class="table-wrap"><table><thead><tr><th>Type</th><th>Purpose</th></tr></thead><tbody><tr><td><code>@Stateless</code></td><td>No client state, pooled. Most common.</td></tr><tr><td><code>@Stateful</code></td><td>Holds state per client</td></tr><tr><td><code>@Singleton</code></td><td>One shared instance</td></tr><tr><td><code>@MessageDriven</code></td><td>Consumes JMS messages</td></tr></tbody></table></div>
+<pre><code class="language-java">@Stateless
+public class StudentService {
+    @PersistenceContext private EntityManager em;
+    public void register(Student s) { em.persist(s); }   // transaction managed by the container
+}</code></pre>
+<h3 id="cdi-contexts-and-dependency-injection">CDI (Contexts and Dependency Injection)</h3>
+<pre><code class="language-java">@ApplicationScoped
+public class GreetingService { public String greet() { return "Hello"; } }
+
+@Inject GreetingService service;</code></pre>
+<p>Scopes: <code>@RequestScoped</code>, <code>@SessionScoped</code>, <code>@ApplicationScoped</code>, <code>@Dependent</code>.</p>
+<h3 id="jpa-jax-rs-jms-jta">JPA, JAX-RS, JMS, JTA</h3>
+<p>Covered in later topics: JPA persists objects, JAX-RS builds REST APIs, <strong>JMS</strong> sends asynchronous messages (queues and topics), <strong>JTA</strong> coordinates transactions (<code>@Transactional</code>).</p>
+<h2 id="jee-vs-spring"><span class="num">09</span>JEE vs Spring</h2>
+<div class="table-wrap"><table><thead><tr><th></th><th>Jakarta EE</th><th>Spring / Spring Boot</th></tr></thead><tbody><tr><td>Nature</td><td>Standards (many vendors)</td><td>Framework from one project (Broadcom/VMware)</td></tr><tr><td>Config</td><td>Annotations + container</td><td>Annotations + auto-configuration</td></tr><tr><td>Server</td><td>App server or servlet container</td><td>Embedded Tomcat / Jetty / Undertow in a jar</td></tr><tr><td>DI</td><td>CDI</td><td>Spring IoC</td></tr><tr><td>Persistence</td><td>JPA</td><td>JPA via Spring Data (also JDBC, others)</td></tr><tr><td>REST</td><td>JAX-RS</td><td>Spring MVC / WebFlux</td></tr><tr><td>Popularity</td><td>Banking, government, legacy</td><td>Most new Java projects</td></tr></tbody></table></div>
+<p>Spring Boot builds on the same standards (Servlet API, JPA, Bean Validation, JTA), so learning Jakarta EE fundamentals makes Spring much easier.</p>
+<h2 id="typical-request-flow"><span class="num">10</span>Typical Request Flow</h2>
+<ol><li>Browser sends <code>GET /students/5</code></li><li>Web server/Tomcat receives it; the <strong>servlet container</strong> picks the right servlet via URL mapping</li><li><strong>Filters</strong> run first (security, logging, encoding)</li><li>Servlet/controller calls the <strong>service</strong> (business logic, transaction)</li><li>Service calls the <strong>repository</strong> (JPA/JDBC) → database</li><li>Result flows back; a <strong>JSP</strong>/template or JSON serializer builds the response</li><li>Container sends the HTTP response</li></ol>
+<h2 id="setting-up-a-development-environment"><span class="num">11</span>Setting Up a Development Environment</h2>
+<ol><li>JDK 17 or 21</li><li>IDE: IntelliJ IDEA / Eclipse IDE for Enterprise Java</li><li>Server: Apache Tomcat 10+ (Jakarta) or WildFly/Payara</li><li>Build: Maven with <code>&lt;packaging&gt;war&lt;/packaging&gt;</code></li><li>Database: PostgreSQL or MySQL</li></ol>
+<pre data-file="pom.xml"><code class="language-xml">&lt;packaging&gt;war&lt;/packaging&gt;
+&lt;dependencies&gt;
+  &lt;dependency&gt;
+    &lt;groupId&gt;jakarta.servlet&lt;/groupId&gt;
+    &lt;artifactId&gt;jakarta.servlet-api&lt;/artifactId&gt;
+    &lt;version&gt;6.1.0&lt;/version&gt;
+    &lt;scope&gt;provided&lt;/scope&gt;      &lt;!-- Tomcat supplies it at runtime --&gt;
+  &lt;/dependency&gt;
+&lt;/dependencies&gt;</code></pre>
+<h2 id="quick-recap"><span class="num">12</span>Quick Recap</h2>
+<ul><li>Jakarta EE = enterprise specifications on top of Java SE; packages are <code>jakarta.*</code> from EE 9</li><li>Containers provide lifecycle, transactions, security and injection</li><li>Layers: Web (Servlet/JSP/REST) → Business (EJB/CDI) → Data (JPA/JDBC)</li><li>Deploy as WAR (web) or EAR (enterprise); <code>WEB-INF</code> is private</li><li>Spring Boot uses the same underlying standards with an embedded server</li></ul>
+    </article>
+    <nav class="pager" aria-label="Topic navigation">
+      <a class="prev" href="19-design-patterns-solid.html"><small>← Previous</small><strong>SOLID Principles and Design Patterns</strong></a>
+      <a class="next" href="21-servlets.html"><small>Next →</small><strong>Servlets</strong></a>
+    </nav>
+  </main>
+</div>
+</body>
+</html>

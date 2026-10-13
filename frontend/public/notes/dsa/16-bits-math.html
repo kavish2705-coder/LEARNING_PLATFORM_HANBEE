@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="en" data-track="dsa">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bit Manipulation, Math and Useful Techniques — DSA Notes · Hanbee</title>
+<meta name="description" content="Binary tricks that replace loops, number theory for interviews (gcd, primes, modular arithmetic, fast power), overflow handling, and a toolbox of small techniques like reservoir sampling and Fisher-Yates.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500..700;1,9..144,500&amp;family=Inter:wght@400..700&amp;family=JetBrains+Mono:wght@400..600&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/notes.css">
+<script src="../assets/notes.js" defer></script>
+</head>
+<body>
+<div class="progress" aria-hidden="true"><i></i></div>
+<header class="top">
+  <a class="brand" href="../index.html"><b>H</b>Hanbee · DSA Notes</a>
+  <nav><a class="keep" href="index.html">All topics</a><button id="theme-toggle" type="button" aria-label="Toggle light and dark theme">Theme</button></nav>
+</header>
+<div class="shell">
+  <details class="toc"><summary>On this page</summary><nav aria-label="On this page"><ol><li><a href="#binary-representation"><span>01</span>Binary Representation</a></li><li><a href="#bitwise-operators"><span>02</span>Bitwise Operators</a></li><li><a href="#everyday-bit-tricks"><span>03</span>Everyday Bit Tricks</a></li><li><a href="#classic-bit-problems"><span>04</span>Classic Bit Problems</a></li><li><a href="#useful-java-bit-methods"><span>05</span>Useful Java Bit Methods</a></li><li><a href="#number-theory"><span>06</span>Number Theory</a></li><li><a href="#modular-arithmetic"><span>07</span>Modular Arithmetic</a></li><li><a href="#overflow-and-precision"><span>08</span>Overflow and Precision</a></li><li><a href="#math-toolbox-for-interviews"><span>09</span>Math Toolbox for Interviews</a></li><li><a href="#randomised-and-streaming-techniques"><span>10</span>Randomised and Streaming Techniques</a></li><li><a href="#geometry-basics-interview-level"><span>11</span>Geometry Basics (Interview Level)</a></li><li><a href="#common-mistakes"><span>12</span>Common Mistakes</a></li><li><a href="#quick-recap"><span>13</span>Quick Recap</a></li></ol></nav></details>
+  <main>
+    <header class="hero">
+      <p class="kicker"><span class="pill">Algorithm Paradigms</span><span>Topic 16</span><span>Intermediate</span><span>11 min read</span></p>
+      <h1>Bit Manipulation, Math and Useful Techniques</h1>
+      <p class="lede">Binary tricks that replace loops, number theory for interviews (gcd, primes, modular arithmetic, fast power), overflow handling, and a toolbox of small techniques like reservoir sampling and Fisher-Yates.</p>
+    </header>
+    <article>
+<h2 id="binary-representation"><span class="num">01</span>Binary Representation</h2>
+<p>Integers are stored in binary. Java's <code>int</code> is <strong>32-bit two's complement</strong>.</p>
+<pre><code class="language-text"> 5  = 0000 0101
+-5  = 1111 1011     (invert the bits of 5, then add 1)</code></pre>
+<div class="table-wrap"><table><thead><tr><th>Type</th><th>Bits</th><th>Range</th></tr></thead><tbody><tr><td><code>byte</code></td><td>8</td><td>-128 to 127</td></tr><tr><td><code>short</code></td><td>16</td><td>-32,768 to 32,767</td></tr><tr><td><code>int</code></td><td>32</td><td>-2³¹ to 2³¹ - 1 (about ±2.1 × 10⁹)</td></tr><tr><td><code>long</code></td><td>64</td><td>-2⁶³ to 2⁶³ - 1 (about ±9.2 × 10¹⁸)</td></tr></tbody></table></div>
+<h2 id="bitwise-operators"><span class="num">02</span>Bitwise Operators</h2>
+<div class="table-wrap"><table><thead><tr><th>Operator</th><th>Name</th><th>Example (<code>a=5</code> <code>0101</code>, <code>b=3</code> <code>0011</code>)</th></tr></thead><tbody><tr><td><code>&amp;</code></td><td>AND</td><td><code>a &amp; b = 0001 = 1</code></td></tr><tr><td><code>|</code></td><td>OR</td><td><code>a | b = 0111 = 7</code></td></tr><tr><td><code>^</code></td><td>XOR</td><td><code>a ^ b = 0110 = 6</code></td></tr><tr><td><code>~</code></td><td>NOT</td><td><code>~a = ...11111010 = -6</code></td></tr><tr><td><code>&lt;&lt;</code></td><td>Left shift</td><td><code>a &lt;&lt; 1 = 1010 = 10</code> (× 2)</td></tr><tr><td><code>&gt;&gt;</code></td><td>Arithmetic right shift (keeps sign)</td><td><code>-8 &gt;&gt; 1 = -4</code></td></tr><tr><td><code>&gt;&gt;&gt;</code></td><td>Logical right shift (fills with 0)</td><td><code>-1 &gt;&gt;&gt; 28 = 15</code></td></tr></tbody></table></div>
+<p><strong>XOR properties</strong> (the most useful): <code>x ^ x = 0</code>, <code>x ^ 0 = x</code>, commutative and associative.</p>
+<h2 id="everyday-bit-tricks"><span class="num">03</span>Everyday Bit Tricks</h2>
+<pre><code class="language-java">// Test the i-th bit (0-indexed from the right)
+boolean isSet = (n &gt;&gt; i &amp; 1) == 1;          // or (n &amp; (1 &lt;&lt; i)) != 0
+
+n |= (1 &lt;&lt; i);                              // set bit i
+n &amp;= ~(1 &lt;&lt; i);                             // clear bit i
+n ^= (1 &lt;&lt; i);                              // toggle bit i
+
+boolean odd = (n &amp; 1) == 1;                 // odd / even check
+int doubled = n &lt;&lt; 1;                       // multiply by 2
+int halved = n &gt;&gt; 1;                        // divide by 2 (floor for positives)
+
+// Swap without a temporary (works but is not faster in practice)
+a ^= b; b ^= a; a ^= b;</code></pre>
+<h3 id="check-if-a-number-is-a-power-of-two">Check if a number is a power of two</h3>
+<pre><code class="language-java">static boolean isPowerOfTwo(int n) { return n &gt; 0 &amp;&amp; (n &amp; (n - 1)) == 0; }</code></pre>
+<p><code>n &amp; (n - 1)</code> <strong>clears the lowest set bit</strong>: a power of two has exactly one set bit.</p>
+<h3 id="count-set-bits-brian-kernighan">Count set bits (Brian Kernighan)</h3>
+<pre><code class="language-java">static int countBits(int n) {
+    int count = 0;
+    while (n != 0) { n &amp;= n - 1; count++; }       // each step removes the lowest set bit
+    return count;
+}
+// built in: Integer.bitCount(n)</code></pre>
+<h3 id="lowest-set-bit-and-related">Lowest set bit and related</h3>
+<pre><code class="language-java">int lowest = n &amp; -n;                               // isolates the lowest set bit (used in Fenwick trees)
+int cleared = n &amp; (n - 1);                         // clears the lowest set bit</code></pre>
+<h3 id="counting-bits-for-0-n-dp">Counting bits for 0..n (DP)</h3>
+<pre><code class="language-java">static int[] countBitsUpTo(int n) {
+    int[] res = new int[n + 1];
+    for (int i = 1; i &lt;= n; i++) res[i] = res[i &gt;&gt; 1] + (i &amp; 1);
+    return res;
+}</code></pre>
+<h2 id="classic-bit-problems"><span class="num">04</span>Classic Bit Problems</h2>
+<h3 id="single-number-every-other-element-appears-twice">Single number (every other element appears twice)</h3>
+<pre><code class="language-java">static int singleNumber(int[] a) {
+    int x = 0;
+    for (int v : a) x ^= v;                        // pairs cancel out
+    return x;                                       // O(n), O(1)
+}</code></pre>
+<h3 id="missing-number-in-0-n">Missing number in 0..n</h3>
+<pre><code class="language-java">static int missingNumber(int[] a) {
+    int x = a.length;
+    for (int i = 0; i &lt; a.length; i++) x ^= i ^ a[i];
+    return x;
+}</code></pre>
+<h3 id="two-numbers-appear-once-the-rest-twice">Two numbers appear once, the rest twice</h3>
+<p>XOR everything to get <code>a ^ b</code>; find any set bit (<code>diff = x &amp; -x</code>); split the array by that bit and XOR each group.</p>
+<h3 id="reverse-bits-hamming-distance">Reverse bits, hamming distance</h3>
+<pre><code class="language-java">static int hammingDistance(int x, int y) { return Integer.bitCount(x ^ y); }
+static int reverseBits(int n) { return Integer.reverse(n); }</code></pre>
+<h3 id="generate-all-subsets-with-a-bitmask">Generate all subsets with a bitmask</h3>
+<pre><code class="language-java">static List&lt;List&lt;Integer&gt;&gt; subsets(int[] a) {
+    int n = a.length;
+    List&lt;List&lt;Integer&gt;&gt; res = new ArrayList&lt;&gt;();
+    for (int mask = 0; mask &lt; (1 &lt;&lt; n); mask++) {          // 2ⁿ subsets
+        List&lt;Integer&gt; subset = new ArrayList&lt;&gt;();
+        for (int i = 0; i &lt; n; i++)
+            if ((mask &gt;&gt; i &amp; 1) == 1) subset.add(a[i]);
+        res.add(subset);
+    }
+    return res;
+}</code></pre>
+<h3 id="maximum-xor-of-two-numbers">Maximum XOR of two numbers</h3>
+<p>Use a binary trie (see Tries) and greedily choose the opposite bit.</p>
+<h3 id="other-bit-problems">Other bit problems</h3>
+<div class="table-wrap"><table><thead><tr><th>Problem</th><th>Idea</th></tr></thead><tbody><tr><td>Single number II (others appear 3×)</td><td>Count each bit position modulo 3</td></tr><tr><td>Divide two integers without <code>/</code></td><td>Repeated doubling with shifts</td></tr><tr><td>Sum of two integers without <code>+</code></td><td><code>sum = a ^ b</code>, <code>carry = (a &amp; b) &lt;&lt; 1</code>, repeat</td></tr><tr><td>Gray code</td><td><code>i ^ (i &gt;&gt; 1)</code></td></tr><tr><td>Bitwise AND of a range</td><td>Common prefix of <code>left</code> and <code>right</code></td></tr><tr><td>Number of 1 bits in a stream</td><td><code>Integer.bitCount</code></td></tr></tbody></table></div>
+<h2 id="useful-java-bit-methods"><span class="num">05</span>Useful Java Bit Methods</h2>
+<pre><code class="language-java">Integer.bitCount(n);              Long.bitCount(n);
+Integer.highestOneBit(n);         Integer.lowestOneBit(n);
+Integer.numberOfLeadingZeros(n);  Integer.numberOfTrailingZeros(n);
+Integer.toBinaryString(n);        Integer.parseInt("1010", 2);
+Integer.toHexString(n);           Integer.reverse(n);       Integer.rotateLeft(n, 3);
+1L &lt;&lt; 40                          // use long literals for shifts of 32 or more</code></pre>
+<aside class="callout warning"><span class="label">Warning</span><p>In Java, shift distances are taken modulo 32 for <code>int</code> (and 64 for <code>long</code>): <code>1 &lt;&lt; 32</code> equals <code>1</code>. Use <code>1L &lt;&lt; k</code> for large shifts.</p></aside>
+<h2 id="number-theory"><span class="num">06</span>Number Theory</h2>
+<h3 id="gcd-and-lcm">GCD and LCM</h3>
+<pre><code class="language-java">static int gcd(int a, int b) { return b == 0 ? a : gcd(b, a % b); }     // Euclid: O(log min(a, b))
+static long lcm(long a, long b) { return a / gcd(a, b) * b; }            // divide first to avoid overflow</code></pre>
+<h3 id="primes-check-one-number-in-o-n">Primes: check one number in O(√n)</h3>
+<pre><code class="language-java">static boolean isPrime(int n) {
+    if (n &lt; 2) return false;
+    for (int i = 2; (long) i * i &lt;= n; i++) if (n % i == 0) return false;
+    return true;
+}</code></pre>
+<h3 id="sieve-of-eratosthenes-all-primes-up-to-n-o-n-log-log-n">Sieve of Eratosthenes: all primes up to n, O(n log log n)</h3>
+<pre><code class="language-java">static boolean[] sieve(int n) {
+    boolean[] isPrime = new boolean[n + 1];
+    Arrays.fill(isPrime, 2, n + 1, true);
+    for (int i = 2; (long) i * i &lt;= n; i++)
+        if (isPrime[i])
+            for (int j = i * i; j &lt;= n; j += i) isPrime[j] = false;      // start at i²: smaller multiples are already marked
+    return isPrime;
+}</code></pre>
+<p>Count primes below <code>n</code> by counting <code>true</code> entries.</p>
+<h3 id="prime-factorisation">Prime factorisation</h3>
+<pre><code class="language-java">static List&lt;Integer&gt; factorize(int n) {
+    List&lt;Integer&gt; f = new ArrayList&lt;&gt;();
+    for (int p = 2; (long) p * p &lt;= n; p++)
+        while (n % p == 0) { f.add(p); n /= p; }
+    if (n &gt; 1) f.add(n);                                   // a remaining prime factor larger than √n
+    return f;
+}</code></pre>
+<h3 id="divisors">Divisors</h3>
+<p>Loop <code>i</code> from 1 to <code>√n</code>; each divisor <code>i</code> gives the pair <code>(i, n / i)</code>.</p>
+<h3 id="perfect-numbers-happy-numbers-armstrong-numbers-digit-sums">Perfect numbers, happy numbers, Armstrong numbers, digit sums</h3>
+<p>Simple loops using <code>% 10</code> and <code>/ 10</code>; happy numbers use cycle detection (a set, or Floyd's).</p>
+<h2 id="modular-arithmetic"><span class="num">07</span>Modular Arithmetic</h2>
+<p>Problems often say "return the answer modulo <code>10⁹ + 7</code>" to keep numbers within <code>long</code>.</p>
+<pre><code class="language-java">static final int MOD = 1_000_000_007;
+
+(a + b) % MOD
+(a * b) % MOD                                  // use long: (long) a * b % MOD
+((a - b) % MOD + MOD) % MOD                    // keep results non-negative</code></pre>
+<h3 id="fast-exponentiation-binary-exponentiation-o-log-n">Fast exponentiation (binary exponentiation): O(log n)</h3>
+<pre><code class="language-java">static long power(long base, long exp, long mod) {
+    long result = 1;
+    base %= mod;
+    while (exp &gt; 0) {
+        if ((exp &amp; 1) == 1) result = result * base % mod;
+        base = base * base % mod;
+        exp &gt;&gt;= 1;
+    }
+    return result;
+}</code></pre>
+<h3 id="modular-inverse-and-division">Modular inverse and division</h3>
+<p>Since <code>MOD</code> is prime, <code>a⁻¹ ≡ a^(MOD-2) (mod MOD)</code> (Fermat's little theorem), so <code>a / b ≡ a * power(b, MOD - 2, MOD)</code>.</p>
+<h3 id="combinations-ncr-mod-p">Combinations nCr mod p</h3>
+<pre><code class="language-java">// precompute factorials and inverse factorials once: O(n), then each nCr is O(1)
+static long[] fact = new long[N + 1], inv = new long[N + 1];
+static void init() {
+    fact[0] = 1;
+    for (int i = 1; i &lt;= N; i++) fact[i] = fact[i - 1] * i % MOD;
+    inv[N] = power(fact[N], MOD - 2, MOD);
+    for (int i = N; i &gt; 0; i--) inv[i - 1] = inv[i] * i % MOD;
+}
+static long nCr(int n, int r) { return r &lt; 0 || r &gt; n ? 0 : fact[n] * inv[r] % MOD * inv[n - r] % MOD; }</code></pre>
+<p>Pascal's triangle gives <code>nCr</code> for small <code>n</code> without division: <code>C[n][r] = C[n-1][r-1] + C[n-1][r]</code>.</p>
+<h2 id="overflow-and-precision"><span class="num">08</span>Overflow and Precision</h2>
+<div class="table-wrap"><table><thead><tr><th>Pitfall</th><th>Safe approach</th></tr></thead><tbody><tr><td><code>int</code> overflow on sums/products</td><td>Use <code>long</code>, or <code>Math.addExact</code> / <code>multiplyExact</code> (throw on overflow)</td></tr><tr><td><code>Math.abs(Integer.MIN_VALUE)</code> is still negative</td><td>Handle with <code>long</code></td></tr><tr><td><code>mid = (lo + hi) / 2</code></td><td><code>lo + (hi - lo) / 2</code></td></tr><tr><td><code>a - b</code> comparator</td><td><code>Integer.compare(a, b)</code></td></tr><tr><td>Floating-point <code>==</code></td><td>Compare with an epsilon, or use integers</td></tr><tr><td>Huge exact values</td><td><code>BigInteger</code>, <code>BigDecimal</code> (slower)</td></tr><tr><td><code>int * int</code> assigned to <code>long</code></td><td><code>(long) a * b</code> <strong>before</strong> multiplying</td></tr></tbody></table></div>
+<pre><code class="language-java">int a = 100_000, b = 100_000;
+long wrong = a * b;                // overflows first (int × int), then widens
+long right = (long) a * b;</code></pre>
+<h2 id="math-toolbox-for-interviews"><span class="num">09</span>Math Toolbox for Interviews</h2>
+<div class="table-wrap"><table><thead><tr><th>Idea</th><th>Formula / code</th></tr></thead><tbody><tr><td>Sum of 1..n</td><td><code>n(n+1)/2</code></td></tr><tr><td>Sum of squares</td><td><code>n(n+1)(2n+1)/6</code></td></tr><tr><td>Geometric series</td><td><code>(rⁿ - 1)/(r - 1)</code></td></tr><tr><td>Number of digits</td><td><code>(int) Math.log10(n) + 1</code></td></tr><tr><td>Ceiling division</td><td><code>(a + b - 1) / b</code></td></tr><tr><td>Integer square root</td><td>Binary search (avoid <code>Math.sqrt</code> precision issues for <code>long</code>)</td></tr><tr><td>Number of pairs</td><td><code>n(n-1)/2</code></td></tr><tr><td>Catalan numbers</td><td>Balanced parentheses, number of BSTs</td></tr><tr><td>Pigeonhole principle</td><td>Existence arguments</td></tr><tr><td>Manhattan distance</td><td><code>abs(x1-x2) + abs(y1-y2)</code></td></tr><tr><td>Euclidean distance squared</td><td>Avoid <code>sqrt</code> when only comparing</td></tr></tbody></table></div>
+<h3 id="reverse-an-integer-safely">Reverse an integer safely</h3>
+<pre><code class="language-java">static int reverse(int x) {
+    int rev = 0;
+    while (x != 0) {
+        int digit = x % 10;
+        if (rev &gt; Integer.MAX_VALUE / 10 || rev &lt; Integer.MIN_VALUE / 10) return 0;   // would overflow
+        rev = rev * 10 + digit;
+        x /= 10;
+    }
+    return rev;
+}</code></pre>
+<h3 id="palindrome-number-power-of-three-ugly-numbers-add-digits-digital-root-1-n-1-9">Palindrome number, power of three, ugly numbers, add digits (digital root <code>1 + (n-1) % 9</code>).</h3>
+<h2 id="randomised-and-streaming-techniques"><span class="num">10</span>Randomised and Streaming Techniques</h2>
+<h3 id="fisher-yates-shuffle-unbiased-o-n">Fisher-Yates shuffle: unbiased, O(n)</h3>
+<pre><code class="language-java">static void shuffle(int[] a) {
+    Random rnd = new Random();
+    for (int i = a.length - 1; i &gt; 0; i--) {
+        int j = rnd.nextInt(i + 1);                         // 0..i inclusive
+        int t = a[i]; a[i] = a[j]; a[j] = t;
+    }
+}</code></pre>
+<h3 id="reservoir-sampling-pick-k-items-uniformly-from-a-stream-of-unknown-length">Reservoir sampling: pick k items uniformly from a stream of unknown length</h3>
+<pre><code class="language-java">static int[] reservoir(Iterator&lt;Integer&gt; stream, int k) {
+    int[] res = new int[k];
+    Random rnd = new Random();
+    int i = 0;
+    while (stream.hasNext()) {
+        int x = stream.next();
+        if (i &lt; k) res[i] = x;
+        else {
+            int j = rnd.nextInt(i + 1);
+            if (j &lt; k) res[j] = x;                          // keep with probability k/(i+1)
+        }
+        i++;
+    }
+    return res;
+}</code></pre>
+<h3 id="boyer-moore-voting-floyd-cycle-detection-morris-traversal-kadane">Boyer-Moore voting, Floyd cycle detection, Morris traversal, Kadane</h3>
+<p>Small algorithms with <code>O(1)</code> space that are worth memorising by name (see earlier topics).</p>
+<h2 id="geometry-basics-interview-level"><span class="num">11</span>Geometry Basics (Interview Level)</h2>
+<ul><li><strong>Rectangle overlap</strong>: <code>a.left &lt; b.right &amp;&amp; b.left &lt; a.right &amp;&amp; a.top &gt; b.bottom &amp;&amp; b.top &gt; a.bottom</code></li><li><strong>Points on a line</strong>: compare slopes using the reduced fraction <code>(dy / g, dx / g)</code> as a hash key (avoid doubles)</li><li><strong>Cross product</strong> <code>(b - a) × (c - a)</code>: sign tells the turn direction (convex hull, point-in-polygon)</li><li><strong>Closest pair</strong>: divide and conquer <code>O(n log n)</code>; <strong>convex hull</strong>: Graham scan or Andrew's monotone chain</li></ul>
+<h2 id="common-mistakes"><span class="num">12</span>Common Mistakes</h2>
+<ul><li>Computing <code>a * b</code> in <code>int</code> and widening afterwards</li><li>Taking <code>%</code> of a negative number and expecting a non-negative result (<code>((x % m) + m) % m</code>)</li><li>Shifting by 32 or more bits on an <code>int</code></li><li>Using <code>Math.sqrt</code> / floating point where exact integer arithmetic is needed</li><li>Forgetting to apply <code>MOD</code> at every multiplication step</li><li>Sieve loop with <code>i * i</code> overflowing <code>int</code> for big <code>n</code> (cast to <code>long</code>)</li></ul>
+<h2 id="quick-recap"><span class="num">13</span>Quick Recap</h2>
+<ul><li><code>n &amp; (n - 1)</code> clears the lowest set bit (power-of-two test, popcount); <code>n &amp; -n</code> isolates it; <strong>XOR</strong> cancels pairs</li><li>Bitmasks represent subsets: loop <code>mask</code> from 0 to <code>2ⁿ - 1</code></li><li>Know <strong>gcd (Euclid)</strong>, the <strong>sieve</strong>, <code>√n</code> primality/factorisation, <strong>fast power</strong> and modular inverses</li><li>Guard against overflow: <code>long</code>, <code>Math.addExact</code>, <code>(long) a * b</code>, <code>lo + (hi - lo) / 2</code></li><li>Handy toolbox: Fisher-Yates shuffle, reservoir sampling, Boyer-Moore voting</li></ul>
+    </article>
+    <nav class="pager" aria-label="Topic navigation">
+      <a class="prev" href="15-dynamic-programming.html"><small>← Previous</small><strong>Dynamic Programming</strong></a>
+      <a class="next" href="17-interview-prep.html"><small>Next →</small><strong>Interview Patterns and Cheat Sheet</strong></a>
+    </nav>
+  </main>
+</div>
+</body>
+</html>

@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en" data-track="react">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Architecture, Security and Deployment — React Notes · Hanbee</title>
+<meta name="description" content="Take React to production. Folder structure, code quality, accessibility, security (XSS, tokens, CSRF), error monitoring, environment configuration, build optimisation and deployment.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500..700;1,9..144,500&amp;family=Inter:wght@400..700&amp;family=JetBrains+Mono:wght@400..600&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/notes.css">
+<script src="../assets/notes.js" defer></script>
+</head>
+<body>
+<div class="progress" aria-hidden="true"><i></i></div>
+<header class="top">
+  <a class="brand" href="../index.html"><b>H</b>Hanbee · React Notes</a>
+  <nav><a class="keep" href="index.html">All topics</a><button id="theme-toggle" type="button" aria-label="Toggle light and dark theme">Theme</button></nav>
+</header>
+<div class="shell">
+  <details class="toc"><summary>On this page</summary><nav aria-label="On this page"><ol><li><a href="#project-architecture"><span>01</span>Project Architecture</a></li><li><a href="#code-quality"><span>02</span>Code Quality</a></li><li><a href="#accessibility-a11y"><span>03</span>Accessibility (a11y)</a></li><li><a href="#security"><span>04</span>Security</a></li><li><a href="#authentication-flow-typical-spa-api"><span>05</span>Authentication Flow (Typical SPA + API)</a></li><li><a href="#error-monitoring-and-logging"><span>06</span>Error Monitoring and Logging</a></li><li><a href="#environment-configuration"><span>07</span>Environment Configuration</a></li><li><a href="#build-optimisation"><span>08</span>Build Optimisation</a></li><li><a href="#deployment"><span>09</span>Deployment</a></li><li><a href="#internationalisation-i18n"><span>10</span>Internationalisation (i18n)</a></li><li><a href="#monitoring-checklist-before-launch"><span>11</span>Monitoring Checklist Before Launch</a></li><li><a href="#quick-recap"><span>12</span>Quick Recap</a></li></ol></nav></details>
+  <main>
+    <header class="hero">
+      <p class="kicker"><span class="pill">Production and Advanced</span><span>Topic 18</span><span>Advanced</span><span>8 min read</span></p>
+      <h1>Architecture, Security and Deployment</h1>
+      <p class="lede">Take React to production. Folder structure, code quality, accessibility, security (XSS, tokens, CSRF), error monitoring, environment configuration, build optimisation and deployment.</p>
+    </header>
+    <article>
+<h2 id="project-architecture"><span class="num">01</span>Project Architecture</h2>
+<h3 id="feature-based-folder-structure">Feature-based folder structure</h3>
+<p>Group code by <strong>feature</strong>, not by file type. Everything for "courses" lives together.</p>
+<pre><code class="language-text">src/
+├── app/                      ← app shell: providers, router, global styles
+│   ├── App.tsx
+│   ├── router.tsx
+│   └── providers.tsx
+├── features/
+│   ├── auth/
+│   │   ├── components/       LoginForm.tsx
+│   │   ├── hooks/            useAuth.ts
+│   │   ├── api.ts
+│   │   └── index.ts          ← public API of the feature
+│   ├── courses/
+│   │   ├── components/  hooks/  api.ts  types.ts
+│   └── lessons/
+├── components/               ← shared, generic UI (Button, Modal, Table)
+├── hooks/                    ← shared hooks (useDebounce)
+├── lib/                      ← api client, query client, utils, constants
+├── pages/ (or routes/)       ← route-level components that compose features
+└── test/</code></pre>
+<h3 id="guidelines">Guidelines</h3>
+<ul><li><strong>Co-locate</strong> tests, styles and types with the component</li><li>Features expose a small public API through <code>index.ts</code>; avoid deep imports across features</li><li>Shared <code>components/</code> must not import from <code>features/</code> (dependencies point inward)</li><li>Use <strong>absolute imports</strong> (<code>@/features/courses</code>) via <code>paths</code> in tsconfig and Vite alias</li><li>Keep <strong>pages thin</strong>: fetch data, compose feature components</li><li>Separate <strong>UI</strong> from <strong>data logic</strong>: custom hooks or Server Components fetch, presentational components render</li><li>Prefer <strong>composition</strong> over configuration with many boolean props</li></ul>
+<pre data-file="vite.config.ts"><code class="language-ts">import path from "node:path";
+export default defineConfig({ resolve: { alias: { "@": path.resolve(__dirname, "src") } } });</code></pre>
+<h2 id="code-quality"><span class="num">02</span>Code Quality</h2>
+<div class="table-wrap"><table><thead><tr><th>Tool</th><th>Purpose</th></tr></thead><tbody><tr><td><strong>TypeScript</strong> (<code>strict</code>)</td><td>Type safety</td></tr><tr><td><strong>ESLint</strong> + <code>eslint-plugin-react-hooks</code>, <code>jsx-a11y</code></td><td>Bugs, hook rules, accessibility</td></tr><tr><td><strong>Prettier</strong></td><td>Consistent formatting</td></tr><tr><td><strong>Husky + lint-staged</strong></td><td>Run checks on commit</td></tr><tr><td><strong>Conventional Commits</strong></td><td>Readable history, automated changelogs</td></tr><tr><td><strong>Storybook</strong></td><td>Develop and document components in isolation</td></tr><tr><td><strong>Knip / depcheck</strong></td><td>Find unused files and dependencies</td></tr></tbody></table></div>
+<h3 id="rules-of-react-what-the-compiler-also-assumes">Rules of React (what the compiler also assumes)</h3>
+<ol><li>Components and hooks are <strong>pure</strong>: same inputs, same output; no mutation of props/state/context during render</li><li>React <strong>calls</strong> components and hooks; don't call components as plain functions</li><li><strong>Rules of Hooks</strong>: top level only, from components/custom hooks only</li></ol>
+<h2 id="accessibility-a11y"><span class="num">03</span>Accessibility (a11y)</h2>
+<p>Accessibility is part of quality and often a legal requirement (WCAG 2.2 AA).</p>
+<ul><li>Use <strong>semantic HTML</strong>: <code>&lt;button&gt;</code> for actions, <code>&lt;a&gt;</code> for navigation, <code>&lt;nav&gt;</code>, <code>&lt;main&gt;</code>, <code>&lt;h1&gt;…&lt;h6&gt;</code> in order, <code>&lt;label&gt;</code></li><li>Don't attach click handlers to <code>&lt;div&gt;</code> (no keyboard, no role)</li><li>Every interactive element must be <strong>keyboard operable</strong> with a visible <strong>focus</strong> style</li><li>Images: meaningful <code>alt</code> text (<code>alt=""</code> for decorative)</li><li><strong>ARIA</strong> only when native HTML can't do it: <code>aria-label</code>, <code>aria-expanded</code>, <code>aria-live</code>, <code>role="dialog"</code></li><li>Manage <strong>focus</strong> on route changes, modals (trap + restore) and error summaries</li><li>Don't rely on colour; contrast ratio at least 4.5:1</li><li>Respect <code>prefers-reduced-motion</code></li><li>Test: <code>eslint-plugin-jsx-a11y</code>, axe DevTools, Lighthouse, keyboard-only walkthrough, screen reader (NVDA, VoiceOver)</li></ul>
+<h2 id="security"><span class="num">04</span>Security</h2>
+<h3 id="cross-site-scripting-xss">Cross-Site Scripting (XSS)</h3>
+<p>React <strong>escapes</strong> values rendered in JSX, which blocks most XSS. Risks remain:</p>
+<pre><code class="language-jsx">&lt;div dangerouslySetInnerHTML={{ __html: userHtml }} /&gt;       // dangerous: sanitise first (DOMPurify)
+&lt;a href={userUrl}&gt;Link&lt;/a&gt;                                    // "javascript:alert(1)" URLs execute!
+&lt;iframe src={userUrl} /&gt;   eval(userInput)   new Function(userInput)</code></pre>
+<ul><li>Sanitise any HTML with <strong>DOMPurify</strong> before <code>dangerouslySetInnerHTML</code></li><li>Validate URLs: allow only <code>http:</code>, <code>https:</code>, <code>mailto:</code> (<code>new URL(url).protocol</code>)</li><li>Add a <strong>Content-Security-Policy</strong> header (no inline script, restrict sources)</li><li>Never build HTML/JS strings from user input</li></ul>
+<h3 id="token-storage">Token storage</h3>
+<div class="table-wrap"><table><thead><tr><th>Storage</th><th>XSS risk</th><th>CSRF risk</th><th>Verdict</th></tr></thead><tbody><tr><td><code>localStorage</code> / <code>sessionStorage</code></td><td><strong>High</strong>: any script can read it</td><td>None</td><td>Avoid for sensitive tokens</td></tr><tr><td><strong>HttpOnly, Secure, SameSite cookie</strong></td><td>Not readable by JS</td><td>Needs mitigation (SameSite, CSRF token)</td><td><strong>Preferred</strong></td></tr><tr><td>In-memory variable + refresh-token cookie</td><td>Low</td><td>Low</td><td>Good for SPAs</td></tr></tbody></table></div>
+<h3 id="csrf">CSRF</h3>
+<p>If you authenticate with <strong>cookies</strong>, protect state-changing requests: <code>SameSite=Lax/Strict</code>, CSRF tokens or custom headers, and check the <code>Origin</code> header on the server.</p>
+<h3 id="cors">CORS</h3>
+<p>CORS is enforced by the <strong>browser</strong> and configured on the <strong>server</strong>. It does not protect your API from non-browser clients. Allow only the origins you need; never <code>*</code> with credentials.</p>
+<h3 id="other-front-end-security-rules">Other front-end security rules</h3>
+<ul><li><strong>Never put secrets</strong> (API keys with write access, DB URLs) in client code or <code>VITE_*</code> variables: everything in the bundle is public</li><li><strong>Authorisation belongs on the server</strong>; hiding a button or route is only UX</li><li>Validate input on the server even if the client validated it</li><li>Keep dependencies updated: <code>npm audit</code>, Dependabot/Renovate; commit the lockfile; review new packages</li><li>Use <code>rel="noopener noreferrer"</code> on <code>target="_blank"</code> links to untrusted sites</li><li>Don't log tokens or personal data; avoid putting sensitive data in URLs</li><li>Use HTTPS everywhere and set security headers (HSTS, <code>X-Content-Type-Options</code>, <code>frame-ancestors</code>)</li><li>Server Functions are <strong>public endpoints</strong>: authenticate, authorise and validate each call</li></ul>
+<h2 id="authentication-flow-typical-spa-api"><span class="num">05</span>Authentication Flow (Typical SPA + API)</h2>
+<pre><code class="language-text">1. POST /login            → server sets HttpOnly session cookie (or returns short-lived access token)
+2. App loads → GET /me    → user profile fills the auth store
+3. Requests send cookies (credentials: "include") or Authorization header
+4. On 401 → refresh once; if that fails → redirect to /login
+5. Logout → POST /logout, clear caches and stores</code></pre>
+<p>Managed options: <strong>Supabase Auth, Auth0, Clerk, Firebase Auth, NextAuth/Auth.js, Keycloak</strong>. Don't implement cryptography or password storage yourself.</p>
+<h2 id="error-monitoring-and-logging"><span class="num">06</span>Error Monitoring and Logging</h2>
+<pre><code class="language-jsx">import * as Sentry from "@sentry/react";
+Sentry.init({ dsn: import.meta.env.VITE_SENTRY_DSN, tracesSampleRate: 0.1 });
+
+createRoot(el, {
+  onCaughtError: Sentry.reactErrorHandler(),
+  onUncaughtError: Sentry.reactErrorHandler(),
+  onRecoverableError: Sentry.reactErrorHandler(),
+});</code></pre>
+<ul><li>Report errors from <strong>error boundaries</strong> and the React 19 root error callbacks</li><li>Upload <strong>source maps</strong> so stack traces are readable (keep them private)</li><li>Track Web Vitals (<code>web-vitals</code> package) and key user flows</li><li>Tools: Sentry, LogRocket, Datadog RUM, PostHog</li></ul>
+<h2 id="environment-configuration"><span class="num">07</span>Environment Configuration</h2>
+<div class="table-wrap"><table><thead><tr><th>File</th><th>Use</th></tr></thead><tbody><tr><td><code>.env</code></td><td>Defaults (committed if no secrets)</td></tr><tr><td><code>.env.local</code></td><td>Local overrides (<strong>git-ignored</strong>)</td></tr><tr><td><code>.env.production</code></td><td>Production build values</td></tr></tbody></table></div>
+<pre><code class="language-bash">VITE_API_URL=https://api.hanbee.com
+VITE_FEATURE_CERTIFICATES=true</code></pre>
+<p>Values are <strong>inlined at build time</strong>: changing them requires a rebuild. For runtime config, serve a <code>/config.json</code> or inject variables when the container starts.</p>
+<h2 id="build-optimisation"><span class="num">08</span>Build Optimisation</h2>
+<pre><code class="language-bash">npm run build                              # output in dist/
+npx vite-bundle-visualizer                 # see what's big</code></pre>
+<ul><li><strong>Code splitting</strong> per route with <code>lazy</code> / router <code>lazy</code></li><li>Import only what you use (<code>import debounce from "lodash-es/debounce"</code>; avoid whole libraries like moment.js: use <code>date-fns</code>/<code>Temporal</code>/<code>Intl</code>)</li><li>Compress images (WebP/AVIF), self-host fonts, <code>loading="lazy"</code></li><li>Enable <strong>Brotli/gzip</strong> at the CDN or server</li><li>Long-term caching: Vite adds <strong>content hashes</strong> to file names; serve with <code>Cache-Control: public, max-age=31536000, immutable</code> for hashed assets and <code>no-cache</code> for <code>index.html</code></li><li>Set <strong>performance budgets</strong> and check Lighthouse in CI</li></ul>
+<h2 id="deployment"><span class="num">09</span>Deployment</h2>
+<h3 id="static-spa-hosting">Static SPA hosting</h3>
+<div class="table-wrap"><table><thead><tr><th>Platform</th><th>Notes</th></tr></thead><tbody><tr><td><strong>Vercel / Netlify / Cloudflare Pages</strong></td><td>Git push → build → deploy, preview URLs per pull request, SPA rewrites</td></tr><tr><td><strong>AWS S3 + CloudFront / Azure Static Web Apps / Firebase Hosting</strong></td><td>Cloud CDN hosting</td></tr><tr><td><strong>GitHub Pages</strong></td><td>Free static hosting (set Vite <code>base</code>, use hash routing or a 404 fallback)</td></tr><tr><td><strong>Nginx / Apache</strong></td><td>Self-hosted; configure SPA fallback</td></tr></tbody></table></div>
+<pre><code class="language-nginx">server {
+  listen 80;
+  root /usr/share/nginx/html;
+  location / { try_files $uri /index.html; }
+  location /assets/ { add_header Cache-Control "public, max-age=31536000, immutable"; }
+}</code></pre>
+<h3 id="docker-multi-stage">Docker (multi-stage)</h3>
+<pre data-file="Dockerfile"><code class="language-dockerfile">FROM node:22-alpine AS build
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci
+COPY . .
+RUN npm run build
+
+FROM nginx:alpine
+COPY --from=build /app/dist /usr/share/nginx/html
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+EXPOSE 80</code></pre>
+<h3 id="full-stack-next-js-react-router-framework">Full-stack (Next.js / React Router framework)</h3>
+<p>Deploy to Vercel/Netlify/Cloudflare, or run <code>node</code> in a container (<code>next start</code>, <code>react-router-serve</code>).</p>
+<h3 id="ci-cd-pipeline">CI/CD pipeline</h3>
+<pre><code class="language-text">Pull request  →  install → lint → type-check → unit tests → build → deploy preview → E2E
+Merge to main →  same + deploy to production (with rollback ability)</code></pre>
+<h2 id="internationalisation-i18n"><span class="num">10</span>Internationalisation (i18n)</h2>
+<ul><li>Libraries: <strong>react-i18next</strong>, <strong>FormatJS (react-intl)</strong>, <strong>Lingui</strong></li><li>Never concatenate translated strings; use placeholders and plural rules</li><li>Format with <code>Intl.DateTimeFormat</code>, <code>Intl.NumberFormat</code>, <code>Intl.PluralRules</code></li><li>Support <strong>RTL</strong> layouts with logical CSS properties (<code>margin-inline-start</code>)</li></ul>
+<h2 id="monitoring-checklist-before-launch"><span class="num">11</span>Monitoring Checklist Before Launch</h2>
+<ul><li>Error boundaries at app/route/widget levels, with friendly fallbacks</li><li>Error reporting with source maps; alerts configured</li><li>404 page and offline/failed-request states</li><li>Meta tags, favicon, Open Graph, sitemap and robots (if public)</li><li>Lighthouse: performance, accessibility, best practices at or above 90</li><li>Keyboard and screen reader pass on key flows</li><li>Security headers, HTTPS, no secrets in the bundle</li><li>Analytics and privacy consent where required</li><li><code>npm audit</code> clean (or understood), lockfile committed</li><li>Rollback plan and preview deployments</li></ul>
+<h2 id="quick-recap"><span class="num">12</span>Quick Recap</h2>
+<ul><li>Organise by <strong>feature</strong>, keep pages thin, share through small public APIs</li><li>Enforce quality with TypeScript, ESLint (hooks + a11y), Prettier and CI</li><li>Build accessibility in: semantic HTML, keyboard support, focus management, contrast</li><li>Security: escape/sanitise, prefer HttpOnly cookies over <code>localStorage</code> tokens, never ship secrets, <strong>authorise on the server</strong></li><li>Monitor with error reporting and Web Vitals; optimise bundles with splitting and caching</li><li>Deploy static builds to a CDN (with SPA fallback) or containers; automate with CI/CD</li></ul>
+    </article>
+    <nav class="pager" aria-label="Topic navigation">
+      <a class="prev" href="17-testing.html"><small>← Previous</small><strong>Testing React Applications</strong></a>
+      <a class="next" href="19-interview-cheatsheet.html"><small>Next →</small><strong>Interview Questions and Cheat Sheet</strong></a>
+    </nav>
+  </main>
+</div>
+</body>
+</html>

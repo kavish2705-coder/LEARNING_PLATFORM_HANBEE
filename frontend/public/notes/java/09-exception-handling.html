@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en" data-track="java">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Exception Handling — Java Notes · Hanbee</title>
+<meta name="description" content="Handle runtime problems gracefully with try, catch, finally, throw and throws. Checked versus unchecked exceptions, custom exceptions and best practices.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500..700;1,9..144,500&amp;family=Inter:wght@400..700&amp;family=JetBrains+Mono:wght@400..600&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/notes.css">
+<script src="../assets/notes.js" defer></script>
+</head>
+<body>
+<div class="progress" aria-hidden="true"><i></i></div>
+<header class="top">
+  <a class="brand" href="../index.html"><b>H</b>Hanbee · Java Notes</a>
+  <nav><a class="keep" href="index.html">All topics</a><button id="theme-toggle" type="button" aria-label="Toggle light and dark theme">Theme</button></nav>
+</header>
+<div class="shell">
+  <details class="toc"><summary>On this page</summary><nav aria-label="On this page"><ol><li><a href="#what-is-an-exception"><span>01</span>What is an Exception?</a></li><li><a href="#exception-hierarchy"><span>02</span>Exception Hierarchy</a></li><li><a href="#try-catch-and-finally"><span>03</span>try, catch and finally</a></li><li><a href="#try-with-resources-java-7"><span>04</span>try-with-resources (Java 7)</a></li><li><a href="#throw-and-throws"><span>05</span>throw and throws</a></li><li><a href="#custom-exceptions"><span>06</span>Custom Exceptions</a></li><li><a href="#how-exceptions-propagate"><span>07</span>How Exceptions Propagate</a></li><li><a href="#finally-subtleties"><span>08</span>finally Subtleties</a></li><li><a href="#best-practices"><span>09</span>Best Practices</a></li><li><a href="#common-runtime-exceptions-at-a-glance"><span>10</span>Common Runtime Exceptions at a Glance</a></li><li><a href="#quick-recap"><span>11</span>Quick Recap</a></li></ol></nav></details>
+  <main>
+    <header class="hero">
+      <p class="kicker"><span class="pill">Object-Oriented Programming</span><span>Topic 09</span><span>Intermediate</span><span>5 min read</span></p>
+      <h1>Exception Handling</h1>
+      <p class="lede">Handle runtime problems gracefully with try, catch, finally, throw and throws. Checked versus unchecked exceptions, custom exceptions and best practices.</p>
+    </header>
+    <article>
+<h2 id="what-is-an-exception"><span class="num">01</span>What is an Exception?</h2>
+<p>An exception is an <strong>event that disrupts the normal flow</strong> of a program at runtime, such as dividing by zero, opening a missing file or accessing <code>null</code>. Java represents it as an object. Handling it lets the program recover or fail cleanly instead of crashing.</p>
+<pre><code class="language-java">int result = 10 / 0;   // throws ArithmeticException: / by zero</code></pre>
+<h2 id="exception-hierarchy"><span class="num">02</span>Exception Hierarchy</h2>
+<pre><code class="language-text">Throwable
+ ├── Error                         (JVM problems, do not catch)
+ │    ├── OutOfMemoryError
+ │    ├── StackOverflowError
+ │    └── AssertionError
+ └── Exception
+      ├── IOException, SQLException, ...        ← CHECKED
+      ├── InterruptedException, ClassNotFoundException
+      └── RuntimeException                       ← UNCHECKED
+           ├── NullPointerException
+           ├── ArithmeticException
+           ├── ArrayIndexOutOfBoundsException
+           ├── ClassCastException
+           ├── IllegalArgumentException
+           └── NumberFormatException</code></pre>
+<h3 id="checked-vs-unchecked">Checked vs unchecked</h3>
+<div class="table-wrap"><table><thead><tr><th></th><th>Checked</th><th>Unchecked</th></tr></thead><tbody><tr><td>Parent</td><td><code>Exception</code> (not <code>RuntimeException</code>)</td><td><code>RuntimeException</code></td></tr><tr><td>Checked by compiler</td><td>Yes: must handle or declare</td><td>No</td></tr><tr><td>Typical cause</td><td>External failure (file, network, DB)</td><td>Programming bug</td></tr><tr><td>Examples</td><td><code>IOException</code>, <code>SQLException</code></td><td><code>NullPointerException</code>, <code>IllegalArgumentException</code></td></tr></tbody></table></div>
+<h2 id="try-catch-and-finally"><span class="num">03</span>try, catch and finally</h2>
+<pre><code class="language-java">try {
+    int n = Integer.parseInt(input);
+    System.out.println(100 / n);
+} catch (NumberFormatException e) {
+    System.out.println("Not a number: " + e.getMessage());
+} catch (ArithmeticException e) {
+    System.out.println("Cannot divide by zero");
+} finally {
+    System.out.println("Always runs");   // cleanup
+}</code></pre>
+<ul><li>A <code>try</code> needs at least one <code>catch</code> or a <code>finally</code></li><li>Catch blocks are checked <strong>top to bottom</strong>: put specific exceptions before general ones</li><li><code>finally</code> runs whether or not an exception occurs (except <code>System.exit()</code> or JVM crash)</li></ul>
+<h3 id="multi-catch-java-7">Multi-catch (Java 7)</h3>
+<pre><code class="language-java">try { riskyCode(); }
+catch (IOException | SQLException e) {      // alternatives cannot be related by inheritance
+    log(e);
+}</code></pre>
+<h3 id="useful-throwable-methods">Useful Throwable methods</h3>
+<div class="table-wrap"><table><thead><tr><th>Method</th><th>Returns</th></tr></thead><tbody><tr><td><code>getMessage()</code></td><td>Short description</td></tr><tr><td><code>getCause()</code></td><td>Wrapped original exception</td></tr><tr><td><code>printStackTrace()</code></td><td>Prints call trace to stderr</td></tr><tr><td><code>getStackTrace()</code></td><td>Trace as an array</td></tr></tbody></table></div>
+<h2 id="try-with-resources-java-7"><span class="num">04</span>try-with-resources (Java 7)</h2>
+<p>Resources that implement <code>AutoCloseable</code> are closed <strong>automatically</strong>, even on exceptions.</p>
+<pre><code class="language-java">try (BufferedReader br = new BufferedReader(new FileReader("data.txt"));
+     PrintWriter pw = new PrintWriter("out.txt")) {
+    String line;
+    while ((line = br.readLine()) != null) pw.println(line);
+}   // br and pw closed here, in reverse order</code></pre>
+<aside class="callout tip"><span class="label">Tip</span><p>Always prefer try-with-resources over a manual <code>finally { close(); }</code> for files, sockets, JDBC connections and streams.</p></aside>
+<h2 id="throw-and-throws"><span class="num">05</span>throw and throws</h2>
+<pre><code class="language-java">static void setAge(int age) {
+    if (age &lt; 0) throw new IllegalArgumentException("Age cannot be negative");   // throw: create + raise
+}
+
+static void readFile(String path) throws IOException {      // throws: declare a checked exception
+    Files.readAllLines(Path.of(path));
+}</code></pre>
+<div class="table-wrap"><table><thead><tr><th>Keyword</th><th>Where</th><th>Purpose</th></tr></thead><tbody><tr><td><code>throw</code></td><td>Inside a method body</td><td>Actually raise one exception object</td></tr><tr><td><code>throws</code></td><td>Method signature</td><td>Declare which checked exceptions may escape</td></tr></tbody></table></div>
+<h2 id="custom-exceptions"><span class="num">06</span>Custom Exceptions</h2>
+<pre><code class="language-java">public class InsufficientBalanceException extends Exception {     // checked
+    private final double shortBy;
+
+    public InsufficientBalanceException(String message, double shortBy) {
+        super(message);
+        this.shortBy = shortBy;
+    }
+    public double getShortBy() { return shortBy; }
+}
+
+class Account {
+    private double balance;
+    void withdraw(double amt) throws InsufficientBalanceException {
+        if (amt &gt; balance) throw new InsufficientBalanceException("Low balance", amt - balance);
+        balance -= amt;
+    }
+}</code></pre>
+<p>Extend <code>RuntimeException</code> instead if callers cannot reasonably recover.</p>
+<h3 id="exception-chaining">Exception chaining</h3>
+<pre><code class="language-java">try {
+    dao.save(user);
+} catch (SQLException e) {
+    throw new ServiceException("Could not save user", e);    // keep the original as the cause
+}</code></pre>
+<h2 id="how-exceptions-propagate"><span class="num">07</span>How Exceptions Propagate</h2>
+<p>If a method does not handle an exception, it travels <strong>up the call stack</strong> to its caller, and so on, until something catches it or the thread dies with a stack trace.</p>
+<pre><code class="language-text">main() → serviceA() → serviceB() → dao()  ✘ throws
+         ↑ unwinds through each frame until a matching catch is found</code></pre>
+<h2 id="finally-subtleties"><span class="num">08</span>finally Subtleties</h2>
+<ul><li><code>finally</code> runs even if <code>try</code> or <code>catch</code> has a <code>return</code></li><li>A <code>return</code> inside <code>finally</code> <strong>overrides</strong> earlier returns and swallows exceptions: avoid it</li><li>If both <code>try</code> and <code>finally</code> throw, the <code>finally</code> exception wins (use try-with-resources to keep <em>suppressed</em> exceptions)</li></ul>
+<pre><code class="language-java">static int test() {
+    try { return 1; }
+    finally { System.out.println("cleanup"); }   // prints, then returns 1
+}</code></pre>
+<h2 id="best-practices"><span class="num">09</span>Best Practices</h2>
+<ul><li><strong>Catch specific exceptions</strong>, never an empty <code>catch (Exception e) {}</code></li><li>Don't use exceptions for normal control flow</li><li>Fail early with validation: <code>Objects.requireNonNull(x, "x must not be null")</code></li><li>Log once, at the boundary, then rethrow or handle: don't log-and-throw at every layer</li><li>Preserve the cause when wrapping</li><li>Release resources with try-with-resources</li><li>Use unchecked exceptions for programming errors; checked for recoverable external failures</li><li>Never catch <code>Error</code> or <code>Throwable</code> unless you are a framework</li></ul>
+<aside class="callout interview"><span class="label">Interview question</span><p>What is the difference between <code>final</code>, <code>finally</code> and <code>finalize</code>?</p><p><code>final</code> is a modifier (constant / no override / no inherit). <code>finally</code> is a block that always runs after <code>try</code>. <code>finalize()</code> was a method called by the GC before reclaiming an object and is deprecated for removal.</p></aside>
+<aside class="callout interview"><span class="label">Interview question</span><p>Can we have a <code>try</code> block without <code>catch</code>?</p><p>Yes, with <code>finally</code> or as try-with-resources.</p></aside>
+<h2 id="common-runtime-exceptions-at-a-glance"><span class="num">10</span>Common Runtime Exceptions at a Glance</h2>
+<div class="table-wrap"><table><thead><tr><th>Exception</th><th>Typical cause</th></tr></thead><tbody><tr><td><code>NullPointerException</code></td><td>Using a method/field on a <code>null</code> reference</td></tr><tr><td><code>ArrayIndexOutOfBoundsException</code></td><td>Index outside <code>0..length-1</code></td></tr><tr><td><code>StringIndexOutOfBoundsException</code></td><td>Bad index in <code>charAt</code>/<code>substring</code></td></tr><tr><td><code>ClassCastException</code></td><td>Invalid downcast</td></tr><tr><td><code>NumberFormatException</code></td><td><code>Integer.parseInt("abc")</code></td></tr><tr><td><code>IllegalArgumentException</code></td><td>Method received an invalid argument</td></tr><tr><td><code>IllegalStateException</code></td><td>Method called at the wrong time</td></tr><tr><td><code>ConcurrentModificationException</code></td><td>Modifying a collection while iterating</td></tr><tr><td><code>UnsupportedOperationException</code></td><td>Modifying an immutable collection</td></tr></tbody></table></div>
+<h2 id="quick-recap"><span class="num">11</span>Quick Recap</h2>
+<ul><li><code>Throwable</code> → <code>Error</code> (don't catch) and <code>Exception</code></li><li>Checked exceptions must be handled or declared; unchecked need not</li><li><code>try / catch / finally</code>, multi-catch and try-with-resources</li><li><code>throw</code> raises, <code>throws</code> declares</li><li>Wrap with a cause, catch specifically, never swallow silently</li></ul>
+    </article>
+    <nav class="pager" aria-label="Topic navigation">
+      <a class="prev" href="08-interfaces-enums-records.html"><small>← Previous</small><strong>Interfaces, Enums, Records and Nested Classes</strong></a>
+      <a class="next" href="10-generics-wrappers-utilities.html"><small>Next →</small><strong>Generics, Wrapper Classes and Utility APIs</strong></a>
+    </nav>
+  </main>
+</div>
+</body>
+</html>

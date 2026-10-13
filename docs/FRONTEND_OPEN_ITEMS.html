@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HanbeeLms Frontend: Open Items</title>
+<style>
+  body { font-family: system-ui, sans-serif; max-width: 980px; margin: 40px auto; padding: 0 20px; color: #1a1a1a; line-height: 1.55; }
+  h1 { font-size: 26px; } h2 { font-size: 19px; margin-top: 34px; border-bottom: 1px solid #ddd; padding-bottom: 6px; }
+  table { border-collapse: collapse; width: 100%; margin: 12px 0; font-size: 14px; }
+  th, td { border: 1px solid #ddd; padding: 7px 9px; text-align: left; vertical-align: top; }
+  th { background: #f3f6f8; }
+  .decide { color: #7c3aed; font-weight: 600; } .gap { color: #b91c1c; font-weight: 600; } .warn { color: #b45309; font-weight: 600; }
+  code { background: #f3f6f8; padding: 1px 5px; border-radius: 4px; }
+</style>
+</head>
+<body>
+
+<h1>HanbeeLms Frontend: Open Items</h1>
+<p>Everything in the frontend that is <strong>not yet solved or verified</strong>, as of 6 October 2026. The connected and tested work is in <code>FRONTEND_HANDOVER.html</code>. This document lists only what remains.</p>
+
+<h2>1. Decisions needed from the project owner</h2>
+<table>
+  <tr><th>Item</th><th>Question</th></tr>
+  <tr><td>Course management (<code>/dashboard/courses/manage</code>)</td><td class="decide">Remove this placeholder, since it duplicates the working Hanbee course catalog, or build a separate course editor?</td></tr>
+  <tr><td>Test data in the live database</td><td class="decide">May the team tests create TEST tournaments, teams, and applications in the live database, then remove them? Students may briefly see them.</td></tr>
+  <tr><td>Test-only accounts</td><td class="decide">Can a dedicated test account be created for approval and payment flows, so real accounts are never changed?</td></tr>
+  <tr><td>Team colour choice</td><td class="decide">Keep it as a visual-only choice, or add a database field for it?</td></tr>
+</table>
+
+<h2>2. Buttons not yet tested</h2>
+<p>These buttons change data. Each needs a TEST item or a test-only account, and a before-and-after check.</p>
+<table>
+  <tr><th>Area</th><th>Buttons not yet tested</th></tr>
+  <tr><td>Chat (all roles)</td><td>Send message, start a conversation, add or remove group members. Sending messages to real people is avoided in testing.</td></tr>
+  <tr><td>Student team</td><td>Create team (the start wizard), invite a teammate, accept or decline an invite, leave team, submit team, apply with payment.</td></tr>
+  <tr><td>Student courses and tournament</td><td>Apply for a course, apply for the tournament, mark lessons complete, the AI assistant's "New conversation" button after a real chat.</td></tr>
+  <tr><td>Join school</td><td>Submit a join link (needs a valid invitation).</td></tr>
+  <tr><td>School staff</td><td>Publish an announcement as the school owner, invite students in bulk, save team slots, create and edit schedule events, and the Students and Courses actions.</td></tr>
+  <tr><td>Hanbee staff</td><td>Approve or reject applications and team entries, review assessments, enroll students, create or edit courses, post tournament results, verify or suspend schools and users, and the Hanbee course actions.</td></tr>
+  <tr><td>Manager</td><td>Verify or reject schools and Hanbee staff, remove Hanbee staff, suspend or restore accounts from the Schools view, and manager task actions.</td></tr>
+  <tr><td>Sign-up and password</td><td>School and Hanbee staff sign-up, password reset (<code>/reset-password</code>), and the privacy page links.</td></tr>
+</table>
+
+<h2>3. Content not in the backend (listed, not invented)</h2>
+<table>
+  <tr><th>Item</th><th>Where</th><th>Note</th></tr>
+  <tr><td>Two-factor login</td><td>Settings</td><td>Not in the plan or database.</td></tr>
+  <tr><td>Notification preferences (toggles)</td><td>Settings</td><td>Not in the plan or database.</td></tr>
+  <tr><td>Student ID and preferred team name</td><td>Settings</td><td>Not in the database.</td></tr>
+  <tr><td>Team colour</td><td>Team start wizard</td><td>Visual only, no field. See decision above.</td></tr>
+  <tr><td>Personal rank, points, weekly change, milestones</td><td>Leaderboard</td><td>The database only has team results, not a personal rank.</td></tr>
+  <tr><td>Student clock-in</td><td>Attendance</td><td>Students are recorded automatically, by design. The page shows that history.</td></tr>
+  <tr><td>Payment gateway</td><td>Apply flows</td><td>Static QR code with manual staff verification, as planned. A real gateway is a later phase.</td></tr>
+  <tr><td>Email (SMTP) and email confirmation</td><td>Sign-up, password reset</td><td>Waiting for an SMTP account. Until then, admin password reset is the fallback.</td></tr>
+</table>
+
+<h2>4. Visual and design work still open</h2>
+<table>
+  <tr><th>Item</th><th>Status</th></tr>
+  <tr><td>Match each page to the approved design, page by page</td><td class="warn">Most pages now use live data inside the design's layout, but no page has been compared pixel by pixel against the design screens.</td></tr>
+  <tr><td>Mobile layout at 390px</td><td class="warn">Not checked for any page.</td></tr>
+  <tr><td>Accessibility (keyboard, labels, contrast)</td><td class="warn">Not audited.</td></tr>
+  <tr><td>Unused leftover components</td><td class="warn">The <code>SchoolTeams</code> placeholder and some unused design files can be deleted after a check that nothing imports them.</td></tr>
+  <tr><td>Chat in the design app</td><td class="warn">The chat page loads live, but live message updates were only verified in the earlier version, not in the design app.</td></tr>
+  <tr><td>Notification bell in the design app</td><td class="warn">Shows the unread count and loads, but live updates were only verified in the earlier version.</td></tr>
+</table>
+
+<h2>5. Access and security checks still open</h2>
+<table>
+  <tr><th>Item</th><th>Status</th></tr>
+  <tr><td>Role guard on every route</td><td class="warn">Enforced in the auth gate and tested for the student and school owner. Not tested for Hanbee staff and manager trying to reach other roles' pages.</td></tr>
+  <tr><td>Sign-up rejection for outsiders via Google or GitHub</td><td class="warn">The database rule is in place, but no fresh account was tested, to avoid creating one.</td></tr>
+  <tr><td>Per-minute AI limit in production</td><td class="warn">The database part is live. It works only once the <code>GEMINI_PER_MINUTE_LIMIT</code> secret is set and the latest function code is deployed. Check the deployed version.</td></tr>
+</table>
+
+<h2>6. Repository and handover</h2>
+<table>
+  <tr><th>Item</th><th>Status</th></tr>
+  <tr><td>Old standalone frontend</td><td>Removed from this repository locally (commit <code>7b2c810</code>). Not pushed. It remains in git history.</td></tr>
+  <tr><td>Design app (<code>LEARNING_PLATFORM_HANBEE</code>)</td><td class="warn">Changes are uncommitted in Kavish's clone. Nothing is pushed.</td></tr>
+  <tr><td>Push account</td><td class="decide">Which GitHub account and repository should receive the frontend push? Needed before the next pull request.</td></tr>
+  <tr><td>Documentation commits</td><td>The handover documents are committed locally in this repository, not pushed.</td></tr>
+</table>
+
+<h2>7. Known backend follow-ups (not blockers)</h2>
+<ul>
+  <li>Java Programming course now uses the 25 chapters of the notes (migration 0060): 5 units in chapter order. Each lesson shows its chapter inside the page, with a Video tab that shows a placeholder until videos are added. Tested in the browser.</li>
+  <li>Java Programming course added (migration 0059): 3 modules, 6 text lessons, video placeholders. Verified in the browser: it opens inside the site from the student's course list. Only ava is enrolled; other students need enrolling by Hanbee staff. Replace each placeholder with a video link later.</li>
+</ul>
+<ul>
+  <li>Set the <code>GEMINI_PER_MINUTE_LIMIT</code> secret, then redeploy the AI assistant function.</li>
+  <li>Old notifications link to <code>/staff/dashboard</code>. The bell redirects those to the dashboard, so nothing breaks. Correcting them is a data change, which needs approval first.</li>
+  <li>Team invitation expiry, tournament result history, and listing search were added in the backend, but the frontend screens that use them have not been checked with live data.</li>
+</ul>
+
+</body>
+</html>

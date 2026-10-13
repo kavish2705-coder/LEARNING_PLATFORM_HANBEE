@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="en" data-track="react">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Server Components, SSR and React Frameworks — React Notes · Hanbee</title>
+<meta name="description" content="Rendering strategies from CSR to SSR and streaming, React Server Components, Server Actions, hydration, and how Next.js and React Router framework mode put it all together.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500..700;1,9..144,500&amp;family=Inter:wght@400..700&amp;family=JetBrains+Mono:wght@400..600&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/notes.css">
+<script src="../assets/notes.js" defer></script>
+</head>
+<body>
+<div class="progress" aria-hidden="true"><i></i></div>
+<header class="top">
+  <a class="brand" href="../index.html"><b>H</b>Hanbee · React Notes</a>
+  <nav><a class="keep" href="index.html">All topics</a><button id="theme-toggle" type="button" aria-label="Toggle light and dark theme">Theme</button></nav>
+</header>
+<div class="shell">
+  <details class="toc"><summary>On this page</summary><nav aria-label="On this page"><ol><li><a href="#rendering-strategies"><span>01</span>Rendering Strategies</a></li><li><a href="#ssr-and-hydration"><span>02</span>SSR and Hydration</a></li><li><a href="#streaming-and-suspense"><span>03</span>Streaming and Suspense</a></li><li><a href="#react-server-components-rsc"><span>04</span>React Server Components (RSC)</a></li><li><a href="#server-functions-server-actions"><span>05</span>Server Functions (Server Actions)</a></li><li><a href="#next-js-app-router"><span>06</span>Next.js (App Router)</a></li><li><a href="#react-router-framework-mode"><span>07</span>React Router Framework Mode</a></li><li><a href="#choosing-a-setup"><span>08</span>Choosing a Setup</a></li><li><a href="#static-export"><span>09</span>Static Export</a></li><li><a href="#seo-basics"><span>10</span>SEO Basics</a></li><li><a href="#core-web-vitals"><span>11</span>Core Web Vitals</a></li><li><a href="#quick-recap"><span>12</span>Quick Recap</a></li></ol></nav></details>
+  <main>
+    <header class="hero">
+      <p class="kicker"><span class="pill">Production and Advanced</span><span>Topic 16</span><span>Advanced</span><span>9 min read</span></p>
+      <h1>Server Components, SSR and React Frameworks</h1>
+      <p class="lede">Rendering strategies from CSR to SSR and streaming, React Server Components, Server Actions, hydration, and how Next.js and React Router framework mode put it all together.</p>
+    </header>
+    <article>
+<h2 id="rendering-strategies"><span class="num">01</span>Rendering Strategies</h2>
+<div class="table-wrap"><table><thead><tr><th>Strategy</th><th>Where HTML is built</th><th>When</th><th>Good for</th></tr></thead><tbody><tr><td><strong>CSR</strong> (Client-Side Rendering)</td><td>Browser</td><td>At runtime</td><td>Dashboards behind login, highly interactive apps</td></tr><tr><td><strong>SSR</strong> (Server-Side Rendering)</td><td>Server</td><td>Every request</td><td>Personalised, SEO-critical pages</td></tr><tr><td><strong>SSG</strong> (Static Site Generation)</td><td>Build machine</td><td>At build time</td><td>Blogs, docs, marketing pages</td></tr><tr><td><strong>ISR / revalidation</strong></td><td>Server</td><td>Static, refreshed periodically</td><td>Catalogs, news</td></tr><tr><td><strong>Streaming SSR</strong></td><td>Server, in chunks</td><td>Per request</td><td>Fast first paint with slow data</td></tr><tr><td><strong>RSC</strong> (Server Components)</td><td>Server, as a component payload</td><td>Per request or build</td><td>Less client JavaScript, direct data access</td></tr></tbody></table></div>
+<h3 id="client-side-rendering-problems">Client-side rendering problems</h3>
+<p>A pure SPA ships an <strong>empty <code>&lt;div id="root"&gt;</code></strong> and a large JavaScript bundle. The user sees a blank page until JS downloads, runs and fetches data, which hurts <strong>first paint, SEO and slow devices</strong>. Server rendering fixes this.</p>
+<h2 id="ssr-and-hydration"><span class="num">02</span>SSR and Hydration</h2>
+<ol><li>Server renders the component tree to <strong>HTML</strong> and sends it, so the user <strong>sees content immediately</strong></li><li>Browser downloads the JavaScript bundle</li><li>React <strong>hydrates</strong>: attaches event handlers to the existing HTML and makes it interactive</li></ol>
+<pre><code class="language-jsx">// Client entry for an SSR app
+import { hydrateRoot } from "react-dom/client";
+hydrateRoot(document.getElementById("root"), &lt;App /&gt;);
+
+// Server (simplified)
+import { renderToPipeableStream } from "react-dom/server";
+const { pipe } = renderToPipeableStream(&lt;App /&gt;, { onShellReady: () =&gt; pipe(res) });</code></pre>
+<h3 id="hydration-mismatches">Hydration mismatches</h3>
+<p>The HTML from the server must match what React renders on the client. Mismatches come from:</p>
+<ul><li><code>Date.now()</code>, <code>Math.random()</code>, <code>typeof window</code> checks during render</li><li>Browser-only data (<code>localStorage</code>) read during render</li><li>Invalid HTML nesting (<code>&lt;div&gt;</code> inside <code>&lt;p&gt;</code>)</li></ul>
+<p>Fix by moving browser-only logic into <code>useEffect</code>, using <code>useId</code> for ids, or <code>suppressHydrationWarning</code> for unavoidable text like timestamps. React 19 prints a <strong>readable diff</strong> for these errors.</p>
+<h2 id="streaming-and-suspense"><span class="num">03</span>Streaming and Suspense</h2>
+<p>The server can send the page <strong>shell first</strong> and stream slower parts as their data becomes ready.</p>
+<pre><code class="language-jsx">export default function Page() {
+  return (
+    &lt;&gt;
+      &lt;Header /&gt;                                   {/* sent immediately */}
+      &lt;Suspense fallback={&lt;CourseSkeleton /&gt;}&gt;
+        &lt;Courses /&gt;                                {/* streamed in when its data resolves */}
+      &lt;/Suspense&gt;
+    &lt;/&gt;
+  );
+}</code></pre>
+<p>Each <code>&lt;Suspense&gt;</code> boundary is an independent loading unit, and <strong>selective hydration</strong> lets React hydrate the parts the user interacts with first.</p>
+<h2 id="react-server-components-rsc"><span class="num">04</span>React Server Components (RSC)</h2>
+<p><strong>Server Components</strong> render <strong>only on the server</strong> (or at build time). They send a compact description of their output to the client; their <strong>code never ships to the browser</strong>.</p>
+<h3 id="server-vs-client-components">Server vs Client Components</h3>
+<div class="table-wrap"><table><thead><tr><th></th><th>Server Component (default in RSC frameworks)</th><th>Client Component (<code>"use client"</code>)</th></tr></thead><tbody><tr><td>Runs on</td><td>Server only</td><td>Server (for the first HTML) <strong>and</strong> browser</td></tr><tr><td>Can use</td><td><code>async/await</code>, DB, file system, secrets</td><td><code>useState</code>, <code>useEffect</code>, event handlers, browser APIs</td></tr><tr><td>Ships JS to browser</td><td><strong>No</strong></td><td>Yes</td></tr><tr><td>Interactive</td><td>No</td><td>Yes</td></tr><tr><td>Hooks</td><td>No state/effect hooks</td><td>All hooks</td></tr></tbody></table></div>
+<pre><code class="language-jsx">// app/courses/page.jsx: Server Component (async, talks to the database directly)
+import { db } from "@/lib/db";
+import EnrollButton from "./EnrollButton";
+
+export default async function CoursesPage() {
+  const courses = await db.course.findMany();          // secrets and DB access stay on the server
+  return (
+    &lt;ul&gt;
+      {courses.map(c =&gt; (
+        &lt;li key={c.id}&gt;
+          {c.title}
+          &lt;EnrollButton courseId={c.id} /&gt;              {/* Client Component island */}
+        &lt;/li&gt;
+      ))}
+    &lt;/ul&gt;
+  );
+}</code></pre>
+<pre><code class="language-jsx">// EnrollButton.jsx: Client Component
+"use client";
+import { useState } from "react";
+
+export default function EnrollButton({ courseId }) {
+  const [done, setDone] = useState(false);
+  return &lt;button onClick={() =&gt; setDone(true)}&gt;{done ? "Enrolled" : "Enroll"}&lt;/button&gt;;
+}</code></pre>
+<h3 id="the-use-client-boundary">The <code>"use client"</code> boundary</h3>
+<ul><li>Put <code>"use client"</code> at the <strong>top of a file</strong> to mark it, and <strong>everything it imports</strong>, as client code</li><li>Push it <strong>as low in the tree as possible</strong>: keep pages/layouts as Server Components and make only interactive leaves clients</li><li>Server Components can render Client Components and pass <strong>serialisable props</strong> (strings, numbers, plain objects, Promises, JSX), <strong>not functions or class instances</strong></li><li>A Client Component <strong>cannot import</strong> a Server Component, but it can receive one as <code>children</code></li></ul>
+<pre><code class="language-jsx">"use client";
+export default function Modal({ children }) {         // children can be Server Components
+  const [open, setOpen] = useState(false);
+  return open ? &lt;div className="modal"&gt;{children}&lt;/div&gt; : null;
+}</code></pre>
+<h3 id="benefits">Benefits</h3>
+<ul><li><strong>Smaller bundles</strong>: heavy libraries (markdown, date, syntax highlighting) stay on the server</li><li><strong>Direct, secure data access</strong> with no extra API layer for reads</li><li><strong>No waterfalls</strong>: fetch in parallel on the server next to the data</li><li>Great default for SEO and performance</li></ul>
+<h3 id="passing-promises-to-client-components">Passing promises to Client Components</h3>
+<pre><code class="language-jsx">// Server Component
+export default function Page() {
+  const commentsPromise = getComments();                // not awaited
+  return &lt;Suspense fallback="…"&gt;&lt;Comments commentsPromise={commentsPromise} /&gt;&lt;/Suspense&gt;;
+}
+// Client Component
+"use client";
+export function Comments({ commentsPromise }) {
+  const comments = use(commentsPromise);                // suspends until resolved
+  return comments.map(c =&gt; &lt;p key={c.id}&gt;{c.text}&lt;/p&gt;);
+}</code></pre>
+<h3 id="cache-and-request-deduping">cache and request deduping</h3>
+<p><code>cache(fn)</code> memoises a function per request so several Server Components can call <code>getUser()</code> without repeating the query. (<code>cacheSignal</code>, added in 19.2, tells you when a cache entry is no longer needed.)</p>
+<h2 id="server-functions-server-actions"><span class="num">05</span>Server Functions (Server Actions)</h2>
+<p>A function marked <strong><code>"use server"</code></strong> runs on the server but can be <strong>called from the client</strong> like a normal async function; the framework creates the network request for you.</p>
+<pre><code class="language-jsx">// actions.js
+"use server";
+import { revalidatePath } from "next/cache";      // framework-specific helper
+
+export async function enroll(courseId, formData) {
+  const session = await getSession();             // always authenticate here
+  if (!session) throw new Error("Unauthorised");
+  await db.enrollment.create({ data: { courseId, userId: session.userId } });
+  revalidatePath("/courses");
+}</code></pre>
+<pre><code class="language-jsx">// Used directly as a form action: works even before JavaScript loads (progressive enhancement)
+import { enroll } from "./actions";
+&lt;form action={enroll.bind(null, course.id)}&gt;&lt;button&gt;Enroll&lt;/button&gt;&lt;/form&gt;</code></pre>
+<p>Combine with <code>useActionState</code>, <code>useFormStatus</code> and <code>useOptimistic</code> for pending UI and optimistic updates.</p>
+<aside class="callout warning"><span class="label">Warning</span><p>Server Functions are <strong>public HTTP endpoints</strong>. Treat their arguments as <strong>untrusted input</strong>: authenticate, authorise and validate (Zod) every call. Don't rely on "only my UI calls this".</p></aside>
+<div class="table-wrap"><table><thead><tr><th>Directive</th><th>Meaning</th></tr></thead><tbody><tr><td><code>"use client"</code></td><td>This module and its imports run on the client</td></tr><tr><td><code>"use server"</code></td><td>Exported async functions are Server Functions callable from the client</td></tr><tr><td><em>(none)</em></td><td>Server Component in RSC frameworks</td></tr></tbody></table></div>
+<aside class="callout note"><span class="label">Note</span><p>There is <strong>no</strong> <code>"use server"</code> directive for marking Server <em>Components</em>. It only marks Server Functions.</p></aside>
+<h2 id="next-js-app-router"><span class="num">06</span>Next.js (App Router)</h2>
+<p>The most widely used React framework, built around Server Components.</p>
+<pre><code class="language-bash">npx create-next-app@latest</code></pre>
+<pre><code class="language-text">app/
+├── layout.tsx            ← shared layout (persistent UI, &lt;html&gt;, fonts)
+├── page.tsx              ← route "/"
+├── loading.tsx           ← Suspense fallback for the route
+├── error.tsx             ← error boundary for the route ("use client")
+├── not-found.tsx
+├── courses/
+│   ├── page.tsx          ← "/courses"
+│   └── [id]/page.tsx     ← "/courses/5" (dynamic segment)
+└── api/courses/route.ts  ← Route Handler (REST endpoint)</code></pre>
+<div class="table-wrap"><table><thead><tr><th>Feature</th><th>Notes</th></tr></thead><tbody><tr><td><strong>File-based routing</strong></td><td>Folders = URLs; <code>page</code>, <code>layout</code>, <code>loading</code>, <code>error</code> conventions</td></tr><tr><td><strong>Data fetching</strong></td><td><code>async</code> Server Components + <code>fetch</code>/DB; caching and revalidation options</td></tr><tr><td><strong>Server Actions</strong></td><td><code>"use server"</code> mutations</td></tr><tr><td><strong>Metadata API</strong></td><td><code>export const metadata</code> / <code>generateMetadata</code></td></tr><tr><td><strong>Image / Font / Script</strong></td><td>Optimised components (<code>next/image</code>, <code>next/font</code>)</td></tr><tr><td><strong>Middleware / proxy</strong></td><td>Run code before requests (auth redirects, i18n)</td></tr><tr><td><strong>Rendering modes</strong></td><td>Static, dynamic, streaming, partial pre-rendering (per route)</td></tr><tr><td><strong>Deployment</strong></td><td>Vercel, or any Node/Docker host</td></tr></tbody></table></div>
+<p>Check the current Next.js docs for caching defaults and API names, as they change between major versions.</p>
+<h2 id="react-router-framework-mode"><span class="num">07</span>React Router Framework Mode</h2>
+<p>React Router v7's framework mode adds <strong>SSR, file-based routes, loaders/actions on the server and type-safe routes</strong> on top of Vite.</p>
+<pre><code class="language-tsx">// app/routes/course.tsx
+import type { Route } from "./+types/course";
+
+export async function loader({ params }: Route.LoaderArgs) {
+  return { course: await db.course.find(params.id) };            // runs on the server
+}
+export async function action({ request }: Route.ActionArgs) {
+  const form = await request.formData();
+  await enroll(form.get("courseId"));
+}
+export default function Course({ loaderData }: Route.ComponentProps) {
+  return &lt;h1&gt;{loaderData.course.title}&lt;/h1&gt;;
+}</code></pre>
+<h2 id="choosing-a-setup"><span class="num">08</span>Choosing a Setup</h2>
+<div class="table-wrap"><table><thead><tr><th>Project</th><th>Pick</th></tr></thead><tbody><tr><td>Logged-in dashboard / internal tool</td><td><strong>Vite + React Router + TanStack Query</strong> (CSR)</td></tr><tr><td>Public site that needs SEO and speed</td><td><strong>Next.js</strong> or <strong>React Router framework mode</strong></td></tr><tr><td>Content/marketing site, few interactive parts</td><td><strong>Astro</strong> (React islands) or static Next.js</td></tr><tr><td>Mobile app</td><td><strong>Expo (React Native)</strong></td></tr><tr><td>Existing backend (Java/Spring, Django…) serving APIs</td><td>SPA with Vite, or Next.js as a BFF (backend-for-frontend)</td></tr></tbody></table></div>
+<aside class="callout tip"><span class="label">Tip</span><p>For an LMS with a separate API (such as Spring Boot or Supabase), a <strong>Vite SPA or Next.js frontend</strong> both work. Choose Next.js when public SEO pages (course catalogue, landing pages) matter.</p></aside>
+<h2 id="static-export"><span class="num">09</span>Static Export</h2>
+<pre data-file="next.config.js"><code class="language-js">export default { output: "export" };           // fully static HTML/CSS/JS, host on any CDN</code></pre>
+<h2 id="seo-basics"><span class="num">10</span>SEO Basics</h2>
+<ul><li>Server-render or pre-render public pages</li><li>Unique <code>&lt;title&gt;</code> and <code>&lt;meta name="description"&gt;</code> per page (React 19 metadata tags, or the framework's metadata API)</li><li>Open Graph tags for sharing, canonical URLs, <code>sitemap.xml</code>, <code>robots.txt</code></li><li>Semantic HTML (<code>&lt;main&gt;</code>, <code>&lt;h1&gt;</code>…), fast Core Web Vitals</li></ul>
+<h2 id="core-web-vitals"><span class="num">11</span>Core Web Vitals</h2>
+<div class="table-wrap"><table><thead><tr><th>Metric</th><th>Measures</th><th>Good</th></tr></thead><tbody><tr><td><strong>LCP</strong></td><td>Largest contentful paint (loading)</td><td>≤ 2.5 s</td></tr><tr><td><strong>INP</strong></td><td>Interaction to next paint (responsiveness)</td><td>≤ 200 ms</td></tr><tr><td><strong>CLS</strong></td><td>Cumulative layout shift (visual stability)</td><td>≤ 0.1</td></tr></tbody></table></div>
+<p>Improve with server rendering, image optimisation, code splitting, <code>width</code>/<code>height</code> on media, and transitions for heavy updates.</p>
+<h2 id="quick-recap"><span class="num">12</span>Quick Recap</h2>
+<ul><li>CSR ships an empty shell; SSR/SSG send HTML first and <strong>hydrate</strong> afterwards; streaming sends the shell then the slow parts</li><li><strong>Server Components</strong> run only on the server (no client JS, direct data access); mark interactive code with <strong><code>"use client"</code></strong> and keep that boundary low</li><li><strong><code>"use server"</code></strong> functions are callable from the client but are <strong>public endpoints</strong>: authenticate and validate</li><li>Next.js (App Router) and React Router framework mode provide routing, data loading and SSR out of the box</li><li>Pick the simplest setup that satisfies your SEO and performance needs</li></ul>
+    </article>
+    <nav class="pager" aria-label="Topic navigation">
+      <a class="prev" href="15-typescript-react.html"><small>← Previous</small><strong>TypeScript with React</strong></a>
+      <a class="next" href="17-testing.html"><small>Next →</small><strong>Testing React Applications</strong></a>
+    </nav>
+  </main>
+</div>
+</body>
+</html>

@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en" data-track="dsa">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Data Structures and Algorithms Notes — Hanbee LMS</title>
+<meta name="description" content="Big-O, arrays, linked lists, stacks, queues, hashing, trees, heaps, graphs, sorting, greedy and dynamic programming in Java.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500..700;1,9..144,500&amp;family=Inter:wght@400..700&amp;family=JetBrains+Mono:wght@400..600&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/notes.css">
+<script src="../assets/notes.js" defer></script>
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="../index.html"><b>H</b>Hanbee · Notes</a>
+  <nav><a class="keep" href="../index.html">All tracks</a><button id="theme-toggle" type="button" aria-label="Toggle light and dark theme">Theme</button></nav>
+</header>
+<section class="index-hero">
+  <p class="kicker"><span class="pill">Learning track</span><span>Data Structures and Algorithms</span></p>
+  <h1>Think in <em>patterns</em>, solve with confidence.</h1>
+  <p class="lede">Data structures and algorithms in Java, from Big-O and arrays to graphs and dynamic programming. Every topic has working code, complexity analysis and classic interview problems.</p>
+  <div class="stats"><div><b>17</b>Topics</div><div><b>225</b>Concept groups</div><div><b>3h</b>Reading time</div><div><b>6</b>Parts</div></div>
+</section>
+<div class="parts">
+<section class="part"><header><span>PART A</span><h2>Foundations</h2></header><div class="topics">
+      <a class="topic" href="01-intro-big-o.html">
+        <div class="meta"><b>01</b><span>Beginner · 11 min</span></div>
+        <h3>Introduction to DSA and Big-O Analysis</h3>
+        <p>What data structures and algorithms are, why interviews test them, and how to measure code with Big-O time and space complexity. Includes a problem-solving framework you can reuse for every question.</p>
+        <ul><li>What are Data Structures and Algorithms?</li><li>Properties of a Good Algorithm</li><li>Why Efficiency Matters: A Quick Example</li><li>Complexity Analysis</li><li>Big-O Notation</li><li>Common Growth Rates</li><li>Analysing Code</li><li>Recursion Complexity</li><li>Space Complexity</li><li>Amortised Analysis</li><li>Complexity of Java Collections</li><li>Constraints Tell You the Target Complexity</li><li>A Problem-Solving Framework</li><li>Practising in Java</li><li>Where to Practise</li><li>Quick Recap</li></ul>
+      </a>
+      <a class="topic" href="02-arrays-strings.html">
+        <div class="meta"><b>02</b><span>Beginner · 14 min</span></div>
+        <h3>Arrays and Strings: Core Techniques</h3>
+        <p>Master the array and string techniques that appear in most interviews. Two pointers, sliding window, prefix sums, Kadane's algorithm, in-place tricks, matrices and common string problems.</p>
+        <ul><li>Arrays Recap</li><li>Basic Array Operations</li><li>Two Pointers</li><li>Sliding Window</li><li>Prefix Sums</li><li>Kadane's Algorithm: Maximum Subarray Sum</li><li>Majority Element: Boyer-Moore Voting</li><li>Other Classic Array Problems</li><li>Matrices (2D Arrays)</li><li>Strings</li><li>String Matching Algorithms</li><li>Edge Cases Checklist</li><li>Quick Recap</li></ul>
+      </a>
+      <a class="topic" href="03-recursion-backtracking.html">
+        <div class="meta"><b>03</b><span>Intermediate · 11 min</span></div>
+        <h3>Recursion and Backtracking</h3>
+        <p>Learn to think recursively. Base and recursive cases, the call stack, memoisation, divide and conquer, and the backtracking template for subsets, permutations, combinations and N-Queens.</p>
+        <ul><li>What is Recursion?</li><li>The Call Stack</li><li>Thinking Recursively</li><li>Recursion Tree and Complexity</li><li>Memoisation: Remove Repeated Work</li><li>Divide and Conquer</li><li>Classic Recursive Problems</li><li>Backtracking</li><li>Backtracking Problem Types</li><li>Pruning Techniques</li><li>Recursion vs Iteration vs DP</li><li>Common Mistakes</li><li>Quick Recap</li></ul>
+      </a></div></section>
+<section class="part"><header><span>PART B</span><h2>Linear Data Structures</h2></header><div class="topics">
+      <a class="topic" href="04-linked-lists.html">
+        <div class="meta"><b>04</b><span>Beginner · 11 min</span></div>
+        <h3>Linked Lists</h3>
+        <p>Build singly and doubly linked lists from scratch, then solve the classic interview problems. Reversal, fast and slow pointers, cycle detection, merging, and an LRU cache.</p>
+        <ul><li>What is a Linked List?</li><li>Types of Linked Lists</li><li>Singly Linked List in Java</li><li>Techniques You Must Know</li><li>Reverse a Linked List</li><li>Detect a Cycle</li><li>Merge Two Sorted Lists</li><li>Remove the N-th Node from the End</li><li>Palindrome Linked List: O(n) time, O(1) space</li><li>Intersection of Two Lists</li><li>Other Common Problems</li><li>Doubly Linked List</li><li>LRU Cache: HashMap + Doubly Linked List</li><li>Java's LinkedList</li><li>Common Pitfalls</li><li>Quick Recap</li></ul>
+      </a>
+      <a class="topic" href="05-stacks-queues.html">
+        <div class="meta"><b>05</b><span>Beginner · 10 min</span></div>
+        <h3>Stacks, Queues and Deques</h3>
+        <p>LIFO and FIFO structures, their array and linked implementations, and the interview patterns built on them. Balanced brackets, monotonic stacks, min stack, queue from stacks and the sliding-window deque.</p>
+        <ul><li>Stack: Last In, First Out (LIFO)</li><li>Implementing a Stack</li><li>Classic Stack Problems</li><li>Monotonic Stack</li><li>Queue: First In, First Out (FIFO)</li><li>Queue and Stack from Each Other</li><li>Deque (Double-Ended Queue)</li><li>Priority Queue (Preview)</li><li>BFS with a Queue (Preview)</li><li>Stack vs Queue vs Deque</li><li>Problem Patterns</li><li>Common Mistakes</li><li>Quick Recap</li></ul>
+      </a>
+      <a class="topic" href="06-hashing.html">
+        <div class="meta"><b>06</b><span>Intermediate · 10 min</span></div>
+        <h3>Hashing: HashMap and HashSet Patterns</h3>
+        <p>How hash tables work and the patterns that make them the most-used tool in interviews. Frequency counting, two sum, grouping, prefix-sum maps and designing your own hash table.</p>
+        <ul><li>What is Hashing?</li><li>Hash Functions</li><li>Collision Handling</li><li>A Simple HashMap from Scratch</li><li>Using HashMap and HashSet in Java</li><li>Pattern 1: Frequency Counting</li><li>Pattern 2: Two Sum (complement lookup)</li><li>Pattern 3: Grouping by a Canonical Key</li><li>Pattern 4: Prefix Sum + HashMap</li><li>Pattern 5: Sets for Existence and Ranges</li><li>Pattern 6: Top K Frequent (bucket sort)</li><li>Pattern 7: Caching and Memoisation</li><li>Pattern 8: Index Maps and Design Problems</li><li>HashMap vs TreeMap vs LinkedHashMap</li><li>Hashing Beyond HashMap</li><li>When to Use Hashing</li><li>Common Mistakes</li><li>Quick Recap</li></ul>
+      </a></div></section>
+<section class="part"><header><span>PART C</span><h2>Searching and Sorting</h2></header><div class="topics">
+      <a class="topic" href="07-searching-binary-search.html">
+        <div class="meta"><b>07</b><span>Intermediate · 10 min</span></div>
+        <h3>Searching and Binary Search</h3>
+        <p>Linear and binary search, the safe templates for boundaries, rotated arrays, and the powerful "binary search on the answer" technique.</p>
+        <ul><li>Linear Search</li><li>Binary Search</li><li>The Boundary Templates</li><li>Java Library Support</li><li>Classic Binary Search Problems</li><li>Binary Search on the Answer</li><li>Other Search Techniques</li><li>Choosing a Search Method</li><li>Common Mistakes</li><li>Quick Recap</li></ul>
+      </a>
+      <a class="topic" href="08-sorting.html">
+        <div class="meta"><b>08</b><span>Intermediate · 11 min</span></div>
+        <h3>Sorting Algorithms</h3>
+        <p>How the classic sorting algorithms work and when to use each. Bubble, selection, insertion, merge, quick, heap and counting sort, plus stability, Java's built-in sorts and sorting-based interview problems.</p>
+        <ul><li>Why Sorting?</li><li>Key Terms</li><li>Summary Table</li><li>Elementary Sorts (O(n²))</li><li>Merge Sort</li><li>Quick Sort</li><li>Heap Sort</li><li>Non-comparison Sorts</li><li>Sorting in Java</li><li>Sorting Problems</li><li>Choosing a Sorting Algorithm</li><li>Common Mistakes</li><li>Quick Recap</li></ul>
+      </a></div></section>
+<section class="part"><header><span>PART D</span><h2>Trees and Graphs</h2></header><div class="topics">
+      <a class="topic" href="09-trees.html">
+        <div class="meta"><b>09</b><span>Intermediate · 11 min</span></div>
+        <h3>Trees and Binary Trees</h3>
+        <p>Tree terminology, binary tree traversals (recursive and iterative), level-order BFS, and the recursive patterns behind height, diameter, paths, lowest common ancestor and tree construction.</p>
+        <ul><li>What is a Tree?</li><li>Binary Tree</li><li>Tree Traversals</li><li>Recursive Tree Thinking</li><li>Lowest Common Ancestor (LCA)</li><li>Constructing a Tree</li><li>Views and Flattening</li><li>Passing State: Down vs Up</li><li>N-ary Trees</li><li>Complexity Cheat Sheet</li><li>Common Mistakes</li><li>Quick Recap</li></ul>
+      </a>
+      <a class="topic" href="10-bst-balanced-trees.html">
+        <div class="meta"><b>10</b><span>Intermediate · 11 min</span></div>
+        <h3>Binary Search Trees and Balanced Trees</h3>
+        <p>Ordered trees with fast search. BST operations including deletion, validation and k-th smallest, why balance matters, AVL rotations, red-black and B-trees, and range-query structures.</p>
+        <ul><li>Binary Search Tree (BST)</li><li>BST Operations</li><li>Classic BST Problems</li><li>Why Balance Matters</li><li>AVL Tree</li><li>Red-Black Tree (Overview)</li><li>Java's Ordered Collections</li><li>B-Trees and B+ Trees</li><li>Range Query Structures (Preview)</li><li>BST vs Hash Table vs Sorted Array</li><li>Common Mistakes</li><li>Quick Recap</li></ul>
+      </a>
+      <a class="topic" href="11-heaps-tries.html">
+        <div class="meta"><b>11</b><span>Intermediate · 10 min</span></div>
+        <h3>Heaps, Priority Queues and Tries</h3>
+        <p>Binary heaps and Java's PriorityQueue for top-K and scheduling problems, the two-heap median trick, merging k lists, and tries for prefix search and autocomplete.</p>
+        <ul><li>Heap</li><li>Heap Operations</li><li>Java's PriorityQueue</li><li>Heap Problems</li><li>When to Use a Heap</li><li>Trie (Prefix Tree)</li><li>Common Mistakes</li><li>Quick Recap</li></ul>
+      </a>
+      <a class="topic" href="12-graphs.html">
+        <div class="meta"><b>12</b><span>Advanced · 12 min</span></div>
+        <h3>Graphs: Representation, BFS, DFS and Union-Find</h3>
+        <p>Model relationships with graphs. Adjacency lists and matrices, BFS and DFS, grid problems, cycle detection, topological sort, bipartite checks and the disjoint-set (union-find) structure.</p>
+        <ul><li>What is a Graph?</li><li>Terminology</li><li>Representing a Graph</li><li>Breadth-First Search (BFS)</li><li>Depth-First Search (DFS)</li><li>Connected Components</li><li>Graphs on Grids</li><li>Cycle Detection</li><li>Topological Sort</li><li>Bipartite Graph Check</li><li>Union-Find (Disjoint Set Union)</li><li>Other Classic Graph Problems</li><li>Complexity Summary</li><li>Common Mistakes</li><li>Quick Recap</li></ul>
+      </a>
+      <a class="topic" href="13-shortest-paths-mst.html">
+        <div class="meta"><b>13</b><span>Advanced · 9 min</span></div>
+        <h3>Shortest Paths and Minimum Spanning Trees</h3>
+        <p>Weighted graph algorithms. Dijkstra, Bellman-Ford, Floyd-Warshall and 0-1 BFS for shortest paths, and Kruskal and Prim for minimum spanning trees, with the problems that use them.</p>
+        <ul><li>Weighted Graphs</li><li>Choosing a Shortest-Path Algorithm</li><li>Dijkstra's Algorithm</li><li>Bellman-Ford</li><li>Floyd-Warshall: All-Pairs Shortest Paths</li><li>0-1 BFS</li><li>Shortest Paths in a DAG</li><li>A* Search (Idea)</li><li>Minimum Spanning Tree (MST)</li><li>Dijkstra vs Prim</li><li>Other Weighted-Graph Topics</li><li>Common Mistakes</li><li>Quick Recap</li></ul>
+      </a></div></section>
+<section class="part"><header><span>PART E</span><h2>Algorithm Paradigms</h2></header><div class="topics">
+      <a class="topic" href="14-greedy.html">
+        <div class="meta"><b>14</b><span>Intermediate · 9 min</span></div>
+        <h3>Greedy Algorithms</h3>
+        <p>Make the locally best choice at each step. When greedy works and when it fails, the exchange argument, and the classic problems: intervals, jump game, gas station, Huffman coding and more.</p>
+        <ul><li>What is a Greedy Algorithm?</li><li>When Does Greedy Work?</li><li>When Greedy Fails: Coin Change</li><li>Classic Greedy Problems</li><li>Huffman Coding</li><li>Greedy on Graphs</li><li>Greedy Strategy Checklist</li><li>Common Mistakes</li><li>Quick Recap</li></ul>
+      </a>
+      <a class="topic" href="15-dynamic-programming.html">
+        <div class="meta"><b>15</b><span>Advanced · 14 min</span></div>
+        <h3>Dynamic Programming</h3>
+        <p>Solve problems with overlapping subproblems. Memoisation versus tabulation, a repeatable framework, and the core patterns: 1D, grids, knapsack, subsequences, strings and partitions, with space optimisation.</p>
+        <ul><li>What is Dynamic Programming?</li><li>Two Implementation Styles</li><li>The DP Framework</li><li>Pattern 1: Linear (1D) DP</li><li>Pattern 2: Grid (2D) DP</li><li>Pattern 3: Knapsack</li><li>Pattern 4: Strings and Subsequences (2D)</li><li>Pattern 5: Interval / Partition DP</li><li>Pattern 6: DP with State Machines</li><li>Pattern 7: Bitmask DP</li><li>Pattern 8: DP on Trees</li><li>Pattern 9: Digit DP, Probability DP, Counting DP (brief)</li><li>Space Optimisation</li><li>Reconstructing the Answer</li><li>Recognising DP Problems</li><li>Complexity Cheat Sheet</li><li>Common Mistakes</li><li>Quick Recap</li></ul>
+      </a>
+      <a class="topic" href="16-bits-math.html">
+        <div class="meta"><b>16</b><span>Intermediate · 11 min</span></div>
+        <h3>Bit Manipulation, Math and Useful Techniques</h3>
+        <p>Binary tricks that replace loops, number theory for interviews (gcd, primes, modular arithmetic, fast power), overflow handling, and a toolbox of small techniques like reservoir sampling and Fisher-Yates.</p>
+        <ul><li>Binary Representation</li><li>Bitwise Operators</li><li>Everyday Bit Tricks</li><li>Classic Bit Problems</li><li>Useful Java Bit Methods</li><li>Number Theory</li><li>Modular Arithmetic</li><li>Overflow and Precision</li><li>Math Toolbox for Interviews</li><li>Randomised and Streaming Techniques</li><li>Geometry Basics (Interview Level)</li><li>Common Mistakes</li><li>Quick Recap</li></ul>
+      </a></div></section>
+<section class="part"><header><span>PART F</span><h2>Interview Prep</h2></header><div class="topics">
+      <a class="topic" href="17-interview-prep.html">
+        <div class="meta"><b>17</b><span>Intermediate · 12 min</span></div>
+        <h3>Interview Patterns and Cheat Sheet</h3>
+        <p>Turn everything into a repeatable interview routine. Pattern recognition table, complexity cheat sheets, a Java quick-reference, problem lists by topic, communication tips and a 10-week practice plan.</p>
+        <ul><li>How Coding Interviews Work</li><li>The Interview Routine</li><li>Pattern Recognition Table</li><li>Complexity Cheat Sheet</li><li>Java Quick Reference for Interviews</li><li>Problem List by Topic</li><li>Debugging Checklist (when your code fails)</li><li>Edge Case Checklist</li><li>Communication Tips</li><li>Beyond Pure DSA</li><li>A 10-Week Practice Plan</li><li>Resources</li><li>Quick Recap</li></ul>
+      </a></div></section>
+</div>
+</body>
+</html>

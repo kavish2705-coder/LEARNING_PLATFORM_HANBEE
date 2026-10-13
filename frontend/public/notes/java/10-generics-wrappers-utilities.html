@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="en" data-track="java">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Generics, Wrapper Classes and Utility APIs — Java Notes · Hanbee</title>
+<meta name="description" content="Type-safe code with generics, boxing and unboxing of primitives, plus the everyday utility classes Math, Objects, Random and the java.time date-time API.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500..700;1,9..144,500&amp;family=Inter:wght@400..700&amp;family=JetBrains+Mono:wght@400..600&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/notes.css">
+<script src="../assets/notes.js" defer></script>
+</head>
+<body>
+<div class="progress" aria-hidden="true"><i></i></div>
+<header class="top">
+  <a class="brand" href="../index.html"><b>H</b>Hanbee · Java Notes</a>
+  <nav><a class="keep" href="index.html">All topics</a><button id="theme-toggle" type="button" aria-label="Toggle light and dark theme">Theme</button></nav>
+</header>
+<div class="shell">
+  <details class="toc"><summary>On this page</summary><nav aria-label="On this page"><ol><li><a href="#wrapper-classes"><span>01</span>Wrapper Classes</a></li><li><a href="#generics"><span>02</span>Generics</a></li><li><a href="#math-and-number-utilities"><span>03</span>Math and Number Utilities</a></li><li><a href="#objects-and-random"><span>04</span>Objects and Random</a></li><li><a href="#java-time-date-and-time-api-java-8"><span>05</span>java.time: Date and Time API (Java 8)</a></li><li><a href="#other-handy-classes"><span>06</span>Other Handy Classes</a></li><li><a href="#quick-recap"><span>07</span>Quick Recap</a></li></ol></nav></details>
+  <main>
+    <header class="hero">
+      <p class="kicker"><span class="pill">Core APIs</span><span>Topic 10</span><span>Intermediate</span><span>5 min read</span></p>
+      <h1>Generics, Wrapper Classes and Utility APIs</h1>
+      <p class="lede">Type-safe code with generics, boxing and unboxing of primitives, plus the everyday utility classes Math, Objects, Random and the java.time date-time API.</p>
+    </header>
+    <article>
+<h2 id="wrapper-classes"><span class="num">01</span>Wrapper Classes</h2>
+<p>Every primitive has an object counterpart in <code>java.lang</code>. Collections and generics only work with objects, so wrappers are essential.</p>
+<div class="table-wrap"><table><thead><tr><th>Primitive</th><th>Wrapper</th></tr></thead><tbody><tr><td><code>byte</code> <code>short</code> <code>int</code> <code>long</code></td><td><code>Byte</code> <code>Short</code> <code>Integer</code> <code>Long</code></td></tr><tr><td><code>float</code> <code>double</code></td><td><code>Float</code> <code>Double</code></td></tr><tr><td><code>char</code></td><td><code>Character</code></td></tr><tr><td><code>boolean</code></td><td><code>Boolean</code></td></tr></tbody></table></div>
+<pre><code class="language-java">int a = Integer.parseInt("42");            // String → int
+Integer b = Integer.valueOf("42");         // String → Integer
+String s = Integer.toString(42);           // int → String
+int max = Integer.MAX_VALUE;
+int cmp = Integer.compare(3, 5);           // -1
+String bin = Integer.toBinaryString(10);   // "1010"
+boolean digit = Character.isDigit('7');</code></pre>
+<h3 id="autoboxing-and-unboxing">Autoboxing and unboxing</h3>
+<pre><code class="language-java">Integer boxed = 10;        // autoboxing: int → Integer
+int plain = boxed;         // unboxing:  Integer → int
+List&lt;Integer&gt; list = new ArrayList&lt;&gt;();
+list.add(5);               // boxing happens automatically</code></pre>
+<aside class="callout warning"><span class="label">Warning</span><p>Unboxing a <code>null</code> wrapper throws <code>NullPointerException</code>. Boxing in tight loops also creates garbage; prefer primitives for heavy computation.</p></aside>
+<h3 id="the-integer-cache-trap">The Integer cache trap</h3>
+<pre><code class="language-java">Integer x = 127, y = 127;
+System.out.println(x == y);        // true  (cached range -128..127)
+Integer p = 1000, q = 1000;
+System.out.println(p == q);        // false (different objects)
+System.out.println(p.equals(q));   // true</code></pre>
+<p>Always compare wrapper objects with <code>equals()</code>.</p>
+<h2 id="generics"><span class="num">02</span>Generics</h2>
+<p>Generics let classes and methods work with <strong>type parameters</strong>, giving <strong>compile-time type safety</strong> and removing casts.</p>
+<pre><code class="language-java">// Without generics (old, unsafe)
+List raw = new ArrayList();
+raw.add("hi");
+Integer n = (Integer) raw.get(0);     // ClassCastException at runtime
+
+// With generics
+List&lt;String&gt; names = new ArrayList&lt;&gt;();
+names.add("hi");
+// names.add(5);                      // compile error
+String first = names.get(0);          // no cast</code></pre>
+<h3 id="generic-classes">Generic classes</h3>
+<pre><code class="language-java">public class Box&lt;T&gt; {
+    private T value;
+    public Box(T value) { this.value = value; }
+    public T get() { return value; }
+    public void set(T value) { this.value = value; }
+}
+
+Box&lt;String&gt; b = new Box&lt;&gt;("Java");
+Box&lt;Integer&gt; n = new Box&lt;&gt;(10);</code></pre>
+<p>Conventional names: <code>T</code> (type), <code>E</code> (element), <code>K</code> (key), <code>V</code> (value), <code>N</code> (number), <code>R</code> (result).</p>
+<h3 id="generic-methods">Generic methods</h3>
+<pre><code class="language-java">public static &lt;T&gt; void printAll(List&lt;T&gt; items) {
+    for (T item : items) System.out.println(item);
+}
+
+public static &lt;T extends Comparable&lt;T&gt;&gt; T max(T a, T b) {
+    return a.compareTo(b) &gt;= 0 ? a : b;
+}</code></pre>
+<h3 id="bounded-type-parameters">Bounded type parameters</h3>
+<pre><code class="language-java">class Stats&lt;N extends Number&gt; {          // N must be Number or a subclass
+    private final List&lt;N&gt; nums;
+    Stats(List&lt;N&gt; nums) { this.nums = nums; }
+    double sum() {
+        double s = 0;
+        for (N n : nums) s += n.doubleValue();
+        return s;
+    }
+}</code></pre>
+<p>Multiple bounds: <code>&lt;T extends Number &amp; Comparable&lt;T&gt;&gt;</code>.</p>
+<h3 id="wildcards">Wildcards</h3>
+<div class="table-wrap"><table><thead><tr><th>Syntax</th><th>Meaning</th><th>Use</th></tr></thead><tbody><tr><td><code>List&lt;?&gt;</code></td><td>List of unknown type</td><td>Read-only, any type</td></tr><tr><td><code>List&lt;? extends Number&gt;</code></td><td>Number or a subtype</td><td><strong>Producer</strong>: read from it</td></tr><tr><td><code>List&lt;? super Integer&gt;</code></td><td>Integer or a supertype</td><td><strong>Consumer</strong>: write to it</td></tr></tbody></table></div>
+<pre><code class="language-java">double sum(List&lt;? extends Number&gt; list) {     // accepts List&lt;Integer&gt;, List&lt;Double&gt; ...
+    double total = 0;
+    for (Number n : list) total += n.doubleValue();
+    return total;
+}
+void fill(List&lt;? super Integer&gt; list) { list.add(1); }</code></pre>
+<aside class="callout tip"><span class="label">Tip</span><p>Remember <strong>PECS</strong>: <em>Producer Extends, Consumer Super</em>.</p></aside>
+<h3 id="type-erasure-and-limitations">Type erasure and limitations</h3>
+<p>Generic type information exists only at <strong>compile time</strong>. At runtime <code>List&lt;String&gt;</code> and <code>List&lt;Integer&gt;</code> are both <code>List</code>.</p>
+<ul><li>Cannot use primitives: <code>List&lt;int&gt;</code> is invalid, use <code>List&lt;Integer&gt;</code></li><li>Cannot create <code>new T()</code> or <code>new T[10]</code></li><li>Cannot use <code>instanceof List&lt;String&gt;</code></li><li>Static members cannot use the class type parameter</li><li><code>List&lt;Object&gt;</code> is <strong>not</strong> a supertype of <code>List&lt;String&gt;</code> (generics are invariant)</li></ul>
+<h2 id="math-and-number-utilities"><span class="num">03</span>Math and Number Utilities</h2>
+<pre><code class="language-java">Math.abs(-5);          Math.pow(2, 10);       Math.sqrt(49);
+Math.max(3, 8);        Math.min(3, 8);
+Math.ceil(4.1);        // 5.0
+Math.floor(4.9);       // 4.0
+Math.round(4.5);       // 5
+Math.random();         // [0.0, 1.0)
+Math.floorMod(-7, 3);  // 2
+Math.addExact(a, b);   // throws ArithmeticException on overflow</code></pre>
+<h3 id="biginteger-and-bigdecimal">BigInteger and BigDecimal</h3>
+<pre><code class="language-java">BigDecimal price = new BigDecimal("19.99");
+BigDecimal total = price.multiply(new BigDecimal("3")).setScale(2, RoundingMode.HALF_UP);
+BigInteger big = BigInteger.valueOf(2).pow(100);</code></pre>
+<aside class="callout warning"><span class="label">Warning</span><p>Always build <code>BigDecimal</code> from a <strong>String</strong>, not a <code>double</code>. <code>new BigDecimal(0.1)</code> carries the binary rounding error.</p></aside>
+<h2 id="objects-and-random"><span class="num">04</span>Objects and Random</h2>
+<pre><code class="language-java">Objects.equals(a, b);                 // null-safe equals
+Objects.hash(id, name);               // hashCode helper
+Objects.requireNonNull(x, "x is required");
+Objects.toString(obj, "default");
+Objects.requireNonNullElse(x, "fallback");
+
+Random r = new Random();
+int dice = r.nextInt(6) + 1;          // 1..6
+int n = ThreadLocalRandom.current().nextInt(1, 101);   // 1..100, concurrency-friendly</code></pre>
+<p>Use <code>SecureRandom</code> for passwords, tokens and anything security-related.</p>
+<h2 id="java-time-date-and-time-api-java-8"><span class="num">05</span>java.time: Date and Time API (Java 8)</h2>
+<p>The old <code>Date</code> and <code>Calendar</code> are mutable and confusing. Use the immutable <code>java.time</code> classes.</p>
+<div class="table-wrap"><table><thead><tr><th>Class</th><th>Represents</th></tr></thead><tbody><tr><td><code>LocalDate</code></td><td>Date without time (2026-10-06)</td></tr><tr><td><code>LocalTime</code></td><td>Time without date</td></tr><tr><td><code>LocalDateTime</code></td><td>Date and time, no zone</td></tr><tr><td><code>ZonedDateTime</code></td><td>Date, time and zone</td></tr><tr><td><code>Instant</code></td><td>A moment on the UTC timeline (machine time)</td></tr><tr><td><code>Duration</code></td><td>Time-based amount (hours, seconds)</td></tr><tr><td><code>Period</code></td><td>Date-based amount (years, months, days)</td></tr></tbody></table></div>
+<pre><code class="language-java">LocalDate today = LocalDate.now();
+LocalDate dob = LocalDate.of(2005, Month.MARCH, 14);
+LocalDate next = today.plusDays(10).withDayOfMonth(1);
+long age = ChronoUnit.YEARS.between(dob, today);
+Period p = Period.between(dob, today);
+
+LocalDateTime now = LocalDateTime.now();
+ZonedDateTime ist = ZonedDateTime.now(ZoneId.of("Asia/Kolkata"));
+Duration d = Duration.between(start, end);
+
+DateTimeFormatter f = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm");
+String text = now.format(f);
+LocalDate parsed = LocalDate.parse("2026-10-06");</code></pre>
+<h2 id="other-handy-classes"><span class="num">06</span>Other Handy Classes</h2>
+<ul><li><code>Optional&lt;T&gt;</code>: a container that may or may not hold a value (covered with Streams)</li><li><code>UUID.randomUUID()</code>: unique identifiers</li><li><code>System.currentTimeMillis()</code> and <code>System.nanoTime()</code>: timing</li><li><code>Scanner</code>, <code>StringJoiner</code>, <code>Locale</code>, <code>Currency</code></li><li><code>Runtime.getRuntime()</code>: memory and processor info</li></ul>
+<h2 id="quick-recap"><span class="num">07</span>Quick Recap</h2>
+<ul><li>Wrappers box primitives; compare them with <code>equals()</code>, beware <code>null</code> unboxing</li><li>Generics add compile-time type safety; erased at runtime</li><li>Use <code>? extends</code> to read, <code>? super</code> to write (PECS)</li><li>Use <code>BigDecimal</code> for money and <code>java.time</code> for dates</li></ul>
+    </article>
+    <nav class="pager" aria-label="Topic navigation">
+      <a class="prev" href="09-exception-handling.html"><small>← Previous</small><strong>Exception Handling</strong></a>
+      <a class="next" href="11-collections-framework.html"><small>Next →</small><strong>Collections Framework</strong></a>
+    </nav>
+  </main>
+</div>
+</body>
+</html>

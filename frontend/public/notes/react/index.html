@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en" data-track="react">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>React 19 Notes — Hanbee LMS</title>
+<meta name="description" content="Hooks, Actions, use(), forms, routing, state management, TypeScript, testing and Server Components.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500..700;1,9..144,500&amp;family=Inter:wght@400..700&amp;family=JetBrains+Mono:wght@400..600&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/notes.css">
+<script src="../assets/notes.js" defer></script>
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="../index.html"><b>H</b>Hanbee · Notes</a>
+  <nav><a class="keep" href="../index.html">All tracks</a><button id="theme-toggle" type="button" aria-label="Toggle light and dark theme">Theme</button></nav>
+</header>
+<section class="index-hero">
+  <p class="kicker"><span class="pill">Learning track</span><span>React 19</span></p>
+  <h1>React 19, from <em>components</em> to production.</h1>
+  <p class="lede">Topic-wise notes covering modern JavaScript, hooks, the new React 19 features, routing, state, data fetching, TypeScript, testing and server components.</p>
+  <div class="stats"><div><b>19</b>Topics</div><div><b>259</b>Concept groups</div><div><b>2h</b>Reading time</div><div><b>6</b>Parts</div></div>
+</section>
+<div class="parts">
+<section class="part"><header><span>PART A</span><h2>Foundations</h2></header><div class="topics">
+      <a class="topic" href="01-introduction-setup.html">
+        <div class="meta"><b>01</b><span>Beginner · 6 min</span></div>
+        <h3>Introduction to React and Project Setup</h3>
+        <p>What React is, why teams use it, how it updates the screen efficiently, and how to create, run and understand your first React 19 project with Vite.</p>
+        <ul><li>What is React?</li><li>Why React?</li><li>Core Ideas</li><li>React vs Other Tools</li><li>What's New: React 19 at a Glance</li><li>Prerequisites</li><li>Tools You Need</li><li>Creating a Project with Vite</li><li>StrictMode</li><li>Alternatives to Vite</li><li>Handy Dev Habits</li><li>Common Setup Errors</li><li>Quick Recap</li></ul>
+      </a>
+      <a class="topic" href="02-javascript-for-react.html">
+        <div class="meta"><b>02</b><span>Beginner · 8 min</span></div>
+        <h3>Modern JavaScript You Need for React</h3>
+        <p>The ES6+ features used in every React codebase. Variables, arrow functions, destructuring, spread, array methods, modules, promises, async/await and closures.</p>
+        <ul><li>Why This Topic?</li><li>Variables: let and const</li><li>Template Literals</li><li>Arrow Functions</li><li>Destructuring</li><li>Spread and Rest</li><li>Array Methods</li><li>Objects</li><li>Optional Chaining and Nullish Coalescing</li><li>Truthy and Falsy, and Short-circuiting</li><li>ES Modules (import / export)</li><li>Functions, Callbacks and Higher-order Functions</li><li>Closures</li><li>Promises and async/await</li><li>The Event Loop (in one minute)</li><li>Immutability</li><li>Classes and <code>this</code> (brief)</li><li>Working with Dates, Numbers and Strings</li><li>JSON and Storage</li><li>TypeScript Teaser</li><li>Quick Recap</li></ul>
+      </a>
+      <a class="topic" href="03-jsx-components-props.html">
+        <div class="meta"><b>03</b><span>Beginner · 8 min</span></div>
+        <h3>JSX, Components and Props</h3>
+        <p>Write UI with JSX, build and compose function components, pass data with props and children, render conditionally and render lists with keys.</p>
+        <ul><li>What is JSX?</li><li>JSX Rules</li><li>Components</li><li>Props</li><li>The children Prop</li><li>ref is a Prop in React 19</li><li>Default Props and Prop Types</li><li>Conditional Rendering</li><li>Rendering Lists and Keys</li><li>Handling Events (Basics)</li><li>Component Composition</li><li>Styling Basics</li><li>Document Metadata in React 19</li><li>Common Mistakes</li><li>Quick Recap</li></ul>
+      </a></div></section>
+<section class="part"><header><span>PART B</span><h2>Core Hooks</h2></header><div class="topics">
+      <a class="topic" href="04-state-events.html">
+        <div class="meta"><b>04</b><span>Beginner · 7 min</span></div>
+        <h3>State, Events and Controlled Inputs</h3>
+        <p>Make components interactive with useState. Updater functions, immutable updates for objects and arrays, lifting state up, controlled inputs and how React batches updates.</p>
+        <ul><li>What is State?</li><li>Rules of Hooks</li><li>How a Render Works</li><li>Lazy Initial State</li><li>State Can Be Any Type</li><li>Updating Objects Immutably</li><li>Updating Arrays Immutably</li><li>A Complete Todo Example</li><li>Controlled Inputs</li><li>Lifting State Up</li><li>Choosing What to Put in State</li><li>Resetting State with key</li><li>State and Re-rendering Facts</li><li>Quick Recap</li></ul>
+      </a>
+      <a class="topic" href="05-effects-lifecycle.html">
+        <div class="meta"><b>05</b><span>Intermediate · 8 min</span></div>
+        <h3>Effects and Component Lifecycle</h3>
+        <p>Synchronise components with the outside world using useEffect. Dependencies, cleanup, data fetching and race conditions, when not to use an effect, and useEffectEvent from React 19.2.</p>
+        <ul><li>What is an Effect?</li><li>useEffect Anatomy</li><li>Cleanup</li><li>StrictMode Runs Effects Twice (in development)</li><li>Fetching Data in an Effect</li><li>You Might Not Need an Effect</li><li>Common Effect Use Cases</li><li>Dependency Pitfalls</li><li>useEffectEvent (React 19.2)</li><li>useLayoutEffect</li><li>useSyncExternalStore</li><li>useEffect vs useLayoutEffect vs useInsertionEffect</li><li>Debugging Effects</li><li>Quick Recap</li></ul>
+      </a>
+      <a class="topic" href="06-refs-context-reducers.html">
+        <div class="meta"><b>06</b><span>Intermediate · 7 min</span></div>
+        <h3>Refs, Context and Reducers</h3>
+        <p>Reach the DOM with useRef, avoid prop drilling with Context, and manage complex state with useReducer. Includes ref as a prop and the simplified Context syntax from React 19.</p>
+        <ul><li>useRef</li><li>ref as a Prop (React 19)</li><li>Context</li><li>useReducer</li><li>Context + useReducer (mini global store)</li><li>Other Useful Hooks</li><li>Quick Recap</li></ul>
+      </a>
+      <a class="topic" href="07-performance-optimization.html">
+        <div class="meta"><b>07</b><span>Advanced · 7 min</span></div>
+        <h3>Performance and Optimisation</h3>
+        <p>Understand why components re-render, then optimise with the React Compiler, memo, useMemo, useCallback, transitions, lazy loading, Suspense and list virtualisation.</p>
+        <ul><li>How Rendering Performance Works</li><li>Measure First</li><li>React Compiler</li><li>React.memo</li><li>useMemo</li><li>useCallback</li><li>Cheaper Fixes Before Memoising</li><li>Transitions: Keep the UI Responsive</li><li>Code Splitting: lazy and Suspense</li><li>Suspense for Data</li><li>Activity (React 19.2)</li><li>Large Lists: Virtualisation</li><li>Other Optimisations</li><li>Preloading Resources (React 19)</li><li>Common Performance Mistakes</li><li>Quick Recap</li></ul>
+      </a></div></section>
+<section class="part"><header><span>PART C</span><h2>React 19 and Patterns</h2></header><div class="topics">
+      <a class="topic" href="08-react19-new-features.html">
+        <div class="meta"><b>08</b><span>Intermediate · 9 min</span></div>
+        <h3>React 19 New Features</h3>
+        <p>A guided tour of what React 19 adds. Actions, useActionState, useFormStatus, useOptimistic, the use API, ref as a prop, metadata and resource support, better error handling, and the 19.1/19.2 additions.</p>
+        <ul><li>Release Overview</li><li>Actions</li><li>useActionState</li><li>useFormStatus</li><li>useOptimistic</li><li>The use API</li><li>ref as a Prop and Ref Cleanup</li><li>Context as a Provider</li><li>Document Metadata</li><li>Stylesheets and Scripts</li><li>Resource Preloading APIs</li><li>Better Error Reporting</li><li>Custom Elements (Web Components)</li><li>useDeferredValue Initial Value</li><li>React 19.2 Additions</li><li>Breaking Changes and Removals</li><li>Server Components and Server Actions</li><li>Putting It Together: A Form with All the New Pieces</li><li>Quick Recap</li></ul>
+      </a>
+      <a class="topic" href="09-forms-validation.html">
+        <div class="meta"><b>09</b><span>Intermediate · 8 min</span></div>
+        <h3>Forms and Validation</h3>
+        <p>Build robust forms. Controlled versus uncontrolled inputs, React 19 form actions with FormData, client-side validation, React Hook Form with Zod, file uploads and accessible error messages.</p>
+        <ul><li>Three Ways to Build Forms in React</li><li>Controlled Form</li><li>Uncontrolled Form with FormData and Form Actions (React 19)</li><li>Built-in HTML Validation</li><li>Input Types and Attributes</li><li>Common Form Patterns</li><li>File Uploads</li><li>React Hook Form + Zod</li><li>Accessible Forms Checklist</li><li>Security Notes</li><li>Quick Recap</li></ul>
+      </a>
+      <a class="topic" href="10-custom-hooks-patterns.html">
+        <div class="meta"><b>10</b><span>Intermediate · 8 min</span></div>
+        <h3>Custom Hooks, Patterns and Error Boundaries</h3>
+        <p>Reuse logic with custom hooks, structure components with composition patterns, handle failures with error boundaries, and render outside the tree with portals.</p>
+        <ul><li>Custom Hooks</li><li>Useful Custom Hooks</li><li>Naming and Design Tips</li><li>Component Composition Patterns</li><li>Error Boundaries</li><li>Portals</li><li>Suspense Boundaries (Recap)</li><li>Lists of Components and Dynamic Rendering</li><li>Quick Recap</li></ul>
+      </a></div></section>
+<section class="part"><header><span>PART D</span><h2>Ecosystem</h2></header><div class="topics">
+      <a class="topic" href="11-routing.html">
+        <div class="meta"><b>11</b><span>Intermediate · 7 min</span></div>
+        <h3>Routing with React Router</h3>
+        <p>Multi-page navigation in a single-page app. Routes, links, nested layouts, URL parameters, search params, loaders and actions, protected routes and lazy-loaded pages with React Router v7.</p>
+        <ul><li>Why Routing?</li><li>Declarative Routing</li><li>URL Parameters</li><li>Search Params (Query String)</li><li>Nested Routes and Layouts</li><li>Programmatic Navigation</li><li>Data Mode: createBrowserRouter</li><li>Protected Routes</li><li>Lazy Loading Routes</li><li>Scroll, Titles and Focus</li><li>URL Design Tips</li><li>Hosting a Client-side Router</li><li>Next.js and Other Routers</li><li>Quick Recap</li></ul>
+      </a>
+      <a class="topic" href="12-data-fetching.html">
+        <div class="meta"><b>12</b><span>Intermediate · 7 min</span></div>
+        <h3>Data Fetching and Server State</h3>
+        <p>Talk to APIs the modern way. fetch and Axios, why server state differs from UI state, and TanStack Query for caching, mutations, optimistic updates, pagination and Suspense.</p>
+        <ul><li>Calling APIs</li><li>Environment Variables</li><li>The Problem with useEffect Fetching</li><li>Server State vs Client State</li><li>TanStack Query (React Query v5)</li><li>Fetching with <code>use()</code> and Suspense (React 19)</li><li>Loading, Error and Empty States</li><li>Authentication with APIs</li><li>Other Data Tools</li><li>Real-time Data</li><li>Quick Recap</li></ul>
+      </a>
+      <a class="topic" href="13-state-management.html">
+        <div class="meta"><b>13</b><span>Intermediate · 7 min</span></div>
+        <h3>Global State Management</h3>
+        <p>Decide where state belongs and pick the right tool. Context limits, Zustand, Redux Toolkit, Jotai, URL state and a practical decision guide.</p>
+        <ul><li>Types of State</li><li>Prop Drilling and Its Fixes</li><li>Context API (Recap and Limits)</li><li>Zustand</li><li>Redux Toolkit (RTK)</li><li>Jotai (Atomic State)</li><li>URL as State</li><li>Comparison</li><li>Decision Guide</li><li>Patterns for Good Global State</li><li>Example: Auth Store (Zustand)</li><li>Quick Recap</li></ul>
+      </a>
+      <a class="topic" href="14-styling-ui.html">
+        <div class="meta"><b>14</b><span>Beginner · 7 min</span></div>
+        <h3>Styling, UI Libraries and Animation</h3>
+        <p>Style React apps with plain CSS, CSS Modules, Tailwind CSS and component libraries like shadcn/ui, then add motion with CSS and the Motion library. Includes dark mode and responsive design.</p>
+        <ul><li>Styling Options at a Glance</li><li>Plain CSS</li><li>CSS Modules</li><li>Modern CSS You Should Use</li><li>Tailwind CSS</li><li>CSS-in-JS (styled-components / Emotion)</li><li>Component Libraries</li><li>Dark Mode</li><li>Responsive Design</li><li>Icons and Fonts</li><li>Animation</li><li>Accessibility in Styling</li><li>Quick Recap</li></ul>
+      </a>
+      <a class="topic" href="15-typescript-react.html">
+        <div class="meta"><b>15</b><span>Intermediate · 8 min</span></div>
+        <h3>TypeScript with React</h3>
+        <p>Add static types to React 19 code. Typing props, children, state, events, refs, context, reducers, generic components, hooks and Server Actions, plus the React 19 type changes.</p>
+        <ul><li>Why TypeScript?</li><li>Setup</li><li>TypeScript Basics Refresher</li><li>Typing Props</li><li>Typing State</li><li>Typing Events</li><li>Typing Refs</li><li>Typing Context</li><li>Typing useReducer</li><li>Generic Components</li><li>Typing Custom Hooks</li><li>Typing API Data</li><li>TanStack Query and Router Types</li><li>React 19 Actions and Types</li><li>React 19 Type Changes</li><li>Useful Utility Types</li><li>Common TypeScript + React Mistakes</li><li>Quick Recap</li></ul>
+      </a></div></section>
+<section class="part"><header><span>PART E</span><h2>Production and Advanced</h2></header><div class="topics">
+      <a class="topic" href="16-server-components-frameworks.html">
+        <div class="meta"><b>16</b><span>Advanced · 9 min</span></div>
+        <h3>Server Components, SSR and React Frameworks</h3>
+        <p>Rendering strategies from CSR to SSR and streaming, React Server Components, Server Actions, hydration, and how Next.js and React Router framework mode put it all together.</p>
+        <ul><li>Rendering Strategies</li><li>SSR and Hydration</li><li>Streaming and Suspense</li><li>React Server Components (RSC)</li><li>Server Functions (Server Actions)</li><li>Next.js (App Router)</li><li>React Router Framework Mode</li><li>Choosing a Setup</li><li>Static Export</li><li>SEO Basics</li><li>Core Web Vitals</li><li>Quick Recap</li></ul>
+      </a>
+      <a class="topic" href="17-testing.html">
+        <div class="meta"><b>17</b><span>Intermediate · 8 min</span></div>
+        <h3>Testing React Applications</h3>
+        <p>Test the way users use your app. Vitest, React Testing Library, user-event, mocking APIs with MSW, testing hooks, async UI, accessibility checks and end-to-end tests with Playwright.</p>
+        <ul><li>Why and What to Test</li><li>Tooling</li><li>Setup (Vite + Vitest)</li><li>Unit Tests</li><li>Component Tests with RTL</li><li>Testing Forms and Interactions</li><li>Mocking</li><li>Testing Components with Providers</li><li>Testing Async UI and act()</li><li>Testing Hooks</li><li>Snapshot and Visual Testing</li><li>Accessibility Testing</li><li>Testing Server Components and Actions</li><li>End-to-End Tests with Playwright</li><li>Test Quality Rules</li><li>Coverage and CI</li><li>Quick Recap</li></ul>
+      </a>
+      <a class="topic" href="18-architecture-security-deployment.html">
+        <div class="meta"><b>18</b><span>Advanced · 8 min</span></div>
+        <h3>Architecture, Security and Deployment</h3>
+        <p>Take React to production. Folder structure, code quality, accessibility, security (XSS, tokens, CSRF), error monitoring, environment configuration, build optimisation and deployment.</p>
+        <ul><li>Project Architecture</li><li>Code Quality</li><li>Accessibility (a11y)</li><li>Security</li><li>Authentication Flow (Typical SPA + API)</li><li>Error Monitoring and Logging</li><li>Environment Configuration</li><li>Build Optimisation</li><li>Deployment</li><li>Internationalisation (i18n)</li><li>Monitoring Checklist Before Launch</li><li>Quick Recap</li></ul>
+      </a></div></section>
+<section class="part"><header><span>PART F</span><h2>Interview Prep</h2></header><div class="topics">
+      <a class="topic" href="19-interview-cheatsheet.html">
+        <div class="meta"><b>19</b><span>Intermediate · 11 min</span></div>
+        <h3>Interview Questions and Cheat Sheet</h3>
+        <p>Quick-revision answers to the most common React interview questions, a hooks cheat sheet, common bugs and their fixes, and a learning roadmap.</p>
+        <ul><li>Core Concepts</li><li>Hooks</li><li>Rendering and Performance</li><li>React 19</li><li>State Management and Ecosystem</li><li>Hooks Cheat Sheet</li><li>Common Bugs and Fixes</li><li>Coding Challenge Ideas</li><li>Learning Roadmap</li><li>Official Resources</li><li>Quick Recap</li></ul>
+      </a></div></section>
+</div>
+</body>
+</html>

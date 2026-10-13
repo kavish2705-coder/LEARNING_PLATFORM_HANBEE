@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en" data-track="java">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Introduction to Java — Java Notes · Hanbee</title>
+<meta name="description" content="What Java is, why it is everywhere, how a program travels from source code to a running application, and how to write and run your first program.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500..700;1,9..144,500&amp;family=Inter:wght@400..700&amp;family=JetBrains+Mono:wght@400..600&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/notes.css">
+<script src="../assets/notes.js" defer></script>
+</head>
+<body>
+<div class="progress" aria-hidden="true"><i></i></div>
+<header class="top">
+  <a class="brand" href="../index.html"><b>H</b>Hanbee · Java Notes</a>
+  <nav><a class="keep" href="index.html">All topics</a><button id="theme-toggle" type="button" aria-label="Toggle light and dark theme">Theme</button></nav>
+</header>
+<div class="shell">
+  <details class="toc"><summary>On this page</summary><nav aria-label="On this page"><ol><li><a href="#what-is-java"><span>01</span>What is Java?</a></li><li><a href="#history-and-versions"><span>02</span>History and Versions</a></li><li><a href="#features-of-java"><span>03</span>Features of Java</a></li><li><a href="#jdk-jre-and-jvm"><span>04</span>JDK, JRE and JVM</a></li><li><a href="#how-a-java-program-runs"><span>05</span>How a Java Program Runs</a></li><li><a href="#installing-and-setting-up"><span>06</span>Installing and Setting Up</a></li><li><a href="#your-first-program"><span>07</span>Your First Program</a></li><li><a href="#comments-and-naming-conventions"><span>08</span>Comments and Naming Conventions</a></li><li><a href="#java-editions"><span>09</span>Java Editions</a></li><li><a href="#common-beginner-errors"><span>10</span>Common Beginner Errors</a></li><li><a href="#quick-recap"><span>11</span>Quick Recap</a></li></ol></nav></details>
+  <main>
+    <header class="hero">
+      <p class="kicker"><span class="pill">Foundations</span><span>Topic 01</span><span>Beginner</span><span>7 min read</span></p>
+      <h1>Introduction to Java</h1>
+      <p class="lede">What Java is, why it is everywhere, how a program travels from source code to a running application, and how to write and run your first program.</p>
+    </header>
+    <article>
+<h2 id="what-is-java"><span class="num">01</span>What is Java?</h2>
+<p>Java is a <strong>general-purpose, object-oriented, class-based programming language</strong> created at Sun Microsystems (now owned by Oracle). It is designed around one promise: <strong>"Write Once, Run Anywhere" (WORA)</strong>. You compile your code once and the same compiled file runs on Windows, Linux or macOS, as long as a Java Virtual Machine is installed.</p>
+<h3 id="where-java-is-used">Where Java is used</h3>
+<ul><li>Enterprise back-ends: banking, insurance, e-commerce, telecom</li><li>Android apps (Java and Kotlin)</li><li>Big-data tools: Hadoop, Kafka, Spark, Elasticsearch</li><li>Web services with Spring Boot and Jakarta EE</li><li>Desktop software, games (Minecraft), embedded systems, and financial trading systems</li></ul>
+<h3 id="why-learn-java-first">Why learn Java first?</h3>
+<ul><li>Strongly typed, so the compiler catches many mistakes before the program runs</li><li>Massive ecosystem of libraries and frameworks</li><li>Automatic memory management (garbage collection)</li><li>Huge job market and long-term backward compatibility</li></ul>
+<h2 id="history-and-versions"><span class="num">02</span>History and Versions</h2>
+<p>Java was started in 1991 by James Gosling's team ("Green Project", first named <em>Oak</em>) and released publicly as Java 1.0 in <strong>1996</strong>. Since Java 9, a new feature release arrives <strong>every six months</strong>, and a release every two years is marked <strong>LTS (Long-Term Support)</strong>.</p>
+<div class="table-wrap"><table><thead><tr><th>Version</th><th>Year</th><th>Headline feature</th></tr></thead><tbody><tr><td>Java 1.0</td><td>1996</td><td>First public release, applets</td></tr><tr><td>Java 5</td><td>2004</td><td>Generics, annotations, enums, enhanced <code>for</code>, autoboxing</td></tr><tr><td>Java 8 (LTS)</td><td>2014</td><td>Lambdas, Stream API, <code>Optional</code>, new Date-Time API</td></tr><tr><td>Java 9</td><td>2017</td><td>Module system (JPMS), JShell</td></tr><tr><td>Java 11 (LTS)</td><td>2018</td><td><code>var</code> in lambdas, HTTP Client, single-file run</td></tr><tr><td>Java 17 (LTS)</td><td>2021</td><td>Sealed classes, records, text blocks, pattern matching for <code>instanceof</code></td></tr><tr><td>Java 21 (LTS)</td><td>2023</td><td>Virtual threads, record patterns, sequenced collections</td></tr><tr><td>Java 25 (LTS)</td><td>2025</td><td>Latest LTS at the time of writing</td></tr></tbody></table></div>
+<aside class="callout tip"><span class="label">Tip</span><p>For learning and for most jobs, install <strong>Java 17 or Java 21</strong>. Both are LTS releases and are widely supported by frameworks.</p></aside>
+<h2 id="features-of-java"><span class="num">03</span>Features of Java</h2>
+<ul><li><strong>Simple</strong>: no pointers, no operator overloading, no multiple inheritance of classes</li><li><strong>Object-oriented</strong>: everything lives inside classes (except primitives)</li><li><strong>Platform independent</strong>: bytecode runs on any JVM</li><li><strong>Secure</strong>: no direct memory access, bytecode verifier, security manager history, sandboxing</li><li><strong>Robust</strong>: strong type checking, exception handling, garbage collection</li><li><strong>Multithreaded</strong>: threads are built into the language and library</li><li><strong>High performance</strong>: the JIT compiler turns hot bytecode into native machine code</li><li><strong>Portable and distributed</strong>: networking and RMI support in the standard library</li><li><strong>Dynamic</strong>: classes are loaded at runtime, reflection is supported</li></ul>
+<h2 id="jdk-jre-and-jvm"><span class="num">04</span>JDK, JRE and JVM</h2>
+<p>These three are the most asked beginner questions.</p>
+<div class="table-wrap"><table><thead><tr><th>Component</th><th>Full name</th><th>What it is</th></tr></thead><tbody><tr><td><strong>JVM</strong></td><td>Java Virtual Machine</td><td>Executes bytecode. Provides memory management, GC and the JIT compiler. Platform specific.</td></tr><tr><td><strong>JRE</strong></td><td>Java Runtime Environment</td><td>JVM + core class libraries. Everything needed to <em>run</em> Java programs.</td></tr><tr><td><strong>JDK</strong></td><td>Java Development Kit</td><td>JRE + development tools (<code>javac</code>, <code>jar</code>, <code>javadoc</code>, <code>jdb</code>, <code>jshell</code>). Everything needed to <em>write and run</em> Java programs.</td></tr></tbody></table></div>
+<pre><code class="language-text">JDK
+ ├── Development tools  (javac, jar, javadoc, jdb, jshell, jlink)
+ └── JRE
+      ├── Class libraries (java.lang, java.util, java.io ...)
+      └── JVM (class loader, bytecode verifier, interpreter, JIT, GC)</code></pre>
+<aside class="callout note"><span class="label">Note</span><p>Since Java 11, Oracle no longer ships a separate JRE download. You install the JDK, which already contains everything.</p></aside>
+<h2 id="how-a-java-program-runs"><span class="num">05</span>How a Java Program Runs</h2>
+<ol><li>You write <strong>source code</strong> in a <code>.java</code> file.</li><li>The compiler <code>javac</code> checks syntax and types and produces <strong>bytecode</strong> in a <code>.class</code> file.</li><li>The <strong>class loader</strong> loads the <code>.class</code> file into the JVM.</li><li>The <strong>bytecode verifier</strong> checks it is safe.</li><li>The <strong>interpreter</strong> runs the bytecode; the <strong>JIT compiler</strong> converts frequently used code into native machine code for speed.</li></ol>
+<pre><code class="language-text">Hello.java  --javac--&gt;  Hello.class (bytecode)  --JVM--&gt;  Machine code  --&gt;  Output</code></pre>
+<h3 id="compiled-or-interpreted">Compiled or interpreted?</h3>
+<p>Both. Java is compiled to bytecode and then interpreted/JIT-compiled by the JVM. That two-step design is what makes it portable and fast.</p>
+<h2 id="installing-and-setting-up"><span class="num">06</span>Installing and Setting Up</h2>
+<ol><li>Download a JDK (Eclipse Temurin, Oracle JDK or Amazon Corretto).</li><li>Set the <code>JAVA_HOME</code> environment variable to the JDK folder.</li><li>Add <code>JAVA_HOME/bin</code> to your <code>PATH</code>.</li><li>Verify in a terminal.</li></ol>
+<pre><code class="language-bash">java -version
+javac -version</code></pre>
+<h3 id="choosing-an-editor-or-ide">Choosing an editor or IDE</h3>
+<ul><li><strong>IntelliJ IDEA</strong> (Community is free) is the most popular</li><li><strong>Eclipse</strong> and <strong>NetBeans</strong> are free and widely used in colleges</li><li><strong>VS Code</strong> with the Extension Pack for Java is lightweight</li></ul>
+<h2 id="your-first-program"><span class="num">07</span>Your First Program</h2>
+<pre data-file="Hello.java"><code class="language-java">public class Hello {
+    public static void main(String[] args) {
+        System.out.println("Hello, Hanbee!");
+    }
+}</code></pre>
+<pre><code class="language-bash">javac Hello.java
+java Hello</code></pre>
+<pre><code class="language-output">Hello, Hanbee!</code></pre>
+<p>Since Java 11 you can also run a single file directly with <code>java Hello.java</code>.</p>
+<h3 id="anatomy-of-the-program">Anatomy of the program</h3>
+<div class="table-wrap"><table><thead><tr><th>Part</th><th>Meaning</th></tr></thead><tbody><tr><td><code>public class Hello</code></td><td>Declares a class. A <code>public</code> class must be in a file with the same name (<code>Hello.java</code>).</td></tr><tr><td><code>public</code></td><td>Accessible from anywhere, so the JVM can call it.</td></tr><tr><td><code>static</code></td><td>Belongs to the class, so the JVM can call it without creating an object.</td></tr><tr><td><code>void</code></td><td>The method returns nothing.</td></tr><tr><td><code>main</code></td><td>The entry point the JVM looks for.</td></tr><tr><td><code>String[] args</code></td><td>Command-line arguments passed to the program.</td></tr><tr><td><code>System.out.println</code></td><td>Prints a line to the standard output.</td></tr></tbody></table></div>
+<aside class="callout warning"><span class="label">Warning</span><p>Java is <strong>case-sensitive</strong>. <code>Main</code>, <code>main</code> and <code>MAIN</code> are three different names. A common error is writing <code>string</code> instead of <code>String</code>.</p></aside>
+<h2 id="comments-and-naming-conventions"><span class="num">08</span>Comments and Naming Conventions</h2>
+<h3 id="comments">Comments</h3>
+<pre><code class="language-java">// single-line comment
+
+/* multi-line
+   comment */
+
+/**
+ * Javadoc comment, used to generate API documentation.
+ * @param name the user's name
+ */</code></pre>
+<h3 id="naming-conventions">Naming conventions</h3>
+<div class="table-wrap"><table><thead><tr><th>Element</th><th>Convention</th><th>Example</th></tr></thead><tbody><tr><td>Class / Interface</td><td>PascalCase</td><td><code>StudentRecord</code>, <code>Runnable</code></td></tr><tr><td>Method / variable</td><td>camelCase</td><td><code>calculateTotal</code>, <code>firstName</code></td></tr><tr><td>Constant</td><td>UPPER_SNAKE_CASE</td><td><code>MAX_SIZE</code></td></tr><tr><td>Package</td><td>all lowercase</td><td><code>com.hanbee.lms</code></td></tr></tbody></table></div>
+<h2 id="java-editions"><span class="num">09</span>Java Editions</h2>
+<div class="table-wrap"><table><thead><tr><th>Edition</th><th>Purpose</th></tr></thead><tbody><tr><td><strong>Java SE</strong> (Standard Edition)</td><td>Core language and libraries. This is what you learn first.</td></tr><tr><td><strong>Jakarta EE</strong> (formerly Java EE)</td><td>Enterprise APIs: Servlets, JPA, REST, CDI, messaging.</td></tr><tr><td><strong>Java ME</strong> (Micro Edition)</td><td>Small and embedded devices. Rarely used now.</td></tr></tbody></table></div>
+<h2 id="common-beginner-errors"><span class="num">10</span>Common Beginner Errors</h2>
+<ul><li><code>class Hello is public, should be declared in a file named Hello.java</code>: file name must match the public class name</li><li><code>error: ';' expected</code>: missing semicolon</li><li><code>cannot find symbol</code>: a typo, a missing import or a variable used before it is declared</li><li><code>Error: Could not find or load main class</code>: wrong class name or wrong folder when running <code>java</code></li><li><code>'javac' is not recognized</code>: JDK <code>bin</code> folder is not on the <code>PATH</code></li></ul>
+<aside class="callout interview"><span class="label">Interview question</span><p>What is the difference between JDK, JRE and JVM? Why is Java platform independent but the JVM is not?</p><p>Java source compiles to platform-neutral bytecode, so the same <code>.class</code> file runs anywhere. The JVM itself is native code written per operating system, which is what interprets that bytecode.</p></aside>
+<h2 id="quick-recap"><span class="num">11</span>Quick Recap</h2>
+<ul><li>Java compiles to bytecode, and the JVM runs it on any platform</li><li>JDK = tools + JRE; JRE = libraries + JVM</li><li>Program entry point is <code>public static void main(String[] args)</code></li><li>File name must match the public class name</li><li>Use LTS versions (17, 21) for learning and projects</li></ul>
+    </article>
+    <nav class="pager" aria-label="Topic navigation">
+      
+      <a class="next" href="02-language-basics.html"><small>Next →</small><strong>Language Basics</strong></a>
+    </nav>
+  </main>
+</div>
+</body>
+</html>

@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="en" data-track="react">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Performance and Optimisation — React Notes · Hanbee</title>
+<meta name="description" content="Understand why components re-render, then optimise with the React Compiler, memo, useMemo, useCallback, transitions, lazy loading, Suspense and list virtualisation.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500..700;1,9..144,500&amp;family=Inter:wght@400..700&amp;family=JetBrains+Mono:wght@400..600&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/notes.css">
+<script src="../assets/notes.js" defer></script>
+</head>
+<body>
+<div class="progress" aria-hidden="true"><i></i></div>
+<header class="top">
+  <a class="brand" href="../index.html"><b>H</b>Hanbee · React Notes</a>
+  <nav><a class="keep" href="index.html">All topics</a><button id="theme-toggle" type="button" aria-label="Toggle light and dark theme">Theme</button></nav>
+</header>
+<div class="shell">
+  <details class="toc"><summary>On this page</summary><nav aria-label="On this page"><ol><li><a href="#how-rendering-performance-works"><span>01</span>How Rendering Performance Works</a></li><li><a href="#measure-first"><span>02</span>Measure First</a></li><li><a href="#react-compiler"><span>03</span>React Compiler</a></li><li><a href="#react-memo"><span>04</span>React.memo</a></li><li><a href="#usememo"><span>05</span>useMemo</a></li><li><a href="#usecallback"><span>06</span>useCallback</a></li><li><a href="#cheaper-fixes-before-memoising"><span>07</span>Cheaper Fixes Before Memoising</a></li><li><a href="#transitions-keep-the-ui-responsive"><span>08</span>Transitions: Keep the UI Responsive</a></li><li><a href="#code-splitting-lazy-and-suspense"><span>09</span>Code Splitting: lazy and Suspense</a></li><li><a href="#suspense-for-data"><span>10</span>Suspense for Data</a></li><li><a href="#activity-react-19-2"><span>11</span>Activity (React 19.2)</a></li><li><a href="#large-lists-virtualisation"><span>12</span>Large Lists: Virtualisation</a></li><li><a href="#other-optimisations"><span>13</span>Other Optimisations</a></li><li><a href="#preloading-resources-react-19"><span>14</span>Preloading Resources (React 19)</a></li><li><a href="#common-performance-mistakes"><span>15</span>Common Performance Mistakes</a></li><li><a href="#quick-recap"><span>16</span>Quick Recap</a></li></ol></nav></details>
+  <main>
+    <header class="hero">
+      <p class="kicker"><span class="pill">Core Hooks</span><span>Topic 07</span><span>Advanced</span><span>7 min read</span></p>
+      <h1>Performance and Optimisation</h1>
+      <p class="lede">Understand why components re-render, then optimise with the React Compiler, memo, useMemo, useCallback, transitions, lazy loading, Suspense and list virtualisation.</p>
+    </header>
+    <article>
+<h2 id="how-rendering-performance-works"><span class="num">01</span>How Rendering Performance Works</h2>
+<p>Rendering means React <strong>calls your component functions</strong>. React is fast by default, and most apps need little optimisation. Optimise only after <strong>measuring</strong> a real problem.</p>
+<h3 id="when-does-a-component-re-render">When does a component re-render?</h3>
+<ol><li>Its <strong>state</strong> changes</li><li>Its <strong>parent re-renders</strong> (even if its props are identical)</li><li>A <strong>context</strong> it consumes changes</li><li>A hook it uses (like <code>useSyncExternalStore</code>) reports a change</li></ol>
+<pre><code class="language-text">Parent re-renders ──► every child re-renders by default (unless memoised)</code></pre>
+<h3 id="render-vs-commit">Render vs commit</h3>
+<p>Re-rendering is a <strong>calculation</strong> (cheap). Only differences are <strong>committed</strong> to the DOM. A re-render is a problem only when the calculation is slow or the tree is huge.</p>
+<h2 id="measure-first"><span class="num">02</span>Measure First</h2>
+<ul><li><strong>React DevTools Profiler</strong>: record interactions, see which components rendered and why ("Highlight updates when components render" also helps)</li><li><strong>Browser Performance tab</strong> and Lighthouse</li><li><strong>React Performance Tracks</strong> (React 19.2) in Chrome DevTools show scheduler and component timings</li><li>Test with production builds (<code>npm run build &amp;&amp; npm run preview</code>): development mode is slower</li></ul>
+<h2 id="react-compiler"><span class="num">03</span>React Compiler</h2>
+<p>The <strong>React Compiler</strong> (stable v1.0) is a build-time tool that <strong>automatically memoises</strong> components and values so you rarely write <code>useMemo</code>, <code>useCallback</code> or <code>memo</code> by hand.</p>
+<pre><code class="language-bash">npm install -D babel-plugin-react-compiler</code></pre>
+<pre data-file="vite.config.js"><code class="language-js">import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
+
+export default defineConfig({
+  plugins: [react({ babel: { plugins: [["babel-plugin-react-compiler"]] } })],
+});</code></pre>
+<ul><li>It works when your components follow the <strong>Rules of React</strong> (pure rendering, no mutation of props/state)</li><li>Check compatibility with <code>npx react-compiler-healthcheck@latest</code></li><li>Use the <code>eslint-plugin-react-hooks</code> compiler rules to find code it cannot optimise</li><li>You can still use manual memoisation as an escape hatch; the compiler respects it</li></ul>
+<aside class="callout note"><span class="label">Note</span><p>With the compiler enabled, treat <code>useMemo</code>/<code>useCallback</code>/<code>memo</code> as <strong>fine-tuning tools</strong>, not defaults. The sections below matter when you do not use the compiler or need precise control.</p></aside>
+<h2 id="react-memo"><span class="num">04</span>React.memo</h2>
+<p>Skips re-rendering a component when its <strong>props are shallowly equal</strong> to last time.</p>
+<pre><code class="language-jsx">import { memo } from "react";
+
+const CourseCard = memo(function CourseCard({ course, onSelect }) {
+  console.log("render", course.id);
+  return &lt;button onClick={() =&gt; onSelect(course.id)}&gt;{course.title}&lt;/button&gt;;
+});</code></pre>
+<p><code>memo</code> is useless if you pass <strong>new object/array/function identities</strong> every render:</p>
+<pre><code class="language-jsx">&lt;CourseCard course={{ id: 1 }} onSelect={() =&gt; go()} /&gt;    // new props each time: memo never helps</code></pre>
+<p>Combine with <code>useCallback</code>/<code>useMemo</code> to keep props stable.</p>
+<h2 id="usememo"><span class="num">05</span>useMemo</h2>
+<p>Caches the <strong>result of a calculation</strong> between renders until dependencies change.</p>
+<pre><code class="language-jsx">const visible = useMemo(
+  () =&gt; courses.filter(c =&gt; c.title.toLowerCase().includes(query.toLowerCase())),
+  [courses, query]
+);</code></pre>
+<p>Use for:</p>
+<ul><li>Genuinely <strong>expensive</strong> calculations (measure first, e.g. filtering thousands of items)</li><li>Keeping an <strong>object/array identity stable</strong> for <code>memo</code> children or effect dependencies</li></ul>
+<h2 id="usecallback"><span class="num">06</span>useCallback</h2>
+<p>Caches a <strong>function</strong> between renders.</p>
+<pre><code class="language-jsx">const handleSelect = useCallback((id) =&gt; {
+  setSelectedId(id);
+}, []);                                      // stable identity across renders
+
+&lt;CourseCard course={c} onSelect={handleSelect} /&gt;   // memo works now</code></pre>
+<p><code>useCallback(fn, deps)</code> is the same as <code>useMemo(() =&gt; fn, deps)</code>.</p>
+<h3 id="memoisation-cheat-sheet">Memoisation cheat sheet</h3>
+<div class="table-wrap"><table><thead><tr><th>Tool</th><th>Caches</th><th>Skips</th></tr></thead><tbody><tr><td><code>memo(Component)</code></td><td>Component output</td><td>Re-render when props are equal</td></tr><tr><td><code>useMemo(fn, deps)</code></td><td>A computed value</td><td>Re-computation</td></tr><tr><td><code>useCallback(fn, deps)</code></td><td>A function reference</td><td>Creating a new function identity</td></tr></tbody></table></div>
+<aside class="callout warning"><span class="label">Warning</span><p>Memoisation has a cost (memory + comparisons). Don't wrap everything. Use it where profiling shows a benefit, or let the compiler do it.</p></aside>
+<h2 id="cheaper-fixes-before-memoising"><span class="num">07</span>Cheaper Fixes Before Memoising</h2>
+<ol><li><strong>Move state down</strong>: keep state in the smallest component that needs it, so fewer components re-render</li><li><strong>Lift content up</strong> with <code>children</code>: a component that receives <code>children</code> as a prop does not re-render its children when its own state changes</li></ol>
+<pre><code class="language-jsx">function Slider({ children }) {                // moving state lives here
+  const [x, setX] = useState(0);
+  return &lt;div onPointerMove={e =&gt; setX(e.clientX)}&gt;{children}&lt;/div&gt;;   // children don't re-render
+}
+&lt;Slider&gt;&lt;ExpensiveTree /&gt;&lt;/Slider&gt;</code></pre>
+<ol><li>Avoid creating huge inline objects/arrays that are passed to memoised children</li><li>Split large components; keep render functions light</li><li>Avoid unnecessary effects that set state (extra renders)</li></ol>
+<h2 id="transitions-keep-the-ui-responsive"><span class="num">08</span>Transitions: Keep the UI Responsive</h2>
+<p><code>useTransition</code> marks a state update as <strong>non-urgent</strong>, so urgent updates (typing, clicking) stay responsive while heavy updates render in the background.</p>
+<pre><code class="language-jsx">function SearchPage() {
+  const [query, setQuery] = useState("");
+  const [results, setResults] = useState([]);
+  const [isPending, startTransition] = useTransition();
+
+  function handleChange(e) {
+    setQuery(e.target.value);                              // urgent: input stays smooth
+    startTransition(() =&gt; {
+      setResults(filterHugeList(e.target.value));          // non-urgent: can be interrupted
+    });
+  }
+
+  return (
+    &lt;&gt;
+      &lt;input value={query} onChange={handleChange} /&gt;
+      {isPending &amp;&amp; &lt;Spinner /&gt;}
+      &lt;ResultList items={results} /&gt;
+    &lt;/&gt;
+  );
+}</code></pre>
+<p>In React 19, <code>startTransition</code> can wrap <strong>async functions</strong> (Actions), with <code>isPending</code> covering the whole async operation.</p>
+<h3 id="usedeferredvalue">useDeferredValue</h3>
+<p>Defers re-rendering with a <strong>value</strong>: the UI first shows the old value, then updates in the background.</p>
+<pre><code class="language-jsx">const deferredQuery = useDeferredValue(query);
+const results = useMemo(() =&gt; filter(list, deferredQuery), [deferredQuery]);
+const stale = query !== deferredQuery;</code></pre>
+<p>React 19 adds an initial value: <code>useDeferredValue(value, initialValue)</code>.</p>
+<div class="table-wrap"><table><thead><tr><th></th><th><code>useTransition</code></th><th><code>useDeferredValue</code></th></tr></thead><tbody><tr><td>You control</td><td>The <strong>state update</strong></td><td>A <strong>value</strong> you received</td></tr><tr><td>Gives you</td><td><code>isPending</code></td><td>The lagging value</td></tr><tr><td>Use when</td><td>You own the <code>setState</code> call</td><td>Value comes from props or a library</td></tr></tbody></table></div>
+<h2 id="code-splitting-lazy-and-suspense"><span class="num">09</span>Code Splitting: lazy and Suspense</h2>
+<p>Don't ship every page's code on the first load. Load components <strong>on demand</strong>.</p>
+<pre><code class="language-jsx">import { lazy, Suspense } from "react";
+
+const Dashboard = lazy(() =&gt; import("./pages/Dashboard"));
+const Reports = lazy(() =&gt; import("./pages/Reports"));
+
+function App() {
+  return (
+    &lt;Suspense fallback={&lt;p&gt;Loading…&lt;/p&gt;}&gt;
+      &lt;Routes&gt;
+        &lt;Route path="/dashboard" element={&lt;Dashboard /&gt;} /&gt;
+        &lt;Route path="/reports" element={&lt;Reports /&gt;} /&gt;
+      &lt;/Routes&gt;
+    &lt;/Suspense&gt;
+  );
+}</code></pre>
+<ul><li>Split by <strong>route</strong> first, then heavy widgets (charts, editors, maps)</li><li>The module must <code>export default</code> the component</li><li>Wrap in <code>&lt;Suspense&gt;</code> to show a fallback; add an <strong>Error Boundary</strong> for failed chunk loads</li><li>Preload on hover/intent for a snappier feel: <code>import("./pages/Reports")</code></li></ul>
+<h2 id="suspense-for-data"><span class="num">10</span>Suspense for Data</h2>
+<p><code>&lt;Suspense&gt;</code> also handles <strong>data</strong> (with <code>use()</code>, framework loaders and libraries like TanStack Query).</p>
+<pre><code class="language-jsx">&lt;Suspense fallback={&lt;Skeleton /&gt;}&gt;
+  &lt;Comments postId={id} /&gt;        {/* may suspend while loading */}
+&lt;/Suspense&gt;</code></pre>
+<p>Nest several boundaries so parts of the page appear as soon as they are ready instead of waiting for everything.</p>
+<h2 id="activity-react-19-2"><span class="num">11</span>Activity (React 19.2)</h2>
+<p><code>&lt;Activity&gt;</code> hides parts of the UI while <strong>keeping their state</strong> and lowering their priority.</p>
+<pre><code class="language-jsx">import { Activity } from "react";
+
+&lt;Activity mode={tab === "inbox" ? "visible" : "hidden"}&gt;
+  &lt;Inbox /&gt;
+&lt;/Activity&gt;</code></pre>
+<p>Hidden content unmounts its effects and defers updates but keeps state and DOM, which is great for tabs and pre-rendering the next page.</p>
+<h2 id="large-lists-virtualisation"><span class="num">12</span>Large Lists: Virtualisation</h2>
+<p>Rendering thousands of rows is slow no matter how well you memoise. <strong>Virtualise</strong>: render only the visible rows.</p>
+<ul><li><strong>TanStack Virtual</strong>, <strong>react-window</strong>, <strong>react-virtuoso</strong></li><li>Or paginate / infinite-scroll with a server</li></ul>
+<pre><code class="language-jsx">import { useVirtualizer } from "@tanstack/react-virtual";
+
+const rowVirtualizer = useVirtualizer({
+  count: rows.length,
+  getScrollElement: () =&gt; parentRef.current,
+  estimateSize: () =&gt; 48,
+});</code></pre>
+<h2 id="other-optimisations"><span class="num">13</span>Other Optimisations</h2>
+<div class="table-wrap"><table><thead><tr><th>Technique</th><th>Benefit</th></tr></thead><tbody><tr><td><strong>Debounce / throttle</strong> inputs</td><td>Fewer renders and requests</td></tr><tr><td><strong>Image optimisation</strong> (<code>loading="lazy"</code>, width/height, WebP/AVIF, responsive <code>srcset</code>)</td><td>Faster load, less layout shift</td></tr><tr><td><strong>Bundle analysis</strong> (<code>vite-bundle-visualizer</code>)</td><td>Find heavy dependencies</td></tr><tr><td><strong>Tree-shakable imports</strong> (<code>import { debounce } from "lodash-es"</code>)</td><td>Smaller bundle</td></tr><tr><td><strong>Web workers</strong></td><td>Move heavy computation off the main thread</td></tr><tr><td><strong>Caching</strong> (HTTP cache, TanStack Query, CDN)</td><td>Fewer network calls</td></tr><tr><td><strong>Server rendering / streaming</strong></td><td>Faster first paint</td></tr><tr><td><strong>Keys</strong> that are stable</td><td>Avoid remounting</td></tr></tbody></table></div>
+<h2 id="preloading-resources-react-19"><span class="num">14</span>Preloading Resources (React 19)</h2>
+<pre><code class="language-jsx">import { preload, preconnect, prefetchDNS, preinit } from "react-dom";
+
+preconnect("https://api.hanbee.com");
+preload("/fonts/inter.woff2", { as: "font", crossOrigin: "anonymous" });
+preinit("/analytics.js", { as: "script" });</code></pre>
+<h2 id="common-performance-mistakes"><span class="num">15</span>Common Performance Mistakes</h2>
+<div class="table-wrap"><table><thead><tr><th>Mistake</th><th>Better</th></tr></thead><tbody><tr><td>Memoising everything "just in case"</td><td>Measure; use the compiler</td></tr><tr><td>New object/function props to a <code>memo</code> child</td><td>Stabilise with hooks or restructure</td></tr><tr><td>Putting high-frequency state high in the tree</td><td>Move state down</td></tr><tr><td>Huge lists without virtualisation</td><td>Virtualise or paginate</td></tr><tr><td>Effects that set derived state</td><td>Compute during render</td></tr><tr><td>Big libraries imported for one function</td><td>Smaller alternative, tree-shaking</td></tr><tr><td>Context value changing every render</td><td>Memoise the value, split contexts</td></tr></tbody></table></div>
+<h2 id="quick-recap"><span class="num">16</span>Quick Recap</h2>
+<ul><li>Re-render = calling the component; it is cheap, so <strong>measure</strong> with the Profiler before optimising</li><li>The <strong>React Compiler</strong> memoises automatically; manual <code>memo</code>/<code>useMemo</code>/<code>useCallback</code> are fine-tuning</li><li>Move state down, lift content up, and use stable props before reaching for memoisation</li><li><code>useTransition</code> / <code>useDeferredValue</code> keep typing responsive during heavy updates</li><li><code>lazy</code> + <code>Suspense</code> split code by route; virtualise long lists</li><li><code>&lt;Activity&gt;</code> (19.2) preserves state for hidden UI</li></ul>
+    </article>
+    <nav class="pager" aria-label="Topic navigation">
+      <a class="prev" href="06-refs-context-reducers.html"><small>← Previous</small><strong>Refs, Context and Reducers</strong></a>
+      <a class="next" href="08-react19-new-features.html"><small>Next →</small><strong>React 19 New Features</strong></a>
+    </nav>
+  </main>
+</div>
+</body>
+</html>

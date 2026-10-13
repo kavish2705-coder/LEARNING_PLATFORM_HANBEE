@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="en" data-track="dsa">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Shortest Paths and Minimum Spanning Trees — DSA Notes · Hanbee</title>
+<meta name="description" content="Weighted graph algorithms. Dijkstra, Bellman-Ford, Floyd-Warshall and 0-1 BFS for shortest paths, and Kruskal and Prim for minimum spanning trees, with the problems that use them.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500..700;1,9..144,500&amp;family=Inter:wght@400..700&amp;family=JetBrains+Mono:wght@400..600&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/notes.css">
+<script src="../assets/notes.js" defer></script>
+</head>
+<body>
+<div class="progress" aria-hidden="true"><i></i></div>
+<header class="top">
+  <a class="brand" href="../index.html"><b>H</b>Hanbee · DSA Notes</a>
+  <nav><a class="keep" href="index.html">All topics</a><button id="theme-toggle" type="button" aria-label="Toggle light and dark theme">Theme</button></nav>
+</header>
+<div class="shell">
+  <details class="toc"><summary>On this page</summary><nav aria-label="On this page"><ol><li><a href="#weighted-graphs"><span>01</span>Weighted Graphs</a></li><li><a href="#choosing-a-shortest-path-algorithm"><span>02</span>Choosing a Shortest-Path Algorithm</a></li><li><a href="#dijkstra-s-algorithm"><span>03</span>Dijkstra's Algorithm</a></li><li><a href="#bellman-ford"><span>04</span>Bellman-Ford</a></li><li><a href="#floyd-warshall-all-pairs-shortest-paths"><span>05</span>Floyd-Warshall: All-Pairs Shortest Paths</a></li><li><a href="#0-1-bfs"><span>06</span>0-1 BFS</a></li><li><a href="#shortest-paths-in-a-dag"><span>07</span>Shortest Paths in a DAG</a></li><li><a href="#a-search-idea"><span>08</span>A* Search (Idea)</a></li><li><a href="#minimum-spanning-tree-mst"><span>09</span>Minimum Spanning Tree (MST)</a></li><li><a href="#dijkstra-vs-prim"><span>10</span>Dijkstra vs Prim</a></li><li><a href="#other-weighted-graph-topics"><span>11</span>Other Weighted-Graph Topics</a></li><li><a href="#common-mistakes"><span>12</span>Common Mistakes</a></li><li><a href="#quick-recap"><span>13</span>Quick Recap</a></li></ol></nav></details>
+  <main>
+    <header class="hero">
+      <p class="kicker"><span class="pill">Trees and Graphs</span><span>Topic 13</span><span>Advanced</span><span>9 min read</span></p>
+      <h1>Shortest Paths and Minimum Spanning Trees</h1>
+      <p class="lede">Weighted graph algorithms. Dijkstra, Bellman-Ford, Floyd-Warshall and 0-1 BFS for shortest paths, and Kruskal and Prim for minimum spanning trees, with the problems that use them.</p>
+    </header>
+    <article>
+<h2 id="weighted-graphs"><span class="num">01</span>Weighted Graphs</h2>
+<p>Each edge carries a <strong>weight</strong> (cost, distance, time). Two classic questions:</p>
+<ol><li><strong>Shortest path</strong>: cheapest route from a source to other vertices</li><li><strong>Minimum spanning tree (MST)</strong>: cheapest set of edges connecting all vertices</li></ol>
+<pre><code class="language-java">record Edge(int to, int w) { }
+List&lt;List&lt;Edge&gt;&gt; g = new ArrayList&lt;&gt;();
+for (int i = 0; i &lt; n; i++) g.add(new ArrayList&lt;&gt;());
+g.get(u).add(new Edge(v, w));                  // add the reverse edge for undirected graphs</code></pre>
+<h2 id="choosing-a-shortest-path-algorithm"><span class="num">02</span>Choosing a Shortest-Path Algorithm</h2>
+<div class="table-wrap"><table><thead><tr><th>Situation</th><th>Algorithm</th><th>Time</th></tr></thead><tbody><tr><td>Unweighted (all edges equal)</td><td><strong>BFS</strong></td><td><code>O(V + E)</code></td></tr><tr><td>Weights 0 or 1</td><td><strong>0-1 BFS</strong> (deque)</td><td><code>O(V + E)</code></td></tr><tr><td>Non-negative weights, single source</td><td><strong>Dijkstra</strong> (min-heap)</td><td><code>O((V + E) log V)</code></td></tr><tr><td>Negative weights allowed, single source</td><td><strong>Bellman-Ford</strong></td><td><code>O(V · E)</code></td></tr><tr><td>All pairs, small <code>V</code></td><td><strong>Floyd-Warshall</strong></td><td><code>O(V³)</code></td></tr><tr><td>DAG</td><td>Relax edges in <strong>topological order</strong></td><td><code>O(V + E)</code></td></tr><tr><td>Single target with a good heuristic</td><td><strong>A\</strong>*</td><td>Depends on the heuristic</td></tr></tbody></table></div>
+<h2 id="dijkstra-s-algorithm"><span class="num">03</span>Dijkstra's Algorithm</h2>
+<p><strong>Greedy</strong>: always expand the unvisited vertex with the <strong>smallest known distance</strong>. Requires <strong>non-negative</strong> weights.</p>
+<pre><code class="language-text">dist[source] = 0, everything else = ∞
+repeat: take the vertex u with the smallest dist (min-heap)
+        for each edge u → v with weight w:
+            if dist[u] + w &lt; dist[v]: dist[v] = dist[u] + w   // relaxation</code></pre>
+<pre><code class="language-java">static int[] dijkstra(List&lt;List&lt;Edge&gt;&gt; g, int src) {
+    int n = g.size();
+    int[] dist = new int[n];
+    Arrays.fill(dist, Integer.MAX_VALUE);
+    dist[src] = 0;
+
+    PriorityQueue&lt;int[]&gt; pq = new PriorityQueue&lt;&gt;((a, b) -&gt; Integer.compare(a[1], b[1]));   // {node, distance}
+    pq.offer(new int[]{src, 0});
+
+    while (!pq.isEmpty()) {
+        int[] cur = pq.poll();
+        int u = cur[0], d = cur[1];
+        if (d &gt; dist[u]) continue;                              // stale entry: a shorter path was already found
+        for (Edge e : g.get(u)) {
+            int nd = d + e.w();
+            if (nd &lt; dist[e.to()]) {
+                dist[e.to()] = nd;
+                pq.offer(new int[]{e.to(), nd});
+            }
+        }
+    }
+    return dist;                                                  // O((V + E) log V)
+}</code></pre>
+<h3 id="recover-the-actual-path">Recover the actual path</h3>
+<p>Keep a <code>prev[]</code> array: when relaxing <code>v</code> through <code>u</code>, set <code>prev[v] = u</code>. Walk back from the target and reverse.</p>
+<pre><code class="language-java">List&lt;Integer&gt; path = new ArrayList&lt;&gt;();
+for (int at = target; at != -1; at = prev[at]) path.add(at);   // prev[src] = -1
+Collections.reverse(path);</code></pre>
+<aside class="callout warning"><span class="label">Warning</span><p>Dijkstra gives <strong>wrong answers with negative edge weights</strong>. Use Bellman-Ford. Also use <code>long</code> for distances if sums can exceed <code>Integer.MAX_VALUE</code>, and avoid <code>Integer.MAX_VALUE + w</code> overflow when comparing (check <code>dist[u] != INF</code>).</p></aside>
+<h3 id="dijkstra-problems">Dijkstra problems</h3>
+<div class="table-wrap"><table><thead><tr><th>Problem</th><th>Twist</th></tr></thead><tbody><tr><td><strong>Network delay time</strong></td><td>Answer = max of the distances (or -1 if some are unreachable)</td></tr><tr><td>Path with minimum effort (grid)</td><td>Edge weight = height difference; minimise the <strong>max</strong> edge along the path</td></tr><tr><td>Path with maximum probability</td><td>Maximise a product (max-heap, or use <code>-log p</code>)</td></tr><tr><td><strong>Cheapest flights within K stops</strong></td><td>State = (node, stops) or use Bellman-Ford with <code>K+1</code> rounds</td></tr><tr><td>Swim in rising water</td><td>Minimise the max cell value on the path</td></tr><tr><td>Shortest path in a grid with obstacles</td><td>Cell weights</td></tr></tbody></table></div>
+<h2 id="bellman-ford"><span class="num">04</span>Bellman-Ford</h2>
+<p>Relax <strong>every edge <code>V - 1</code> times</strong>. Works with <strong>negative weights</strong>, and detects <strong>negative cycles</strong>.</p>
+<pre><code class="language-java">static int[] bellmanFord(int n, int[][] edges, int src) {       // edges: {u, v, w}
+    int INF = Integer.MAX_VALUE / 2;
+    int[] dist = new int[n];
+    Arrays.fill(dist, INF);
+    dist[src] = 0;
+
+    for (int i = 0; i &lt; n - 1; i++) {
+        boolean changed = false;
+        for (int[] e : edges) {
+            if (dist[e[0]] != INF &amp;&amp; dist[e[0]] + e[2] &lt; dist[e[1]]) {
+                dist[e[1]] = dist[e[0]] + e[2];
+                changed = true;
+            }
+        }
+        if (!changed) break;                                      // early exit
+    }
+    for (int[] e : edges)                                          // one more pass: any improvement means a negative cycle
+        if (dist[e[0]] != INF &amp;&amp; dist[e[0]] + e[2] &lt; dist[e[1]]) throw new IllegalStateException("Negative cycle");
+    return dist;                                                   // O(V · E)
+}</code></pre>
+<p><strong>Cheapest flights within K stops</strong>: run only <code>K + 1</code> rounds, relaxing from a <strong>copy</strong> of the previous round's distances so a path never uses more than <code>K + 1</code> edges.</p>
+<p>Used in currency arbitrage detection (negative cycle on <code>-log(rate)</code>), routing protocols (RIP).</p>
+<h2 id="floyd-warshall-all-pairs-shortest-paths"><span class="num">05</span>Floyd-Warshall: All-Pairs Shortest Paths</h2>
+<p>Dynamic programming over the "allowed intermediate vertices".</p>
+<pre><code class="language-java">static void floydWarshall(int[][] dist) {                // dist[i][j] = weight, INF if no edge, dist[i][i] = 0
+    int n = dist.length;
+    for (int k = 0; k &lt; n; k++)                           // intermediate vertex: the OUTER loop
+        for (int i = 0; i &lt; n; i++)
+            for (int j = 0; j &lt; n; j++)
+                if (dist[i][k] != INF &amp;&amp; dist[k][j] != INF &amp;&amp; dist[i][k] + dist[k][j] &lt; dist[i][j])
+                    dist[i][j] = dist[i][k] + dist[k][j];
+}                                                          // O(V³) time, O(V²) space</code></pre>
+<p>Handles negative edges (not negative cycles: a negative <code>dist[i][i]</code> signals one). Good for <code>V ≤ 400</code> or so: transitive closure, "find the city with the fewest neighbours within a threshold".</p>
+<h2 id="0-1-bfs"><span class="num">06</span>0-1 BFS</h2>
+<p>When all weights are 0 or 1, use a <strong>deque</strong>: push <code>0</code>-weight neighbours to the <strong>front</strong>, <code>1</code>-weight neighbours to the <strong>back</strong>.</p>
+<pre><code class="language-java">static int[] zeroOneBfs(List&lt;List&lt;Edge&gt;&gt; g, int src) {
+    int[] dist = new int[g.size()];
+    Arrays.fill(dist, Integer.MAX_VALUE);
+    dist[src] = 0;
+    Deque&lt;Integer&gt; dq = new ArrayDeque&lt;&gt;();
+    dq.offerFirst(src);
+    while (!dq.isEmpty()) {
+        int u = dq.pollFirst();
+        for (Edge e : g.get(u)) {
+            if (dist[u] + e.w() &lt; dist[e.to()]) {
+                dist[e.to()] = dist[u] + e.w();
+                if (e.w() == 0) dq.offerFirst(e.to()); else dq.offerLast(e.to());
+            }
+        }
+    }
+    return dist;                                              // O(V + E)
+}</code></pre>
+<h2 id="shortest-paths-in-a-dag"><span class="num">07</span>Shortest Paths in a DAG</h2>
+<p>Process vertices in <strong>topological order</strong> and relax outgoing edges: <code>O(V + E)</code>, works with negative weights. The same idea finds <strong>longest paths</strong> in a DAG (critical path in project scheduling).</p>
+<h2 id="a-search-idea"><span class="num">08</span>A* Search (Idea)</h2>
+<p>Like Dijkstra but orders the heap by <code>f(n) = g(n) + h(n)</code> where <code>h</code> is an <strong>admissible heuristic</strong> (never overestimates the remaining cost, for example straight-line distance). Explores far fewer vertices when a good heuristic exists: used in games and map routing.</p>
+<h2 id="minimum-spanning-tree-mst"><span class="num">09</span>Minimum Spanning Tree (MST)</h2>
+<p>A <strong>spanning tree</strong> connects all <code>V</code> vertices with exactly <code>V - 1</code> edges and no cycles. The <strong>MST</strong> is the spanning tree with the <strong>smallest total weight</strong>.</p>
+<p>Uses: network cabling, road/pipeline design, clustering, approximation algorithms.</p>
+<pre><code class="language-text">Graph:                 MST (weight 9):
+  A -4- B                A    B
+  |  \  |                |\   |
+  2   5 3      →         2  \  3
+  |    \|                |   \ |
+  C -1-- D               C-1-D</code></pre>
+<p>Key properties: <strong>cut property</strong> (the lightest edge crossing any cut is in some MST) and <strong>cycle property</strong> (the heaviest edge in any cycle is not in the MST). If edge weights are distinct, the MST is unique.</p>
+<h3 id="kruskal-s-algorithm-sort-edges-add-if-no-cycle">Kruskal's algorithm: sort edges, add if no cycle</h3>
+<pre><code class="language-java">static int kruskal(int n, int[][] edges) {                  // edges: {u, v, w}
+    Arrays.sort(edges, (a, b) -&gt; Integer.compare(a[2], b[2]));
+    DSU dsu = new DSU(n);
+    int total = 0, used = 0;
+    for (int[] e : edges) {
+        if (dsu.union(e[0], e[1])) {                           // joins two different components
+            total += e[2];
+            if (++used == n - 1) break;
+        }
+    }
+    return used == n - 1 ? total : -1;                          // -1: graph is disconnected
+}                                                                // O(E log E) = O(E log V)</code></pre>
+<p>(<code>DSU</code> is the union-find class from the Graphs topic.) Best for <strong>sparse</strong> graphs and edge-list input.</p>
+<h3 id="prim-s-algorithm-grow-the-tree-from-a-vertex">Prim's algorithm: grow the tree from a vertex</h3>
+<pre><code class="language-java">static int prim(List&lt;List&lt;Edge&gt;&gt; g) {
+    int n = g.size(), total = 0, count = 0;
+    boolean[] inTree = new boolean[n];
+    PriorityQueue&lt;int[]&gt; pq = new PriorityQueue&lt;&gt;((a, b) -&gt; Integer.compare(a[1], b[1]));   // {node, edge weight}
+    pq.offer(new int[]{0, 0});
+    while (!pq.isEmpty() &amp;&amp; count &lt; n) {
+        int[] cur = pq.poll();
+        int u = cur[0];
+        if (inTree[u]) continue;
+        inTree[u] = true;
+        total += cur[1];
+        count++;
+        for (Edge e : g.get(u)) if (!inTree[e.to()]) pq.offer(new int[]{e.to(), e.w()});
+    }
+    return count == n ? total : -1;                              // O(E log V)
+}</code></pre>
+<p>Best for <strong>dense</strong> graphs (with an adjacency matrix and no heap it is <code>O(V²)</code>).</p>
+<h3 id="kruskal-vs-prim">Kruskal vs Prim</h3>
+<div class="table-wrap"><table><thead><tr><th></th><th>Kruskal</th><th>Prim</th></tr></thead><tbody><tr><td>Strategy</td><td>Pick the globally cheapest safe edge</td><td>Grow one tree by the cheapest crossing edge</td></tr><tr><td>Data structure</td><td>Sort + union-find</td><td>Min-heap</td></tr><tr><td>Time</td><td><code>O(E log E)</code></td><td><code>O(E log V)</code></td></tr><tr><td>Works on a disconnected graph</td><td>Yes (gives a forest)</td><td>Needs restarting per component</td></tr><tr><td>Best for</td><td>Sparse graphs</td><td>Dense graphs</td></tr></tbody></table></div>
+<h3 id="mst-problems">MST problems</h3>
+<div class="table-wrap"><table><thead><tr><th>Problem</th><th>Idea</th></tr></thead><tbody><tr><td><strong>Min cost to connect all points</strong></td><td>Complete graph with Manhattan distances → Prim (<code>O(V²)</code>)</td></tr><tr><td>Connecting cities with minimum cost</td><td>Kruskal</td></tr><tr><td>Critical and pseudo-critical edges in an MST</td><td>Compare the MST weight with/without each edge</td></tr><tr><td>Maximum spanning tree</td><td>Sort descending / negate weights</td></tr><tr><td>Minimum bottleneck path</td><td>The path inside the MST</td></tr><tr><td>Second-best MST</td><td>Try replacing one MST edge</td></tr></tbody></table></div>
+<h2 id="dijkstra-vs-prim"><span class="num">10</span>Dijkstra vs Prim</h2>
+<p>They look alike (heap + greedy), but Dijkstra's key is the <strong>total distance from the source</strong>, Prim's key is <strong>just the edge weight</strong> connecting a new vertex to the tree. Dijkstra gives a <strong>shortest-path tree</strong>, which is generally <strong>not</strong> an MST.</p>
+<h2 id="other-weighted-graph-topics"><span class="num">11</span>Other Weighted-Graph Topics</h2>
+<div class="table-wrap"><table><thead><tr><th>Topic</th><th>One-line idea</th></tr></thead><tbody><tr><td><strong>Strongly connected components</strong></td><td>Kosaraju (two DFS passes) or Tarjan (low-link)</td></tr><tr><td><strong>Bridges / articulation points</strong></td><td>Tarjan's DFS low-link values</td></tr><tr><td><strong>Maximum flow / min cut</strong></td><td>Ford-Fulkerson, Edmonds-Karp, Dinic</td></tr><tr><td><strong>Bipartite matching</strong></td><td>Hopcroft-Karp, or flow</td></tr><tr><td><strong>Travelling salesman</strong></td><td>NP-hard; bitmask DP for small <code>n</code> (<code>O(2ⁿ · n²)</code>)</td></tr><tr><td><strong>Johnson's algorithm</strong></td><td>All pairs on sparse graphs with negative edges</td></tr></tbody></table></div>
+<h2 id="common-mistakes"><span class="num">12</span>Common Mistakes</h2>
+<ul><li>Using Dijkstra when negative weights exist</li><li>Integer overflow from <code>INF + weight</code> (use <code>Integer.MAX_VALUE / 2</code> or <code>long</code>)</li><li>Not skipping stale priority-queue entries (<code>if (d &gt; dist[u]) continue</code>)</li><li>Forgetting to add both directions for undirected edges</li><li>Looping Floyd-Warshall with <code>k</code> in the <strong>inner</strong> position</li><li>Confusing "shortest path" with "MST": they optimise different things</li></ul>
+<h2 id="quick-recap"><span class="num">13</span>Quick Recap</h2>
+<ul><li>Pick the algorithm by the graph: BFS (unweighted), 0-1 BFS, <strong>Dijkstra</strong> (non-negative), <strong>Bellman-Ford</strong> (negatives, <code>O(VE)</code>), <strong>Floyd-Warshall</strong> (all pairs, <code>O(V³)</code>)</li><li>Dijkstra = greedy relaxation with a min-heap: <code>O((V + E) log V)</code>; skip stale heap entries</li><li>An <strong>MST</strong> connects all vertices with <code>V - 1</code> edges at minimum total weight</li><li><strong>Kruskal</strong> = sort edges + union-find; <strong>Prim</strong> = grow with a heap</li><li>Watch for overflow and for the "shortest path ≠ MST" distinction</li></ul>
+    </article>
+    <nav class="pager" aria-label="Topic navigation">
+      <a class="prev" href="12-graphs.html"><small>← Previous</small><strong>Graphs: Representation, BFS, DFS and Union-Find</strong></a>
+      <a class="next" href="14-greedy.html"><small>Next →</small><strong>Greedy Algorithms</strong></a>
+    </nav>
+  </main>
+</div>
+</body>
+</html>

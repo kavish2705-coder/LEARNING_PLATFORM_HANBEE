@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="en" data-track="dsa">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Searching and Binary Search — DSA Notes · Hanbee</title>
+<meta name="description" content="Linear and binary search, the safe templates for boundaries, rotated arrays, and the powerful "binary search on the answer" technique.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500..700;1,9..144,500&amp;family=Inter:wght@400..700&amp;family=JetBrains+Mono:wght@400..600&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/notes.css">
+<script src="../assets/notes.js" defer></script>
+</head>
+<body>
+<div class="progress" aria-hidden="true"><i></i></div>
+<header class="top">
+  <a class="brand" href="../index.html"><b>H</b>Hanbee · DSA Notes</a>
+  <nav><a class="keep" href="index.html">All topics</a><button id="theme-toggle" type="button" aria-label="Toggle light and dark theme">Theme</button></nav>
+</header>
+<div class="shell">
+  <details class="toc"><summary>On this page</summary><nav aria-label="On this page"><ol><li><a href="#linear-search"><span>01</span>Linear Search</a></li><li><a href="#binary-search"><span>02</span>Binary Search</a></li><li><a href="#the-boundary-templates"><span>03</span>The Boundary Templates</a></li><li><a href="#java-library-support"><span>04</span>Java Library Support</a></li><li><a href="#classic-binary-search-problems"><span>05</span>Classic Binary Search Problems</a></li><li><a href="#binary-search-on-the-answer"><span>06</span>Binary Search on the Answer</a></li><li><a href="#other-search-techniques"><span>07</span>Other Search Techniques</a></li><li><a href="#choosing-a-search-method"><span>08</span>Choosing a Search Method</a></li><li><a href="#common-mistakes"><span>09</span>Common Mistakes</a></li><li><a href="#quick-recap"><span>10</span>Quick Recap</a></li></ol></nav></details>
+  <main>
+    <header class="hero">
+      <p class="kicker"><span class="pill">Searching and Sorting</span><span>Topic 07</span><span>Intermediate</span><span>10 min read</span></p>
+      <h1>Searching and Binary Search</h1>
+      <p class="lede">Linear and binary search, the safe templates for boundaries, rotated arrays, and the powerful "binary search on the answer" technique.</p>
+    </header>
+    <article>
+<h2 id="linear-search"><span class="num">01</span>Linear Search</h2>
+<p>Check each element in turn. Works on <strong>any</strong> collection, sorted or not.</p>
+<pre><code class="language-java">static int linearSearch(int[] a, int target) {
+    for (int i = 0; i &lt; a.length; i++) if (a[i] == target) return i;
+    return -1;                                        // O(n) time, O(1) space
+}</code></pre>
+<h2 id="binary-search"><span class="num">02</span>Binary Search</h2>
+<p>On a <strong>sorted</strong> array, compare with the middle and <strong>discard half</strong> each step.</p>
+<pre><code class="language-text">Find 23 in [2, 5, 8, 12, 16, 23, 38, 56, 72, 91]
+
+lo=0 hi=9  mid=4 (16)  → 16 &lt; 23 → search right: lo=5
+lo=5 hi=9  mid=7 (56)  → 56 &gt; 23 → search left:  hi=6
+lo=5 hi=6  mid=5 (23)  → found at index 5</code></pre>
+<p>Complexity: <code>O(log n)</code> time, <code>O(1)</code> space (iterative). 1,000,000 elements need at most about 20 comparisons.</p>
+<h3 id="iterative">Iterative</h3>
+<pre><code class="language-java">static int binarySearch(int[] a, int target) {
+    int lo = 0, hi = a.length - 1;
+    while (lo &lt;= hi) {
+        int mid = lo + (hi - lo) / 2;                 // avoids int overflow of (lo + hi)
+        if (a[mid] == target) return mid;
+        if (a[mid] &lt; target) lo = mid + 1;
+        else hi = mid - 1;
+    }
+    return -1;
+}</code></pre>
+<h3 id="recursive">Recursive</h3>
+<pre><code class="language-java">static int bs(int[] a, int target, int lo, int hi) {
+    if (lo &gt; hi) return -1;
+    int mid = lo + (hi - lo) / 2;
+    if (a[mid] == target) return mid;
+    return a[mid] &lt; target ? bs(a, target, mid + 1, hi) : bs(a, target, lo, mid - 1);
+}</code></pre>
+<aside class="callout warning"><span class="label">Warning</span><p><code>(lo + hi) / 2</code> can overflow when <code>lo + hi &gt; Integer.MAX_VALUE</code>. Always write <code>lo + (hi - lo) / 2</code>.</p></aside>
+<h3 id="requirements">Requirements</h3>
+<ul><li>Data must be <strong>sorted</strong> (or the condition must be <strong>monotonic</strong>: false…false true…true)</li><li>Needs random access (arrays, <code>ArrayList</code>); not efficient on linked lists</li></ul>
+<h2 id="the-boundary-templates"><span class="num">03</span>The Boundary Templates</h2>
+<p>Many bugs come from off-by-one errors. Learn <strong>one</strong> template for finding a boundary and reuse it.</p>
+<h3 id="lower-bound-first-index-where-a-i-target">Lower bound: first index where <code>a[i] &gt;= target</code></h3>
+<pre><code class="language-java">static int lowerBound(int[] a, int target) {
+    int lo = 0, hi = a.length;                        // hi is exclusive: answer may be a.length
+    while (lo &lt; hi) {
+        int mid = lo + (hi - lo) / 2;
+        if (a[mid] &lt; target) lo = mid + 1;
+        else hi = mid;
+    }
+    return lo;
+}</code></pre>
+<h3 id="upper-bound-first-index-where-a-i-target">Upper bound: first index where <code>a[i] &gt; target</code></h3>
+<pre><code class="language-java">static int upperBound(int[] a, int target) {
+    int lo = 0, hi = a.length;
+    while (lo &lt; hi) {
+        int mid = lo + (hi - lo) / 2;
+        if (a[mid] &lt;= target) lo = mid + 1;
+        else hi = mid;
+    }
+    return lo;
+}</code></pre>
+<h3 id="derived-answers">Derived answers</h3>
+<div class="table-wrap"><table><thead><tr><th>Question</th><th>Answer</th></tr></thead><tbody><tr><td>First occurrence of <code>x</code></td><td><code>i = lowerBound(a, x)</code>; valid if <code>i &lt; n &amp;&amp; a[i] == x</code></td></tr><tr><td>Last occurrence of <code>x</code></td><td><code>upperBound(a, x) - 1</code> (check bounds and equality)</td></tr><tr><td>Count of <code>x</code></td><td><code>upperBound(a, x) - lowerBound(a, x)</code></td></tr><tr><td>Insert position</td><td><code>lowerBound(a, x)</code></td></tr><tr><td>Floor / ceiling</td><td><code>upperBound - 1</code> / <code>lowerBound</code></td></tr></tbody></table></div>
+<pre><code class="language-java">static int[] searchRange(int[] a, int x) {            // first and last position
+    int first = lowerBound(a, x);
+    if (first == a.length || a[first] != x) return new int[]{-1, -1};
+    return new int[]{first, upperBound(a, x) - 1};
+}</code></pre>
+<h3 id="the-general-first-true-template">The general "first true" template</h3>
+<pre><code class="language-java">// Find the smallest value in [lo, hi] for which isGood(value) is true; isGood must be monotonic
+int lo = LOW, hi = HIGH;
+while (lo &lt; hi) {
+    int mid = lo + (hi - lo) / 2;
+    if (isGood(mid)) hi = mid;
+    else lo = mid + 1;
+}
+return lo;</code></pre>
+<h2 id="java-library-support"><span class="num">04</span>Java Library Support</h2>
+<pre><code class="language-java">int i = Arrays.binarySearch(sortedArray, key);        // index if found, otherwise -(insertionPoint) - 1
+int j = Collections.binarySearch(sortedList, key);
+
+if (i &lt; 0) { int insertAt = -i - 1; }</code></pre>
+<p>With duplicates the returned index is <strong>unspecified</strong>; write your own bound functions for first/last.</p>
+<p>For sorted dynamic data, <code>TreeSet</code>/<code>TreeMap</code> provide <code>floor</code>, <code>ceiling</code>, <code>lower</code>, <code>higher</code> in <code>O(log n)</code>.</p>
+<h2 id="classic-binary-search-problems"><span class="num">05</span>Classic Binary Search Problems</h2>
+<h3 id="search-in-a-rotated-sorted-array">Search in a rotated sorted array</h3>
+<p>One half is always sorted; check whether the target lies in the sorted half.</p>
+<pre><code class="language-java">static int searchRotated(int[] a, int target) {
+    int lo = 0, hi = a.length - 1;
+    while (lo &lt;= hi) {
+        int mid = lo + (hi - lo) / 2;
+        if (a[mid] == target) return mid;
+        if (a[lo] &lt;= a[mid]) {                         // left half sorted
+            if (a[lo] &lt;= target &amp;&amp; target &lt; a[mid]) hi = mid - 1;
+            else lo = mid + 1;
+        } else {                                       // right half sorted
+            if (a[mid] &lt; target &amp;&amp; target &lt;= a[hi]) lo = mid + 1;
+            else hi = mid - 1;
+        }
+    }
+    return -1;
+}</code></pre>
+<p>With duplicates the sorted half cannot always be identified (<code>a[lo] == a[mid] == a[hi]</code>); shrink both ends and the worst case becomes <code>O(n)</code>.</p>
+<h3 id="find-the-minimum-in-a-rotated-sorted-array">Find the minimum in a rotated sorted array</h3>
+<pre><code class="language-java">static int findMin(int[] a) {
+    int lo = 0, hi = a.length - 1;
+    while (lo &lt; hi) {
+        int mid = lo + (hi - lo) / 2;
+        if (a[mid] &gt; a[hi]) lo = mid + 1;              // minimum is to the right
+        else hi = mid;
+    }
+    return a[lo];
+}</code></pre>
+<h3 id="find-a-peak-element-o-log-n">Find a peak element: O(log n)</h3>
+<pre><code class="language-java">static int findPeak(int[] a) {
+    int lo = 0, hi = a.length - 1;
+    while (lo &lt; hi) {
+        int mid = lo + (hi - lo) / 2;
+        if (a[mid] &lt; a[mid + 1]) lo = mid + 1;          // a peak exists on the rising side
+        else hi = mid;
+    }
+    return lo;
+}</code></pre>
+<h3 id="integer-square-root">Integer square root</h3>
+<pre><code class="language-java">static int mySqrt(int x) {
+    int lo = 0, hi = x;
+    while (lo &lt; hi) {
+        int mid = lo + (hi - lo + 1) / 2;               // upper mid so the loop terminates
+        if ((long) mid * mid &lt;= x) lo = mid; else hi = mid - 1;
+    }
+    return lo;
+}</code></pre>
+<h3 id="search-a-2d-sorted-matrix-each-row-sorted-first-of-each-row-last-of-previous">Search a 2D sorted matrix (each row sorted, first of each row &gt; last of previous)</h3>
+<p>Treat it as one sorted array of <code>rows * cols</code> elements: <code>value = m[mid / cols][mid % cols]</code>.</p>
+<h3 id="single-element-in-a-sorted-array-of-pairs-first-bad-version-find-the-smallest-letter-greater-than-target-all-boundary-searches">Single element in a sorted array of pairs, first bad version, find the smallest letter greater than target: all boundary searches.</h3>
+<h2 id="binary-search-on-the-answer"><span class="num">06</span>Binary Search on the Answer</h2>
+<p>When the question asks for the <strong>minimum (or maximum) value of something</strong> and you can test a candidate quickly, binary search the <strong>range of possible answers</strong>, not the array.</p>
+<p><strong>Recipe</strong></p>
+<ol><li>Define the answer range <code>[lo, hi]</code></li><li>Write <code>feasible(x)</code>: "can we achieve the goal with value <code>x</code>?" (must be monotonic)</li><li>Binary search for the smallest feasible <code>x</code> (or largest)</li></ol>
+<h3 id="koko-eating-bananas-minimum-speed">Koko eating bananas (minimum speed)</h3>
+<pre><code class="language-java">static int minEatingSpeed(int[] piles, int h) {
+    int lo = 1, hi = Arrays.stream(piles).max().getAsInt();
+    while (lo &lt; hi) {
+        int mid = lo + (hi - lo) / 2;
+        if (canFinish(piles, mid, h)) hi = mid; else lo = mid + 1;
+    }
+    return lo;
+}
+static boolean canFinish(int[] piles, int speed, int h) {
+    long hours = 0;
+    for (int p : piles) hours += (p + speed - 1) / speed;           // ceil(p / speed)
+    return hours &lt;= h;
+}</code></pre>
+<h3 id="capacity-to-ship-packages-within-d-days">Capacity to ship packages within D days</h3>
+<pre><code class="language-java">static int shipWithinDays(int[] w, int days) {
+    int lo = Arrays.stream(w).max().getAsInt();                     // must fit the heaviest package
+    int hi = Arrays.stream(w).sum();                                // everything in one day
+    while (lo &lt; hi) {
+        int mid = lo + (hi - lo) / 2;
+        if (daysNeeded(w, mid) &lt;= days) hi = mid; else lo = mid + 1;
+    }
+    return lo;
+}
+static int daysNeeded(int[] w, int cap) {
+    int days = 1, load = 0;
+    for (int x : w) {
+        if (load + x &gt; cap) { days++; load = 0; }
+        load += x;
+    }
+    return days;
+}</code></pre>
+<h3 id="more-answer-problems">More "answer" problems</h3>
+<div class="table-wrap"><table><thead><tr><th>Problem</th><th>Search space</th><th>Feasibility check</th></tr></thead><tbody><tr><td>Split array largest sum</td><td><code>[max, sum]</code></td><td>Greedy count of pieces ≤ k</td></tr><tr><td>Minimum days to make m bouquets</td><td><code>[min day, max day]</code></td><td>Count bouquets ready by day <code>x</code></td></tr><tr><td>Aggressive cows / magnetic balls</td><td><code>[1, max gap]</code></td><td>Greedy placement with distance ≥ <code>x</code></td></tr><tr><td>Median of two sorted arrays</td><td>Partition index</td><td>Compare partition borders</td></tr><tr><td>Square root / cube root, Nth root</td><td>Numeric range</td><td><code>mid^k &lt;= x</code></td></tr><tr><td>Smallest divisor given a threshold</td><td><code>[1, max]</code></td><td>Sum of ceilings ≤ threshold</td></tr></tbody></table></div>
+<h3 id="floating-point-binary-search">Floating-point binary search</h3>
+<pre><code class="language-java">double lo = 0, hi = x;
+for (int i = 0; i &lt; 100; i++) {                    // fixed iterations instead of comparing to epsilon
+    double mid = (lo + hi) / 2;
+    if (mid * mid &lt;= x) lo = mid; else hi = mid;
+}</code></pre>
+<h2 id="other-search-techniques"><span class="num">07</span>Other Search Techniques</h2>
+<div class="table-wrap"><table><thead><tr><th>Technique</th><th>Idea</th><th>Time</th></tr></thead><tbody><tr><td><strong>Jump search</strong></td><td>Jump √n blocks, then linear scan</td><td><code>O(√n)</code></td></tr><tr><td><strong>Interpolation search</strong></td><td>Guess the position from the value (uniform data)</td><td><code>O(log log n)</code> avg, <code>O(n)</code> worst</td></tr><tr><td><strong>Exponential search</strong></td><td>Double the index to find a range, then binary search (unbounded/infinite arrays)</td><td><code>O(log n)</code></td></tr><tr><td><strong>Ternary search</strong></td><td>Find the maximum of a unimodal function</td><td><code>O(log n)</code></td></tr><tr><td><strong>Hash lookup</strong></td><td>Direct key lookup</td><td><code>O(1)</code> avg</td></tr></tbody></table></div>
+<h2 id="choosing-a-search-method"><span class="num">08</span>Choosing a Search Method</h2>
+<div class="table-wrap"><table><thead><tr><th>Situation</th><th>Use</th></tr></thead><tbody><tr><td>Unsorted, one-off search</td><td>Linear search</td></tr><tr><td>Sorted array, many lookups</td><td>Binary search</td></tr><tr><td>Many lookups on unsorted data</td><td>Build a <code>HashSet</code>/<code>HashMap</code> first</td></tr><tr><td>Sorted dynamic data with nearest-key queries</td><td><code>TreeMap</code> / <code>TreeSet</code></td></tr><tr><td>"Minimum X such that condition holds"</td><td>Binary search on the answer</td></tr></tbody></table></div>
+<h2 id="common-mistakes"><span class="num">09</span>Common Mistakes</h2>
+<ul><li><code>(lo + hi) / 2</code> overflow</li><li>Infinite loops from <code>lo = mid</code> with floor division (use upper mid when moving <code>lo = mid</code>)</li><li>Mixing <code>lo &lt;= hi</code> templates with <code>lo &lt; hi</code> templates</li><li>Forgetting that the data must be sorted / the condition monotonic</li><li>Not checking <code>i &lt; n</code> before reading <code>a[i]</code> after a bound search</li><li>Using <code>Arrays.binarySearch</code> on arrays with duplicates and assuming it returns the first match</li></ul>
+<h2 id="quick-recap"><span class="num">10</span>Quick Recap</h2>
+<ul><li>Linear search is <code>O(n)</code>; binary search on sorted data is <code>O(log n)</code></li><li>Use <code>mid = lo + (hi - lo) / 2</code>; learn the <strong>lower bound / upper bound</strong> templates for first/last/insert positions</li><li>For rotated arrays one half is always sorted</li><li><strong>Binary search on the answer</strong>: define a monotonic <code>feasible(x)</code> and search the value range</li><li><code>TreeMap</code>/<code>TreeSet</code> offer floor/ceiling queries on dynamic data</li></ul>
+    </article>
+    <nav class="pager" aria-label="Topic navigation">
+      <a class="prev" href="06-hashing.html"><small>← Previous</small><strong>Hashing: HashMap and HashSet Patterns</strong></a>
+      <a class="next" href="08-sorting.html"><small>Next →</small><strong>Sorting Algorithms</strong></a>
+    </nav>
+  </main>
+</div>
+</body>
+</html>

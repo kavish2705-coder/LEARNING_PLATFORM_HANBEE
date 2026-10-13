@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="en" data-track="react">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Data Fetching and Server State — React Notes · Hanbee</title>
+<meta name="description" content="Talk to APIs the modern way. fetch and Axios, why server state differs from UI state, and TanStack Query for caching, mutations, optimistic updates, pagination and Suspense.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500..700;1,9..144,500&amp;family=Inter:wght@400..700&amp;family=JetBrains+Mono:wght@400..600&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/notes.css">
+<script src="../assets/notes.js" defer></script>
+</head>
+<body>
+<div class="progress" aria-hidden="true"><i></i></div>
+<header class="top">
+  <a class="brand" href="../index.html"><b>H</b>Hanbee · React Notes</a>
+  <nav><a class="keep" href="index.html">All topics</a><button id="theme-toggle" type="button" aria-label="Toggle light and dark theme">Theme</button></nav>
+</header>
+<div class="shell">
+  <details class="toc"><summary>On this page</summary><nav aria-label="On this page"><ol><li><a href="#calling-apis"><span>01</span>Calling APIs</a></li><li><a href="#environment-variables"><span>02</span>Environment Variables</a></li><li><a href="#the-problem-with-useeffect-fetching"><span>03</span>The Problem with useEffect Fetching</a></li><li><a href="#server-state-vs-client-state"><span>04</span>Server State vs Client State</a></li><li><a href="#tanstack-query-react-query-v5"><span>05</span>TanStack Query (React Query v5)</a></li><li><a href="#fetching-with-use-and-suspense-react-19"><span>06</span>Fetching with <code>use()</code> and Suspense (React 19)</a></li><li><a href="#loading-error-and-empty-states"><span>07</span>Loading, Error and Empty States</a></li><li><a href="#authentication-with-apis"><span>08</span>Authentication with APIs</a></li><li><a href="#other-data-tools"><span>09</span>Other Data Tools</a></li><li><a href="#real-time-data"><span>10</span>Real-time Data</a></li><li><a href="#quick-recap"><span>11</span>Quick Recap</a></li></ol></nav></details>
+  <main>
+    <header class="hero">
+      <p class="kicker"><span class="pill">Ecosystem</span><span>Topic 12</span><span>Intermediate</span><span>7 min read</span></p>
+      <h1>Data Fetching and Server State</h1>
+      <p class="lede">Talk to APIs the modern way. fetch and Axios, why server state differs from UI state, and TanStack Query for caching, mutations, optimistic updates, pagination and Suspense.</p>
+    </header>
+    <article>
+<h2 id="calling-apis"><span class="num">01</span>Calling APIs</h2>
+<h3 id="fetch">fetch</h3>
+<pre><code class="language-jsx">async function getCourses() {
+  const res = await fetch("/api/courses");
+  if (!res.ok) throw new Error(`Request failed: ${res.status}`);     // fetch does NOT reject on 404/500
+  return res.json();
+}
+
+// POST with JSON
+await fetch("/api/courses", {
+  method: "POST",
+  headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+  body: JSON.stringify({ title: "React 19" }),
+});</code></pre>
+<h3 id="build-a-small-api-client">Build a small API client</h3>
+<pre data-file="api.js"><code class="language-js">const BASE = import.meta.env.VITE_API_URL;                 // Vite env var, must start with VITE_
+
+export class ApiError extends Error {
+  constructor(status, message) { super(message); this.status = status; }
+}
+
+export async function api(path, { method = "GET", body, signal } = {}) {
+  const res = await fetch(`${BASE}${path}`, {
+    method,
+    signal,
+    credentials: "include",                                  // send cookies (session auth)
+    headers: body ? { "Content-Type": "application/json" } : undefined,
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  if (!res.ok) throw new ApiError(res.status, (await res.text()) || res.statusText);
+  return res.status === 204 ? null : res.json();
+}</code></pre>
+<h3 id="axios-alternative">Axios (alternative)</h3>
+<pre><code class="language-js">import axios from "axios";
+const http = axios.create({ baseURL: import.meta.env.VITE_API_URL, timeout: 10000 });
+http.interceptors.request.use(cfg =&gt; { cfg.headers.Authorization = `Bearer ${getToken()}`; return cfg; });
+http.interceptors.response.use(r =&gt; r, err =&gt; { if (err.response?.status === 401) logout(); return Promise.reject(err); });
+const { data } = await http.get("/courses", { params: { level: "beginner" } });   // rejects on non-2xx</code></pre>
+<div class="table-wrap"><table><thead><tr><th></th><th><code>fetch</code></th><th>Axios</th></tr></thead><tbody><tr><td>Built in</td><td>Yes</td><td>Extra dependency</td></tr><tr><td>Rejects on 4xx/5xx</td><td>No</td><td>Yes</td></tr><tr><td>JSON parsing</td><td>Manual <code>res.json()</code></td><td>Automatic</td></tr><tr><td>Interceptors, timeouts</td><td>Manual</td><td>Built in</td></tr></tbody></table></div>
+<h2 id="environment-variables"><span class="num">02</span>Environment Variables</h2>
+<pre data-file=".env"><code class="language-bash">VITE_API_URL=https://api.hanbee.com</code></pre>
+<ul><li>Vite exposes only variables prefixed with <code>VITE_</code>, accessed as <code>import.meta.env.VITE_API_URL</code></li><li><strong>Never put secrets in front-end env vars</strong>: they are bundled into public JavaScript</li></ul>
+<h2 id="the-problem-with-useeffect-fetching"><span class="num">03</span>The Problem with useEffect Fetching</h2>
+<p>Hand-rolling <code>useEffect</code> + <code>useState</code> for every request means re-implementing:</p>
+<ul><li>loading and error state</li><li><strong>caching</strong> (don't refetch what you already have)</li><li><strong>deduplication</strong> (two components requesting the same data)</li><li><strong>race conditions</strong> and cancellation</li><li>retries, refetch on focus/reconnect, pagination, invalidation after mutations</li></ul>
+<h2 id="server-state-vs-client-state"><span class="num">04</span>Server State vs Client State</h2>
+<div class="table-wrap"><table><thead><tr><th></th><th>Client (UI) state</th><th>Server state</th></tr></thead><tbody><tr><td>Examples</td><td>Modal open, input text, selected tab</td><td>Courses, user profile, orders</td></tr><tr><td>Owner</td><td>Your app</td><td>The <strong>server</strong> (you have a copy)</td></tr><tr><td>Can become stale</td><td>No</td><td><strong>Yes</strong></td></tr><tr><td>Tools</td><td><code>useState</code>, <code>useReducer</code>, Zustand</td><td><strong>TanStack Query</strong>, SWR, RTK Query</td></tr></tbody></table></div>
+<aside class="callout tip"><span class="label">Tip</span><p>Don't put server data into Redux/Zustand by hand. Let a server-state library cache it, and keep your global store for real UI state.</p></aside>
+<h2 id="tanstack-query-react-query-v5"><span class="num">05</span>TanStack Query (React Query v5)</h2>
+<pre><code class="language-bash">npm install @tanstack/react-query
+npm install -D @tanstack/react-query-devtools</code></pre>
+<h3 id="setup">Setup</h3>
+<pre data-file="main.jsx"><code class="language-jsx">import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
+
+const queryClient = new QueryClient({
+  defaultOptions: { queries: { staleTime: 60_000, retry: 1 } },
+});
+
+createRoot(document.getElementById("root")).render(
+  &lt;QueryClientProvider client={queryClient}&gt;
+    &lt;App /&gt;
+    &lt;ReactQueryDevtools initialIsOpen={false} /&gt;
+  &lt;/QueryClientProvider&gt;
+);</code></pre>
+<h3 id="usequery-reading-data">useQuery: reading data</h3>
+<pre><code class="language-jsx">import { useQuery } from "@tanstack/react-query";
+
+function Courses({ level }) {
+  const { data, isPending, isError, error, isFetching, refetch } = useQuery({
+    queryKey: ["courses", { level }],                        // cache key: refetches when it changes
+    queryFn: ({ signal }) =&gt; api(`/courses?level=${level}`, { signal }),
+    staleTime: 5 * 60 * 1000,
+  });
+
+  if (isPending) return &lt;Skeleton /&gt;;
+  if (isError) return &lt;p role="alert"&gt;{error.message} &lt;button onClick={() =&gt; refetch()}&gt;Retry&lt;/button&gt;&lt;/p&gt;;
+
+  return (
+    &lt;&gt;
+      {isFetching &amp;&amp; &lt;small&gt;Updating…&lt;/small&gt;}
+      &lt;ul&gt;{data.map(c =&gt; &lt;li key={c.id}&gt;{c.title}&lt;/li&gt;)}&lt;/ul&gt;
+    &lt;/&gt;
+  );
+}</code></pre>
+<h3 id="key-concepts">Key concepts</h3>
+<div class="table-wrap"><table><thead><tr><th>Concept</th><th>Meaning</th></tr></thead><tbody><tr><td><strong>Query key</strong></td><td>Array that uniquely identifies the data; include every variable the fetch depends on</td></tr><tr><td><strong><code>staleTime</code></strong></td><td>How long data counts as fresh (no refetch). Default <code>0</code></td></tr><tr><td><strong><code>gcTime</code></strong></td><td>How long unused cache is kept (default 5 min; was <code>cacheTime</code>)</td></tr><tr><td><code>isPending</code></td><td>No data yet (replaced <code>isLoading</code> for first load in v5)</td></tr><tr><td><code>isFetching</code></td><td>A request is in flight (including background refetch)</td></tr><tr><td><strong>Background refetch</strong></td><td>Stale data is shown instantly while fresh data loads, on mount, window focus and reconnect</td></tr><tr><td><strong>Deduplication</strong></td><td>Many components with the same key share one request</td></tr></tbody></table></div>
+<h3 id="dependent-and-conditional-queries">Dependent and conditional queries</h3>
+<pre><code class="language-jsx">const { data: user } = useQuery({ queryKey: ["user"], queryFn: fetchUser });
+const { data: courses } = useQuery({
+  queryKey: ["courses", user?.id],
+  queryFn: () =&gt; fetchCoursesFor(user.id),
+  enabled: !!user,                                          // wait until user exists
+});</code></pre>
+<h3 id="reusable-query-options">Reusable query options</h3>
+<pre><code class="language-js">export const courseQuery = (id) =&gt; queryOptions({
+  queryKey: ["courses", id],
+  queryFn: ({ signal }) =&gt; api(`/courses/${id}`, { signal }),
+});
+useQuery(courseQuery(5));
+queryClient.prefetchQuery(courseQuery(5));</code></pre>
+<h3 id="usemutation-changing-data">useMutation: changing data</h3>
+<pre><code class="language-jsx">import { useMutation, useQueryClient } from "@tanstack/react-query";
+
+function AddCourse() {
+  const queryClient = useQueryClient();
+
+  const mutation = useMutation({
+    mutationFn: (newCourse) =&gt; api("/courses", { method: "POST", body: newCourse }),
+    onSuccess: () =&gt; queryClient.invalidateQueries({ queryKey: ["courses"] }),   // refetch lists
+    onError: (err) =&gt; toast.error(err.message),
+  });
+
+  return (
+    &lt;form action={(fd) =&gt; mutation.mutate({ title: fd.get("title") })}&gt;
+      &lt;input name="title" /&gt;
+      &lt;button disabled={mutation.isPending}&gt;{mutation.isPending ? "Saving…" : "Add"}&lt;/button&gt;
+      {mutation.isError &amp;&amp; &lt;p role="alert"&gt;{mutation.error.message}&lt;/p&gt;}
+    &lt;/form&gt;
+  );
+}</code></pre>
+<p><code>mutate(vars)</code> fires and forgets; <code>mutateAsync(vars)</code> returns a promise you can <code>await</code>.</p>
+<h3 id="optimistic-updates">Optimistic updates</h3>
+<pre><code class="language-jsx">const toggleDone = useMutation({
+  mutationFn: (todo) =&gt; api(`/todos/${todo.id}`, { method: "PATCH", body: { done: !todo.done } }),
+  onMutate: async (todo) =&gt; {
+    await queryClient.cancelQueries({ queryKey: ["todos"] });
+    const previous = queryClient.getQueryData(["todos"]);
+    queryClient.setQueryData(["todos"], old =&gt; old.map(t =&gt; t.id === todo.id ? { ...t, done: !t.done } : t));
+    return { previous };                                     // context for rollback
+  },
+  onError: (_err, _todo, ctx) =&gt; queryClient.setQueryData(["todos"], ctx.previous),
+  onSettled: () =&gt; queryClient.invalidateQueries({ queryKey: ["todos"] }),
+});</code></pre>
+<p>(React 19's <code>useOptimistic</code> offers a simpler local alternative for UI-only optimism.)</p>
+<h3 id="pagination-and-infinite-scroll">Pagination and infinite scroll</h3>
+<pre><code class="language-jsx">// Page-based
+const { data, isPlaceholderData } = useQuery({
+  queryKey: ["courses", page],
+  queryFn: () =&gt; api(`/courses?page=${page}`),
+  placeholderData: keepPreviousData,                         // no flicker between pages
+});
+
+// Infinite scroll
+const { data, fetchNextPage, hasNextPage, isFetchingNextPage } = useInfiniteQuery({
+  queryKey: ["feed"],
+  queryFn: ({ pageParam }) =&gt; api(`/feed?cursor=${pageParam}`),
+  initialPageParam: 0,
+  getNextPageParam: (last) =&gt; last.nextCursor,
+});</code></pre>
+<h3 id="suspense-mode">Suspense mode</h3>
+<pre><code class="language-jsx">const { data } = useSuspenseQuery(courseQuery(id));         // data is always defined; wrap in &lt;Suspense&gt; + ErrorBoundary</code></pre>
+<h3 id="cache-utilities">Cache utilities</h3>
+<pre><code class="language-js">queryClient.invalidateQueries({ queryKey: ["courses"] });   // mark stale + refetch active
+queryClient.setQueryData(["courses", id], updated);
+queryClient.getQueryData(["courses", id]);
+queryClient.removeQueries({ queryKey: ["session"] });       // on logout
+queryClient.prefetchQuery(courseQuery(id));                 // warm cache on hover</code></pre>
+<h2 id="fetching-with-use-and-suspense-react-19"><span class="num">06</span>Fetching with <code>use()</code> and Suspense (React 19)</h2>
+<pre><code class="language-jsx">function CoursePage({ id }) {
+  const promise = useMemo(() =&gt; fetchCourse(id), [id]);     // stable promise (or from a cache/library/Server Component)
+  return (
+    &lt;Suspense fallback={&lt;Skeleton /&gt;}&gt;
+      &lt;Course promise={promise} /&gt;
+    &lt;/Suspense&gt;
+  );
+}
+function Course({ promise }) {
+  const course = use(promise);
+  return &lt;h1&gt;{course.title}&lt;/h1&gt;;
+}</code></pre>
+<p>For production use a library or framework loader so promises are cached properly.</p>
+<h2 id="loading-error-and-empty-states"><span class="num">07</span>Loading, Error and Empty States</h2>
+<p>Always design all four states:</p>
+<pre><code class="language-jsx">if (isPending) return &lt;Skeleton /&gt;;                    // loading
+if (isError) return &lt;ErrorState onRetry={refetch} /&gt;;  // error
+if (data.length === 0) return &lt;EmptyState /&gt;;          // empty
+return &lt;List items={data} /&gt;;                          // success</code></pre>
+<ul><li>Prefer <strong>skeletons</strong> over spinners for content areas</li><li>Show stale data while refreshing (<code>isFetching</code> indicator)</li><li>Give errors a retry action and a human message</li></ul>
+<h2 id="authentication-with-apis"><span class="num">08</span>Authentication with APIs</h2>
+<div class="table-wrap"><table><thead><tr><th>Approach</th><th>Notes</th></tr></thead><tbody><tr><td><strong>HTTP-only cookie session</strong></td><td>Safest for browsers; send with <code>credentials: "include"</code>; needs CSRF protection</td></tr><tr><td><strong>JWT in memory + refresh cookie</strong></td><td>Keep access tokens out of <code>localStorage</code></td></tr><tr><td>JWT in <code>localStorage</code></td><td>Easy but exposed to XSS: avoid for sensitive apps</td></tr></tbody></table></div>
+<p>Handle <code>401</code> globally (redirect to login), refresh tokens in one place, and cancel requests on logout.</p>
+<h2 id="other-data-tools"><span class="num">09</span>Other Data Tools</h2>
+<div class="table-wrap"><table><thead><tr><th>Tool</th><th>Notes</th></tr></thead><tbody><tr><td><strong>SWR</strong></td><td>Lightweight (Vercel), <code>useSWR(key, fetcher)</code></td></tr><tr><td><strong>RTK Query</strong></td><td>Part of Redux Toolkit</td></tr><tr><td><strong>Apollo Client / urql</strong></td><td>GraphQL</td></tr><tr><td><strong>tRPC</strong></td><td>End-to-end typed APIs with TypeScript</td></tr><tr><td><strong>Supabase / Firebase SDKs</strong></td><td>Backend-as-a-service clients with realtime</td></tr></tbody></table></div>
+<h2 id="real-time-data"><span class="num">10</span>Real-time Data</h2>
+<ul><li><strong>WebSocket</strong> / <code>socket.io</code> for chat and live dashboards</li><li><strong>Server-Sent Events</strong> (<code>EventSource</code>) for one-way streams</li><li>Update the query cache from events: <code>queryClient.setQueryData(...)</code></li></ul>
+<h2 id="quick-recap"><span class="num">11</span>Quick Recap</h2>
+<ul><li>Check <code>res.ok</code> with <code>fetch</code>; centralise requests in an API client; keep secrets off the front end</li><li><strong>Server state</strong> (cached copy of remote data) needs different tooling than UI state</li><li><strong>TanStack Query</strong>: <code>useQuery</code> (keys, <code>staleTime</code>), <code>useMutation</code> + <code>invalidateQueries</code>, optimistic updates, pagination, Suspense</li><li>Always handle loading, error and empty states</li><li>Prefer cookie-based sessions or in-memory tokens over <code>localStorage</code> tokens</li></ul>
+    </article>
+    <nav class="pager" aria-label="Topic navigation">
+      <a class="prev" href="11-routing.html"><small>← Previous</small><strong>Routing with React Router</strong></a>
+      <a class="next" href="13-state-management.html"><small>Next →</small><strong>Global State Management</strong></a>
+    </nav>
+  </main>
+</div>
+</body>
+</html>
