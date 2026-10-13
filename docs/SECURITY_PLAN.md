@@ -13,7 +13,22 @@ Status: `[ ]` todo, `[~]` in progress, `[x]` done and proven live. Each fix is p
 
 ### P1: confidentiality
 - [x] **S4. Profiles.** DONE 2026-09-24 (migration 0021), proven live (10 checks): students now read only their own row, approved staff and managers, people they share a conversation with, and classmates who posted in their course. Other students and unapproved staff accounts are hidden. Full browser suite run after the change. Note: 21 unapproved staff accounts exist from test signups and should be cleaned up. Every logged-in user can read every email. Students should see only their own row plus staff names.
-- [ ] **S5. Seeded test accounts.** The seed scripts create or rely on `ava@student.edu`, `jamie@hanbeelms.edu` and `morgan@hanbeelms.edu` with passwords stored in the repo. Their current live rows cannot be confirmed from this checkout; check the project before deployment and rotate or remove any matches.
+- [ ] **S5. Seeded test accounts.** Audit found hardcoded seed credentials for `jamie@hanbeelms.edu` (`staff123`), `ava@student.edu` (`student123`) and `morgan@hanbeelms.edu` (`manager123`). `supabase/seed.mjs` creates each missing Auth user; it skips an existing email without changing its password. `supabase/tests/seed-demo.mjs` and `seed-demo-full.mjs` log in as Jamie (and Morgan in the full seed) and print/rely on these credentials; other `supabase/tests/rls/*.mjs` scripts rely on the seeded identities. `supabase/tests/cleanup-demo.mjs` names the accounts for optional deletion, and the Supabase READMEs document them. `supabase/migrations/0016_rls_audit_fixes.sql` and `0059_java_course.sql` also reference Ava. These are known seed passwords, not confirmation of current live passwords or live account existence. Check `auth.users` in the Supabase SQL Editor as `postgres` before deployment; do not remove local seed support as part of this finding:
+
+  ```sql
+  select wanted.email,
+         (u.id is not null) as exists_in_auth_users,
+         u.id,
+         u.created_at,
+         u.email_confirmed_at
+  from (values
+    ('ava@student.edu'),
+    ('jamie@hanbeelms.edu'),
+    ('morgan@hanbeelms.edu')
+  ) as wanted(email)
+  left join auth.users u on lower(u.email) = lower(wanted.email)
+  order by wanted.email;
+  ```
 - [ ] **S6. Rotate secrets** that were pasted into chat: database password, Gemini API key.
 - [ ] **S7. Public application form.** Add rate limit and CAPTCHA to `course_applications`.
 - [~] **S8. AI function origin and quota.** The Edge Function now uses an exact `ALLOWED_ORIGINS` allow-list; migration 0040 adds an atomic shared daily cap (`GEMINI_DAILY_REQUEST_LIMIT`, default 100), alongside the per-user hourly limit. Still configure the production origins and quota as Supabase secrets, apply migration 0040, and deploy the function.
@@ -22,9 +37,9 @@ Status: `[ ]` todo, `[~]` in progress, `[x]` done and proven live. Each fix is p
 
 ### P2: hardening
 - [ ] **S10. Auth settings.** Migration 0045 auto-confirms new email addresses; the frontend supports optional TOTP enrollment/sign-in, but no backend policy requires it for staff or managers. Password strength, CAPTCHA, auth throttling, and session lifetime are not configured in this repo and must be checked in Supabase Auth settings.
-- [ ] **S11. Audit log.** Append-only record of role changes, approvals, verifications, completions and certificate issues.
+- [x] **S11. Audit log.** DONE 2026-10-13, proven live. Migration 0024 creates the append-only `audit_log`; 0037 makes it immutable to clients and adds triggers for profile role/approval/account-status/solo changes, school status changes, and membership additions/ends. `log_audit()` calls also cover invitations, school verification/rejection and join-link rotation, plus account/school lifecycle, team/tournament, application and enrollment actions in later migrations. Migration 0075 adds `lesson_completed` and derived `course_completed` events from `lesson_completions` inserts, plus `certificate_issued` on certificate inserts. Applied to the live project; `trg_audit_lesson_completion` and `trg_audit_certificate_issued` confirmed present via `pg_trigger`.
 - [ ] **S12. Security tests in CI.** Turn the live impersonation checks into repeatable tests, including "every table has access rules". Needs the staging project.
-- [ ] **S13. Web security headers and clean-up.** CSP, HSTS, frame protection on the host; delete the dead `lib/api.ts` and `VITE_API_BASE_URL`.
+- [ ] **S13. Web security headers and clean-up.** `frontend/public/_headers` and `frontend/vercel.json` are absent; they are not Next.js configuration files in any case. `frontend/next.config.ts` has no `headers()` function, so CSP, HSTS and `X-Frame-Options` are not configured there. The frontend owner should decide the CSP policy and configure these headers in `frontend/next.config.ts` (or the actual deployment host configuration). The presumed dead `frontend/lib/api.ts` and `VITE_API_BASE_URL` are also absent from `frontend/`; no deletion is currently indicated.
 
 ## B. Types of security checking for this site
 
