@@ -3,12 +3,10 @@
 --      Function required) plus heartbeat/logout RPCs.
 --   2. Certificate issuance needs idempotency (one per user+course).
 --   3. Certificate verification is deliberately public/unauthenticated —
---      see backend/app/routers/certificates.py for the FastAPI prototype
---      this reproduces exactly.
+--      the certificate code is checked without requiring an account.
 
 -- ----------------------------------------------------------------------------
--- Effective attendance status, computed at read time — mirrors
--- backend/app/store.py's sweep_stale_sessions() logic without needing pg_cron.
+-- Effective attendance status is computed at read time without needing pg_cron.
 -- ----------------------------------------------------------------------------
 create view auto_attendance_sessions_effective as
 select

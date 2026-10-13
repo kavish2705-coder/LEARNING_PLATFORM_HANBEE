@@ -34,7 +34,7 @@ Post-login home per role: `ROLE_HOME` in `portal/paths.ts` (student `/student/rc
 - **Read-only for everyone:** `portal/kit/*`, `lib/portalApi.ts`, `lib/inviteMail.ts`, `lib/chatApi.ts`, `lib/tournamentPortalApi.ts`, `lib/AuthProvider.tsx`, `routes/ProtectedRoute.tsx`, `routes/router.tsx`, `portal/paths.ts`. If one is missing something, build a small helper inside your own folder and tell the lead in your report.
 - Existing `lib/*Api.ts` modules (`calendarApi`, `staffTasksApi`, `staffTimeApi`, `courseManagementApi`, `rosterApi`, `attendanceApi`, `holidaysApi`, `certificatesApi`, `coursesApi`, `coursesAdminApi`) may be extended only by the agent that needs them, additively (new functions or optional fields; never change an existing signature).
 - Do not edit migrations or `supabase/`. If the database is missing something, report it to the lead.
-- Do not touch payment logic. The apply step reuses `components/ui/ScanToPayCard.tsx` as is.
+- Payment QR UI is not represented by the documented `components/ui/ScanToPayCard.tsx` in this checkout; verify the current page implementation before relying on or reusing that component.
 
 ## Data modules (all typed, in `frontend/src/lib/`)
 
@@ -54,7 +54,7 @@ Announcements are read and written directly with the Supabase client on the `ann
 
 `PageHeader`, `Card`, `StatCard`, `EmptyState`, `LoadingBlock`, `ErrorBlock`, `Badge`, `StatusBadge` (maps statuses to tones), `Avatar`, `SlideSwitcher` and `SlidePanel` (the slide-style tab switch), `DataTable` (sortable, scrolls sideways inside its own box), `useAsync(load, deps)` (`{data, loading, error, reload}`), and formatters `formatDate`, `formatDateTime`, `formatTime`, `relativeTime`, `initials`.
 
-## Demo accounts (live database)
+## Demo account fixtures (live rows not verified)
 
 Created by `supabase/tests/seed-demo.mjs` through the real signup rules. Password for every `@hanbee.test` account: `Demo#12345`.
 
@@ -66,9 +66,13 @@ Created by `supabase/tests/seed-demo.mjs` through the real signup rules. Passwor
 | School owner, Sample Academy | `demo.owner2@hanbee.test` |
 | Students, Sample Academy (team Sample Speed, payment declared) | `demo.t1@hanbee.test`, `demo.t2@hanbee.test` |
 | Solo student | `demo.solo@hanbee.test` |
-| Hanbee staff | `jamie@hanbeelms.edu` / `staff123` |
-| Manager | `morgan@hanbeelms.edu` / `manager123` |
-| Older seeded student | `ava@student.edu` / `student123` |
+| Hanbee staff | `jamie@hanbeelms.edu` |
+| Manager | `morgan@hanbeelms.edu` |
+| Older seeded student | `ava@student.edu` |
+
+The seed scripts and security suites use test passwords for these accounts.
+Do not treat the accounts as production-ready; confirm whether live rows
+exist and rotate or remove them before deployment.
 
 Existing data: tournament "Hanbee RC Cup 2026" (about three weeks out), team Alpha Racers verified with a result, four demo students enrolled in the course "Intro to Design", one site-wide and one school-only announcement, an automatic student chat group per school. Rerun the seed any time; it reuses what exists.
 
