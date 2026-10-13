@@ -9,10 +9,10 @@ if (!supabaseUrl || !serviceRoleKey || !databaseUrl) {
   throw new Error("SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, and SUPABASE_DB_URL are required.");
 }
 
-const testUsers = [
-  { email: "info@hanbee.in", fullName: "CI Hanbee Staff", role: "staff" },
-  { email: "hanbeetechnology@gmail.com", fullName: "CI Manager", role: "manager" },
-];
+// Only one manager can ever exist (profiles_single_manager_idx, migration
+// 0048) and seed.mjs's morgan@hanbeelms.edu already claims that one-time
+// slot, so this only seeds a second staff identity, not a second manager.
+const testUsers = [{ email: "info@hanbee.in", fullName: "CI Hanbee Staff", role: "staff" }];
 
 const db = new pg.Client({
   connectionString: databaseUrl,
@@ -25,6 +25,13 @@ try {
   await db.connect();
 
   for (const user of testUsers) {
+    // handle_new_user only allows one manager ever (the one-time bootstrap,
+    // already claimed by seed.mjs's morgan@hanbeelms.edu) and has no invite
+    // path for role 'manager' at all — so signing up with role: "manager"
+    // here would hit the same invite-only fallback seed.mjs's student
+    // signup used to hit. Sign up as 'staff' (always allowed) and patch the
+    // real role via direct SQL below instead, same as this script already
+    // does for approved/account_status.
     const response = await fetch(`${supabaseUrl}/auth/v1/admin/users`, {
       method: "POST",
       headers: {
@@ -36,7 +43,7 @@ try {
         email: user.email,
         password: randomUUID(),
         email_confirm: true,
-        user_metadata: { full_name: user.fullName, role: user.role },
+        user_metadata: { full_name: user.fullName, role: "staff" },
       }),
     });
 

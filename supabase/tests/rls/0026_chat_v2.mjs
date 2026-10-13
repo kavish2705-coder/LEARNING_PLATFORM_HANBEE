@@ -1,7 +1,7 @@
 import { connect } from "./_db.mjs";
 const c = await connect();
 const id = async e => (await c.query("select id from profiles where email=$1",[e])).rows[0].id;
-const jamie=await id("jamie@hanbeelms.edu"), morgan=await id("morgan@hanbeelms.edu"), mgr2=await id("hanbeetechnology@gmail.com"), info=await id("info@hanbee.in");
+const jamie=await id("jamie@hanbeelms.edu"), morgan=await id("morgan@hanbeelms.edu"), info=await id("info@hanbee.in");
 let pass=0, fail=0; const check=(n,ok,x="")=>{(ok?pass++:fail++);console.log(ok?"PASS":"FAIL",n,ok?"":x)};
 const asUser = async (u) => { await c.query("reset role"); await c.query("set local role authenticated"); await c.query("select set_config('request.jwt.claims',$1,true)",[JSON.stringify({sub:u,role:"authenticated"})]); };
 const asOwner = async () => { await c.query("reset role"); await c.query("select set_config('request.jwt.claims','',true)"); };
@@ -59,9 +59,9 @@ check("staff join as admin, students as member", m.t==="admin" && m.s==="member"
 check("solo student is in no group", (await one("select count(*)::int n from conversation_participants where user_id=$1",[solo])).n===0);
 
 // ---- contact matrix
-const N = {ownerA,ownerB,sA1,sA2,sB1,teacherA,solo,hs2,jamie,morgan,mgr2,info};
+const N = {ownerA,ownerB,sA1,sA2,sB1,teacherA,solo,hs2,jamie,morgan,info};
 const names = Object.fromEntries(Object.entries(N).map(([k,v])=>[v,k]));
-const allowed = [[sA1,ownerA],[sA1,teacherA],[sA1,hs2],[solo,hs2],[teacherA,sA1],[teacherA,sA2],[teacherA,ownerA],[teacherA,jamie],[teacherA,morgan],[ownerA,sA1],[ownerA,jamie],[ownerA,morgan],[hs2,sA1],[hs2,ownerA],[hs2,jamie],[hs2,morgan],[hs2,solo],[jamie,ownerA],[jamie,hs2],[jamie,morgan],[morgan,sA1],[morgan,solo],[morgan,ownerB],[morgan,teacherA],[morgan,mgr2],[ownerB,jamie],[sB1,ownerB]];
+const allowed = [[sA1,ownerA],[sA1,teacherA],[sA1,hs2],[solo,hs2],[teacherA,sA1],[teacherA,sA2],[teacherA,ownerA],[teacherA,jamie],[teacherA,morgan],[ownerA,sA1],[ownerA,jamie],[ownerA,morgan],[hs2,sA1],[hs2,ownerA],[hs2,jamie],[hs2,morgan],[hs2,solo],[jamie,ownerA],[jamie,hs2],[jamie,morgan],[morgan,sA1],[morgan,solo],[morgan,ownerB],[morgan,teacherA],[ownerB,jamie],[sB1,ownerB]];
 const refused = [[sA1,sA2],[sA1,sB1],[sA1,ownerB],[sA1,jamie],[sA1,morgan],[sA1,solo],[sA1,info],[sB1,hs2],[sB1,ownerA],[solo,jamie],[solo,ownerA],[solo,sA1],[solo,morgan],[teacherA,sB1],[teacherA,ownerB],[ownerA,sB1],[ownerA,ownerB],[ownerA,solo],[jamie,sA1],[jamie,teacherA],[jamie,solo],[jamie,sB1],[hs2,teacherA],[hs2,sB1],[hs2,sA2],[sA2,hs2],[sA1,sA1]];
 let bad=[];
 // refused first: an allowed pair creates a chat, which legitimately lets the other side reply
@@ -85,10 +85,10 @@ const setEq = (s, arr)=> s.size===arr.length && arr.every(x=>s.has(x));
 let cs = await contactsOf(sA1); check("student contacts: school owner, school staff, own-course Hanbee staff only", setEq(cs,["ownerA","teacherA","hs2"]), [...cs].join());
 cs = await contactsOf(solo); check("solo student contacts: course owner only", setEq(cs,["hs2"]), [...cs].join());
 cs = await contactsOf(sB1); check("student with dropped enrollment: only own school staff", setEq(cs,["ownerB"]), [...cs].join());
-cs = await contactsOf(teacherA); check("school staff contacts: own school + all Hanbee staff + managers, nobody from school B", ["ownerA","sA1","sA2","jamie","hs2","info","morgan","mgr2"].every(x=>cs.has(x)) && !["ownerB","sB1"].some(x=>cs.has(x)) && !cs.has("solo"), [...cs].join());
-cs = await contactsOf(hs2); { const exp=["sA1","solo","ownerA","ownerB","jamie","info","morgan","mgr2"]; const forb=Object.values(names).filter(n=>!exp.includes(n)); check("Hanbee staff contacts: own course students, school owners, staff, managers", exp.every(x=>cs.has(x)) && !forb.some(x=>cs.has(x)), [...cs].join()); }
+cs = await contactsOf(teacherA); check("school staff contacts: own school + all Hanbee staff + managers, nobody from school B", ["ownerA","sA1","sA2","jamie","hs2","info","morgan"].every(x=>cs.has(x)) && !["ownerB","sB1"].some(x=>cs.has(x)) && !cs.has("solo"), [...cs].join());
+cs = await contactsOf(hs2); { const exp=["sA1","solo","ownerA","ownerB","jamie","info","morgan"]; const forb=Object.values(names).filter(n=>!exp.includes(n)); check("Hanbee staff contacts: own course students, school owners, staff, managers", exp.every(x=>cs.has(x)) && !forb.some(x=>cs.has(x)), [...cs].join()); }
 cs = await contactsOf(jamie); check("Hanbee staff without students sees no students or non-owner school staff", !["sA1","sA2","sB1","solo","teacherA"].some(x=>cs.has(x)) && cs.has("ownerA") && cs.has("hs2"), [...cs].join());
-await asUser(morgan); const mc = (await c.query("select relation from chat_contacts()")).rows; check("manager contacts: everyone active", mc.length >= 11, String(mc.length));
+await asUser(morgan); const mc = (await c.query("select relation from chat_contacts()")).rows; check("manager contacts: everyone active", mc.length >= 10, String(mc.length));
 await asUser(sA1); const rel = (await c.query("select relation, org_name from chat_contacts() order by relation")).rows; check("contacts carry relation and school name", rel.some(r=>r.relation==="school_staff"&&r.org_name==="Alpha")&&rel.some(r=>r.relation==="instructor"), JSON.stringify(rel));
 
 // ---- direct chat behaviour, no 3-way matching
@@ -179,7 +179,7 @@ await asUser(sA2); r = await tryq("select start_conversation_with($1)",[teacherA
 
 // ---- pinned manager chats
 await asOwner();
-bad=[]; for (const mg of [morgan, mgr2]) for (const t of [ownerA, ownerB, jamie, info, hs2]) { const d = await one("select chat_direct_between($1,$2) v",[mg,t]); if(!d.v) bad.push(names[mg]+"-"+names[t]); }
+bad=[]; for (const mg of [morgan]) for (const t of [ownerA, ownerB, jamie, info, hs2]) { const d = await one("select chat_direct_between($1,$2) v",[mg,t]); if(!d.v) bad.push(names[mg]+"-"+names[t]); }
 check("every manager has a pinned chat with every owner and Hanbee staff", bad.length===0, bad.join());
 await asUser(morgan); conv = (await c.query("select * from chat_conversations() where kind='direct'")).rows; check("pinned chats appear in the manager's list before any message", conv.length>=5 && conv.every(x=>x.last_at===null||true), String(conv.length));
 await asOwner(); const pre = (await one("select count(*)::int n from conversations where kind='direct'")).n; await c.query("select provision_manager_chats()"); check("provision_manager_chats is idempotent", (await one("select count(*)::int n from conversations where kind='direct'")).n===pre);

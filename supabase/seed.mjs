@@ -47,10 +47,36 @@ async function upsertAuthUser(email, password, fullName, role) {
   return data.user.id;
 }
 
+async function upsertStudentAuthUser(email, password, fullName, invitedBy) {
+  const { data: existing } = await admin.auth.admin.listUsers();
+  const found = existing.users.find((u) => u.email === email);
+  if (found) return found.id;
+
+  // Since migration 0024, handle_new_user only allows a brand-new student
+  // signup via a real invite_token (there's no direct self-signup branch
+  // for role 'student') — so a fresh student seed has to create a real
+  // invitation first, the same way the app's own invite flow would.
+  const { data: invitation, error: inviteError } = await admin
+    .from("invitations")
+    .insert({ email, role: "student", invited_by: invitedBy })
+    .select("token")
+    .single();
+  if (inviteError) throw new Error(`insert into invitations failed: ${inviteError.message}`);
+
+  const { data, error } = await admin.auth.admin.createUser({
+    email,
+    password,
+    email_confirm: true,
+    user_metadata: { full_name: fullName, role: "student", invite_token: invitation.token },
+  });
+  if (error) throw error;
+  return data.user.id;
+}
+
 async function main() {
   console.log("Creating demo accounts...");
   const staffId = await upsertAuthUser("jamie@hanbeelms.edu", "staff123", "Jamie Rivera", "staff");
-  const studentId = await upsertAuthUser("ava@student.edu", "student123", "Ava Chen", "student");
+  const studentId = await upsertStudentAuthUser("ava@student.edu", "student123", "Ava Chen", staffId);
   const managerId = await upsertAuthUser("morgan@hanbeelms.edu", "manager123", "Morgan Ellis", "manager");
   // The handle_new_user trigger creates the profiles row automatically.
 
