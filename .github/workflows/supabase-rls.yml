@@ -48,6 +48,13 @@ jobs:
           npm --prefix supabase run seed
           node supabase/tests/seed-ci.mjs
 
+      - name: Dump Postgres/auth logs on failure
+        if: failure()
+        run: |
+          supabase status
+          docker logs supabase_auth_hanbeelms-supabase-seed 2>&1 | tail -200 || docker ps -a
+          docker logs supabase_db_hanbeelms-supabase-seed 2>&1 | tail -200 || true
+
       - name: Run all RLS suites
         shell: bash
         run: |
