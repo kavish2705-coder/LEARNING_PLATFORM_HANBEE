@@ -69,26 +69,44 @@
 }
 
 .streakPill {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 10px;
-  background: linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(239, 68, 68, 0.15) 100%);
+  gap: 8px;
+  background: var(--bg-surface-elevated);
   border: 1px solid rgba(245, 158, 11, 0.35);
-  padding: 10px 20px;
+  padding: 8px 16px;
   border-radius: 999px;
-  color: #fbbf24;
+  color: var(--text-main);
   font-weight: 600;
-  font-size: 14px;
-  box-shadow: 0 0 20px rgba(245, 158, 11, 0.2);
+  font-size: 13px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+  transition: all 0.25s ease;
+}
+
+.streakPill:hover {
+  border-color: rgba(245, 158, 11, 0.6);
+  box-shadow: 0 4px 18px rgba(245, 158, 11, 0.2);
 }
 
 .streakFlame {
+  color: #f59e0b;
   animation: pulseFlame 1.8s ease-in-out infinite alternate;
 }
 
+.streakBonusTag {
+  font-size: 11px;
+  background: rgba(245, 158, 11, 0.15);
+  color: #fbbf24;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  padding: 2px 7px;
+  border-radius: 999px;
+  font-family: monospace;
+  font-weight: 700;
+}
+
 @keyframes pulseFlame {
-  0% { transform: scale(1); filter: drop-shadow(0 0 4px #f59e0b); }
-  100% { transform: scale(1.18); filter: drop-shadow(0 0 10px #ef4444); }
+  0% { transform: scale(1); filter: drop-shadow(0 0 3px #f59e0b); }
+  100% { transform: scale(1.15); filter: drop-shadow(0 0 8px #f59e0b); }
 }
 
 .licenseNavBtn {
@@ -535,25 +553,35 @@
 /* CTA Row */
 .countdownActions {
   display: flex;
-  gap: 14px;
+  gap: 12px;
   margin-top: auto;
+  flex-wrap: wrap;
 }
 
-.paddockBtn {
-  flex: 1;
-  display: flex;
+.paddockBtn,
+.licenseActionBtn,
+.gridBtn {
+  flex: 1 1 170px;
+  min-width: 0;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
+  padding: 12px 18px;
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 13px;
+  text-decoration: none;
+  text-align: center;
+  white-space: nowrap;
+  box-sizing: border-box;
+  transition: all 0.25s ease;
+}
+
+.paddockBtn {
   background: var(--color-primary);
   color: var(--color-primary-text);
-  font-weight: 600;
-  font-size: 14px;
-  padding: 12px 20px;
-  border-radius: 999px;
-  text-decoration: none;
   box-shadow: var(--clay-shadow-button), var(--accent-glow);
-  transition: all 0.3s ease;
 }
 
 .paddockBtn:hover {
@@ -564,20 +592,10 @@
 }
 
 .licenseActionBtn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
   background: var(--accent-subtle-bg);
   border: 1px solid var(--accent-subtle-border);
   color: var(--accent-subtle-text);
-  font-weight: 600;
-  font-size: 14px;
-  padding: 12px 20px;
-  border-radius: 999px;
-  text-decoration: none;
   box-shadow: var(--clay-shadow-subtle);
-  transition: all 0.3s ease;
 }
 
 .licenseActionBtn:hover {
@@ -589,25 +607,34 @@
 }
 
 .gridBtn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
   background: var(--btn-secondary-bg);
   border: 1px solid var(--btn-secondary-border);
   color: var(--btn-secondary-text);
-  font-weight: 500;
-  font-size: 14px;
-  padding: 12px 20px;
-  border-radius: 999px;
-  text-decoration: none;
-  transition: all 0.3s ease;
+  box-shadow: var(--clay-shadow-subtle);
 }
 
 .gridBtn:hover {
   background: var(--btn-secondary-hover);
   border-color: var(--btn-secondary-border);
   color: var(--btn-secondary-text);
+  transform: translateY(-2px);
+}
+
+@media (max-width: 768px) {
+  .countdownActions {
+    flex-direction: column;
+    width: 100%;
+    gap: 10px;
+  }
+
+  .paddockBtn,
+  .licenseActionBtn,
+  .gridBtn {
+    width: 100%;
+    flex: none;
+    white-space: normal;
+    padding: 12px 16px;
+  }
 }
 
 /* ===== Second Section: Car Telemetry & Bounties ===== */
@@ -1362,9 +1389,9 @@
 }
 
 .statusTuning {
-  background: rgba(245, 158, 11, 0.15);
-  color: #fbbf24;
-  border: 1px solid rgba(245, 158, 11, 0.3);
+  background: rgba(245, 158, 11, 0.12);
+  color: #f59e0b;
+  border: 1px solid rgba(245, 158, 11, 0.28);
 }
 
 .statusPaddock {
@@ -1380,4 +1407,264 @@
   color: var(--accent-subtle-text);
   text-align: right;
 }
+
+/* ===== Section Grouping & Information Hierarchy ===== */
+.sectionHeaderWrap {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 12px;
+  margin-bottom: -12px;
+  padding: 0 4px;
+}
+
+.sectionHeaderLeft {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.sectionCategoryTag {
+  font-family: monospace;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: var(--accent-subtle-text);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.sectionGroupTitle {
+  font-family: var(--font-heading);
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text-main);
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+.sectionStatusPill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.paddockClearedPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  color: #10b981;
+  font-size: 11px;
+  font-weight: 700;
+  font-family: monospace;
+  padding: 5px 12px;
+  border-radius: 999px;
+  letter-spacing: 0.5px;
+}
+
+.paddockActionPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(245, 158, 11, 0.12);
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  color: #f59e0b;
+  font-size: 11px;
+  font-weight: 700;
+  font-family: monospace;
+  padding: 5px 12px;
+  border-radius: 999px;
+  letter-spacing: 0.5px;
+}
+
+.officialBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  color: #10b981;
+  font-family: monospace;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: 6px;
+}
+
+.localSimNotice {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  color: var(--text-muted);
+  font-family: monospace;
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--border-elevated);
+  padding: 3px 9px;
+  border-radius: 6px;
+}
+
+/* ===== Benchmark Notice (Transparency for 7 simulated teams) ===== */
+.benchmarkNotice {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(8, 145, 178, 0.08);
+  border: 1px solid rgba(125, 211, 232, 0.25);
+  border-radius: 14px;
+  padding: 10px 16px;
+  font-size: 12px;
+  color: var(--text-muted);
+  flex-wrap: wrap;
+}
+
+.simBadge {
+  background: rgba(8, 145, 178, 0.22);
+  color: #7dd3e8;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-weight: 700;
+  font-family: monospace;
+  font-size: 10px;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+
+.simNoticeText {
+  flex: 1;
+  min-width: 200px;
+  line-height: 1.4;
+}
+
+.simSquadTag {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-muted);
+  font-family: monospace;
+  font-size: 9px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+  letter-spacing: 0.5px;
+}
+
+.mobileSwipeHint {
+  display: none;
+  font-size: 11px;
+  color: var(--text-muted);
+  font-family: monospace;
+  text-align: right;
+  margin-bottom: 6px;
+}
+
+/* Action-oriented Workstation Border */
+.activeWorkshopCard {
+  border-color: rgba(8, 145, 178, 0.35) !important;
+  box-shadow: 0 0 24px -6px rgba(8, 145, 178, 0.18), var(--clay-shadow-outer) !important;
+}
+
+/* ===== Mobile & 390px Breakpoints ===== */
+@media (max-width: 768px) {
+  .hubHeader {
+    padding: 18px 16px;
+    gap: 12px;
+  }
+
+  .grandPrixCard {
+    padding: 20px 16px;
+  }
+
+  .eventTitle {
+    font-size: 20px;
+  }
+
+  .f1Gantry {
+    padding: 10px 16px;
+    gap: 10px;
+    margin-bottom: 18px;
+  }
+
+  .f1LightHousing {
+    width: 20px;
+    height: 20px;
+  }
+
+  .f1LightRed {
+    width: 12px;
+    height: 12px;
+  }
+
+  .countdownGrid {
+    gap: 8px;
+    margin-bottom: 18px;
+  }
+
+  .countdownBox {
+    padding: 10px 4px;
+  }
+
+  .countdownDigit {
+    font-size: 20px;
+  }
+
+  .countdownUnit {
+    font-size: 9px;
+  }
+
+  .telemetryCard,
+  .bountiesCard,
+  .standingsSection {
+    padding: 20px 16px;
+  }
+
+  .mobileSwipeHint {
+    display: block;
+  }
+
+  .standingsTable {
+    min-width: 650px;
+  }
+
+  .standingsTableContainer {
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+@media (max-width: 480px) {
+  .hubHeader {
+    padding: 14px 12px;
+  }
+
+  .grandPrixCard {
+    padding: 16px 12px;
+  }
+
+  .eventMeta {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .podiumCard {
+    padding: 14px 12px;
+  }
+
+  .podiumRank {
+    font-size: 22px;
+    width: 36px;
+    height: 36px;
+  }
+
+  .streakPill {
+    padding: 6px 12px;
+    font-size: 12px;
+  }
+}
+
 

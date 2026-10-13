@@ -448,9 +448,14 @@ export default function TournamentOverview() {
       {/* ===== Hub Header ===== */}
       <header className={styles.hubHeader}>
         <div className={styles.hubHeaderLeft}>
-          <div className={styles.seasonBadge}>
-            <Trophy size={13} />
-            Season 2026 // Cup Series
+          <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
+            <div className={styles.seasonBadge}>
+              <Trophy size={13} />
+              Season 2026 // Cup Series
+            </div>
+            <span className={styles.officialBadge}>
+              <ShieldCheck size={11} /> Official Event
+            </span>
           </div>
           <h1 className={styles.hubTitle}>
             Tournament Track Hub
@@ -460,25 +465,30 @@ export default function TournamentOverview() {
           </p>
         </div>
 
-        <div style={{ display: "flex", alignItems: "center", gap: "12px", flexWrap: "wrap" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
           <Link href="/dashboard/license" className={styles.licenseNavBtn}>
-            <IdCard size={16} />
+            <IdCard size={15} />
             <span>Driver License</span>
           </Link>
           <div className={styles.streakPill}>
-            <Flame size={18} className={styles.streakFlame} />
+            <Flame size={16} className={styles.streakFlame} />
             <span>4-Day Practice Streak</span>
-            <span style={{ fontSize: "11px", opacity: 0.85 }}>+20% RP</span>
+            <span className={styles.streakBonusTag}>+20% RP</span>
           </div>
         </div>
       </header>
 
-      {/* ===== Grand Prix Race Countdown & F1 Start Lights ===== */}
+      {/* ===== Zone 01: Grand Prix Race Countdown & F1 Start Lights ===== */}
       <div className={styles.grandPrixCard}>
         <div>
           <div className={styles.eventMeta}>
             <div>
-              <span className={styles.seasonBadge}>NEXT RACE</span>
+              <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "6px" }}>
+                <span className={styles.seasonBadge}>NEXT RACE</span>
+                <span className={styles.officialBadge}>
+                  <ShieldCheck size={11} /> Verified Schedule
+                </span>
+              </div>
               <h2 className={styles.eventTitle}>
                 {tournament?.title || "Hanbee RC Cup Autumn Race"}
               </h2>
@@ -488,7 +498,7 @@ export default function TournamentOverview() {
               </div>
             </div>
 
-            <div style={{ textAlign: "right", fontFamily: "monospace", fontSize: "12px", color: "var(--text-muted)" }}>
+            <div style={{ fontFamily: "monospace", fontSize: "12px", color: "var(--text-muted)" }}>
               <div><CalendarDays size={13} style={{ display: "inline", marginRight: 4 }} /> Oct 24, 2026</div>
               <div>10:00 AM IST</div>
             </div>
@@ -529,25 +539,47 @@ export default function TournamentOverview() {
 
         <div className={styles.countdownActions}>
           <Link href="/dashboard/license" className={styles.licenseActionBtn}>
-            <IdCard size={16} />
+            <IdCard size={15} />
             <span>Driver License</span>
           </Link>
           <Link href={teamHref} className={styles.paddockBtn}>
-            <Users size={16} />
+            <Users size={15} />
             <span>{team ? "Manage Race Team" : "Register Race Team"}</span>
           </Link>
           <Link href="/dashboard/leaderboard" className={styles.gridBtn}>
-            <Flag size={16} />
+            <Flag size={15} />
             <span>Live Grid Standings</span>
           </Link>
+        </div>
+      </div>
+
+      {/* ===== Zone 02: Interactive Pit Bay (Actionable Workstation) ===== */}
+      <div className={styles.sectionHeaderWrap}>
+        <div className={styles.sectionHeaderLeft}>
+          <span className={styles.sectionCategoryTag}>
+            <Wrench size={12} />
+            ZONE 02 // PIT LANE WORKSHOP
+          </span>
+          <h3 className={styles.sectionGroupTitle}>Manual Hardware Inspection & Practice Drills</h3>
+        </div>
+        <div className={styles.sectionStatusPill}>
+          {passedCount === 6 ? (
+            <span className={styles.paddockClearedPill}>
+              <CheckCircle2 size={13} /> PADDOCK CLEARED FOR TRACK
+            </span>
+          ) : (
+            <span className={styles.paddockActionPill}>
+              <Wrench size={13} /> {6 - passedCount} CHECKS REQUIRED BEFORE RACE
+            </span>
+          )}
         </div>
       </div>
 
       {/* ===== Middle Grid: Telemetry Readiness & Daily Bounties ===== */}
       <div className={styles.middleGrid}>
 
-        {/* RC Car Pre-Race Hardware Inspection */}
-        <div className={styles.telemetryCard}>
+        {/* RC Car Pre-Race Hardware Inspection (Active Workstation) */}
+        <div className={`${styles.telemetryCard} ${styles.activeWorkshopCard}`}>
           <div className={styles.cardHeaderTitle}>
             <div className={styles.telemetryHeading}>
               <Wrench size={18} color="#7dd3e8" />
@@ -663,8 +695,8 @@ export default function TournamentOverview() {
               <Zap size={18} color="#f59e0b" />
               <span>Pit-Stop Bounties & Quests</span>
             </div>
-            <span style={{ fontSize: "12px", color: "#fbbf24", fontWeight: 600 }}>
-              Earn Race Points (RP)
+            <span className={styles.localSimNotice}>
+              <Activity size={11} /> Practice Simulator XP
             </span>
           </div>
 
@@ -737,8 +769,8 @@ export default function TournamentOverview() {
             <Sparkles size={18} color="#10b981" />
             <span>Quick Pit Tasks & Practice Drills</span>
           </div>
-          <span style={{ fontSize: "12px", color: "#10b981", fontWeight: 600 }}>
-            Click to Complete & Earn Live XP
+          <span className={styles.localSimNotice}>
+            <Zap size={11} /> Click to Complete • Local Points
           </span>
         </div>
 
@@ -791,17 +823,36 @@ export default function TournamentOverview() {
         </div>
       </div>
 
+      {/* ===== Zone 03: Championship Telemetry & Benchmark Standings ===== */}
+      <div className={styles.sectionHeaderWrap}>
+        <div className={styles.sectionHeaderLeft}>
+          <span className={styles.sectionCategoryTag}>
+            <Flag size={12} />
+            ZONE 03 // CHAMPIONSHIP TELEMETRY
+          </span>
+          <h3 className={styles.sectionGroupTitle}>Championship Standings & Benchmark Grid</h3>
+        </div>
+      </div>
+
       {/* ===== Bottom Section: Podium, Rivalry & Live Grid Standings ===== */}
       <section className={styles.standingsSection}>
         <div className={styles.cardHeaderTitle}>
           <div className={styles.hubTitle} style={{ fontSize: "20px" }}>
             <Award size={22} color="#fbbf24" />
-            <span>Live Grid Standings & Top 3 Podium</span>
+            <span>Active Grid Standings & Top 3 Podium</span>
           </div>
           <Link href="/dashboard/leaderboard" style={{ fontSize: "13px", color: "var(--accent-subtle-text)", textDecoration: "none", display: "flex", alignItems: "center", gap: 4 }}>
-            <span>Full Standings (8 Active Teams)</span>
+            <span>Full Standings (8 Teams)</span>
             <ChevronRight size={14} />
           </Link>
+        </div>
+
+        {/* Benchmark Notice Banner (Transparency for simulated vs live teams) */}
+        <div className={styles.benchmarkNotice}>
+          <span className={styles.simBadge}>SIMULATED BENCHMARK GRID</span>
+          <span className={styles.simNoticeText}>
+            7 rival squads are simulated AI benchmark targets for telemetry testing. Your squad (<strong>{teamName}</strong>) telemetry is live.
+          </span>
         </div>
 
         {/* 3D-styled Dynamic Podium */}
@@ -814,7 +865,14 @@ export default function TournamentOverview() {
           >
             <div className={`${styles.podiumRank} ${styles.podiumRankGold}`}>1</div>
             <div className={styles.podiumDetails}>
-              <h4>{allRankedTeams[0].name} {allRankedTeams[0].isUserTeam && "★"}</h4>
+              <h4>
+                {allRankedTeams[0].name}
+                {allRankedTeams[0].isUserTeam ? (
+                  <span className={styles.userSquadTag} style={{ marginLeft: 6 }}>YOUR SQUAD</span>
+                ) : (
+                  <span className={styles.simSquadTag} style={{ marginLeft: 6 }}>BENCHMARK</span>
+                )}
+              </h4>
               <p>{allRankedTeams[0].school} • {allRankedTeams[0].car}</p>
             </div>
             <div className={styles.podiumPts} style={{ color: "#fbbf24" }}>{allRankedTeams[0].points.toLocaleString()} pts</div>
@@ -828,7 +886,14 @@ export default function TournamentOverview() {
           >
             <div className={`${styles.podiumRank} ${styles.podiumRankSilver}`}>2</div>
             <div className={styles.podiumDetails}>
-              <h4>{allRankedTeams[1].name} {allRankedTeams[1].isUserTeam && "★"}</h4>
+              <h4>
+                {allRankedTeams[1].name}
+                {allRankedTeams[1].isUserTeam ? (
+                  <span className={styles.userSquadTag} style={{ marginLeft: 6 }}>YOUR SQUAD</span>
+                ) : (
+                  <span className={styles.simSquadTag} style={{ marginLeft: 6 }}>BENCHMARK</span>
+                )}
+              </h4>
               <p>{allRankedTeams[1].school} • {allRankedTeams[1].car}</p>
             </div>
             <div className={styles.podiumPts} style={{ color: "#e5e7eb" }}>{allRankedTeams[1].points.toLocaleString()} pts</div>
@@ -842,7 +907,14 @@ export default function TournamentOverview() {
           >
             <div className={`${styles.podiumRank} ${styles.podiumRankBronze}`}>3</div>
             <div className={styles.podiumDetails}>
-              <h4>{allRankedTeams[2].name} {allRankedTeams[2].isUserTeam && "★"}</h4>
+              <h4>
+                {allRankedTeams[2].name}
+                {allRankedTeams[2].isUserTeam ? (
+                  <span className={styles.userSquadTag} style={{ marginLeft: 6 }}>YOUR SQUAD</span>
+                ) : (
+                  <span className={styles.simSquadTag} style={{ marginLeft: 6 }}>BENCHMARK</span>
+                )}
+              </h4>
               <p>{allRankedTeams[2].school} • {allRankedTeams[2].car}</p>
             </div>
             <div className={styles.podiumPts} style={{ color: "#f59e0b" }}>{allRankedTeams[2].points.toLocaleString()} pts</div>
@@ -871,6 +943,11 @@ export default function TournamentOverview() {
           <div className={styles.rivalryDelta}>
             {userRank === 1 ? "P1 LEADER" : `GAP: -${ptsBehind} XP`}
           </div>
+        </div>
+
+        {/* Mobile Swipe Hint */}
+        <div className={styles.mobileSwipeHint}>
+          ← Swipe table horizontally to inspect lap times & telemetry →
         </div>
 
         {/* Full Grid Standings & Team Telemetry Table */}
@@ -909,7 +986,11 @@ export default function TournamentOverview() {
                   <td className={styles.standingsCell}>
                     <div className={styles.teamMetaTitle}>
                       <span>{t.name}</span>
-                      {t.isUserTeam && <span className={styles.userSquadTag}>YOUR SQUAD</span>}
+                      {t.isUserTeam ? (
+                        <span className={styles.userSquadTag}>YOUR SQUAD • LIVE</span>
+                      ) : (
+                        <span className={styles.simSquadTag}>BENCHMARK SIM</span>
+                      )}
                     </div>
                     <div className={styles.teamMetaSchool}>{t.school}</div>
                   </td>

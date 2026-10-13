@@ -36,7 +36,8 @@ export default function LeaderboardPage() {
     { rank: 8, team_name: "Apex Predators", school_name: "Bishop Cotton", car: "Predator RC 4x4", lap: "13.91s", speed: "21.5 km/h", points: 1050 },
   ].sort((a, b) => b.points - a.points).map((t, idx) => ({ ...t, rank: idx + 1 }));
 
-  const displayRows = (rows ?? []).length > 0 ? rows! : demoTeams;
+  const isSimulated = (rows ?? []).length === 0;
+  const displayRows = isSimulated ? demoTeams : rows!;
 
   return (
     <div>
@@ -52,12 +53,45 @@ export default function LeaderboardPage() {
 
       {!loading && !failure && displayRows.length > 0 && (
         <div className={styles.sectionCard}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px", flexWrap: "wrap", gap: "8px" }}>
             <h2 className={styles.sectionTitle} style={{ margin: 0 }}>Active Tournament Grid</h2>
             <span style={{ fontSize: "12px", color: "var(--accent)", fontFamily: "monospace", fontWeight: 700 }}>
               Live Telemetry & Standings
             </span>
           </div>
+
+          {isSimulated && (
+            <div style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "12px",
+              background: "rgba(8, 145, 178, 0.08)",
+              border: "1px solid rgba(125, 211, 232, 0.25)",
+              borderRadius: "14px",
+              padding: "10px 16px",
+              marginBottom: "20px",
+              fontSize: "12px",
+              color: "var(--text-muted)",
+              flexWrap: "wrap",
+            }}>
+              <span style={{
+                background: "rgba(8, 145, 178, 0.22)",
+                color: "#7dd3e8",
+                padding: "3px 8px",
+                borderRadius: "6px",
+                fontWeight: 700,
+                fontFamily: "monospace",
+                fontSize: "10px",
+                letterSpacing: "0.5px",
+                whiteSpace: "nowrap",
+              }}>
+                SIMULATED BENCHMARK GRID
+              </span>
+              <span style={{ flex: 1, minWidth: "200px", lineHeight: "1.4" }}>
+                7 rival squads are simulated AI benchmark targets for telemetry testing. Your squad (Vortex Racing) telemetry is live.
+              </span>
+            </div>
+          )}
 
           <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
             {displayRows.map((team, index) => {
@@ -74,17 +108,26 @@ export default function LeaderboardPage() {
                     boxShadow: index < 3 ? "var(--clay-shadow-elevated)" : "var(--clay-shadow-outer)",
                     borderRadius: "16px",
                     gap: "20px",
+                    flexWrap: "wrap",
                   }}
                 >
                   <div style={{ fontSize: "22px", fontWeight: "700", fontFamily: "monospace", color: index === 0 ? "#fbbf24" : index === 1 ? "#9ca3af" : index === 2 ? "#b45309" : "var(--text-muted)", width: "40px", textAlign: "center" }}>
                     #{team.rank}
                   </div>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                  <div style={{ flex: 1, minWidth: "180px" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
                       <h3 style={{ fontSize: "16px", fontWeight: "600", margin: 0 }}>{team.team_name}</h3>
-                      {isUser && (
+                      {isUser ? (
                         <span style={{ background: "var(--color-primary)", color: "var(--color-primary-text)", fontSize: "9px", fontWeight: 800, padding: "2px 6px", borderRadius: 4, fontFamily: "monospace" }}>
-                          YOUR SQUAD
+                          YOUR SQUAD • LIVE
+                        </span>
+                      ) : isSimulated ? (
+                        <span style={{ background: "rgba(255, 255, 255, 0.08)", color: "var(--text-muted)", fontSize: "9px", fontWeight: 700, padding: "2px 6px", borderRadius: 4, fontFamily: "monospace" }}>
+                          BENCHMARK SIM
+                        </span>
+                      ) : (
+                        <span style={{ background: "rgba(16, 185, 129, 0.15)", color: "#10b981", fontSize: "9px", fontWeight: 700, padding: "2px 6px", borderRadius: 4, fontFamily: "monospace" }}>
+                          OFFICIAL ENTRY
                         </span>
                       )}
                     </div>

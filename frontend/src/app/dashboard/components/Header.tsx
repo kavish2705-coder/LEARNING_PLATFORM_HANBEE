@@ -93,9 +93,9 @@ export default function Header({ toggleMobileMenu }: { toggleMobileMenu?: () => 
         <div className={styles.date}>{today}</div>
         <NotificationBell />
 
-        <div className={styles.headerUser}>
+        <div className={styles.headerUser} title={name ? `${name} (${profile ? ROLE_LABEL[profile.role] ?? profile.role : ""})` : ""}>
           <div className={styles.avatar}>{initial}</div>
-          <div className={styles.userInfo}>
+          <div className={styles.headerUserText}>
             <span className={styles.userName}>{name}</span>
             <span className={styles.userRole}>{profile ? ROLE_LABEL[profile.role] ?? profile.role : ""}</span>
           </div>

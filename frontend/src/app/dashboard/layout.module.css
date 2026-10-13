@@ -305,6 +305,11 @@
   gap: 12px;
 }
 
+.headerUserText {
+  display: flex;
+  flex-direction: column;
+}
+
 
 /* Scrollable Content */
 .contentScroll {
@@ -422,26 +427,102 @@
     display: block;
   }
 
+  .header {
+    height: 64px;
+    padding: 0 14px;
+    gap: 8px;
+  }
+
   .headerLeft {
     flex-direction: row;
     align-items: center;
+    min-width: 0;
+    flex-shrink: 1;
+    gap: 6px;
   }
 
   .mobileMenuBtn {
     display: flex;
     align-items: center;
     justify-content: center;
+    margin-right: 4px;
+    padding: 6px;
+  }
+
+  .greetingWrapper {
+    min-width: 0;
+  }
+
+  .greeting {
+    font-size: 11px;
+    line-height: 1.1;
+  }
+
+  .greetingName {
+    font-size: 14px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 110px;
   }
 
   .searchBar {
     display: none;
   }
 
-  .header {
-    padding: 0 20px;
+  .headerRight {
+    gap: 8px;
+    flex-shrink: 0;
+  }
+
+  .date {
+    display: none;
+  }
+
+  .headerUserText {
+    display: none;
+  }
+
+  .headerUser {
+    gap: 0;
+  }
+
+  .headerXpPill {
+    padding: 5px 9px;
+    font-size: 11px;
+    gap: 5px;
   }
 
   .contentScroll {
-    padding: 20px;
+    padding: 16px 12px;
   }
 }
+
+@media (max-width: 480px) {
+  .header {
+    padding: 0 10px;
+    gap: 6px;
+  }
+
+  .headerUserText {
+    display: none;
+  }
+
+  .headerUser {
+    gap: 0;
+  }
+
+  .headerRight {
+    gap: 6px;
+  }
+
+  .greetingName {
+    max-width: 95px;
+  }
+
+  .headerXpPill {
+    padding: 4px 8px;
+    font-size: 11px;
+  }
+}
+

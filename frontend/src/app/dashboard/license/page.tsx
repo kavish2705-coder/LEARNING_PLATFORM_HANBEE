@@ -154,7 +154,7 @@ export default function DriverLicensePage() {
             Student Driver License
           </h1>
           <p className={styles.pageSubtitle}>
-            Your official remote controlled racing pass, car parts, and team badges.
+            Your official remote controlled racing pass, verified school team, and practice simulator RP.
           </p>
         </div>
 
@@ -246,8 +246,8 @@ export default function DriverLicensePage() {
                       <span className={styles.statLabel}>BEST LAP</span>
                       <span className={`${styles.statValue} ${styles.statValueAccent}`}>12.84s</span>
                     </div>
-                    <div className={styles.statItem}>
-                      <span className={styles.statLabel}>RACE POINTS</span>
+                    <div className={styles.statItem} title="Practice Simulation Race Points (Saved to local browser profile)">
+                      <span className={styles.statLabel}>PRACTICE RP</span>
                       <span className={styles.statValue}>{xp.toLocaleString()} RP</span>
                     </div>
                     <div className={styles.statItem}>
@@ -259,8 +259,8 @@ export default function DriverLicensePage() {
                   {/* RP Progression */}
                   <div className={styles.xpBox}>
                     <div className={styles.xpHeader}>
-                      <span>Driver Standing: <strong>Rookie Champ</strong></span>
-                      <span>{xp.toLocaleString()} / 2,000 RP ({rpPercent}%)</span>
+                      <span>Practice Tier: <strong>Rookie Champ</strong></span>
+                      <span title="Stored locally in browser">{xp.toLocaleString()} / 2,000 RP ({rpPercent}%)</span>
                     </div>
                     <div className={styles.xpTrack}>
                       <motion.div 

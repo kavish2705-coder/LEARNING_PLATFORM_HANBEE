@@ -618,3 +618,50 @@
   border-color: var(--color-primary);
   color: var(--color-primary-text);
 }
+
+/* ===== Responsive Breakpoints ===== */
+@media (max-width: 768px) {
+  .pageHeader {
+    padding: 18px 16px;
+    gap: 14px;
+  }
+
+  .licenseCard {
+    padding: 24px 18px;
+    border-radius: 20px;
+  }
+
+  .badgeGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .pageHeader {
+    padding: 14px 12px;
+  }
+
+  .headerActions {
+    width: 100%;
+    gap: 8px;
+  }
+
+  .actionBtnSecondary,
+  .actionBtnPrimary {
+    flex: 1;
+    justify-content: center;
+    padding: 8px 12px;
+    font-size: 12px;
+  }
+
+  .licenseCard {
+    padding: 18px 14px;
+  }
+
+  .cardDriverRow {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+}
+
