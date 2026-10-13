@@ -11,6 +11,7 @@ import {
 import Link from "next/link";
 import styles from "./TournamentOverview.module.css";
 import { fetchUpcomingTournament, fetchMyTeamFormation, type MyTeamFormation, type UpcomingTournament } from "../../../lib/teamFormationApi";
+import { getLeaderboard } from "../../../lib/tournamentAdminApi";
 import { useSessionProfile } from "../../../lib/hooks/useSessionProfile";
 import { useUserXp } from "../../../lib/hooks/useUserXp";
 
@@ -104,6 +105,20 @@ export default function TournamentOverview() {
     };
   });
 
+  const [realLeaderboard, setRealLeaderboard] = useState<Array<{
+    id: string;
+    name: string;
+    school: string;
+    car: string;
+    bestLap: string;
+    topSpeed: string;
+    readiness: number;
+    points: number;
+    status: string;
+    statusType: string;
+    isUserTeam: boolean;
+  }> | null>(null);
+
   // Dynamic Countdown to Next Tournament
   const [timeLeft, setTimeLeft] = useState({
     days: 3,
@@ -113,17 +128,24 @@ export default function TournamentOverview() {
   });
 
   useEffect(() => {
+    function calculateTimeLeft() {
+      const targetTime = tournament?.starts_at 
+        ? new Date(tournament.starts_at).getTime()
+        : new Date("2026-10-24T10:00:00+05:30").getTime();
+      const diff = Math.max(0, targetTime - Date.now());
+      return {
+        days: Math.floor(diff / (1000 * 60 * 60 * 24)),
+        hours: Math.floor((diff / (1000 * 60 * 60)) % 24),
+        minutes: Math.floor((diff / 1000 / 60) % 60),
+        seconds: Math.floor((diff / 1000) % 60),
+      };
+    }
+    setTimeLeft(calculateTimeLeft());
     const timer = setInterval(() => {
-      setTimeLeft((prev) => {
-        if (prev.seconds > 0) return { ...prev, seconds: prev.seconds - 1 };
-        if (prev.minutes > 0) return { ...prev, minutes: prev.minutes - 1, seconds: 59 };
-        if (prev.hours > 0) return { ...prev, hours: prev.hours - 1, minutes: 59, seconds: 59 };
-        if (prev.days > 0) return { ...prev, days: prev.days - 1, hours: 23, minutes: 59, seconds: 59 };
-        return prev;
-      });
+      setTimeLeft(calculateTimeLeft());
     }, 1000);
     return () => clearInterval(timer);
-  }, []);
+  }, [tournament?.starts_at]);
 
   useEffect(() => {
     if (profileLoading) return;
@@ -141,6 +163,28 @@ export default function TournamentOverview() {
         if (event && profile?.role === "student") {
           const formation = await fetchMyTeamFormation(event.id);
           if (active) setTeam(formation.my_team);
+        }
+        if (event) {
+          try {
+            const lbRows = await getLeaderboard(event.id);
+            if (active && Array.isArray(lbRows) && lbRows.length > 0) {
+              setRealLeaderboard(lbRows.map((r) => ({
+                id: r.team_id,
+                name: r.team_name,
+                school: r.school_name || "Registered School",
+                car: "RC Race Buggy",
+                bestLap: "12.50s",
+                topSpeed: "24.0 km/h",
+                readiness: 100,
+                points: r.points,
+                status: "Official Entry",
+                statusType: "active",
+                isUserTeam: false,
+              })));
+            }
+          } catch {
+            // Live leaderboard not populated yet; benchmark simulation will be used
+          }
         }
       } catch (reason) {
         if (active) setError(reason instanceof Error ? reason.message : "We couldn't load tournament information.");
@@ -403,7 +447,12 @@ export default function TournamentOverview() {
     isUserTeam: true,
   };
 
-  const allRankedTeams = [...baseDummyTeams, userSquad]
+  const isSimulated = !realLeaderboard || realLeaderboard.length === 0;
+
+  const allRankedTeams = (isSimulated
+    ? [...baseDummyTeams, userSquad]
+    : realLeaderboard.map((t) => ({ ...t, isUserTeam: team ? t.id === team.id : t.id === "user_squad" }))
+  )
     .sort((a, b) => b.points - a.points)
     .map((t, idx) => ({ ...t, rank: idx + 1 }));
 
@@ -494,13 +543,13 @@ export default function TournamentOverview() {
               </h2>
               <div className={styles.eventCircuit}>
                 <Compass size={14} color="#7dd3e8" />
-                <span>Apex Indoor RC Track • School Gym Course</span>
+                <span>{tournament?.venue || "Apex Indoor RC Track • School Gym Course"}</span>
               </div>
             </div>
 
             <div style={{ fontFamily: "monospace", fontSize: "12px", color: "var(--text-muted)" }}>
-              <div><CalendarDays size={13} style={{ display: "inline", marginRight: 4 }} /> Oct 24, 2026</div>
-              <div>10:00 AM IST</div>
+              <div><CalendarDays size={13} style={{ display: "inline", marginRight: 4 }} /> {tournament?.starts_at ? new Date(tournament.starts_at).toLocaleDateString([], { month: "short", day: "numeric", year: "numeric" }) : "Oct 24, 2026"}</div>
+              <div>{tournament?.starts_at ? new Date(tournament.starts_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "10:00 AM IST"}</div>
             </div>
           </div>
 
@@ -848,12 +897,14 @@ export default function TournamentOverview() {
         </div>
 
         {/* Benchmark Notice Banner (Transparency for simulated vs live teams) */}
-        <div className={styles.benchmarkNotice}>
-          <span className={styles.simBadge}>SIMULATED BENCHMARK GRID</span>
-          <span className={styles.simNoticeText}>
-            7 rival squads are simulated AI benchmark targets for telemetry testing. Your squad (<strong>{teamName}</strong>) telemetry is live.
-          </span>
-        </div>
+        {isSimulated && (
+          <div className={styles.benchmarkNotice}>
+            <span className={styles.simBadge}>SIMULATED BENCHMARK GRID</span>
+            <span className={styles.simNoticeText}>
+              7 rival squads are simulated AI benchmark targets for telemetry testing. Your squad (<strong>{teamName}</strong>) telemetry is live.
+            </span>
+          </div>
+        )}
 
         {/* 3D-styled Dynamic Podium */}
         <div className={styles.podiumRow}>
@@ -869,8 +920,10 @@ export default function TournamentOverview() {
                 {allRankedTeams[0].name}
                 {allRankedTeams[0].isUserTeam ? (
                   <span className={styles.userSquadTag} style={{ marginLeft: 6 }}>YOUR SQUAD</span>
-                ) : (
+                ) : isSimulated ? (
                   <span className={styles.simSquadTag} style={{ marginLeft: 6 }}>BENCHMARK</span>
+                ) : (
+                  <span className={styles.userSquadTag} style={{ marginLeft: 6, background: "rgba(16, 185, 129, 0.15)", color: "#10b981" }}>OFFICIAL</span>
                 )}
               </h4>
               <p>{allRankedTeams[0].school} • {allRankedTeams[0].car}</p>
@@ -890,8 +943,10 @@ export default function TournamentOverview() {
                 {allRankedTeams[1].name}
                 {allRankedTeams[1].isUserTeam ? (
                   <span className={styles.userSquadTag} style={{ marginLeft: 6 }}>YOUR SQUAD</span>
-                ) : (
+                ) : isSimulated ? (
                   <span className={styles.simSquadTag} style={{ marginLeft: 6 }}>BENCHMARK</span>
+                ) : (
+                  <span className={styles.userSquadTag} style={{ marginLeft: 6, background: "rgba(16, 185, 129, 0.15)", color: "#10b981" }}>OFFICIAL</span>
                 )}
               </h4>
               <p>{allRankedTeams[1].school} • {allRankedTeams[1].car}</p>
@@ -911,8 +966,10 @@ export default function TournamentOverview() {
                 {allRankedTeams[2].name}
                 {allRankedTeams[2].isUserTeam ? (
                   <span className={styles.userSquadTag} style={{ marginLeft: 6 }}>YOUR SQUAD</span>
-                ) : (
+                ) : isSimulated ? (
                   <span className={styles.simSquadTag} style={{ marginLeft: 6 }}>BENCHMARK</span>
+                ) : (
+                  <span className={styles.userSquadTag} style={{ marginLeft: 6, background: "rgba(16, 185, 129, 0.15)", color: "#10b981" }}>OFFICIAL</span>
                 )}
               </h4>
               <p>{allRankedTeams[2].school} • {allRankedTeams[2].car}</p>
@@ -988,8 +1045,10 @@ export default function TournamentOverview() {
                       <span>{t.name}</span>
                       {t.isUserTeam ? (
                         <span className={styles.userSquadTag}>YOUR SQUAD • LIVE</span>
-                      ) : (
+                      ) : isSimulated ? (
                         <span className={styles.simSquadTag}>BENCHMARK SIM</span>
+                      ) : (
+                        <span className={styles.userSquadTag} style={{ background: "rgba(16, 185, 129, 0.15)", color: "#10b981" }}>OFFICIAL ENTRY</span>
                       )}
                     </div>
                     <div className={styles.teamMetaSchool}>{t.school}</div>
