@@ -35,45 +35,45 @@ export default function LearningOverview() {
       </div>
 
       {currentCourse ? (
-        <div className={styles.sectionCard} style={{ marginBottom: 32, display: "flex", justifyContent: "space-between", alignItems: "center", gap: 24, flexWrap: "wrap" }}>
-          <div style={{ minWidth: 0, flex: "1 1 280px" }}>
+        <div className={`${styles.sectionCard} ${styles.learningHero}`}>
+          <div className={styles.learningHeroContent}>
             <span className={styles.metricLabel}>{currentCourse.status === "completed" ? "LAST COURSE" : "CONTINUE LEARNING"}</span>
-            <h2 style={{ fontSize: 24, fontWeight: 500, marginTop: 8, marginBottom: 8 }}>{currentCourse.title}</h2>
-            <p style={{ color: "var(--text-muted)", fontSize: 14, marginBottom: 16 }}>
+            <h2 className={styles.learningHeroTitle}>{currentCourse.title}</h2>
+            <p className={styles.bodyMuted}>
               {currentCourse.completedLessonCount} of {currentCourse.lessonCount} lessons completed
             </p>
-            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-              <div style={{ flex: 1, height: 6, background: "var(--bg-card-hover)", borderRadius: 4, overflow: "hidden", maxWidth: 320 }}>
-                <div style={{ height: "100%", width: `${currentCourse.progressPercent}%`, background: "var(--text-main)" }} />
+            <div className={styles.progressRow}>
+              <div className={styles.progressTrack}>
+                <div className={styles.progressFill} style={{ width: `${currentCourse.progressPercent}%` }} />
               </div>
-              <span style={{ fontSize: 12, fontWeight: 500 }}>{currentCourse.progressPercent}%</span>
+              <span className={styles.progressValue}>{currentCourse.progressPercent}%</span>
             </div>
           </div>
-          <Link href={`/dashboard/courses/${encodeURIComponent(currentCourse.id)}`} style={{ display: "flex", alignItems: "center", gap: 8, background: "var(--bg-card)", padding: "12px 24px", borderRadius: 12, boxShadow: "var(--clay-shadow-button)", color: "var(--text-main)", fontWeight: 500, textDecoration: "none" }}>
+          <Link href={`/dashboard/courses/${encodeURIComponent(currentCourse.id)}`} className={styles.primaryBtn}>
             <PlayCircle size={18} /> {currentCourse.status === "completed" ? "Review Course" : "Resume Course"}
           </Link>
         </div>
       ) : (
-        <div className={styles.sectionCard} style={{ marginBottom: 32 }}>
-          <h2 style={{ fontSize: 20, fontWeight: 500, marginBottom: 8 }}>{loading ? "Loading your courses…" : "No courses yet"}</h2>
-          <p style={{ color: "var(--text-muted)", marginBottom: 16 }}>{error || "Courses assigned to your account will appear here."}</p>
-          <Link href="/dashboard/courses" style={{ color: "var(--text-main)" }}>Browse my courses</Link>
+        <div className={`${styles.sectionCard} ${styles.emptyOverview}`}>
+          <h2 className={styles.emptyOverviewTitle}>{loading ? "Loading your courses…" : "No courses yet"}</h2>
+          <p className={styles.bodyMuted}>{error || "Courses assigned to your account will appear here."}</p>
+          <Link href="/dashboard/courses" className={styles.tertiaryAction}>Browse my courses</Link>
         </div>
       )}
 
       <div className={styles.metricsRow}>
         <div className={styles.metricCard}>
-          <div className={styles.metricCardHeader}><span className={styles.metricLabel}>Courses in Progress</span><BookOpen size={16} className={styles.metricIcon} /></div>
+          <div className={styles.metricCardHeader}><span className={styles.metricLabel}>Courses in Progress</span><span className={styles.metricIconBadge}><BookOpen size={18} aria-hidden="true" /></span></div>
           <div className={styles.metricValue}>{loading ? "—" : inProgress}</div>
           <div className={styles.metricSubtext}>Assigned and active</div>
         </div>
         <div className={styles.metricCard}>
-          <div className={styles.metricCardHeader}><span className={styles.metricLabel}>Lessons Completed</span><ListChecks size={16} className={styles.metricIcon} /></div>
+          <div className={styles.metricCardHeader}><span className={styles.metricLabel}>Lessons Completed</span><span className={styles.metricIconBadge}><ListChecks size={18} aria-hidden="true" /></span></div>
           <div className={styles.metricValue}>{loading ? "—" : completedLessons}</div>
           <div className={styles.metricSubtext}>Across your courses</div>
         </div>
         <div className={styles.metricCard}>
-          <div className={styles.metricCardHeader}><span className={styles.metricLabel}>Courses Completed</span><Award size={16} className={styles.metricIcon} /></div>
+          <div className={styles.metricCardHeader}><span className={styles.metricLabel}>Courses Completed</span><span className={styles.metricIconBadge}><Award size={18} aria-hidden="true" /></span></div>
           <div className={styles.metricValue}>{loading ? "—" : completed}</div>
           <div className={styles.metricSubtext}>Fully completed courses</div>
         </div>

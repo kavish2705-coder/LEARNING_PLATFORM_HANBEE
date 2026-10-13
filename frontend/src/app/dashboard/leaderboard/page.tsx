@@ -38,29 +38,18 @@ export default function LeaderboardPage() {
 
       {(rows ?? []).length > 0 && (
         <div className={styles.sectionCard}>
-          <h2 className={styles.sectionTitle} style={{ marginBottom: "24px" }}>Top Teams</h2>
-          <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+          <h2 className={styles.sectionTitle}>Top Teams</h2>
+          <div className={styles.leaderboardList}>
             {(rows ?? []).map((team, index) => (
-              <div
-                key={team.team_id}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  padding: "16px 24px",
-                  background: index < 3 ? "var(--bg-card-hover)" : "var(--bg-card)",
-                  boxShadow: index < 3 ? "var(--clay-shadow-elevated)" : "var(--clay-shadow-outer)",
-                  borderRadius: "16px",
-                  gap: "24px",
-                }}
-              >
-                <div style={{ fontSize: "24px", fontWeight: "600", color: index === 0 ? "#fbbf24" : index === 1 ? "#9ca3af" : index === 2 ? "#b45309" : "var(--text-muted)", width: "40px", textAlign: "center" }}>
+              <div key={team.team_id} className={styles.leaderboardRow}>
+                <div className={`${styles.leaderboardRank} ${index === 0 ? styles.rankGold : index === 1 ? styles.rankSilver : index === 2 ? styles.rankBronze : styles.rankOther}`}>
                   #{team.rank}
                 </div>
-                <div style={{ flex: 1 }}>
-                  <h3 style={{ fontSize: "16px", fontWeight: "500", marginBottom: "4px" }}>{team.team_name}</h3>
-                  <p style={{ fontSize: "13px", color: "var(--text-muted)" }}>{team.school_name ?? "Solo entry"}</p>
+                <div className={styles.leaderboardTeam}>
+                  <h3 className={styles.leaderboardName}>{team.team_name}</h3>
+                  <p className={styles.leaderboardSchool}>{team.school_name ?? "Solo entry"}</p>
                 </div>
-                <div style={{ textAlign: "right", fontSize: "18px", fontWeight: "600", color: "var(--accent)" }}>
+                <div className={styles.leaderboardPoints}>
                   {team.points.toLocaleString()} pts
                 </div>
               </div>
@@ -80,10 +69,10 @@ function MyRank() {
   const row = data?.[0];
   if (!row) return null;
   return (
-    <div className={styles.sectionCard} style={{ marginBottom: 24 }}>
+    <div className={`${styles.sectionCard} ${styles.myRankCard}`}>
       <span className={styles.metricLabel}>Your team in {row.tournament_title}</span>
-      <h2 className={styles.sectionTitle} style={{ marginTop: 8 }}>{row.team_name}: #{row.rank} of {row.field_size}</h2>
-      <p style={{ color: "var(--text-muted)", marginTop: 6 }}>{row.points} points</p>
+      <h2 className={`${styles.sectionTitle} ${styles.myRankTitle}`}>{row.team_name}: #{row.rank} of {row.field_size}</h2>
+      <p className={styles.myRankPoints}>{row.points} points</p>
     </div>
   );
 }

@@ -126,7 +126,7 @@ export default function Sidebar() {
               href={item.href}
               className={`${styles.navLink} ${isActive ? styles.navLinkActive : ""}`}
             >
-              <Icon size={18} />
+              <Icon size={18} className={styles.navIcon} aria-hidden="true" />
               {item.name}
             </Link>
           );
@@ -143,9 +143,8 @@ export default function Sidebar() {
       
       <button 
         type="button" 
-        className={styles.navLink} 
+        className={`${styles.navLink} ${styles.signOutButton}`}
         onClick={() => void handleSignOut()} 
-        style={{ marginTop: 10, border: 0, width: "100%", cursor: "pointer", textAlign: "left", background: "transparent", color: "inherit", fontFamily: "inherit", fontSize: "inherit" }}
       >
         <LogOut size={18} />
         Sign out

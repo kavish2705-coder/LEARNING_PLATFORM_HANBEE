@@ -1,4 +1,24 @@
 .dashboardContainer {
+  --ui-display: clamp(2rem, 3vw, 2.5rem);
+  --ui-heading: 1.25rem;
+  --ui-title: 1.125rem;
+  --ui-body: 0.9375rem;
+  --ui-caption: 0.8125rem;
+  --ui-leading-tight: 1.2;
+  --ui-leading-body: 1.55;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-12: 48px;
+  --radius-card: 16px;
+  --radius-control: 8px;
+  --radius-pill: 999px;
+  --elevation-card: 0 1px 2px color-mix(in srgb, var(--text-main) 7%, transparent), 0 8px 24px color-mix(in srgb, var(--text-main) 9%, transparent);
+  --elevation-raised: 0 2px 4px color-mix(in srgb, var(--text-main) 8%, transparent), 0 16px 36px color-mix(in srgb, var(--text-main) 13%, transparent);
+  --elevation-modal: 0 24px 64px color-mix(in srgb, var(--text-main) 22%, transparent);
   display: flex;
   height: 100vh;
   background-color: var(--bg-page);
@@ -16,7 +36,7 @@
   box-shadow: var(--clay-shadow-subtle);
   display: flex;
   flex-direction: column;
-  padding: 24px 16px;
+  padding: var(--space-6) var(--space-4);
   flex-shrink: 0;
   z-index: 10;
   border-right: var(--border-subtle);
@@ -29,7 +49,7 @@
   font-family: var(--font-logo);
   font-size: 24px;
   font-weight: 400;
-  margin-bottom: 48px;
+  margin-bottom: var(--space-12);
   padding: 0 12px;
   letter-spacing: 2px;
 }
@@ -42,54 +62,55 @@
 .navMenu {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--space-1);
   flex: 1;
 }
 
 .navLink {
+  position: relative;
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 12px 16px;
-  border-radius: 8px;
+  gap: var(--space-3);
+  padding: 11px var(--space-4);
+  border-radius: var(--radius-control);
   color: var(--text-muted);
   text-decoration: none;
-  font-size: 14px;
+  font-size: var(--ui-body);
   font-weight: 500;
-  transition: all 0.3s ease;
+  transition: color 0.2s ease, background-color 0.2s ease, transform 0.2s ease;
 }
 
 .navLink:hover:not(.navLinkActive) {
-  background: var(--bg-card-hover);
-  box-shadow: var(--clay-shadow-outer); /* Gentle outward pop */
+  background: color-mix(in srgb, var(--color-primary) 8%, var(--bg-card));
   color: var(--text-main);
-  transform: translateY(-1px);
 }
 
 .navLinkActive {
-  background: var(--color-primary);
-  box-shadow: var(--clay-shadow-button); /* Firm outward pop */
-  color: var(--color-primary-text);
+  background: color-mix(in srgb, var(--color-primary) 14%, var(--bg-card));
+  color: var(--color-primary);
+  box-shadow: inset 3px 0 0 var(--color-primary);
+  font-weight: 600;
 }
 
 .navLinkActive:hover {
-  background: var(--color-primary-hover);
+  background: color-mix(in srgb, var(--color-primary) 19%, var(--bg-card));
 }
 
 .navIcon {
   width: 18px;
   height: 18px;
+  flex: 0 0 18px;
 }
 
 .userProfile {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 12px;
+  gap: var(--space-3);
+  padding: var(--space-3);
   background: var(--bg-card);
   box-shadow: var(--clay-shadow-subtle);
   border: var(--border-subtle);
-  border-radius: 12px;
+  border-radius: var(--radius-card);
   margin-top: auto;
 }
 
@@ -119,6 +140,23 @@
 .userRole {
   font-size: 11px;
   color: var(--text-muted);
+}
+
+.signOutButton {
+  margin-top: var(--space-2);
+  width: 100%;
+  justify-content: flex-start;
+  border: 0;
+  background: transparent;
+  color: var(--text-muted);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.signOutButton:hover {
+  color: var(--color-danger);
+  background: color-mix(in srgb, var(--color-danger) 8%, transparent);
 }
 
 /* Main Content Area */

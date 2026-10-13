@@ -30,26 +30,26 @@ export default function AchievementsPage() {
       {!isLoading && !error && achievements.length === 0 && (
         <section className={styles.sectionCard}>
           <Award size={24} aria-hidden="true" />
-          <h2 className={styles.sectionTitle} style={{ marginTop: 12 }}>Your milestones will appear here</h2>
-          <p style={{ color: "var(--text-muted)", marginTop: 8 }}>
+          <h2 className={`${styles.sectionTitle} ${styles.achievementEmptyTitle}`}>Your milestones will appear here</h2>
+          <p className={styles.achievementDetail}>
             Complete a course, earn a certificate, or join a tournament team to unlock your first achievement.
           </p>
         </section>
       )}
       {!isLoading && !error && achievements.length > 0 && (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 240px), 1fr))", gap: 20 }}>
+        <div className={styles.achievementGrid}>
           {achievements.map((achievement) => {
             const Icon = achievementIcons[achievement.kind];
             return (
-              <article key={achievement.id} className={styles.metricCard} style={{ minHeight: 180 }}>
+              <article key={achievement.id} className={`${styles.metricCard} ${styles.achievementCard}`}>
                 <div className={styles.metricCardHeader}>
                   <span className={styles.metricLabel}>Earned achievement</span>
                   <Icon size={20} className={styles.metricIcon} aria-hidden="true" />
                 </div>
-                <h2 style={{ fontSize: 18, fontWeight: 600 }}>{achievement.title}</h2>
-                <p style={{ color: "var(--text-muted)", marginTop: 8 }}>{achievement.detail}</p>
+                <h2 className={styles.achievementTitle}>{achievement.title}</h2>
+                <p className={styles.achievementDetail}>{achievement.detail}</p>
                 {achievement.earnedAt && (
-                  <p style={{ color: "var(--text-muted)", fontSize: 12, marginTop: "auto", paddingTop: 16 }}>
+                  <p className={styles.achievementDate}>
                     Earned {new Date(achievement.earnedAt).toLocaleDateString()}
                   </p>
                 )}

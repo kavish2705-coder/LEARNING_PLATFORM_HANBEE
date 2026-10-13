@@ -1,73 +1,82 @@
 .pageHeader {
-  margin-bottom: 32px;
+  margin-bottom: var(--space-8);
 }
 
 .pageTitle {
   font-family: var(--font-heading);
-  font-size: 28px;
-  font-weight: 500;
+  font-size: var(--ui-display);
+  font-weight: 600;
   margin-bottom: 4px;
-  letter-spacing: -0.5px;
+  letter-spacing: -0.02em;
+  line-height: var(--ui-leading-tight);
 }
 
 .pageSubtitle {
-  font-size: 14px;
+  font-size: var(--ui-body);
   color: var(--text-muted);
+  line-height: var(--ui-leading-body);
 }
 
 .tabs {
   display: flex;
-  gap: 8px;
-  margin-bottom: 32px;
+  gap: var(--space-2);
+  margin-bottom: var(--space-6);
 }
 
 .tabBtn {
   background: transparent;
   border: var(--border-subtle);
   color: var(--text-muted);
-  padding: 8px 16px;
-  border-radius: 8px;
-  font-size: 13px;
+  padding: 8px var(--space-4);
+  border-radius: var(--radius-control);
+  font-size: var(--ui-caption);
   cursor: pointer;
   transition: all 0.2s;
 }
 
 .tabBtn:hover {
-  background: var(--bg-card);
-  box-shadow: var(--clay-shadow-outer);
-  border-radius: var(--clay-radius-md);
+  background: color-mix(in srgb, var(--text-main) 6%, transparent);
+  color: var(--text-main);
 }
 
 .tabBtnActive {
-  background: var(--bg-card);
-  box-shadow: var(--clay-shadow-button);
-  color: var(--text-main);
-  border-color: var(--text-muted);
+  background: color-mix(in srgb, var(--color-primary) 12%, var(--bg-card));
+  box-shadow: inset 0 -2px 0 var(--color-primary);
+  color: var(--color-primary);
+  border-color: transparent;
 }
 
 .announcementsList {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: var(--space-4);
 }
 
 .announcementCard {
   background: var(--bg-card);
-  box-shadow: var(--clay-shadow-outer);
-  border-radius: var(--clay-radius-md);
-  padding: 24px;
+  box-shadow: var(--elevation-card);
+  border: 1px solid color-mix(in srgb, var(--text-main) 7%, transparent);
+  border-radius: var(--radius-card);
+  padding: var(--space-6);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.announcementCard:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--elevation-raised);
+  border-color: color-mix(in srgb, var(--color-primary) 24%, transparent);
 }
 
 .cardHeader {
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 16px;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
 }
 
 .avatar {
-  width: 32px;
-  height: 32px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -77,40 +86,41 @@
   color: var(--text-main);
 }
 
-.avatarStaff { 
-  background: var(--bg-input);
-}
-.avatarManager { 
-  background: var(--bg-input);
-}
+.avatarStaff { background: color-mix(in srgb, var(--color-primary) 18%, var(--bg-card)); color: var(--color-primary); }
+.avatarManager { background: color-mix(in srgb, #a78bfa 20%, var(--bg-card)); color: #a78bfa; }
 
 .authorName {
   font-weight: 500;
-  font-size: 14px;
+  font-size: var(--ui-body);
+}
+
+.authorMeta {
+  display: grid;
+  gap: 3px;
 }
 
 .roleBadge {
-  font-size: 9px;
+  font-size: 10px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  padding: 2px 6px;
-  border-radius: 4px;
+  padding: 4px 8px;
+  border-radius: var(--radius-pill);
   border: 1px solid currentColor;
 }
 
 .roleManager { 
-  color: var(--text-main); 
-  border-color: var(--text-muted); 
-  background: transparent;
+  color: #a78bfa;
+  border-color: color-mix(in srgb, #a78bfa 35%, transparent);
+  background: color-mix(in srgb, #a78bfa 10%, transparent);
 }
 .roleStaff { 
-  color: var(--text-muted); 
-  border-color: var(--text-muted); 
-  background: transparent;
+  color: var(--color-primary);
+  border-color: color-mix(in srgb, var(--color-primary) 35%, transparent);
+  background: color-mix(in srgb, var(--color-primary) 10%, transparent);
 }
 
 .time {
-  font-size: 12px;
+  font-size: var(--ui-caption);
   color: var(--text-muted);
   margin-left: auto;
 }
@@ -129,32 +139,202 @@
 }
 
 .title {
-  font-size: 18px;
-  font-weight: 500;
-  margin-bottom: 12px;
+  font-size: var(--ui-title);
+  font-weight: 600;
+  margin-bottom: var(--space-3);
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-2);
+  line-height: var(--ui-leading-tight);
 }
 
 .content {
-  font-size: 14px;
+  font-size: var(--ui-body);
   color: var(--text-muted);
   line-height: 1.6;
-  margin-bottom: 20px;
+  margin-bottom: var(--space-4);
+  line-height: var(--ui-leading-body);
+  white-space: pre-wrap;
 }
 
 .tags {
   display: flex;
-  gap: 8px;
+  gap: var(--space-2);
 }
 
 .tag {
-  font-size: 9px;
+  font-size: 10px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  padding: 4px 8px;
-  border-radius: 4px;
+  padding: 5px 9px;
+  border-radius: var(--radius-pill);
   background: var(--bg-input);
   color: var(--text-muted);
+  font-weight: 700;
+}
+
+.audienceAll {
+  color: var(--color-primary);
+  background: color-mix(in srgb, var(--color-primary) 12%, transparent);
+}
+
+.audienceStudent {
+  color: var(--color-success);
+  background: color-mix(in srgb, var(--color-success) 12%, transparent);
+}
+
+.audienceStaff {
+  color: #a78bfa;
+  background: color-mix(in srgb, #a78bfa 14%, transparent);
+}
+
+[data-theme="light"] .avatarManager {
+  background: color-mix(in srgb, #7d3342 14%, var(--bg-card));
+  color: #7d3342;
+}
+
+[data-theme="light"] .roleManager {
+  color: #7d3342;
+  border-color: color-mix(in srgb, #7d3342 35%, transparent);
+  background: color-mix(in srgb, #7d3342 9%, transparent);
+}
+
+[data-theme="light"] .audienceStaff {
+  color: var(--color-primary);
+  background: color-mix(in srgb, var(--color-primary) 12%, transparent);
+}
+
+.composer {
+  display: grid;
+  gap: var(--space-2);
+  margin-bottom: var(--space-6);
+  padding: var(--space-6);
+  border: 1px solid color-mix(in srgb, var(--text-main) 8%, transparent);
+  border-radius: var(--radius-card);
+  background: var(--bg-card);
+  box-shadow: var(--elevation-card);
+}
+
+.composerTitle {
+  margin-bottom: var(--space-2);
+  font-size: var(--ui-title);
+  font-weight: 600;
+}
+
+.fieldLabel {
+  color: var(--text-muted);
+  font-size: var(--ui-caption);
+  font-weight: 600;
+}
+
+.fieldControl {
+  display: block;
+  width: 100%;
+  margin: var(--space-1) 0 var(--space-3);
+}
+
+.composerActions,
+.announcementActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+}
+
+.primaryButton,
+.secondaryButton,
+.tertiaryButton,
+.destructiveButton {
+  display: inline-flex;
+  min-height: 40px;
+  align-items: center;
+  justify-content: center;
+  padding: 9px var(--space-4);
+  border: 1px solid transparent;
+  border-radius: var(--radius-control);
+  font: inherit;
+  font-size: var(--ui-body);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.18s ease, border-color 0.18s ease, color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.primaryButton {
+  background: var(--color-primary);
+  color: var(--color-primary-text);
+  box-shadow: var(--clay-shadow-button);
+}
+
+.primaryButton:hover:not(:disabled) {
+  background: var(--color-primary-hover);
+  box-shadow: var(--accent-glow);
+}
+
+.secondaryButton {
+  border-color: color-mix(in srgb, var(--text-main) 24%, transparent);
+  background: transparent;
+  color: var(--text-main);
+}
+
+.secondaryButton:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--text-main) 6%, transparent);
+}
+
+.tertiaryButton {
+  background: transparent;
+  color: var(--text-muted);
+}
+
+.tertiaryButton:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--text-main) 6%, transparent);
+  color: var(--text-main);
+}
+
+.destructiveButton {
+  border-color: color-mix(in srgb, var(--color-danger) 26%, transparent);
+  background: color-mix(in srgb, var(--color-danger) 10%, transparent);
+  color: var(--color-danger);
+}
+
+.destructiveButton:hover:not(:disabled) {
+  border-color: var(--color-danger);
+  background: color-mix(in srgb, var(--color-danger) 18%, transparent);
+}
+
+.primaryButton:disabled,
+.secondaryButton:disabled,
+.tertiaryButton:disabled,
+.destructiveButton:disabled {
+  opacity: 0.48;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.errorMessage,
+.successMessage {
+  margin-bottom: var(--space-4);
+  font-size: var(--ui-body);
+}
+
+.errorMessage { color: var(--color-danger); }
+.successMessage { color: var(--color-success); }
+
+.emptyState {
+  padding: var(--space-8);
+  border: 1px dashed color-mix(in srgb, var(--text-main) 20%, transparent);
+  border-radius: var(--radius-card);
+  color: var(--text-muted);
+  text-align: center;
+}
+
+@media (max-width: 640px) {
+  .cardHeader {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .time {
+    width: 100%;
+    margin-left: 52px;
+  }
 }

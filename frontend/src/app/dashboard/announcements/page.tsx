@@ -158,27 +158,29 @@ export default function AnnouncementsPage() {
         <h1 className={styles.pageTitle}>Announcements</h1>
         <p className={styles.pageSubtitle}>{isSchoolStaff ? "Updates shared with your school" : "Staff and manager updates for your account"}</p>
       </div>
-      {canPublish && <form onSubmit={submit} style={{ marginBottom: 28, padding: 22, borderRadius: 16, background: "var(--bg-card)", border: "1px solid var(--border-subtle)" }}>
-        <h2 style={{ fontSize: 18, marginBottom: 14 }}>{editingId ? "Edit announcement" : isSchoolStaff ? "Post to your school" : "Publish site announcement"}</h2>
-        <label htmlFor="announcement-title">Title</label>
-        <Input id="announcement-title" value={title} onChange={(event) => setTitle(event.target.value)} required maxLength={180} style={{ display: "block", width: "100%", margin: "6px 0 14px" }} />
-        <label htmlFor="announcement-body">Message</label>
-        <Textarea id="announcement-body" value={body} onChange={(event) => setBody(event.target.value)} required maxLength={12000} rows={5} style={{ display: "block", width: "100%", margin: "6px 0 14px" }} />
-        <label htmlFor="announcement-audience">Audience</label>
-        <Select id="announcement-audience" value={audience} onChange={(event) => setAudience(event.target.value as AnnouncementAudience)} style={{ display: "block", margin: "6px 0 14px" }}>
+      {canPublish && <form onSubmit={submit} className={styles.composer}>
+        <h2 className={styles.composerTitle}>{editingId ? "Edit announcement" : isSchoolStaff ? "Post to your school" : "Publish site announcement"}</h2>
+        <label className={styles.fieldLabel} htmlFor="announcement-title">Title</label>
+        <Input id="announcement-title" value={title} onChange={(event) => setTitle(event.target.value)} required maxLength={180} className={styles.fieldControl} />
+        <label className={styles.fieldLabel} htmlFor="announcement-body">Message</label>
+        <Textarea id="announcement-body" value={body} onChange={(event) => setBody(event.target.value)} required maxLength={12000} rows={5} className={styles.fieldControl} />
+        <label className={styles.fieldLabel} htmlFor="announcement-audience">Audience</label>
+        <Select id="announcement-audience" value={audience} onChange={(event) => setAudience(event.target.value as AnnouncementAudience)} className={styles.fieldControl}>
           <option value="all">Everyone in this scope</option><option value="student">Students</option><option value="staff">School staff</option>
         </Select>
-        <button type="submit" disabled={busy || (isSchoolStaff && !organizationId)}>{busy ? "Saving…" : editingId ? "Save changes" : "Publish announcement"}</button>
-        {editingId && <button type="button" disabled={busy} onClick={() => { setEditingId(null); setTitle(""); setBody(""); }}>Cancel edit</button>}
+        <div className={styles.composerActions}>
+          <button type="submit" className={styles.primaryButton} disabled={busy || (isSchoolStaff && !organizationId)}>{busy ? "Saving…" : editingId ? "Save changes" : "Publish announcement"}</button>
+          {editingId && <button type="button" className={styles.tertiaryButton} disabled={busy} onClick={() => { setEditingId(null); setTitle(""); setBody(""); }}>Cancel edit</button>}
+        </div>
       </form>}
-      {error && <p role="alert" style={{ marginBottom: 16 }}>{error}</p>}
-      {notice && <p role="status" style={{ marginBottom: 16 }}>{notice}</p>}
+      {error && <p role="alert" className={styles.errorMessage}>{error}</p>}
+      {notice && <p role="status" className={styles.successMessage}>{notice}</p>}
       <div className={styles.tabs} role="group" aria-label="Filter announcements by audience">
         {(["all", "student", "staff"] as const).map((target) => <button key={target} type="button" className={`${styles.tabBtn} ${filter === target ? styles.tabBtnActive : ""}`} onClick={() => setFilter(target)}>{target === "all" ? "All" : target === "student" ? "Students" : "Staff"}</button>)}
       </div>
       <div className={styles.announcementsList}>
         {loading && <p role="status">Loading announcements…</p>}
-        {!loading && !error && visibleAnnouncements.length === 0 && <p>No announcements to show.</p>}
+        {!loading && !error && visibleAnnouncements.length === 0 && <p className={styles.emptyState}>No announcements to show.</p>}
         {visibleAnnouncements.map((item) => {
           const author = authors.get(item.author_id);
           const canEdit = profile?.role === "manager" || item.author_id === profile?.id || (isSchoolStaff && item.org_id === organizationId);
@@ -186,15 +188,24 @@ export default function AnnouncementsPage() {
           return <article key={item.id} className={styles.announcementCard}>
             <div className={styles.cardHeader}>
               <div className={`${styles.avatar} ${author?.role === "staff" ? styles.avatarStaff : styles.avatarManager}`}>{(author?.full_name ?? "H").charAt(0)}</div>
-              <div className={styles.authorName}>{author?.full_name ?? "Hanbee staff"}</div>
-              <div className={`${styles.roleBadge} ${author?.role === "staff" ? styles.roleStaff : styles.roleManager}`}>{authorRole}</div>
+              <div className={styles.authorMeta}>
+                <div className={styles.authorName}>{author?.full_name ?? "Hanbee staff"}</div>
+                <div className={`${styles.roleBadge} ${author?.role === "staff" ? styles.roleStaff : styles.roleManager}`}>{authorRole}</div>
+              </div>
               <time className={styles.time} dateTime={item.created_at}>{new Date(item.created_at).toLocaleString()}</time>
             </div>
             <h2 className={styles.title}><Info size={18} aria-hidden="true" /> {item.title}</h2>
-            <div className={styles.content} style={{ whiteSpace: "pre-wrap" }}>{item.body}</div>
-            <div className={styles.tags}><span className={styles.tag}>{item.audience === "all" ? "EVERYONE" : item.audience.toUpperCase()}</span><span className={styles.tag}>{item.org_id ? "SCHOOL" : "HANBEE"}</span></div>
+            <div className={styles.content}>{item.body}</div>
+            <div className={styles.tags}>
+              <span className={`${styles.tag} ${item.audience === "all" ? styles.audienceAll : item.audience === "student" ? styles.audienceStudent : styles.audienceStaff}`}>{item.audience === "all" ? "EVERYONE" : item.audience.toUpperCase()}</span>
+              <span className={styles.tag}>{item.org_id ? "SCHOOL" : "HANBEE"}</span>
+            </div>
             {item.pinned && <div className={styles.pinnedBadge}>Pinned</div>}
-            {canEdit && <div style={{ display: "flex", gap: 8, marginTop: 14 }}><button type="button" disabled={busy} onClick={() => void togglePinned(item)}>{item.pinned ? "Unpin" : "Pin"}</button><button type="button" disabled={busy} onClick={() => beginEdit(item)}>Edit</button><button type="button" disabled={busy} onClick={() => setPendingDelete(item)}>Delete</button></div>}
+            {canEdit && <div className={styles.announcementActions}>
+              <button type="button" className={styles.secondaryButton} disabled={busy} onClick={() => void togglePinned(item)}>{item.pinned ? "Unpin" : "Pin"}</button>
+              <button type="button" className={styles.tertiaryButton} disabled={busy} onClick={() => beginEdit(item)}>Edit</button>
+              <button type="button" className={styles.destructiveButton} disabled={busy} onClick={() => setPendingDelete(item)}>Delete</button>
+            </div>}
           </article>;
         })}
       </div>

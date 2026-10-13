@@ -52,41 +52,41 @@ export default function TournamentOverview() {
       </div>
       {error && <p role="alert">{error}</p>}
       {loading ? <p role="status">Loading tournament information…</p> : tournament ? (
-        <section className={styles.sectionCard} style={{ marginBottom: 28 }}>
+        <section className={styles.sectionCard}>
           <span className={styles.metricLabel}>NEXT TOURNAMENT</span>
-          <h2 style={{ fontSize: 24, fontWeight: 500, marginTop: 8 }}>{tournament.title}</h2>
-          <div style={{ display: "flex", gap: 22, flexWrap: "wrap", marginTop: 14, color: "var(--text-muted)" }}>
-            <span style={{ display: "inline-flex", alignItems: "center", gap: 7 }}><CalendarDays size={16} />{new Date(tournament.starts_at).toLocaleString()}</span>
-            {tournament.venue && <span style={{ display: "inline-flex", alignItems: "center", gap: 7 }}><MapPin size={16} />{tournament.venue}</span>}
+          <h2 className={styles.heroTitle}>{tournament.title}</h2>
+          <div className={styles.heroMeta}>
+            <span className={styles.metaItem}><CalendarDays size={16} aria-hidden="true" />{new Date(tournament.starts_at).toLocaleString()}</span>
+            {tournament.venue && <span className={styles.metaItem}><MapPin size={16} aria-hidden="true" />{tournament.venue}</span>}
           </div>
-          {team && <p style={{ marginTop: 18 }}>Your team: <strong>{team.name}</strong> · {team.status.replaceAll("_", " ")}</p>}
-          <div style={{ display: "flex", gap: 12, marginTop: 22, flexWrap: "wrap" }}>
-            {canManageTeam && <Link href={teamHref} className={styles.actionBtn} style={{ textDecoration: "none" }}>{team ? "Manage team" : "Team registration"}</Link>}
-            <Link href="/dashboard/leaderboard" className={styles.actionBtn} style={{ textDecoration: "none" }}>View results</Link>
+          {team && <p className={styles.teamMeta}>Your team: <strong>{team.name}</strong><span className={`${styles.statusBadge} ${team.status === "verified" ? styles.statusVerified : team.status === "rejected" ? styles.statusRejected : team.status === "draft" ? styles.statusDraft : styles.statusPending}`}>{team.status.replaceAll("_", " ")}</span></p>}
+          <div className={`${styles.buttonRow} ${styles.heroActions}`}>
+            {canManageTeam && <Link href={teamHref} className={styles.primaryBtn}>{team ? "Manage team" : "Team registration"}</Link>}
+            <Link href="/dashboard/leaderboard" className={styles.secondaryAction}>View results</Link>
           </div>
         </section>
       ) : (
-        <section className={styles.sectionCard} style={{ marginBottom: 28 }}>
+        <section className={styles.sectionCard}>
           <h2 className={styles.sectionTitle}>No upcoming tournament</h2>
-          <p style={{ marginTop: 8, color: "var(--text-muted)" }}>New events will appear here when they are published.</p>
-          <Link href="/dashboard/leaderboard" style={{ display: "inline-block", marginTop: 16, color: "var(--text-main)" }}>See published results</Link>
+          <p className={styles.bodyMuted}>New events will appear here when they are published.</p>
+          <Link href="/dashboard/leaderboard" className={styles.tertiaryAction}>See published results</Link>
         </section>
       )}
 
       <div className={styles.metricsRow}>
         <div className={styles.metricCard}>
-          <div className={styles.metricCardHeader}><span className={styles.metricLabel}>Tournament</span><Trophy size={16} className={styles.metricIcon} /></div>
-          <div className={styles.metricValue} style={{ fontSize: 20 }}>{loading ? "—" : tournament ? "Upcoming" : "None"}</div>
+          <div className={styles.metricCardHeader}><span className={styles.metricLabel}>Tournament</span><span className={styles.metricIconBadge}><Trophy size={18} aria-hidden="true" /></span></div>
+          <div className={`${styles.metricValue} ${styles.metricValueCompact}`}>{loading ? "—" : tournament ? "Upcoming" : "None"}</div>
           <div className={styles.metricSubtext}>Current event status</div>
         </div>
         <div className={styles.metricCard}>
-          <div className={styles.metricCardHeader}><span className={styles.metricLabel}>Team Status</span><Users size={16} className={styles.metricIcon} /></div>
-          <div className={styles.metricValue} style={{ fontSize: 20 }}>{loading ? "—" : team ? team.status.replaceAll("_", " ") : "No team"}</div>
+          <div className={styles.metricCardHeader}><span className={styles.metricLabel}>Team Status</span><span className={styles.metricIconBadge}><Users size={18} aria-hidden="true" /></span></div>
+          <div className={`${styles.metricValue} ${styles.metricValueCompact}`}>{loading ? "—" : team ? team.status.replaceAll("_", " ") : "No team"}</div>
           <div className={styles.metricSubtext}>{team ? `${team.members.length} members` : "Create or join a team"}</div>
         </div>
         <div className={styles.metricCard}>
-          <div className={styles.metricCardHeader}><span className={styles.metricLabel}>Team size</span><Users size={16} className={styles.metricIcon} /></div>
-          <div className={styles.metricValue} style={{ fontSize: 20 }}>{loading ? "—" : tournament ? tournament.team_size : "—"}</div>
+          <div className={styles.metricCardHeader}><span className={styles.metricLabel}>Team size</span><span className={styles.metricIconBadge}><Users size={18} aria-hidden="true" /></span></div>
+          <div className={styles.metricValue}>{loading ? "—" : tournament ? tournament.team_size : "—"}</div>
           <div className={styles.metricSubtext}>Members required per team</div>
         </div>
       </div>

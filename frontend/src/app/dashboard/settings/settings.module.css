@@ -4,10 +4,11 @@
 
 .pageTitle {
   font-family: var(--font-heading);
-  font-size: 28px;
+  font-size: var(--ui-display);
   font-weight: 500;
-  margin-bottom: 4px;
-  letter-spacing: -0.5px;
+  margin: 0;
+  letter-spacing: -0.02em;
+  line-height: var(--ui-leading-tight);
 }
 
 .pageSubtitle {
@@ -308,4 +309,3 @@
   cursor: pointer;
   border: none;
 }
-

@@ -2,6 +2,7 @@
 
 import { FormEvent, useCallback, useEffect, useState } from "react";
 import Link from "next/link";
+import { Trophy } from "lucide-react";
 import styles from "../dashboard.module.css";
 import {
   answerTeamInvitation,
@@ -94,20 +95,20 @@ export default function MyTeamPage() {
         </p>
       </div>
 
-      {error && <p role="alert" style={{ color: "#b42318", marginBottom: 16 }}>{error}</p>}
-      {notice && <p role="status" style={{ marginBottom: 16 }}>{notice}</p>}
+      {error && <p role="alert" className={styles.announcementAlert}>{error}</p>}
+      {notice && <p role="status" className={styles.announcementNotice}>{notice}</p>}
 
       {tournament && formation && (
-        <div style={{ display: "grid", gap: 20, maxWidth: 800 }}>
+        <div className={styles.pageStack}>
           {formation.invitations.length > 0 && (
-            <section style={{ padding: 24, background: "var(--bg-card)", borderRadius: 18 }}>
-              <h2>Team invitations</h2>
+            <section className={styles.sectionCard}>
+              <h2 className={styles.sectionTitle}>Team invitations</h2>
               {formation.invitations.map((invitation) => (
-                <div key={invitation.id} style={{ display: "flex", justifyContent: "space-between", gap: 12, paddingTop: 16 }}>
+                <div key={invitation.id} className={styles.invitationRow}>
                   <p>{invitation.team_name} · {invitation.members} members</p>
-                  <div style={{ display: "flex", gap: 8 }}>
-                    <button type="button" disabled={busy} onClick={() => void runAction(() => answerTeamInvitation(invitation.id, true), "You joined the team.")}>Accept</button>
-                    <button type="button" disabled={busy} onClick={() => void runAction(() => answerTeamInvitation(invitation.id, false), "Invitation declined.")}>Decline</button>
+                  <div className={styles.buttonRow}>
+                    <button type="button" className={styles.primaryBtn} disabled={busy} onClick={() => void runAction(() => answerTeamInvitation(invitation.id, true), "You joined the team.")}>Accept</button>
+                    <button type="button" className={styles.secondaryAction} disabled={busy} onClick={() => void runAction(() => answerTeamInvitation(invitation.id, false), "Invitation declined.")}>Decline</button>
                   </div>
                 </div>
               ))}
@@ -115,23 +116,24 @@ export default function MyTeamPage() {
           )}
 
           {!team && formation.school_id && (
-            <section style={{ padding: 28, background: "var(--bg-card)", borderRadius: 20 }}>
-              <h2>You are not on a team yet</h2>
-              <p style={{ margin: "10px 0 18px", color: "var(--text-muted)" }}>
+            <section className={styles.sectionCard}>
+              <h2 className={styles.sectionTitle}>You are not on a team yet</h2>
+              <p className={styles.bodyMuted}>
                 {formation.slots?.max_teams == null
                   ? "Your school staff haven't opened team slots yet."
                   : `${formation.slots.remaining ?? 0} of ${formation.slots.max_teams} school team slots remain.`}
               </p>
               {formation.slots?.remaining !== 0 && formation.slots?.max_teams != null && (
-                <p style={{ marginBottom: 16 }}>
-                  <Link href="/dashboard/team/start">Create a team with the setup wizard</Link>
+                <p className={styles.teamActions}>
+                  <Link href="/dashboard/team/start" className={styles.primaryBtn}>Create a team with the setup wizard</Link>
                 </p>
               )}
               {formation.slots?.remaining !== 0 && formation.slots?.max_teams != null && (
-                <form onSubmit={createTeam} style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+                <form onSubmit={createTeam} className={styles.inlineForm}>
                   <label htmlFor="new-team-name" className="sr-only">Team name</label>
                   <input
                     id="new-team-name"
+                    className={styles.teamInput}
                     value={teamName}
                     onChange={(event) => setTeamName(event.target.value)}
                     placeholder="Choose a team name"
@@ -140,64 +142,88 @@ export default function MyTeamPage() {
                     required
                     disabled={busy}
                   />
-                  <button type="submit" disabled={busy}>{busy ? "Creating…" : "Start a team"}</button>
+                  <button type="submit" className={styles.secondaryAction} disabled={busy}>{busy ? "Creating…" : "Quick create"}</button>
                 </form>
               )}
             </section>
           )}
 
           {!team && !formation.school_id && (
-            <section style={{ padding: 28, background: "var(--bg-card)", borderRadius: 20 }}>
-              <h2>{isSolo ? "Solo tournament entry" : "School membership needed"}</h2>
-              <p>{isSolo ? "Enter this tournament as a team of one. Your entry will be reviewed by Hanbee staff after you confirm payment." : "Your account is not attached to an active school or marked for solo entry. Contact Hanbee staff to restore your school membership or enable solo participation."}</p>
-              {isSolo && <button type="button" disabled={busy} onClick={() => void runAction(() => createSoloTournamentEntry(tournament.id), "Solo entry created. Review the payment step below to submit it.")}>Create solo entry</button>}
+            <section className={styles.sectionCard}>
+              <h2 className={styles.sectionTitle}>{isSolo ? "Solo tournament entry" : "School membership needed"}</h2>
+              <p className={styles.bodyMuted}>{isSolo ? "Enter this tournament as a team of one. Your entry will be reviewed by Hanbee staff after you confirm payment." : "Your account is not attached to an active school or marked for solo entry. Contact Hanbee staff to restore your school membership or enable solo participation."}</p>
+              {isSolo && <div className={styles.teamActions}><button type="button" className={styles.primaryBtn} disabled={busy} onClick={() => void runAction(() => createSoloTournamentEntry(tournament.id), "Solo entry created. Review the payment step below to submit it.")}>Create solo entry</button></div>}
             </section>
           )}
 
           {team && (
-            <section style={{ padding: 28, background: "var(--bg-card)", borderRadius: 20 }}>
-              <div style={{ display: "flex", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
-                <div>
+            <section className={`${styles.sectionCard} ${styles.teamCard}`}>
+              <header className={styles.teamHeader}>
+                <div className={styles.teamIdentity}>
                   <h2>{team.name}</h2>
-                  <p style={{ color: "var(--text-muted)" }}>{team.status.replaceAll("_", " ")} · {playerCount}/{tournament.team_size} players</p>
+                  <div className={styles.teamMeta}>
+                    <span className={`${styles.statusBadge} ${team.status === "verified" ? styles.statusVerified : team.status === "rejected" || team.status === "withdrawn" ? styles.statusRejected : team.status === "draft" ? styles.statusDraft : team.status === "applied" ? styles.statusApplied : styles.statusPending}`}>{team.status.replaceAll("_", " ")}</span>
+                    <span>{playerCount}/{tournament.team_size} players</span>
+                  </div>
                 </div>
-                {team.is_captain && <span>Captain</span>}
+                {team.is_captain && <span className={styles.captainBadge}><Trophy size={13} aria-hidden="true" /> Captain</span>}
+              </header>
+
+              {team.staff_note && <p className={styles.teamNote}>School staff note: {team.staff_note}</p>}
+
+              <div className={styles.teamSection}>
+                <h3 className={styles.teamSectionTitle}>Team roster</h3>
+                <ul className={styles.roster}>
+                  {team.members.map((member) => (
+                    <li key={member.student_id} className={styles.rosterSlot}>
+                      <span className={styles.rosterAvatar} aria-hidden="true">{member.name.charAt(0).toUpperCase()}</span>
+                      <span><span className={styles.rosterName}>{member.name}</span>{member.is_captain && <span className={styles.rosterRole}>Team captain</span>}</span>
+                    </li>
+                  ))}
+                  {team.pending_invites.map((invite) => (
+                    <li key={invite.id} className={`${styles.rosterSlot} ${styles.rosterSlotEmpty}`}>
+                      <span className={styles.rosterAvatar} aria-hidden="true">…</span>
+                      <span><span className={styles.rosterName}>{invite.name}</span><span className={styles.rosterRole}>Invitation pending</span></span>
+                    </li>
+                  ))}
+                  {Array.from({ length: Math.max(0, tournament.team_size - playerCount - team.pending_invites.length) }, (_, index) => (
+                    <li key={`open-slot-${index}`} className={`${styles.rosterSlot} ${styles.rosterSlotEmpty}`}>
+                      <span className={styles.rosterAvatar} aria-hidden="true">+</span>
+                      <span><span className={styles.rosterName}>Open player slot</span><span className={styles.rosterRole}>Awaiting teammate</span></span>
+                    </li>
+                  ))}
+                </ul>
               </div>
 
-              {team.staff_note && <p style={{ marginTop: 12 }}>School staff note: {team.staff_note}</p>}
-              <ul style={{ margin: "18px 0", paddingLeft: 20 }}>
-                {team.members.map((member) => <li key={member.student_id}>{member.name}{member.is_captain ? " · Captain" : ""}</li>)}
-                {team.pending_invites.map((invite) => <li key={invite.id}>{invite.name} · Invitation pending</li>)}
-              </ul>
-
               {team.is_captain && team.status === "draft" && (
-                <>
+                <div className={styles.teamSection}>
+                  <h3 className={styles.teamSectionTitle}>Team actions</h3>
                   {formation.school_id && formation.eligible_classmates.length > 0 && (
-                    <form onSubmit={inviteClassmate} style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 14 }}>
+                    <form onSubmit={inviteClassmate} className={styles.inlineForm}>
                       <label htmlFor="team-invitee" className="sr-only">Classmate to invite</label>
-                      <select id="team-invitee" value={inviteeId} onChange={(event) => setInviteeId(event.target.value)} required disabled={busy}>
+                      <select id="team-invitee" className={styles.teamInput} value={inviteeId} onChange={(event) => setInviteeId(event.target.value)} required disabled={busy}>
                         <option value="">Choose a classmate</option>
                         {formation.eligible_classmates.map((student) => <option key={student.student_id} value={student.student_id}>{student.name}</option>)}
                       </select>
-                      <button type="submit" disabled={busy}>Invite classmate</button>
+                      <button type="submit" className={styles.secondaryAction} disabled={busy}>Invite classmate</button>
                     </form>
                   )}
-                  {formation.school_id ? <button type="button" disabled={busy || playerCount !== tournament.team_size} onClick={() => void runAction(() => submitStudentTeam(team.id), "Team sent to school staff for approval.")}>
+                  {formation.school_id ? <div className={styles.teamActions}><button type="button" className={styles.primaryBtn} disabled={busy || playerCount !== tournament.team_size} onClick={() => void runAction(() => submitStudentTeam(team.id), "Team sent to school staff for approval.")}>
                     {playerCount === tournament.team_size ? "Submit team for approval" : `Invite ${tournament.team_size - playerCount} more player${tournament.team_size - playerCount === 1 ? "" : "s"}`}
-                  </button> : <div style={{ display: "grid", gap: 10 }}>
-                    <p>Confirm payment for your solo tournament entry. Hanbee staff will verify the entry after submission.</p>
-                    {process.env.NEXT_PUBLIC_TOURNAMENT_PAYMENT_QR_URL && <a href={process.env.NEXT_PUBLIC_TOURNAMENT_PAYMENT_QR_URL} target="_blank" rel="noreferrer">View tournament payment QR</a>}
-                    <label style={{ display: "flex", alignItems: "center", gap: 8 }}><input type="checkbox" checked={paymentDeclared} onChange={(event) => setPaymentDeclared(event.target.checked)} />I have completed the tournament payment.</label>
-                    <button type="button" disabled={busy || !paymentDeclared} onClick={() => void runAction(() => applyStudentTeam(team.id, true), "Payment declared. Your solo entry is waiting for Hanbee review.")}>Submit paid solo entry</button>
+                  </button></div> : <div className={styles.paymentPanel}>
+                    <p className={styles.bodyMuted}>Confirm payment for your solo tournament entry. Hanbee staff will verify the entry after submission.</p>
+                    {process.env.NEXT_PUBLIC_TOURNAMENT_PAYMENT_QR_URL && <a className={styles.tertiaryAction} href={process.env.NEXT_PUBLIC_TOURNAMENT_PAYMENT_QR_URL} target="_blank" rel="noreferrer">View tournament payment QR</a>}
+                    <label className={styles.paymentCheck}><input type="checkbox" checked={paymentDeclared} onChange={(event) => setPaymentDeclared(event.target.checked)} />I have completed the tournament payment.</label>
+                    <div><button type="button" className={styles.primaryBtn} disabled={busy || !paymentDeclared} onClick={() => void runAction(() => applyStudentTeam(team.id, true), "Payment declared. Your solo entry is waiting for Hanbee review.")}>Submit paid solo entry</button></div>
                   </div>}
-                </>
+                </div>
               )}
 
-              {team.status === "proposed" && <p style={{ marginTop: 16 }}>Your school staff are reviewing this team.</p>}
-              {team.status === "draft" && !team.is_captain && <p style={{ marginTop: 16 }}>Your captain is forming the team.</p>}
-              {team.status === "payment_declared" && <p style={{ marginTop: 16 }}>{formation.school_id ? "Your school approved the team." : "Your payment declaration was received."} Hanbee staff will review its entry.</p>}
-              {team.status === "verified" && <p style={{ marginTop: 16 }}>Your team is verified for the tournament.</p>}
-              {team.is_captain && team.status === "draft" && <button type="button" disabled={busy} onClick={() => void runAction(() => leaveStudentTeam(team.id), "You left the team.")}>Leave team</button>}
+              {team.status === "proposed" && <p className={styles.teamNote}>Your school staff are reviewing this team.</p>}
+              {team.status === "draft" && !team.is_captain && <p className={styles.teamNote}>Your captain is forming the team.</p>}
+              {team.status === "payment_declared" && <p className={styles.teamNote}>{formation.school_id ? "Your school approved the team." : "Your payment declaration was received."} Hanbee staff will review its entry.</p>}
+              {team.status === "verified" && <p className={styles.teamNote}>Your team is verified for the tournament.</p>}
+              {team.is_captain && team.status === "draft" && <footer className={styles.teamFooter}><button type="button" className={styles.destructiveAction} disabled={busy} onClick={() => void runAction(() => leaveStudentTeam(team.id), "You left the team.")}>Leave team</button></footer>}
             </section>
           )}
         </div>

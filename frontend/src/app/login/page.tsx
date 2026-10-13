@@ -190,7 +190,7 @@ function LoginContent() {
         {forgotMode && (
           <>
             {forgotSent ? (
-              <p style={{ textAlign: "center", marginTop: "16px" }}>
+              <p className={styles.centeredNotice}>
                 If an account exists for <strong>{forgotEmail}</strong>, a reset link is on its way.
               </p>
             ) : (
@@ -206,17 +206,17 @@ function LoginContent() {
                     required
                   />
                 </div>
-                {authError && <p role="alert" style={{ color: "var(--color-danger)", marginBottom: 10 }}>{authError}</p>}
+                {authError && <p role="alert" className={styles.formError}>{authError}</p>}
                 <button type="submit" className={styles.submitBtn} disabled={submitting}>
                   {submitting ? "Sending…" : "Send reset link →"}
                 </button>
               </form>
             )}
-            <p style={{ textAlign: "center", marginTop: "16px", fontSize: "13px" }}>
+            <p className={styles.centeredFinePrint}>
               <button
                 type="button"
                 onClick={() => { setForgotMode(false); setForgotSent(false); setForgotEmail(""); setAuthError(""); }}
-                style={{ background: "none", border: "none", color: "rgba(255,255,255,0.6)", cursor: "pointer", textDecoration: "underline" }}
+                className={styles.inlineTextButton}
               >
                 Back to sign in
               </button>
@@ -240,15 +240,15 @@ function LoginContent() {
                 required
               />
             </div>
-            {authError && <p role="alert" style={{ color: "var(--color-danger)", marginBottom: 10 }}>{authError}</p>}
+            {authError && <p role="alert" className={styles.formError}>{authError}</p>}
             <button type="submit" className={styles.submitBtn} disabled={submitting}>
               {submitting ? "Verifying…" : "Verify →"}
             </button>
-            <p style={{ textAlign: "center", marginTop: "16px", fontSize: "13px" }}>
+            <p className={styles.centeredFinePrint}>
               <button
                 type="button"
                 onClick={() => { setMfa(null); setMfaCode(""); setAuthError(""); }}
-                style={{ background: "none", border: "none", color: "rgba(255,255,255,0.6)", cursor: "pointer", textDecoration: "underline" }}
+                className={styles.inlineTextButton}
               >
                 Back to sign in
               </button>
@@ -288,7 +288,7 @@ function LoginContent() {
         </div>
 
         {!isLogin && signupDone ? (
-          <p style={{ textAlign: "center", marginTop: "16px" }}>
+          <p className={styles.centeredNotice}>
             Your account was created. {activeRole === "School" ? "A manager or Hanbee staff member will verify your school before you can sign in." : "A manager or Hanbee staff member will approve your account before you can sign in."}
           </p>
         ) : (
@@ -362,11 +362,11 @@ function LoginContent() {
                 <input type="checkbox" defaultChecked />
                 Remember this device
               </label>
-              <button type="button" className={styles.forgotLink} onClick={() => { setForgotMode(true); setForgotEmail(email); setAuthError(""); }} style={{ background: "none", border: "none", cursor: "pointer" }}>Forgot Password?</button>
+              <button type="button" className={styles.forgotLink} onClick={() => { setForgotMode(true); setForgotEmail(email); setAuthError(""); }}>Forgot Password?</button>
             </div>
           )}
 
-          {authError && <p role="alert" style={{ color: "var(--color-danger)", marginBottom: 10 }}>{authError}</p>}
+          {authError && <p role="alert" className={styles.formError}>{authError}</p>}
 
           <button type="submit" className={styles.submitBtn} disabled={submitting}>
             {submitting ? (isLogin ? "Signing in…" : "Creating account…") : isLogin ? "Launch Workspace →" : "Create Account →"}
@@ -396,8 +396,8 @@ function LoginContent() {
           </>
         )}
 
-        <p style={{ textAlign: "center", marginTop: "24px", fontSize: "13px", color: "rgba(255,255,255,0.5)" }}>
-          <Link href="/" style={{ color: "rgba(255,255,255,0.8)", textDecoration: "none" }}>
+        <p className={styles.homeLinkRow}>
+          <Link href="/" className={styles.homeLink}>
             ← Back to Home
           </Link>
         </p>
