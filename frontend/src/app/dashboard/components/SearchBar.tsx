@@ -51,7 +51,7 @@ export default function SearchBar() {
       category: "TOURNAMENT & RC",
       icon: LayoutDashboard,
       keywords: ["race", "countdown", "circuit", "track", "lights", "f1", "hub", "tournament", "home"],
-      role: ["student"],
+      role: ["student", "staff", "manager"],
     },
     {
       id: "driver-license",
@@ -61,7 +61,7 @@ export default function SearchBar() {
       category: "TOURNAMENT & RC",
       icon: IdCard,
       keywords: ["license", "pass", "card", "parts", "specs", "motor", "battery", "chassis", "rp", "barcode"],
-      role: ["student"],
+      role: ["student", "staff", "manager"],
     },
     {
       id: "leaderboard",
@@ -71,7 +71,7 @@ export default function SearchBar() {
       category: "TOURNAMENT & RC",
       icon: Trophy,
       keywords: ["standings", "leaderboard", "grid", "rank", "telemetry", "points", "vortex", "redline", "podium"],
-      role: ["student"],
+      role: ["student", "staff", "manager", "school_staff"],
     },
     {
       id: "my-team",
@@ -80,8 +80,8 @@ export default function SearchBar() {
       href: "/dashboard/team",
       category: "TOURNAMENT & RC",
       icon: Users,
-      keywords: ["team", "squad", "classmates", "captain", "roster", "invitations", "register"],
-      role: ["student"],
+      keywords: ["team", "squad", "classmates", "captain", "roster", "invitations", "register", "scores"],
+      role: ["student", "staff", "manager", "school_staff"],
     },
     {
       id: "rc-inspection",

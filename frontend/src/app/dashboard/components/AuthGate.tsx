@@ -12,13 +12,20 @@ const ROLE_HOME: Record<string, string> = {
   manager: "/dashboard/manager/monitor",
 };
 
-const SHARED = ["/dashboard/chat", "/dashboard/announcements", "/dashboard/settings"];
+const SHARED = [
+  "/dashboard/chat", 
+  "/dashboard/announcements", 
+  "/dashboard/settings", 
+  "/dashboard/leaderboard", 
+  "/dashboard/team", 
+  "/dashboard/license"
+];
 
 const ROLE_AREAS: Record<string, string[]> = {
-  student: ["/dashboard", ...SHARED, "/dashboard/courses", "/dashboard/attendance", "/dashboard/achievements", "/dashboard/certificate", "/dashboard/ai-assistant", "/dashboard/leaderboard", "/dashboard/team", "/dashboard/license", "/dashboard/join-school"],
+  student: ["/dashboard", ...SHARED, "/dashboard/courses", "/dashboard/attendance", "/dashboard/achievements", "/dashboard/certificate", "/dashboard/ai-assistant", "/dashboard/join-school"],
   school_staff: [...SHARED, "/dashboard/school"],
-  staff: [...SHARED, "/dashboard/hanbee", "/dashboard/courses", "/dashboard/users"],
-  manager: [...SHARED, "/dashboard/manager", "/dashboard/hanbee", "/dashboard/courses", "/dashboard/users"],
+  staff: ["/dashboard", ...SHARED, "/dashboard/hanbee", "/dashboard/courses", "/dashboard/users", "/dashboard/attendance"],
+  manager: ["/dashboard", ...SHARED, "/dashboard/manager", "/dashboard/hanbee", "/dashboard/courses", "/dashboard/users", "/dashboard/attendance"],
 };
 
 export default function AuthGate({ children }: { children: ReactNode }) {
