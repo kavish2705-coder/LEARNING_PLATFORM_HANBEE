@@ -165,7 +165,7 @@ await asUser(a1); r=await tryq("select create_solo_team($1)",[T2]); check("schoo
 await asUser(staffA); r=await tryq("select create_solo_team($1)",[T2]); check("school staff cannot create solo team",!!r.e);
 await asUser(solo2); r=await tryq("select apply_team($1,true)",[soloTeam]); check("other solo cannot apply someone else's team",!!r.e);
 await asUser(solo); r=await tryq("select apply_team($1,true)",[soloTeam]); check("solo applies own team",ok(r));
-await asUser(jamie); await c.query("select decide_team($1,'verified')",[soloTeam]); check("Hanbee verifies solo team",(await one("select status s from tournament_teams where id=$1",[soloTeam])).s==="verified");
+await asUser(jamie); r=await tryq("select decide_team($1,'verified')",[soloTeam]); check("Hanbee verifies solo team",ok(r),r.e?.message); if(!r.e) check("solo team status is verified",(await one("select status s from tournament_teams where id=$1",[soloTeam])).s==="verified");
 await asUser(solo2); check("solo2 does not see solo's team", await cnt("select count(*)::int n from tournament_teams")===0);
 
 // --- courses
