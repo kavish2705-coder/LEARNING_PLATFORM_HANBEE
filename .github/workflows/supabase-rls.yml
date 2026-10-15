@@ -48,6 +48,9 @@ jobs:
           npm --prefix supabase run seed
           node supabase/tests/seed-ci.mjs
 
+      - name: Create test_support_* helper functions the RLS suites depend on
+        run: node supabase/tests/create-ci-test-support-functions.mjs
+
       - name: Dump Postgres/auth logs on failure
         if: failure()
         run: |
