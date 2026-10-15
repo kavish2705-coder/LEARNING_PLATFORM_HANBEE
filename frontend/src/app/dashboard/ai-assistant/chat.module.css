@@ -112,6 +112,11 @@
   padding: 16px 24px 16px;
   overflow-x: auto;
   scrollbar-width: none;
+  /* The scrollbar is hidden, so without this there's no visual cue that
+     more chips exist off-screen — a chip can look clipped/cut off with
+     nothing telling the user they can scroll to see the rest. */
+  mask-image: linear-gradient(to right, black calc(100% - 32px), transparent 100%);
+  -webkit-mask-image: linear-gradient(to right, black calc(100% - 32px), transparent 100%);
 }
 
 .suggestedPrompts::-webkit-scrollbar {

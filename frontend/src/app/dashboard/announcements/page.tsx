@@ -1,9 +1,9 @@
 "use client";
 
 import { FormEvent, useEffect, useState, useMemo } from "react";
-import { 
-  Bell, AlertCircle, CheckCircle2, Radio, Flag, 
-  ShieldCheck, Wrench, Sparkles, Filter, Pin, 
+import {
+  Bell, AlertCircle, CheckCircle2, Radio, Flag,
+  ShieldCheck, Sparkles, Filter, Pin,
   Send, Users, Trash2, Edit3, Check
 } from "lucide-react";
 import styles from "./announcements.module.css";
@@ -22,7 +22,7 @@ import {
   type AnnouncementRow 
 } from "../../../lib/announcementsApi";
 
-type CategoryFilter = "all" | "tournament" | "technical" | "school";
+type CategoryFilter = "all" | "tournament" | "school";
 
 interface EnrichedAnnouncement {
   id: string;
@@ -32,7 +32,7 @@ interface EnrichedAnnouncement {
   authorName: string;
   authorRole: string;
   authorRoleBadge: "badgeDirector" | "badgeStaff" | "badgeSchool";
-  category: "tournament" | "technical" | "school";
+  category: "tournament" | "school";
   categoryLabel: string;
   priority: "critical" | "standard";
   timeLabel: string;
@@ -214,14 +214,6 @@ export default function AnnouncementsPage() {
         >
           <Flag size={14} />
           Tournament Directives
-        </button>
-        <button
-          type="button"
-          className={`${styles.tabBtn} ${activeFilter === "technical" ? styles.tabBtnActive : ""}`}
-          onClick={() => setActiveFilter("technical")}
-        >
-          <Wrench size={14} />
-          Technical Bulletins
         </button>
         <button
           type="button"

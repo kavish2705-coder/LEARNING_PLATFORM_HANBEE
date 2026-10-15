@@ -400,7 +400,14 @@
 .primaryBtn:disabled,
 .secondaryAction:disabled,
 .tertiaryAction:disabled,
-.destructiveAction:disabled {
+.destructiveAction:disabled,
+.actionBtn:disabled {
+  /* .actionBtn never sets its own text color (relies on inheritance), so a
+     disabled <button> falls back to the browser's default disabled text
+     color (GrayText in Chromium) instead of the inherited theme color —
+     against this card's dark translucent background that reads as
+     invisible. Force it back to the real text color, just dimmed. */
+  color: inherit;
   opacity: 0.48;
   cursor: not-allowed;
   box-shadow: none;
