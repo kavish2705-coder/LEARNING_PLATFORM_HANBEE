@@ -1,0 +1,565 @@
+/* ===== Hanbee Staff Overview & Tournament Scores Styling ===== */
+
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  animation: fadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Page Header */
+.pageHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  background: var(--bg-card);
+  padding: 26px 32px;
+  border-radius: var(--clay-radius-md);
+  box-shadow: var(--clay-shadow-outer);
+  border: var(--border-subtle);
+  backdrop-filter: blur(16px);
+}
+
+.headerLeft {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.roleTag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: monospace;
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--accent-subtle-text);
+  background: var(--accent-subtle-bg);
+  border: 1px solid var(--accent-subtle-border);
+  padding: 3px 10px;
+  border-radius: 999px;
+  width: fit-content;
+  font-weight: 700;
+}
+
+.pageTitle {
+  font-family: var(--font-heading);
+  font-size: clamp(24px, 2.5vw, 32px);
+  font-weight: 700;
+  color: var(--text-main);
+  letter-spacing: -0.02em;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.pageSubtitle {
+  font-size: 14px;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.linkBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--border-elevated);
+  color: var(--text-main);
+  transition: all 0.2s ease;
+}
+
+.linkBtn:hover {
+  background: var(--bg-card-hover);
+  border-color: var(--accent-subtle-border);
+  color: var(--accent-subtle-text);
+  transform: translateY(-1px);
+}
+
+.primaryLinkBtn {
+  background: var(--accent-subtle-bg);
+  border-color: var(--accent-subtle-border);
+  color: var(--accent-subtle-text);
+}
+
+.primaryLinkBtn:hover {
+  background: rgba(125, 211, 232, 0.25);
+  box-shadow: 0 0 16px rgba(8, 145, 178, 0.25);
+}
+
+/* Tab Navigation Switcher */
+.tabBar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  padding-bottom: 12px;
+  overflow-x: auto;
+}
+
+.tabBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  background: transparent;
+  color: var(--text-muted);
+  border: 1px solid transparent;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.tabBtn:hover {
+  color: var(--text-main);
+  background: var(--bg-surface-elevated);
+}
+
+.tabBtnActive {
+  color: var(--accent-subtle-text);
+  background: var(--accent-subtle-bg);
+  border-color: var(--accent-subtle-border);
+  box-shadow: 0 0 16px rgba(8, 145, 178, 0.15);
+}
+
+/* Circuit & Tournament Telemetry Hero */
+.circuitHero {
+  background: var(--bg-card);
+  box-shadow: var(--clay-shadow-outer);
+  border: var(--border-subtle);
+  border-radius: var(--clay-radius-md);
+  padding: 26px 30px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  position: relative;
+  overflow: hidden;
+}
+
+.circuitHero::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 300px;
+  height: 100%;
+  background: radial-gradient(circle at right center, rgba(16, 185, 129, 0.08), transparent 70%);
+  pointer-events: none;
+}
+
+.circuitTopRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.circuitTitleGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.circuitTitle {
+  font-family: var(--font-heading);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-main);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.circuitDesc {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.liveBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: monospace;
+  font-size: 11px;
+  font-weight: 700;
+  color: #10b981;
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  padding: 4px 12px;
+  border-radius: 999px;
+  letter-spacing: 0.5px;
+}
+
+/* Quick Metrics Row */
+.circuitMetrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 14px;
+}
+
+.metricBox {
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--border-elevated);
+  border-radius: 12px;
+  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.metricIcon {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: var(--accent-subtle-bg);
+  border: 1px solid var(--accent-subtle-border);
+  color: var(--accent-subtle-text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.metricMeta {
+  display: flex;
+  flex-direction: column;
+}
+
+.metricTitle {
+  font-size: 11px;
+  font-family: monospace;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  letter-spacing: 0.5px;
+}
+
+.metricValue {
+  font-family: var(--font-heading);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-top: 2px;
+}
+
+/* Live Teams Scores Card */
+.tableCard {
+  background: var(--bg-card);
+  box-shadow: var(--clay-shadow-outer);
+  border: var(--border-subtle);
+  border-radius: var(--clay-radius-md);
+  padding: 26px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.tableHeaderRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.tableTitle {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-main);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tableSubtitle {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.tableWrapper {
+  overflow-x: auto;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: var(--bg-surface-elevated);
+}
+
+.dataTable {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 13px;
+}
+
+.dataTable th {
+  padding: 14px 18px;
+  font-family: monospace;
+  font-size: 11px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  background: rgba(0, 0, 0, 0.2);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  letter-spacing: 0.5px;
+}
+
+.dataTable td {
+  padding: 14px 18px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  color: var(--text-main);
+}
+
+.dataTable tr:last-child td {
+  border-bottom: none;
+}
+
+.dataTable tr:hover td {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.rankBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  font-family: monospace;
+  font-weight: 700;
+  font-size: 13px;
+}
+
+.rankP1 {
+  background: rgba(245, 158, 11, 0.2);
+  border: 1px solid rgba(245, 158, 11, 0.5);
+  color: #f59e0b;
+}
+
+.rankP2 {
+  background: rgba(156, 163, 175, 0.18);
+  border: 1px solid rgba(156, 163, 175, 0.45);
+  color: #9ca3af;
+}
+
+.rankP3 {
+  background: rgba(217, 119, 6, 0.18);
+  border: 1px solid rgba(217, 119, 6, 0.45);
+  color: #d97706;
+}
+
+.rankOther {
+  background: var(--bg-input);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-muted);
+}
+
+.teamNameCell {
+  display: flex;
+  flex-direction: column;
+}
+
+.teamNameText {
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.schoolText {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.pointsText {
+  font-family: var(--font-heading);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--accent-subtle-text);
+}
+
+.lapTimeText {
+  font-family: monospace;
+  font-size: 13px;
+  font-weight: 600;
+  color: #10b981;
+}
+
+.capacityPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-family: monospace;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: var(--bg-input);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-muted);
+}
+
+.statusPill {
+  font-size: 10px;
+  font-family: monospace;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: 6px;
+}
+
+.statusVerified {
+  background: rgba(16, 185, 129, 0.12);
+  color: #10b981;
+  border: 1px solid rgba(16, 185, 129, 0.35);
+}
+
+.statusPending {
+  background: rgba(245, 158, 11, 0.12);
+  color: #f59e0b;
+  border: 1px solid rgba(245, 158, 11, 0.35);
+}
+
+.expandBtn {
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--border-elevated);
+  color: var(--text-main);
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.expandBtn:hover {
+  background: rgba(125, 211, 232, 0.15);
+  border-color: rgba(125, 211, 232, 0.4);
+  color: var(--accent-subtle-text);
+}
+
+/* Expanded Roster Details */
+.rosterExpandedRow {
+  background: rgba(0, 0, 0, 0.15);
+  padding: 16px 20px;
+}
+
+.driversMiniGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+  padding: 10px 0;
+}
+
+.driverMiniCard {
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--border-elevated);
+  border-radius: 8px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.driverMiniName {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.driverMiniRole {
+  font-size: 10px;
+  font-family: monospace;
+  color: var(--text-muted);
+}
+
+.driverMiniLap {
+  font-size: 12px;
+  font-family: monospace;
+  font-weight: 700;
+  color: #10b981;
+  margin-top: 4px;
+}
+
+/* Staff Operations Section */
+.staffOpsRow {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+.opsCard {
+  background: var(--bg-card);
+  box-shadow: var(--clay-shadow-outer);
+  border: var(--border-subtle);
+  border-radius: var(--clay-radius-md);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.opsHeader {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.hoursDisplay {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.bigHours {
+  font-family: var(--font-heading);
+  font-size: 36px;
+  font-weight: 700;
+  color: var(--accent-subtle-text);
+  line-height: 1;
+}
+
+.hoursSub {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .pageHeader {
+    padding: 20px;
+  }
+  .circuitMetrics {
+    grid-template-columns: 1fr 1fr;
+  }
+  .staffOpsRow {
+    grid-template-columns: 1fr;
+  }
+}
