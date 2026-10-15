@@ -140,7 +140,12 @@ async function main() {
   );
   // The handle_new_user trigger creates the profiles row automatically.
 
-  const { data: existingCourse } = await admin.from("courses").select("id").eq("title", "Intro to Design").maybeSingle();
+  // .maybeSingle() requires EXACTLY 0 or 1 matching rows and returns an
+  // error (not data) on 2+ — which this check wasn't looking at, so once a
+  // second duplicate existed it silently read as "not found" and created
+  // more. Use a plain limited select and check row count instead.
+  const { data: existingCourses } = await admin.from("courses").select("id").eq("title", "Intro to Design").limit(1);
+  const existingCourse = existingCourses?.[0];
   if (existingCourse) {
     console.log("Skipping course content: \"Intro to Design\" already exists from a previous seed run.");
   } else {
@@ -173,20 +178,29 @@ async function main() {
       { ...emptyLesson, module_id: mod2.id, title: "Further reading", content_type: "link", published: false, sort_order: 1, external_url: "https://www.interaction-design.org/literature/topics/typography" },
     ]);
 
-    console.log("Enrolling the demo student...");
-    await insert("enrollments", {
-      section_id: section.id,
-      student_id: studentId,
-      status: "active",
-      roll_no: "STU-2026-001",
-      age: 21,
-      institution: "Brookfield College",
-      phone: "(555) 301-7742",
-    });
+    // ava@student.edu is a pre-existing legacy account that may already
+    // have an enrollment (and roll_no, which is globally unique) from
+    // before this script's current form — check by student_id, not just
+    // whether this specific course/section exists yet.
+    const { data: existingEnrollments } = await admin.from("enrollments").select("id").eq("student_id", studentId).limit(1);
+    if (existingEnrollments?.[0]) {
+      console.log(`Skipping enrollment: student ${studentId} already has one.`);
+    } else {
+      console.log("Enrolling the demo student...");
+      await insert("enrollments", {
+        section_id: section.id,
+        student_id: studentId,
+        status: "active",
+        roll_no: "STU-2026-001",
+        age: 21,
+        institution: "Brookfield College",
+        phone: "(555) 301-7742",
+      });
+    }
   }
 
-  const { data: existingHoliday } = await admin.from("holidays").select("id").eq("name", "Founders' Day").maybeSingle();
-  if (existingHoliday) {
+  const { data: existingHolidays } = await admin.from("holidays").select("id").eq("name", "Founders' Day").limit(1);
+  if (existingHolidays?.[0]) {
     console.log("Skipping holiday/announcement: already seeded from a previous run.");
   } else {
     console.log("Seeding a holiday and an announcement...");
