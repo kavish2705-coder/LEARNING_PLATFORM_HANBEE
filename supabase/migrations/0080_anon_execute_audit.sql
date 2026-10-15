@@ -20,15 +20,29 @@
 -- rls_auto_enable is a Supabase platform-internal function (not defined
 -- anywhere in this repo's migrations) and is left alone.
 --
--- Everything else below splits into two groups:
+-- Everything else below splits into three groups:
 --   1. Trigger functions (returns trigger): revoked from EVERY role,
 --      including authenticated. Postgres invokes triggers internally and
 --      never checks the firing role's EXECUTE privilege to do so, so this
 --      cannot break the triggers themselves -- it only closes the direct
 --      RPC-call path (e.g. POST /rest/v1/rpc/handle_new_user) that no
 --      client should ever have had in the first place.
---   2. Real helper/RPC functions (return boolean/uuid/etc, meant to be
---      called by or on behalf of a signed-in user): revoked from
+--   2. RLS-policy predicate functions (is_staff_or_manager, my_role, etc.):
+--      first-pass version of this migration revoked these from anon and
+--      broke CI -- "permission denied for function is_staff_or_manager" on
+--      a plain anonymous SELECT from `lessons`. Root cause: a `create
+--      policy ... using (...)` clause calls these functions directly under
+--      the QUERYING role's own privileges, not any SECURITY DEFINER
+--      context, so anon needs EXECUTE on every predicate referenced by a
+--      policy on a table anon can query at all (e.g. `courses`' "published
+--      courses readable by all" policy literally is
+--      `status = 'published' or is_staff_or_manager()`). Confirmed each of
+--      these appears inside an actual `create policy` clause before
+--      keeping anon here. Revoked from PUBLIC only; kept for both anon and
+--      authenticated.
+--   3. Real action RPCs (finalize_my_session, heartbeat, issue_certificate):
+--      confirmed NOT referenced inside any policy clause -- genuinely
+--      meant to be called directly by a signed-in user only. Revoked from
 --      public/anon, kept for authenticated.
 
 -- ---------------------------------------------------------------------------
@@ -46,26 +60,33 @@ revoke all on function
 from public, anon, authenticated;
 
 -- ---------------------------------------------------------------------------
--- 2. Helper/RPC functions: authenticated callers only.
+-- 2. RLS-policy predicates: anon and authenticated both need these.
 -- ---------------------------------------------------------------------------
 revoke all on function
   can_access_thread(uuid), can_manage_org(uuid),
   can_read_announcement(uuid, announcement_audience, uuid),
   can_read_message(uuid, timestamptz), can_see_profile(uuid),
-  chat_topic_allowed(text), finalize_my_session(uuid), heartbeat(uuid),
-  is_active_account(), is_enrolled_in_course(uuid), is_hanbee_staff(),
-  is_manager(), is_org_member(uuid), is_org_owner(uuid),
-  is_participant_of(uuid), is_staff_or_manager(),
-  is_student_in_my_school(uuid), issue_certificate(text), my_org_id(), my_role()
-from public, anon;
+  chat_topic_allowed(text), is_active_account(), is_enrolled_in_course(uuid),
+  is_hanbee_staff(), is_manager(), is_org_member(uuid), is_org_owner(uuid),
+  is_participant_of(uuid), is_staff_or_manager(), is_student_in_my_school(uuid),
+  my_org_id(), my_role()
+from public;
 
 grant execute on function
   can_access_thread(uuid), can_manage_org(uuid),
   can_read_announcement(uuid, announcement_audience, uuid),
   can_read_message(uuid, timestamptz), can_see_profile(uuid),
-  chat_topic_allowed(text), finalize_my_session(uuid), heartbeat(uuid),
-  is_active_account(), is_enrolled_in_course(uuid), is_hanbee_staff(),
-  is_manager(), is_org_member(uuid), is_org_owner(uuid),
-  is_participant_of(uuid), is_staff_or_manager(),
-  is_student_in_my_school(uuid), issue_certificate(text), my_org_id(), my_role()
+  chat_topic_allowed(text), is_active_account(), is_enrolled_in_course(uuid),
+  is_hanbee_staff(), is_manager(), is_org_member(uuid), is_org_owner(uuid),
+  is_participant_of(uuid), is_staff_or_manager(), is_student_in_my_school(uuid),
+  my_org_id(), my_role()
+to anon, authenticated;
+
+-- ---------------------------------------------------------------------------
+-- 3. Real action RPCs: signed-in callers only.
+-- ---------------------------------------------------------------------------
+revoke all on function finalize_my_session(uuid), heartbeat(uuid), issue_certificate(text)
+from public, anon;
+
+grant execute on function finalize_my_session(uuid), heartbeat(uuid), issue_certificate(text)
 to authenticated;
