@@ -37,6 +37,20 @@ async function upsertAuthUser(email, password, fullName, role) {
   const found = existing.users.find((u) => u.email === email);
   if (found) return found.id;
 
+  // Migration 0048 permits at most one manager, ever (profiles_single_manager_idx).
+  // A real project can already have its one permanent manager (confirmed by
+  // email in that migration), which a fresh/CI database won't — so creating
+  // a second manager here would hit handle_new_user's invite-only fallback.
+  // Skip instead of crashing the whole seed run over an account that was
+  // never meant to coexist with a real manager.
+  if (role === "manager") {
+    const { data: existingManager } = await admin.from("profiles").select("email").eq("role", "manager").maybeSingle();
+    if (existingManager) {
+      console.log(`Skipping ${email}: ${existingManager.email} is already the one permitted manager.`);
+      return null;
+    }
+  }
+
   const { data, error } = await admin.auth.admin.createUser({
     email,
     password,
@@ -44,6 +58,41 @@ async function upsertAuthUser(email, password, fullName, role) {
     user_metadata: { full_name: fullName, role },
   });
   if (error) throw error;
+  return data.user.id;
+}
+
+async function upsertSchoolStaffAuthUser(email, password, fullName, schoolName, registrationNo, officialEmail) {
+  const { data: existing } = await admin.auth.admin.listUsers();
+  const found = existing.users.find((u) => u.email === email);
+  if (found) return found.id;
+
+  const { data, error } = await admin.auth.admin.createUser({
+    email,
+    password,
+    email_confirm: true,
+    user_metadata: {
+      full_name: fullName,
+      role: "school_staff",
+      school_name: schoolName,
+      registration_no: registrationNo,
+      official_email: officialEmail,
+      guardian_consent: "true",
+    },
+  });
+  if (error) throw error;
+
+  // A real school_staff signup starts unapproved with a pending org, waiting
+  // on verify_school() by a manager/Hanbee staff. For a seed account, skip
+  // that wait and activate it directly (service role bypasses RLS).
+  const { error: profileError } = await admin
+    .from("profiles")
+    .update({ approved: true, account_status: "active" })
+    .eq("id", data.user.id);
+  if (profileError) throw new Error(`activating school_staff profile failed: ${profileError.message}`);
+
+  const { error: orgError } = await admin.from("organizations").update({ status: "active" }).eq("created_by", data.user.id);
+  if (orgError) throw new Error(`activating seed school failed: ${orgError.message}`);
+
   return data.user.id;
 }
 
@@ -80,7 +129,15 @@ async function main() {
   // requires all four; the old all-lowercase demo passwords fail it.
   const staffId = await upsertAuthUser("jamie@hanbeelms.edu", "Staff123!", "Jamie Rivera", "staff");
   const studentId = await upsertStudentAuthUser("ava@student.edu", "Student123!", "Ava Chen", staffId);
-  const managerId = await upsertAuthUser("morgan@hanbeelms.edu", "Manager123!", "Morgan Ellis", "manager");
+  await upsertAuthUser("morgan@hanbeelms.edu", "Manager123!", "Morgan Ellis", "manager");
+  const schoolStaffId = await upsertSchoolStaffAuthUser(
+    "principal@brookfield.edu",
+    "SchoolStaff123!",
+    "Riley Brooks",
+    "Brookfield Academy",
+    "REG-BROOKFIELD-001",
+    "office@brookfield.edu",
+  );
   // The handle_new_user trigger creates the profiles row automatically.
 
   console.log("Seeding course content...");
@@ -132,7 +189,11 @@ async function main() {
     audience: "all",
   });
 
-  console.log("Done. Demo accounts: jamie@hanbeelms.edu / Staff123!, ava@student.edu / Student123!, morgan@hanbeelms.edu / Manager123!");
+  console.log(
+    "Done. Demo accounts: jamie@hanbeelms.edu / Staff123!, ava@student.edu / Student123!, " +
+      "morgan@hanbeelms.edu / Manager123! (skipped if the project already has a manager), " +
+      "principal@brookfield.edu / SchoolStaff123!",
+  );
 }
 
 main().catch((err) => {
