@@ -197,20 +197,6 @@ export default function AnnouncementsPage() {
         </div>
       </div>
 
-      {/* Official Live Broadcast Banner */}
-      <div className={styles.broadcastBanner}>
-        <div className={styles.broadcastLeft}>
-          <span className={styles.liveIndicator}>
-            <span className={styles.pulseDot} />
-            Race Control
-          </span>
-          <span className={styles.broadcastText}>
-            Qualifying session schedule confirmed: Track temperature optimal at 28°C. Transponder inspection active.
-          </span>
-        </div>
-        <span className={styles.broadcastTickerTag}>ROUND 1 ACTIVE</span>
-      </div>
-
       {/* Filter Tabs */}
       <div className={styles.tabsBar}>
         <button
