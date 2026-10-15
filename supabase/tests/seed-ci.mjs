@@ -71,6 +71,19 @@ try {
   if (jamieResult.rowCount !== 1) {
     throw new Error(`Expected exactly one profile row for jamie@hanbeelms.edu; updated ${jamieResult.rowCount}.`);
   }
+
+  // Helper functions for test suites (0016-0021, 0024, 0026-0029, 0036-0039)
+  // that need to create users and test bans directly
+  await db.query(`
+    create or replace function public.test_support_signup(p_id uuid, p_email text, p_meta jsonb) returns void as $$
+      insert into auth.users (id, instance_id, aud, role, email, raw_user_meta_data, created_at, updated_at)
+      values (p_id, '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', p_email, p_meta, now(), now());
+    $$ language sql security definer set search_path = public, auth;
+
+    create or replace function public.test_support_banned(p_id uuid) returns boolean as $$
+      select banned_until is not null from auth.users where id = p_id;
+    $$ language sql security definer set search_path = public, auth;
+  `);
 } finally {
   await db.end();
 }

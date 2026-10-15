@@ -330,7 +330,7 @@ export default function MyTeamPage() {
             </div>
           )}
 
-          {/* Create Squad if not in one */}
+          {/* Create Squad if not in one and in a school */}
           {!team && formation?.school_id && (
             <div className={styles.formSection}>
               <div className={styles.formHeader}>
@@ -358,6 +358,7 @@ export default function MyTeamPage() {
             </div>
           )}
 
+          {/* Solo Entry if not attached to a school */}
           {!team && !formation?.school_id && (
             <div className={styles.formSection}>
               <div className={styles.formHeader}>
@@ -381,7 +382,7 @@ export default function MyTeamPage() {
             </div>
           )}
 
-          {/* Submission and Approval Actions */}
+          {/* Submission and Approval Actions for School Teams */}
           {team && isCaptain && team.status === "draft" && formation?.school_id && (
             <div className={styles.formSection}>
               <div className={styles.formHeader}>
@@ -424,7 +425,7 @@ export default function MyTeamPage() {
               </div>
 
               <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                <label style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, cursor: "pointer" }}>
                   <input
                     type="checkbox"
                     checked={paymentDeclared}

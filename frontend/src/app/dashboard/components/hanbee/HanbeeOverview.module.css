@@ -146,16 +146,16 @@
   box-shadow: 0 0 16px rgba(8, 145, 178, 0.15);
 }
 
-/* Circuit & Tournament Telemetry Hero */
+/* Circuit & Tournament Telemetry Hero - Primary Command Focal Point */
 .circuitHero {
-  background: var(--bg-card);
-  box-shadow: var(--clay-shadow-outer);
-  border: var(--border-subtle);
-  border-radius: var(--clay-radius-md);
-  padding: 26px 30px;
+  background: linear-gradient(135deg, rgba(8, 145, 178, 0.12) 0%, var(--bg-card) 60%, rgba(59, 130, 246, 0.08) 100%);
+  box-shadow: var(--clay-shadow-elevated), 0 0 35px rgba(8, 145, 178, 0.08);
+  border: 1px solid rgba(125, 211, 232, 0.35);
+  border-radius: var(--clay-radius-lg);
+  padding: 30px 34px;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 24px;
   position: relative;
   overflow: hidden;
 }
@@ -165,9 +165,9 @@
   position: absolute;
   top: 0;
   right: 0;
-  width: 300px;
+  width: 380px;
   height: 100%;
-  background: radial-gradient(circle at right center, rgba(16, 185, 129, 0.08), transparent 70%);
+  background: radial-gradient(circle at right center, rgba(16, 185, 129, 0.12), transparent 70%);
   pointer-events: none;
 }
 
@@ -182,18 +182,19 @@
 .circuitTitleGroup {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
 }
 
 .circuitTitle {
   font-family: var(--font-heading);
-  font-size: 20px;
+  font-size: 22px;
   font-weight: 700;
   color: var(--text-main);
   margin: 0;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
+  letter-spacing: -0.01em;
 }
 
 .circuitDesc {
@@ -205,39 +206,46 @@
 .liveBadge {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   font-family: monospace;
   font-size: 11px;
   font-weight: 700;
   color: #10b981;
-  background: rgba(16, 185, 129, 0.12);
-  border: 1px solid rgba(16, 185, 129, 0.35);
-  padding: 4px 12px;
+  background: rgba(16, 185, 129, 0.14);
+  border: 1px solid rgba(16, 185, 129, 0.4);
+  padding: 6px 14px;
   border-radius: 999px;
   letter-spacing: 0.5px;
+  box-shadow: 0 0 12px rgba(16, 185, 129, 0.2);
 }
 
 /* Quick Metrics Row */
 .circuitMetrics {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 14px;
+  gap: 16px;
 }
 
 .metricBox {
   background: var(--bg-surface-elevated);
   border: 1px solid var(--border-elevated);
-  border-radius: 12px;
-  padding: 14px 18px;
+  border-radius: 14px;
+  padding: 16px 20px;
   display: flex;
   align-items: center;
   gap: 14px;
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.metricBox:hover {
+  transform: translateY(-2px);
+  border-color: var(--accent-subtle-border);
 }
 
 .metricIcon {
-  width: 38px;
-  height: 38px;
-  border-radius: 10px;
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
   background: var(--accent-subtle-bg);
   border: 1px solid var(--accent-subtle-border);
   color: var(--accent-subtle-text);
@@ -250,6 +258,15 @@
 .metricMeta {
   display: flex;
   flex-direction: column;
+}
+
+.metricCategory {
+  font-size: 9px;
+  font-family: monospace;
+  font-weight: 800;
+  letter-spacing: 1.2px;
+  color: var(--accent-subtle-text);
+  margin-bottom: 2px;
 }
 
 .metricTitle {
@@ -338,7 +355,7 @@
   border-bottom: none;
 }
 
-.dataTable tr:hover td {
+.dataTable tbody tr:not(.rosterExpandedTr):hover td {
   background: rgba(255, 255, 255, 0.02);
 }
 
@@ -462,10 +479,24 @@
   color: var(--accent-subtle-text);
 }
 
-/* Expanded Roster Details */
-.rosterExpandedRow {
-  background: rgba(0, 0, 0, 0.15);
-  padding: 16px 20px;
+/* Expanded Roster Details - Static telemetry display without hover effects */
+.rosterExpandedTr,
+.rosterExpandedTr:hover,
+.rosterExpandedTr:hover td,
+.rosterExpandedTr td,
+.rosterExpandedRow,
+.rosterExpandedRow:hover {
+  background: rgba(0, 0, 0, 0.15) !important;
+  cursor: default !important;
+}
+
+[data-theme="light"] .rosterExpandedTr,
+[data-theme="light"] .rosterExpandedTr:hover,
+[data-theme="light"] .rosterExpandedTr:hover td,
+[data-theme="light"] .rosterExpandedTr td,
+[data-theme="light"] .rosterExpandedRow,
+[data-theme="light"] .rosterExpandedRow:hover {
+  background: rgba(0, 0, 0, 0.04) !important;
 }
 
 .driversMiniGrid {
@@ -483,6 +514,16 @@
   display: flex;
   flex-direction: column;
   gap: 4px;
+  cursor: default !important;
+  transition: none !important;
+  user-select: text;
+}
+
+.driverMiniCard:hover {
+  background: var(--bg-surface-elevated) !important;
+  border-color: var(--border-elevated) !important;
+  transform: none !important;
+  box-shadow: none !important;
 }
 
 .driverMiniName {

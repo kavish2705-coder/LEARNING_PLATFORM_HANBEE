@@ -8,8 +8,6 @@ import NotificationBell from "./NotificationBell";
 import { useSessionProfile } from "../../../lib/hooks/useSessionProfile";
 import { useUserXp } from "../../../lib/hooks/useUserXp";
 
-import SearchBar from "./SearchBar";
-
 const ROLE_LABEL: Record<string, string> = {
   student: "Student",
   school_staff: "School Staff",
@@ -42,8 +40,6 @@ export default function Header({ toggleMobileMenu }: { toggleMobileMenu?: () => 
           <div className={styles.greetingName}>{name}</div>
         </div>
       </div>
-
-      <SearchBar />
 
       <div className={styles.headerRight}>
         {/* Student-only Gamification & Driver License */}

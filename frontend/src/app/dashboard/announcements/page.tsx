@@ -284,7 +284,7 @@ export default function AnnouncementsPage() {
 
       {/* Announcements List */}
       {!loading && filteredBulletins.length === 0 && (
-        <p style={{ color: "var(--text-muted)" }}>No announcements to show.</p>
+        <p style={{ color: "var(--text-muted)", padding: "20px 0", textAlign: "center" }}>No announcements to show.</p>
       )}
       <div className={styles.announcementsList}>
         {filteredBulletins.map((item) => {
