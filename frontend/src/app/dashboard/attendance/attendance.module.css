@@ -140,3 +140,45 @@
 .badgePresent { background: var(--bg-input); color: var(--text-main); }
 .badgeLate { background: var(--bg-input); color: var(--text-muted); }
 .badgeNoPitDuty { background: transparent; color: var(--text-muted); border: 1px solid var(--border-subtle); }
+
+@media (max-width: 640px) {
+  .clockPanel {
+    padding: 24px 16px;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 20px;
+  }
+
+  .timeDisplay {
+    font-size: 38px;
+    letter-spacing: 1px;
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    white-space: nowrap;
+  }
+
+  .timeDisplay small {
+    font-size: 16px;
+    margin-left: 6px;
+  }
+
+  .clockAction {
+    flex-direction: column;
+    width: 100%;
+    gap: 12px;
+  }
+
+  .clockInBtn {
+    width: 100%;
+    justify-content: center;
+    padding: 14px 20px;
+  }
+
+  .historySection {
+    padding: 20px 16px;
+    overflow-x: auto;
+  }
+}
+

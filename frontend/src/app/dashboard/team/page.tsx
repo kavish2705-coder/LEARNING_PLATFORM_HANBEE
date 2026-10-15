@@ -733,18 +733,12 @@ export default function MyTeamPage() {
                     className={styles.textInput}
                     style={{ flex: 1 }}
                   >
-                    <option value="">Select a classmate from St. Xavier Tech</option>
-                    {formation?.eligible_classmates?.map((student) => (
+                    <option value="">Select a classmate</option>
+                    {(formation?.eligible_classmates ?? []).map((student) => (
                       <option key={student.student_id} value={student.student_id}>
                         {student.name}
                       </option>
-                    )) || (
-                      <>
-                        <option value="stu-1">Vikram Deshmukh (Student)</option>
-                        <option value="stu-2">Ananya Sen (Student)</option>
-                        <option value="stu-3">Karan Malhotra (Student)</option>
-                      </>
-                    )}
+                    ))}
                   </select>
                   <button type="submit" disabled={busy} className={styles.actionBtn}>
                     {busy ? "Sending Invite..." : "Send Squad Invite"}
@@ -759,8 +753,8 @@ export default function MyTeamPage() {
             </div>
           )}
 
-          {/* Create Squad if not in one */}
-          {!team && (
+          {/* Create Squad if not in one and in a school */}
+          {!team && formation?.school_id && (
             <div className={styles.formSection}>
               <div className={styles.formHeader}>
                 <h2 className={styles.formTitle}>Form a New RC Racing Squad</h2>
@@ -787,8 +781,32 @@ export default function MyTeamPage() {
             </div>
           )}
 
-          {/* Submission and Approval Actions */}
-          {team && isCaptain && team.status === "draft" && (
+          {/* Solo Entry if not attached to a school */}
+          {!team && !formation?.school_id && (
+            <div className={styles.formSection}>
+              <div className={styles.formHeader}>
+                <h2 className={styles.formTitle}>{isSolo ? "Solo Tournament Entry" : "School Membership Needed"}</h2>
+                <p className={styles.formSubtitle}>
+                  {isSolo
+                    ? "Enter this tournament as a team of one. Your entry will be reviewed by Hanbee staff after you confirm payment."
+                    : "Your account is not attached to an active school or marked for solo entry. Contact Hanbee staff to restore your school membership or enable solo participation."}
+                </p>
+              </div>
+              {isSolo && tournament && (
+                <button
+                  type="button"
+                  className={styles.actionBtn}
+                  disabled={busy}
+                  onClick={() => void runAction(() => createSoloTournamentEntry(tournament.id), "Solo entry created. Confirm payment below to submit it.")}
+                >
+                  Create Solo Entry
+                </button>
+              )}
+            </div>
+          )}
+
+          {/* Submission and Approval Actions for School Teams */}
+          {team && isCaptain && team.status === "draft" && formation?.school_id && (
             <div className={styles.formSection}>
               <div className={styles.formHeader}>
                 <h2 className={styles.formTitle}>Submit Squad for School Staff Approval</h2>
@@ -815,6 +833,47 @@ export default function MyTeamPage() {
                 >
                   Leave Squad
                 </button>
+              </div>
+            </div>
+          )}
+
+          {/* Solo entry: payment confirmation instead of school-staff submission */}
+          {team && isCaptain && team.status === "draft" && !formation?.school_id && (
+            <div className={styles.formSection}>
+              <div className={styles.formHeader}>
+                <h2 className={styles.formTitle}>Confirm Tournament Payment</h2>
+                <p className={styles.formSubtitle}>
+                  Confirm payment for your solo tournament entry. Hanbee staff will verify the entry after submission.
+                </p>
+              </div>
+
+              <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, cursor: "pointer" }}>
+                  <input
+                    type="checkbox"
+                    checked={paymentDeclared}
+                    onChange={(e) => setPaymentDeclared(e.target.checked)}
+                  />
+                  I have completed the tournament payment.
+                </label>
+                <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
+                  <button
+                    type="button"
+                    className={styles.actionBtn}
+                    disabled={busy || !paymentDeclared}
+                    onClick={() => void runAction(() => applyStudentTeam(team.id, true), "Payment declared. Your solo entry is waiting for Hanbee review.")}
+                  >
+                    Submit Paid Solo Entry
+                  </button>
+                  <button
+                    type="button"
+                    className={styles.dangerBtn}
+                    disabled={busy}
+                    onClick={() => void runAction(() => leaveStudentTeam(team.id), "You left the team.")}
+                  >
+                    Leave Team
+                  </button>
+                </div>
               </div>
             </div>
           )}

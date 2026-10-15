@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useQuery, useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import styles from "./chat.module.css";
-import { Send, Search, Radio, Sparkles, Zap, Wrench, Flag } from "lucide-react";
+import { Send, Search, Radio, Sparkles, Zap, Wrench, Flag, ChevronLeft } from "lucide-react";
 import {
   fetchChatContacts,
   fetchChatConversations,
@@ -80,6 +80,7 @@ export default function ChatPage() {
   const [search, setSearch] = useState("");
   const [error, setError] = useState("");
   const [isTyping, setIsTyping] = useState<string | null>(null);
+  const [mobileView, setMobileView] = useState<"list" | "chat">("list");
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const queryClient = useQueryClient();
@@ -310,7 +311,7 @@ export default function ChatPage() {
     value ? new Date(value).toLocaleString([], { dateStyle: "short", timeStyle: "short" }) : "";
 
   return (
-    <div className={styles.layout}>
+    <div className={`${styles.layout} ${mobileView === "chat" ? styles.mobileHideList : styles.mobileHideChat}`}>
       {/* Sidebar: Conversations */}
       <div className={styles.contactsSidebar}>
         <div className={styles.sidebarHeader}>
@@ -344,7 +345,7 @@ export default function ChatPage() {
                 key={conv.id}
                 type="button"
                 className={`${styles.contactItem} ${isSelected ? styles.active : ""}`}
-                onClick={() => setActiveConversationId(conv.id)}
+                onClick={() => { setActiveConversationId(conv.id); setMobileView("chat"); }}
               >
                 <div className={styles.contactAvatar}>
                   {initials(contactName)}
@@ -369,7 +370,7 @@ export default function ChatPage() {
               key={contact.user_id}
               type="button"
               className={styles.contactItem}
-              onClick={() => openContact.mutate(contact.user_id)}
+              onClick={() => { openContact.mutate(contact.user_id); setMobileView("chat"); }}
               disabled={openContact.isPending}
             >
               <div className={styles.contactAvatar}>{initials(contact.full_name)}</div>
@@ -390,6 +391,14 @@ export default function ChatPage() {
         {activeConversation ? (
           <>
             <header className={styles.chatHeader}>
+              <button
+                type="button"
+                className={styles.mobileBackBtn}
+                onClick={() => setMobileView("list")}
+                aria-label="Back to channels"
+              >
+                <ChevronLeft size={16} /> Channels
+              </button>
               <div className={styles.contactAvatar}>
                 {initials(title)}
                 <span className={styles.statusIndicator} />
@@ -424,11 +433,11 @@ export default function ChatPage() {
               {messages.map((message, index) => {
                 const previous = messages[index - 1];
                 const newDay = !previous || dayKey(previous.created_at) !== dayKey(message.created_at);
-                const mine = message.sender_id === currentUserId;
+                const mine = message.sender_id === currentUserId || message.sender_id === "user-self" || message.id?.startsWith("usr-") || (!!currentUserId && message.sender_id === currentUserId);
                 const seen = true;
 
                 return (
-                  <div key={message.id}>
+                  <div key={message.id} className={`${styles.messageRow} ${mine ? styles.me : styles.other}`}>
                     {newDay && (
                       <div className={styles.daySeparator}>
                         <span>{dayLabel(message.created_at)}</span>
@@ -438,11 +447,9 @@ export default function ChatPage() {
                       <div className={styles.systemMessage}>{message.body}</div>
                     ) : (
                       <div className={`${styles.messageWrapper} ${mine ? styles.me : styles.other}`}>
-                        {"sender_name" in message && !mine && (
-                          <div style={{ fontSize: 11, color: "var(--text-muted)", marginBottom: 3, paddingLeft: 4 }}>
-                            {(message as any).sender_name}
-                          </div>
-                        )}
+                        <div className={styles.senderLabel}>
+                          {mine ? "You" : ("sender_name" in message ? (message as any).sender_name : (activeConversation?.title ?? "Hanbee User"))}
+                        </div>
                         <div className={`${styles.message} ${mine ? styles.me : styles.other}`}>
                           {message.body}
                         </div>

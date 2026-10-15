@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState, useMemo } from "react";
+import React, { useCallback, useEffect, useState, useMemo } from "react";
 import Link from "next/link";
 import { 
   Clock, TrendingUp, CheckCircle, AlertTriangle, Trophy, 
@@ -10,7 +10,8 @@ import {
 } from "lucide-react";
 import styles from "./HanbeeOverview.module.css";
 import { authenticatedSupabaseFetch, getAccountProfile } from "../../../../lib/supabaseAuth";
-import { listTournaments, listVerifiedTournamentTeams, listTournamentResults } from "../../../../lib/tournamentAdminApi";
+import { listTournaments, listVerifiedTournamentTeams, listTournamentResults, getLeaderboard } from "../../../../lib/tournamentAdminApi";
+import { fetchUpcomingTournament, type UpcomingTournament } from "../../../../lib/teamFormationApi";
 
 type AttendanceDay = { work_date: string; status: string; clock_in: string | null; clock_out: string | null; hours: number | null };
 type StaffTask = { id: string; title: string; priority: string; status: string; due_date: string | null; done: boolean };
@@ -45,6 +46,8 @@ interface StaffTeamScore {
 export default function HanbeeOverview() {
   const [activeTab, setActiveTab] = useState<"scores" | "operations">("scores");
   const [data, setData] = useState<HanbeeData | null>(null);
+  const [tournament, setTournament] = useState<UpcomingTournament | null>(null);
+  const [dbTeams, setDbTeams] = useState<StaffTeamScore[] | null>(null);
   const [expandedTeamId, setExpandedTeamId] = useState<string | null>("t1");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -181,6 +184,51 @@ export default function HanbeeOverview() {
         ],
         needsAttention: [{ id: "att-1", message: "TorqueCraft Racing requires voltage inspection before Qualifying Heat 1" }],
       });
+
+      // Fetch live tournament and verified teams if available in database
+      try {
+        const [event, verified] = await Promise.all([
+          fetchUpcomingTournament().catch(() => null),
+          listVerifiedTournamentTeams().catch(() => []),
+        ]);
+        if (event) {
+          setTournament(event);
+          const lb = await getLeaderboard(event.id).catch(() => []);
+          if (Array.isArray(lb) && lb.length > 0) {
+            setDbTeams(lb.map((row, idx) => ({
+              id: row.team_id,
+              rank: row.rank || idx + 1,
+              team_name: row.team_name,
+              school_name: row.school_name || "Registered School",
+              car: "RC 4WD Buggy",
+              lap: row.notes?.includes("s") ? row.notes : "--",
+              speed: "25.0 km/h",
+              points: row.points || 0,
+              member_count: 5,
+              max_members: 5,
+              status: "verified" as const,
+              drivers: [],
+            })));
+          } else if (Array.isArray(verified) && verified.length > 0) {
+            setDbTeams(verified.map((v, idx) => ({
+              id: v.id,
+              rank: idx + 1,
+              team_name: v.name,
+              school_name: "Verified Academy",
+              car: "Thunder RC 4WD Buggy",
+              lap: "--",
+              speed: "25.0 km/h",
+              points: 1000 - idx * 50,
+              member_count: 5,
+              max_members: 5,
+              status: "verified" as const,
+              drivers: [],
+            })));
+          }
+        }
+      } catch {
+        // Fallback to simulated liveTeamsList if database is empty/unseeded
+      }
     } catch {
       // Fallback data
       setData({
@@ -211,6 +259,14 @@ export default function HanbeeOverview() {
   const toggleExpandTeam = (id: string) => {
     setExpandedTeamId((prev) => (prev === id ? null : id));
   };
+
+  const teamsToDisplay = dbTeams && dbTeams.length > 0 ? dbTeams : liveTeamsList;
+  const totalSquads = teamsToDisplay.length;
+  const totalDrivers = useMemo(() => teamsToDisplay.reduce((acc, t) => acc + (t.member_count || t.drivers?.length || 0), 0), [teamsToDisplay]);
+  const bestSessionLap = useMemo(() => {
+    const validLaps = teamsToDisplay.map(t => t.lap).filter(lap => lap && lap !== "--");
+    return validLaps.length ? [...validLaps].sort()[0] : "--";
+  }, [teamsToDisplay]);
 
   return (
     <div className={styles.container}>
@@ -271,10 +327,10 @@ export default function HanbeeOverview() {
               <div className={styles.circuitTitleGroup}>
                 <div className={styles.circuitTitle}>
                   <Flag size={20} color="var(--accent-subtle-text)" />
-                  National RC Buggy Championship — Round 1 Alpha
+                  {tournament?.title || "National RC Buggy Championship — Round 1 Alpha"}
                 </div>
                 <p className={styles.circuitDesc}>
-                  Main Track (450m Circuit) · Live RFID Loop · 2.4GHz FHSS Ch 4 Active
+                  {tournament?.venue ? `${tournament.venue} · Live RFID Loop · 2.4GHz Active` : "Main Track (450m Circuit) · Live RFID Loop · 2.4GHz FHSS Ch 4 Active"}
                 </p>
               </div>
 
@@ -290,8 +346,9 @@ export default function HanbeeOverview() {
                   <Users size={18} />
                 </div>
                 <div className={styles.metricMeta}>
+                  <span className={styles.metricCategory}>PARTICIPATION</span>
                   <span className={styles.metricTitle}>Registered Squads</span>
-                  <span className={styles.metricValue}>18 Teams</span>
+                  <span className={styles.metricValue}>{totalSquads} Teams</span>
                 </div>
               </div>
 
@@ -300,8 +357,9 @@ export default function HanbeeOverview() {
                   <ShieldCheck size={18} />
                 </div>
                 <div className={styles.metricMeta}>
+                  <span className={styles.metricCategory} style={{ color: "#10b981" }}>SCRUTINEERED</span>
                   <span className={styles.metricTitle}>Active Drivers</span>
-                  <span className={styles.metricValue}>64 Drivers</span>
+                  <span className={styles.metricValue}>{totalDrivers} Drivers</span>
                 </div>
               </div>
 
@@ -310,8 +368,9 @@ export default function HanbeeOverview() {
                   <Sparkles size={18} />
                 </div>
                 <div className={styles.metricMeta}>
+                  <span className={styles.metricCategory} style={{ color: "#a855f7" }}>PACE BENCHMARK</span>
                   <span className={styles.metricTitle}>Session Fast Lap</span>
-                  <span className={styles.metricValue} style={{ color: "#a855f7" }}>11.42s</span>
+                  <span className={styles.metricValue} style={{ color: "#a855f7" }}>{bestSessionLap}</span>
                 </div>
               </div>
 
@@ -320,6 +379,7 @@ export default function HanbeeOverview() {
                   <Activity size={18} />
                 </div>
                 <div className={styles.metricMeta}>
+                  <span className={styles.metricCategory} style={{ color: "#f59e0b" }}>CIRCUIT STATUS</span>
                   <span className={styles.metricTitle}>Track Condition</span>
                   <span className={styles.metricValue}>28°C · Dry</span>
                 </div>
@@ -361,13 +421,13 @@ export default function HanbeeOverview() {
                   </tr>
                 </thead>
                 <tbody>
-                  {liveTeamsList.map((team) => {
+                  {teamsToDisplay.map((team) => {
                     const isExpanded = expandedTeamId === team.id;
                     const rankClass = team.rank === 1 ? styles.rankP1 : team.rank === 2 ? styles.rankP2 : team.rank === 3 ? styles.rankP3 : styles.rankOther;
 
                     return (
-                      <>
-                        <tr key={team.id}>
+                      <React.Fragment key={team.id}>
+                        <tr>
                           <td>
                             <span className={`${styles.rankBadge} ${rankClass}`}>
                               P{team.rank}
@@ -411,7 +471,7 @@ export default function HanbeeOverview() {
                         </tr>
 
                         {isExpanded && (
-                          <tr key={`${team.id}-expanded`}>
+                          <tr className={styles.rosterExpandedTr}>
                             <td colSpan={8} className={styles.rosterExpandedRow}>
                               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
                                 <span style={{ fontSize: 12, fontWeight: 700, fontFamily: "monospace", color: "var(--accent-subtle-text)", textTransform: "uppercase" }}>
@@ -423,20 +483,26 @@ export default function HanbeeOverview() {
                               </div>
 
                               <div className={styles.driversMiniGrid}>
-                                {team.drivers.map((driver) => (
-                                  <div key={driver.name} className={styles.driverMiniCard}>
-                                    <div className={styles.driverMiniName}>
-                                      {driver.name} {driver.isCaptain && <span style={{ color: "#f59e0b", fontSize: 10 }}>★</span>}
+                                {team.drivers && team.drivers.length > 0 ? (
+                                  team.drivers.map((driver) => (
+                                    <div key={driver.name} className={styles.driverMiniCard}>
+                                      <div className={styles.driverMiniName}>
+                                        {driver.name} {driver.isCaptain && <span style={{ color: "#f59e0b", fontSize: 10 }}>★</span>}
+                                      </div>
+                                      <div className={styles.driverMiniRole}>{driver.role}</div>
+                                      <div className={styles.driverMiniLap}>Best Lap: {driver.bestLap}</div>
                                     </div>
-                                    <div className={styles.driverMiniRole}>{driver.role}</div>
-                                    <div className={styles.driverMiniLap}>Best Lap: {driver.bestLap}</div>
+                                  ))
+                                ) : (
+                                  <div style={{ color: "var(--text-muted)", fontSize: 12, padding: "8px 0" }}>
+                                    Driver roster telemetry awaiting live transponder heat qualification.
                                   </div>
-                                ))}
+                                )}
                               </div>
                             </td>
                           </tr>
                         )}
-                      </>
+                      </React.Fragment>
                     );
                   })}
                 </tbody>

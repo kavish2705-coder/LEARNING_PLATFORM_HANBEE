@@ -536,18 +536,18 @@ export default function TournamentOverview() {
         <div>
           <div className={styles.eventMeta}>
             <div>
-              <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "6px" }}>
-                <span className={styles.seasonBadge}>NEXT RACE</span>
-                <span className={styles.officialBadge}>
-                  <ShieldCheck size={11} /> Verified Schedule
+              <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "8px" }}>
+                <span className={styles.nextRacePill}>NEXT RACE</span>
+                <span className={styles.verifiedSchedulePill}>
+                  <ShieldCheck size={12} /> VERIFIED SCHEDULE
                 </span>
               </div>
               <h2 className={styles.eventTitle}>
-                {tournament?.title || "Hanbee RC Cup Autumn Race"}
+                {tournament?.title || "Hanbee RC Cup 2026"}
               </h2>
               <div className={styles.eventCircuit}>
                 <Compass size={14} color="#7dd3e8" />
-                <span>{tournament?.venue || "Apex Indoor RC Track • School Gym Course"}</span>
+                <span>{tournament?.venue || "Hanbee Track, Chennai"}</span>
               </div>
             </div>
 
@@ -603,6 +603,28 @@ export default function TournamentOverview() {
             <Flag size={15} />
             <span>Live Grid Standings</span>
           </Link>
+        </div>
+
+        {/* Team Performance Overview Strip */}
+        <div className={styles.teamPerformanceStrip}>
+          <div className={styles.perfItem}>
+            <span className={styles.perfLabel}>ACTIVE TEAM</span>
+            <span className={styles.perfValue}>{team?.name || "Vortex Racing"} ({schoolName || "Delhi Tech Academy"})</span>
+          </div>
+          <div className={styles.perfItem}>
+            <span className={styles.perfLabel}>PADDOCK STANDING</span>
+            <span className={styles.perfValue} style={{ color: "#f59e0b" }}>Rank #1 (Championship Lead)</span>
+          </div>
+          <div className={styles.perfItem}>
+            <span className={styles.perfLabel}>BEST QUALIFYING LAP</span>
+            <span className={styles.perfValue} style={{ color: "var(--accent-subtle-text)" }}>12.84s</span>
+          </div>
+          <div className={styles.perfItem}>
+            <span className={styles.perfLabel}>PRE-RACE READINESS</span>
+            <span className={styles.perfValue} style={{ color: readinessScore === 100 ? "#10b981" : "#7dd3e8" }}>
+              {readinessScore}% {readinessScore === 100 ? "· Track Ready" : "· In Inspection"}
+            </span>
+          </div>
         </div>
       </div>
 
