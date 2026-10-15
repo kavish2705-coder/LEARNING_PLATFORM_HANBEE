@@ -157,7 +157,7 @@ await asOwner(); await c.query("update profiles set is_solo=true where id=$1",[c
 await asUser(c1); check("after converting to solo the student sees tournaments", await cnt("select count(*)::int n from tournaments")===2+baseT);
 
 // --- solo team
-await asUser(solo); r=await tryq("select create_solo_team($1) t",[T]); check("solo creates team of one",ok(r)); const soloTeam=r.r.rows[0].t;
+await asUser(solo); r=await tryq("select create_solo_team($1) t",[T]); check("solo creates team of one",ok(r),r.e?.message); const soloTeam=r.r?.rows[0]?.t;
 r=await tryq("select create_solo_team($1)",[T]); check("solo cannot make a second team",!!r.e);
 check("solo sees own team + roster of one", await cnt("select count(*)::int n from tournament_teams")===1 && await cnt("select count(*)::int n from get_team_roster($1)",[soloTeam])===1);
 r=await tryq("select add_team_member($1,$2)",[soloTeam,solo2]); check("solo cannot add members",!!r.e);
