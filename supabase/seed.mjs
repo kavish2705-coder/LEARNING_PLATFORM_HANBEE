@@ -140,54 +140,64 @@ async function main() {
   );
   // The handle_new_user trigger creates the profiles row automatically.
 
-  console.log("Seeding course content...");
-  const { data: course } = await admin
-    .from("courses")
-    .insert({ title: "Intro to Design", description: "A foundational course covering design principles, color, and typography.", status: "published", owner_id: staffId })
-    .select()
-    .single();
+  const { data: existingCourse } = await admin.from("courses").select("id").eq("title", "Intro to Design").maybeSingle();
+  if (existingCourse) {
+    console.log("Skipping course content: \"Intro to Design\" already exists from a previous seed run.");
+  } else {
+    console.log("Seeding course content...");
+    const { data: course } = await admin
+      .from("courses")
+      .insert({ title: "Intro to Design", description: "A foundational course covering design principles, color, and typography.", status: "published", owner_id: staffId })
+      .select()
+      .single();
 
-  const { data: section } = await admin
-    .from("sections")
-    .insert({ course_id: course.id, name: "Intro to Design — Section B", capacity: 50, start_date: "2025-08-12", end_date: "2025-09-23" })
-    .select()
-    .single();
+    const { data: section } = await admin
+      .from("sections")
+      .insert({ course_id: course.id, name: "Intro to Design — Section B", capacity: 50, start_date: "2025-08-12", end_date: "2025-09-23" })
+      .select()
+      .single();
 
-  const { data: mod1 } = await admin.from("modules").insert({ course_id: course.id, title: "Module 1: Foundations", sort_order: 0 }).select().single();
-  const { data: mod2 } = await admin.from("modules").insert({ course_id: course.id, title: "Module 2: Typography", sort_order: 1 }).select().single();
+    const { data: mod1 } = await admin.from("modules").insert({ course_id: course.id, title: "Module 1: Foundations", sort_order: 0 }).select().single();
+    const { data: mod2 } = await admin.from("modules").insert({ course_id: course.id, title: "Module 2: Typography", sort_order: 1 }).select().single();
 
-  // Every object below lists every column explicitly (even when empty/null) —
-  // PostgREST builds one bulk INSERT from the union of all objects' keys, so
-  // a row missing a key gets an explicit NULL for it (bypassing the column's
-  // DEFAULT), which then fails any NOT NULL constraint on that column.
-  const emptyLesson = { body_text: "", external_url: "", youtube_id: null };
-  await insert("lessons", [
-    { ...emptyLesson, module_id: mod1.id, title: "Welcome & syllabus", content_type: "text", published: true, sort_order: 0, body_text: "Welcome to Intro to Design! Over the next 6 weeks we'll cover color theory, typography, and layout fundamentals." },
-    { ...emptyLesson, module_id: mod1.id, title: "Color Theory", content_type: "video", published: true, sort_order: 1, youtube_id: "_2LLXnUdUIc" },
-    { ...emptyLesson, module_id: mod1.id, title: "Reading: principles of design", content_type: "document", published: false, sort_order: 2 },
-    { ...emptyLesson, module_id: mod2.id, title: "Type pairing", content_type: "slides", published: true, sort_order: 0 },
-    { ...emptyLesson, module_id: mod2.id, title: "Further reading", content_type: "link", published: false, sort_order: 1, external_url: "https://www.interaction-design.org/literature/topics/typography" },
-  ]);
+    // Every object below lists every column explicitly (even when empty/null) —
+    // PostgREST builds one bulk INSERT from the union of all objects' keys, so
+    // a row missing a key gets an explicit NULL for it (bypassing the column's
+    // DEFAULT), which then fails any NOT NULL constraint on that column.
+    const emptyLesson = { body_text: "", external_url: "", youtube_id: null };
+    await insert("lessons", [
+      { ...emptyLesson, module_id: mod1.id, title: "Welcome & syllabus", content_type: "text", published: true, sort_order: 0, body_text: "Welcome to Intro to Design! Over the next 6 weeks we'll cover color theory, typography, and layout fundamentals." },
+      { ...emptyLesson, module_id: mod1.id, title: "Color Theory", content_type: "video", published: true, sort_order: 1, youtube_id: "_2LLXnUdUIc" },
+      { ...emptyLesson, module_id: mod1.id, title: "Reading: principles of design", content_type: "document", published: false, sort_order: 2 },
+      { ...emptyLesson, module_id: mod2.id, title: "Type pairing", content_type: "slides", published: true, sort_order: 0 },
+      { ...emptyLesson, module_id: mod2.id, title: "Further reading", content_type: "link", published: false, sort_order: 1, external_url: "https://www.interaction-design.org/literature/topics/typography" },
+    ]);
 
-  console.log("Enrolling the demo student...");
-  await insert("enrollments", {
-    section_id: section.id,
-    student_id: studentId,
-    status: "active",
-    roll_no: "STU-2026-001",
-    age: 21,
-    institution: "Brookfield College",
-    phone: "(555) 301-7742",
-  });
+    console.log("Enrolling the demo student...");
+    await insert("enrollments", {
+      section_id: section.id,
+      student_id: studentId,
+      status: "active",
+      roll_no: "STU-2026-001",
+      age: 21,
+      institution: "Brookfield College",
+      phone: "(555) 301-7742",
+    });
+  }
 
-  console.log("Seeding a holiday and an announcement...");
-  await insert("holidays", { name: "Founders' Day", holiday_date: "2026-09-25", scope: "center" });
-  await insert("announcements", {
-    author_id: staffId,
-    title: "Welcome to the course",
-    body: "Excited to have you all this term — check the syllabus for the full schedule and grading breakdown.",
-    audience: "all",
-  });
+  const { data: existingHoliday } = await admin.from("holidays").select("id").eq("name", "Founders' Day").maybeSingle();
+  if (existingHoliday) {
+    console.log("Skipping holiday/announcement: already seeded from a previous run.");
+  } else {
+    console.log("Seeding a holiday and an announcement...");
+    await insert("holidays", { name: "Founders' Day", holiday_date: "2026-09-25", scope: "center" });
+    await insert("announcements", {
+      author_id: staffId,
+      title: "Welcome to the course",
+      body: "Excited to have you all this term — check the syllabus for the full schedule and grading breakdown.",
+      audience: "all",
+    });
+  }
 
   console.log(
     "Done. Demo accounts: jamie@hanbeelms.edu / Staff123!, ava@student.edu / Student123!, " +
