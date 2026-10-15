@@ -484,15 +484,23 @@ export default function HanbeeOverview() {
 
                               <div className={styles.driversMiniGrid}>
                                 {team.drivers && team.drivers.length > 0 ? (
-                                  team.drivers.map((driver) => (
-                                    <div key={driver.name} className={styles.driverMiniCard}>
-                                      <div className={styles.driverMiniName}>
-                                        {driver.name} {driver.isCaptain && <span style={{ color: "#f59e0b", fontSize: 10 }}>★</span>}
+                                  team.drivers.map((driver) => {
+                                    const initials = driver.name.split(" ").map(w => w[0]).slice(0, 2).join("");
+                                    return (
+                                      <div key={driver.name} className={styles.driverMiniCard}>
+                                        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                                          <div className={styles.driverAvatar}>{initials}</div>
+                                          <div style={{ flex: 1, minWidth: 0 }}>
+                                            <div className={styles.driverMiniName}>
+                                              {driver.name} {driver.isCaptain && <span style={{ color: "#f59e0b", fontSize: 10 }}>★</span>}
+                                            </div>
+                                            <div className={styles.driverMiniRole}>{driver.role}</div>
+                                          </div>
+                                        </div>
+                                        <div className={styles.driverMiniLap}>Best Lap: {driver.bestLap}</div>
                                       </div>
-                                      <div className={styles.driverMiniRole}>{driver.role}</div>
-                                      <div className={styles.driverMiniLap}>Best Lap: {driver.bestLap}</div>
-                                    </div>
-                                  ))
+                                    );
+                                  })
                                 ) : (
                                   <div style={{ color: "var(--text-muted)", fontSize: 12, padding: "8px 0" }}>
                                     Driver roster telemetry awaiting live transponder heat qualification.

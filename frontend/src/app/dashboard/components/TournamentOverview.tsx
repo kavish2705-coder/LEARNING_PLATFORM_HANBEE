@@ -501,13 +501,12 @@ export default function TournamentOverview() {
       {/* ===== Hub Header ===== */}
       <header className={styles.hubHeader}>
         <div className={styles.hubHeaderLeft}>
-          <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
-            <div className={styles.seasonBadge}>
-              <Trophy size={13} />
-              Season 2026 // Cup Series
-            </div>
-            <span className={styles.officialBadge}>
-              <ShieldCheck size={11} /> Official Event
+          <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap", marginBottom: "4px" }}>
+            <span className={styles.verifiedSchedulePill}>
+              <ShieldCheck size={12} /> VERIFIED SCHEDULE
+            </span>
+            <span style={{ fontSize: "13px", color: "var(--accent-subtle-text)", fontWeight: 700, letterSpacing: "-0.01em" }}>
+              {new Date().getHours() < 12 ? "Good morning" : new Date().getHours() < 17 ? "Good afternoon" : "Good evening"}, {profile?.full_name ? profile.full_name.split(" ")[0] : "Driver"}! 👋
             </span>
           </div>
           <h1 className={styles.hubTitle}>
@@ -530,6 +529,28 @@ export default function TournamentOverview() {
           </div>
         </div>
       </header>
+
+      {/* ===== Overview of Team Performance (Placed below header, above countdown) ===== */}
+      <div className={styles.teamPerformanceStrip} style={{ marginTop: 0, marginBottom: 20 }}>
+        <div className={styles.perfItem}>
+          <span className={styles.perfLabel}>ACTIVE TEAM</span>
+          <span className={styles.perfValue}>{team?.name || "Vortex Racing"} ({schoolName || "Delhi Tech Academy"})</span>
+        </div>
+        <div className={styles.perfItem}>
+          <span className={styles.perfLabel}>PADDOCK STANDING</span>
+          <span className={styles.perfValue} style={{ color: "#f59e0b" }}>Rank #1 (Championship Lead)</span>
+        </div>
+        <div className={styles.perfItem}>
+          <span className={styles.perfLabel}>BEST QUALIFYING LAP</span>
+          <span className={styles.perfValue} style={{ color: "var(--accent-subtle-text)" }}>12.84s</span>
+        </div>
+        <div className={styles.perfItem}>
+          <span className={styles.perfLabel}>PRE-RACE READINESS</span>
+          <span className={styles.perfValue} style={{ color: readinessScore === 100 ? "#10b981" : "#7dd3e8" }}>
+            {readinessScore}% {readinessScore === 100 ? "· Track Ready" : "· In Inspection"}
+          </span>
+        </div>
+      </div>
 
       {/* ===== Zone 01: Grand Prix Race Countdown & F1 Start Lights ===== */}
       <div className={styles.grandPrixCard}>
@@ -603,28 +624,6 @@ export default function TournamentOverview() {
             <Flag size={15} />
             <span>Live Grid Standings</span>
           </Link>
-        </div>
-
-        {/* Team Performance Overview Strip */}
-        <div className={styles.teamPerformanceStrip}>
-          <div className={styles.perfItem}>
-            <span className={styles.perfLabel}>ACTIVE TEAM</span>
-            <span className={styles.perfValue}>{team?.name || "Vortex Racing"} ({schoolName || "Delhi Tech Academy"})</span>
-          </div>
-          <div className={styles.perfItem}>
-            <span className={styles.perfLabel}>PADDOCK STANDING</span>
-            <span className={styles.perfValue} style={{ color: "#f59e0b" }}>Rank #1 (Championship Lead)</span>
-          </div>
-          <div className={styles.perfItem}>
-            <span className={styles.perfLabel}>BEST QUALIFYING LAP</span>
-            <span className={styles.perfValue} style={{ color: "var(--accent-subtle-text)" }}>12.84s</span>
-          </div>
-          <div className={styles.perfItem}>
-            <span className={styles.perfLabel}>PRE-RACE READINESS</span>
-            <span className={styles.perfValue} style={{ color: readinessScore === 100 ? "#10b981" : "#7dd3e8" }}>
-              {readinessScore}% {readinessScore === 100 ? "· Track Ready" : "· In Inspection"}
-            </span>
-          </div>
         </div>
       </div>
 
