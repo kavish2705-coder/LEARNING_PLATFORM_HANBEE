@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
-  Trophy, CalendarDays, MapPin, Users, Flame, Zap, 
+  Trophy, CalendarDays, MapPin, Users, Zap,
   Radio, CheckCircle2, RotateCw, Award, Sparkles, 
   ChevronRight, Flag, ShieldCheck, Activity, Cpu, 
   Layers, Compass, Disc, Gamepad2, BatteryCharging, Wrench, IdCard
@@ -18,7 +18,7 @@ import { useUserXp } from "../../../lib/hooks/useUserXp";
 export default function TournamentOverview() {
   const [tournament, setTournament] = useState<UpcomingTournament | null>(null);
   const [team, setTeam] = useState<MyTeamFormation["my_team"]>(null);
-  const [schoolName, setSchoolName] = useState("Delhi Tech Academy");
+  const [schoolName, setSchoolName] = useState("Your School");
   const [teamHref, setTeamHref] = useState("/dashboard/team");
   const [canManageTeam, setCanManageTeam] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -26,7 +26,7 @@ export default function TournamentOverview() {
   const { data: profile, isLoading: profileLoading } = useSessionProfile();
 
   // Centralized Live XP Points (Deterministic & Capped)
-  const { xp, addXpTask, removeXpTask } = useUserXp();
+  const { addXpTask, removeXpTask } = useUserXp();
   const [claimedBounties, setClaimedBounties] = useState<Record<string, boolean>>(() => {
     if (typeof window !== "undefined") {
       try {
@@ -110,13 +110,7 @@ export default function TournamentOverview() {
     id: string;
     name: string;
     school: string;
-    car: string;
-    bestLap: string;
-    topSpeed: string;
-    readiness: number;
     points: number;
-    status: string;
-    statusType: string;
     isUserTeam: boolean;
   }> | null>(null);
 
@@ -177,18 +171,12 @@ export default function TournamentOverview() {
                 id: r.team_id,
                 name: r.team_name,
                 school: r.school_name || "Registered School",
-                car: "RC Race Buggy",
-                bestLap: "12.50s",
-                topSpeed: "24.0 km/h",
-                readiness: 100,
                 points: r.points,
-                status: "Official Entry",
-                statusType: "active",
                 isUserTeam: false,
               })));
             }
           } catch {
-            // Live leaderboard not populated yet; benchmark simulation will be used
+            // Live leaderboard not populated yet
           }
         }
       } catch (reason) {
@@ -338,131 +326,19 @@ export default function TournamentOverview() {
   const passedCount = inspectionItems.filter((i) => inspectionStatus[i.id]).length;
   const readinessScore = Math.round((passedCount / inspectionItems.length) * 100);
 
-  const driverName = profile?.full_name || "Alex Mitchell";
-  const driverInitials = driverName.split(/\s+/).slice(0, 2).map((n: string) => n[0]).join("").toUpperCase() || "AM";
-  const teamName = team?.name || "Vortex Racing";
+  const driverName = profile?.full_name || "Student";
+  const driverInitials = driverName.split(/\s+/).slice(0, 2).map((n: string) => n[0]).join("").toUpperCase() || "ST";
+  const teamName = team?.name || "No team yet";
 
-  // Dummy Teams & Live Metrics
-  const baseDummyTeams = [
-    {
-      id: "team_redline",
-      name: "Team Redline Apex",
-      school: "St. Xavier Tech",
-      car: "Redline RC Buggy (4WD)",
-      bestLap: "11.42s",
-      topSpeed: "26.8 km/h",
-      readiness: 100,
-      points: 1850,
-      status: "On Track",
-      statusType: "active",
-      isUserTeam: false,
-    },
-    {
-      id: "team_cyberdrift",
-      name: "CyberDrift FC",
-      school: "Modern Academy",
-      car: "Blue Thunder RC 16X",
-      bestLap: "11.89s",
-      topSpeed: "25.4 km/h",
-      readiness: 100,
-      points: 1620,
-      status: "Pit Ready",
-      statusType: "active",
-      isUserTeam: false,
-    },
-    {
-      id: "team_torquecraft",
-      name: "TorqueCraft Racing",
-      school: "DPS Engineering",
-      car: "Turbo Racer Buggy",
-      bestLap: "12.15s",
-      topSpeed: "24.6 km/h",
-      readiness: 100,
-      points: 1490,
-      status: "Pit Ready",
-      statusType: "active",
-      isUserTeam: false,
-    },
-    {
-      id: "team_neon",
-      name: "Neon Drift Squad",
-      school: "Greenwood High",
-      car: "Neon Cruiser 4WD",
-      bestLap: "13.05s",
-      topSpeed: "23.2 km/h",
-      readiness: 83,
-      points: 1340,
-      status: "Tuning",
-      statusType: "tuning",
-      isUserTeam: false,
-    },
-    {
-      id: "team_falcon",
-      name: "Falcon Aero RC",
-      school: "National Public School",
-      car: "Aero Storm Buggy",
-      bestLap: "13.22s",
-      topSpeed: "22.8 km/h",
-      readiness: 100,
-      points: 1280,
-      status: "Pit Ready",
-      statusType: "active",
-      isUserTeam: false,
-    },
-    {
-      id: "team_hyperspark",
-      name: "HyperSpark Racing",
-      school: "Oakridge Tech",
-      car: "Spark Runner 1:16",
-      bestLap: "13.58s",
-      topSpeed: "22.1 km/h",
-      readiness: 67,
-      points: 1190,
-      status: "Battery Check",
-      statusType: "tuning",
-      isUserTeam: false,
-    },
-    {
-      id: "team_apex",
-      name: "Apex Predators",
-      school: "Bishop Cotton",
-      car: "Predator RC 4x4",
-      bestLap: "13.91s",
-      topSpeed: "21.5 km/h",
-      readiness: 83,
-      points: 1050,
-      status: "In Paddock",
-      statusType: "paddock",
-      isUserTeam: false,
-    },
-  ];
-
-  const userSquad = {
-    id: "user_squad",
-    name: teamName,
-    school: schoolName,
-    car: "Thunder RC 4WD Buggy",
-    bestLap: "12.84s",
-    topSpeed: "23.9 km/h",
-    readiness: readinessScore,
-    points: xp,
-    status: readinessScore === 100 ? "Ready to Drive" : "Inspecting",
-    statusType: readinessScore === 100 ? "active" : "tuning",
-    isUserTeam: true,
-  };
-
-  const isSimulated = !realLeaderboard || realLeaderboard.length === 0;
-
-  const allRankedTeams = (isSimulated
-    ? [...baseDummyTeams, userSquad]
-    : realLeaderboard.map((t) => ({ ...t, isUserTeam: team ? t.id === team.id : t.id === "user_squad" }))
-  )
+  const allRankedTeams = (realLeaderboard ?? [])
+    .map((t) => ({ ...t, isUserTeam: team ? t.id === team.id : false }))
     .sort((a, b) => b.points - a.points)
     .map((t, idx) => ({ ...t, rank: idx + 1 }));
 
-  const userRank = allRankedTeams.find((t) => t.isUserTeam)?.rank ?? 4;
-  const teamAhead = allRankedTeams.find((t) => t.rank === userRank - 1);
-  const ptsBehind = teamAhead ? Math.max(0, teamAhead.points - xp) : 0;
+  const userRankEntry = allRankedTeams.find((t) => t.isUserTeam);
+  const userRank = userRankEntry?.rank ?? null;
+  const teamAhead = userRank ? allRankedTeams.find((t) => t.rank === userRank - 1) : undefined;
+  const ptsBehind = teamAhead && userRankEntry ? Math.max(0, teamAhead.points - userRankEntry.points) : 0;
 
   return (
     <div className={styles.tournamentHub}>
@@ -523,11 +399,6 @@ export default function TournamentOverview() {
             <IdCard size={15} />
             <span>Driver License</span>
           </Link>
-          <div className={styles.streakPill}>
-            <Flame size={16} className={styles.streakFlame} />
-            <span>4-Day Practice Streak</span>
-            <span className={styles.streakBonusTag}>+20% RP</span>
-          </div>
         </div>
       </header>
 
@@ -895,116 +766,103 @@ export default function TournamentOverview() {
             <span>Active Grid Standings & Top 3 Podium</span>
           </div>
           <Link href="/dashboard/leaderboard" style={{ fontSize: "13px", color: "var(--accent-subtle-text)", textDecoration: "none", display: "flex", alignItems: "center", gap: 4 }}>
-            <span>Full Standings (8 Teams)</span>
+            <span>Full Standings ({allRankedTeams.length} Teams)</span>
             <ChevronRight size={14} />
           </Link>
         </div>
 
-        {/* Benchmark Notice Banner (Transparency for simulated vs live teams) */}
-        {isSimulated && (
-          <div className={styles.benchmarkNotice}>
-            <span className={styles.simBadge}>SIMULATED BENCHMARK GRID</span>
-            <span className={styles.simNoticeText}>
-              7 rival squads are simulated AI benchmark targets for telemetry testing. Your squad (<strong>{teamName}</strong>) telemetry is live.
-            </span>
+        {allRankedTeams.length === 0 && (
+          <p style={{ color: "var(--text-muted)", padding: "16px 0" }}>No results have been posted for this tournament yet.</p>
+        )}
+
+        {allRankedTeams.length >= 3 && (
+          <div className={styles.podiumRow}>
+            {/* Gold - P1 */}
+            <motion.div
+              className={`${styles.podiumCard} ${styles.podiumCardGold}`}
+              whileHover={{ y: -5, scale: 1.02 }}
+              transition={{ type: "spring", stiffness: 350, damping: 22 }}
+            >
+              <div className={`${styles.podiumRank} ${styles.podiumRankGold}`}>1</div>
+              <div className={styles.podiumDetails}>
+                <h4>
+                  {allRankedTeams[0].name}
+                  {allRankedTeams[0].isUserTeam && (
+                    <span className={styles.userSquadTag} style={{ marginLeft: 6 }}>YOUR SQUAD</span>
+                  )}
+                </h4>
+                <p>{allRankedTeams[0].school}</p>
+              </div>
+              <div className={styles.podiumPts} style={{ color: "#fbbf24" }}>{allRankedTeams[0].points.toLocaleString()} pts</div>
+            </motion.div>
+
+            {/* Silver - P2 */}
+            <motion.div
+              className={`${styles.podiumCard} ${styles.podiumCardSilver}`}
+              whileHover={{ y: -5, scale: 1.02 }}
+              transition={{ type: "spring", stiffness: 350, damping: 22 }}
+            >
+              <div className={`${styles.podiumRank} ${styles.podiumRankSilver}`}>2</div>
+              <div className={styles.podiumDetails}>
+                <h4>
+                  {allRankedTeams[1].name}
+                  {allRankedTeams[1].isUserTeam && (
+                    <span className={styles.userSquadTag} style={{ marginLeft: 6 }}>YOUR SQUAD</span>
+                  )}
+                </h4>
+                <p>{allRankedTeams[1].school}</p>
+              </div>
+              <div className={styles.podiumPts} style={{ color: "#9ca3af" }}>{allRankedTeams[1].points.toLocaleString()} pts</div>
+            </motion.div>
+
+            {/* Bronze - P3 */}
+            <motion.div
+              className={`${styles.podiumCard} ${styles.podiumCardBronze}`}
+              whileHover={{ y: -5, scale: 1.02 }}
+              transition={{ type: "spring", stiffness: 350, damping: 22 }}
+            >
+              <div className={`${styles.podiumRank} ${styles.podiumRankBronze}`}>3</div>
+              <div className={styles.podiumDetails}>
+                <h4>
+                  {allRankedTeams[2].name}
+                  {allRankedTeams[2].isUserTeam && (
+                    <span className={styles.userSquadTag} style={{ marginLeft: 6 }}>YOUR SQUAD</span>
+                  )}
+                </h4>
+                <p>{allRankedTeams[2].school}</p>
+              </div>
+              <div className={styles.podiumPts} style={{ color: "#f59e0b" }}>{allRankedTeams[2].points.toLocaleString()} pts</div>
+            </motion.div>
           </div>
         )}
 
-        {/* 3D-styled Dynamic Podium */}
-        <div className={styles.podiumRow}>
-          {/* Gold - P1 */}
-          <motion.div 
-            className={`${styles.podiumCard} ${styles.podiumCardGold}`}
-            whileHover={{ y: -5, scale: 1.02 }}
-            transition={{ type: "spring", stiffness: 350, damping: 22 }}
-          >
-            <div className={`${styles.podiumRank} ${styles.podiumRankGold}`}>1</div>
-            <div className={styles.podiumDetails}>
-              <h4>
-                {allRankedTeams[0].name}
-                {allRankedTeams[0].isUserTeam ? (
-                  <span className={styles.userSquadTag} style={{ marginLeft: 6 }}>YOUR SQUAD</span>
-                ) : isSimulated ? (
-                  <span className={styles.simSquadTag} style={{ marginLeft: 6 }}>BENCHMARK</span>
-                ) : (
-                  <span className={styles.userSquadTag} style={{ marginLeft: 6, background: "rgba(16, 185, 129, 0.15)", color: "#10b981" }}>OFFICIAL</span>
-                )}
-              </h4>
-              <p>{allRankedTeams[0].school} • {allRankedTeams[0].car}</p>
-            </div>
-            <div className={styles.podiumPts} style={{ color: "#fbbf24" }}>{allRankedTeams[0].points.toLocaleString()} pts</div>
-          </motion.div>
-
-          {/* Silver - P2 */}
-          <motion.div 
-            className={`${styles.podiumCard} ${styles.podiumCardSilver}`}
-            whileHover={{ y: -5, scale: 1.02 }}
-            transition={{ type: "spring", stiffness: 350, damping: 22 }}
-          >
-            <div className={`${styles.podiumRank} ${styles.podiumRankSilver}`}>2</div>
-            <div className={styles.podiumDetails}>
-              <h4>
-                {allRankedTeams[1].name}
-                {allRankedTeams[1].isUserTeam ? (
-                  <span className={styles.userSquadTag} style={{ marginLeft: 6 }}>YOUR SQUAD</span>
-                ) : isSimulated ? (
-                  <span className={styles.simSquadTag} style={{ marginLeft: 6 }}>BENCHMARK</span>
-                ) : (
-                  <span className={styles.userSquadTag} style={{ marginLeft: 6, background: "rgba(16, 185, 129, 0.15)", color: "#10b981" }}>OFFICIAL</span>
-                )}
-              </h4>
-              <p>{allRankedTeams[1].school} • {allRankedTeams[1].car}</p>
-            </div>
-            <div className={styles.podiumPts} style={{ color: "#9ca3af" }}>{allRankedTeams[1].points.toLocaleString()} pts</div>
-          </motion.div>
-
-          {/* Bronze - P3 */}
-          <motion.div 
-            className={`${styles.podiumCard} ${styles.podiumCardBronze}`}
-            whileHover={{ y: -5, scale: 1.02 }}
-            transition={{ type: "spring", stiffness: 350, damping: 22 }}
-          >
-            <div className={`${styles.podiumRank} ${styles.podiumRankBronze}`}>3</div>
-            <div className={styles.podiumDetails}>
-              <h4>
-                {allRankedTeams[2].name}
-                {allRankedTeams[2].isUserTeam ? (
-                  <span className={styles.userSquadTag} style={{ marginLeft: 6 }}>YOUR SQUAD</span>
-                ) : isSimulated ? (
-                  <span className={styles.simSquadTag} style={{ marginLeft: 6 }}>BENCHMARK</span>
-                ) : (
-                  <span className={styles.userSquadTag} style={{ marginLeft: 6, background: "rgba(16, 185, 129, 0.15)", color: "#10b981" }}>OFFICIAL</span>
-                )}
-              </h4>
-              <p>{allRankedTeams[2].school} • {allRankedTeams[2].car}</p>
-            </div>
-            <div className={styles.podiumPts} style={{ color: "#f59e0b" }}>{allRankedTeams[2].points.toLocaleString()} pts</div>
-          </motion.div>
-        </div>
-
-        {/* Dynamic Rivalry Indicator */}
-        <div className={styles.rivalryBar}>
-          <div className={styles.rivalryLeft}>
-            <Flag size={18} color="var(--accent-subtle-text)" />
-            <span>
-              Your Squad: <strong>#{userRank} {teamName}</strong> ({xp.toLocaleString()} XP)
-            </span>
-            <span style={{ opacity: 0.4 }}>|</span>
-            <span style={{ fontSize: "13px", opacity: 0.9 }}>
-              {userRank === 1 ? (
-                <span>👑 <strong>Championship Leader!</strong> Defend your P1 grid position!</span>
-              ) : userRank <= 3 ? (
-                <span>🎉 <strong>Podium Position Secured!</strong> Only <strong>{ptsBehind} XP behind #{userRank - 1} [{teamAhead?.name}]</strong> for the next position!</span>
-              ) : (
-                <span>Only <strong>{ptsBehind} XP behind #{userRank - 1} [{teamAhead?.name}]</strong>! Complete pit tasks or checks to climb the podium!</span>
+        {/* Rivalry Indicator — only shown once the user's team has a real rank */}
+        {userRank !== null && userRankEntry && (
+          <div className={styles.rivalryBar}>
+            <div className={styles.rivalryLeft}>
+              <Flag size={18} color="var(--accent-subtle-text)" />
+              <span>
+                Your Squad: <strong>#{userRank} {teamName}</strong> ({userRankEntry.points.toLocaleString()} pts)
+              </span>
+              {teamAhead && (
+                <>
+                  <span style={{ opacity: 0.4 }}>|</span>
+                  <span style={{ fontSize: "13px", opacity: 0.9 }}>
+                    {userRank === 1 ? (
+                      <span>👑 <strong>Championship Leader!</strong> Defend your P1 grid position!</span>
+                    ) : (
+                      <span>Only <strong>{ptsBehind} pts behind #{userRank - 1} [{teamAhead.name}]</strong>!</span>
+                    )}
+                  </span>
+                </>
               )}
-            </span>
-          </div>
+            </div>
 
-          <div className={styles.rivalryDelta}>
-            {userRank === 1 ? "P1 LEADER" : `GAP: -${ptsBehind} XP`}
+            <div className={styles.rivalryDelta}>
+              {userRank === 1 ? "P1 LEADER" : `GAP: -${ptsBehind} pts`}
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Mobile Swipe Hint */}
         <div className={styles.mobileSwipeHint}>
@@ -1018,26 +876,21 @@ export default function TournamentOverview() {
               <tr>
                 <th>Grid Pos</th>
                 <th>Team & School</th>
-                <th>RC Chassis</th>
-                <th>Best Lap</th>
-                <th>Top Speed</th>
-                <th>Pit Readiness</th>
-                <th>Status</th>
                 <th style={{ textAlign: "right" }}>Total Points</th>
               </tr>
             </thead>
             <tbody>
               {allRankedTeams.map((t) => (
-                <tr 
-                  key={t.id} 
+                <tr
+                  key={t.id}
                   className={`${styles.standingsRow} ${t.isUserTeam ? styles.standingsUserRow : ""}`}
                 >
                   <td className={styles.standingsCell}>
-                    <div 
+                    <div
                       className={`${styles.standingsRankBadge} ${
-                        t.rank === 1 ? styles.rankP1 : 
-                        t.rank === 2 ? styles.rankP2 : 
-                        t.rank === 3 ? styles.rankP3 : 
+                        t.rank === 1 ? styles.rankP1 :
+                        t.rank === 2 ? styles.rankP2 :
+                        t.rank === 3 ? styles.rankP3 :
                         styles.rankOther
                       }`}
                     >
@@ -1047,46 +900,9 @@ export default function TournamentOverview() {
                   <td className={styles.standingsCell}>
                     <div className={styles.teamMetaTitle}>
                       <span>{t.name}</span>
-                      {t.isUserTeam ? (
-                        <span className={styles.userSquadTag}>YOUR SQUAD • LIVE</span>
-                      ) : isSimulated ? (
-                        <span className={styles.simSquadTag}>BENCHMARK SIM</span>
-                      ) : (
-                        <span className={styles.userSquadTag} style={{ background: "rgba(16, 185, 129, 0.15)", color: "#10b981" }}>OFFICIAL ENTRY</span>
-                      )}
+                      {t.isUserTeam && <span className={styles.userSquadTag}>YOUR SQUAD • LIVE</span>}
                     </div>
                     <div className={styles.teamMetaSchool}>{t.school}</div>
-                  </td>
-                  <td className={styles.standingsCell} style={{ color: "var(--text-muted)", fontSize: "12px" }}>
-                    {t.car}
-                  </td>
-                  <td className={styles.standingsCell}>
-                    <span className={styles.lapTimeBadge}>{t.bestLap}</span>
-                  </td>
-                  <td className={styles.standingsCell}>
-                    <span className={styles.speedBadge}>{t.topSpeed}</span>
-                  </td>
-                  <td className={styles.standingsCell}>
-                    <div className={styles.readinessBarWrap}>
-                      <div className={styles.readinessBarBg}>
-                        <div 
-                          className={styles.readinessBarFill} 
-                          style={{ width: `${t.readiness}%` }}
-                        />
-                      </div>
-                      <span className={styles.readinessBarText}>{t.readiness}%</span>
-                    </div>
-                  </td>
-                  <td className={styles.standingsCell}>
-                    <span 
-                      className={`${styles.statusPill} ${
-                        t.statusType === "active" ? styles.statusActive : 
-                        t.statusType === "tuning" ? styles.statusTuning : 
-                        styles.statusPaddock
-                      }`}
-                    >
-                      {t.status}
-                    </span>
                   </td>
                   <td className={styles.standingsCell}>
                     <div className={styles.teamPointsBadge}>

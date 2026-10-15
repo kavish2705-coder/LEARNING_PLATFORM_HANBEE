@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useQuery, useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import styles from "./chat.module.css";
-import { Send, Search, Radio, Sparkles, Zap, Wrench, Flag } from "lucide-react";
+import { Send, Search, Radio, Zap, Wrench, Flag } from "lucide-react";
 import {
   fetchChatContacts,
   fetchChatConversations,
@@ -37,50 +37,13 @@ function initials(name: string) {
   return name.split(/\s+/).slice(0, 2).map((part) => part[0] ?? "").join("").toUpperCase();
 }
 
-const MOCK_CONVERSATIONS = [
-  {
-    id: "mock-squad-apex",
-    title: "Team Redline Apex",
-    kind: "group" as const,
-    last_body: "Rohan: Motor RPM calibrated. Let's do a fast stint! ⚡",
-    unread_count: 2,
-    participant_count: 4,
-    other_user_id: null,
-    other_full_name: null,
-    other_role: null,
-  },
-  {
-    id: "mock-pit-control",
-    title: "Track Pit Control & Marshals",
-    kind: "group" as const,
-    last_body: "Race Control: Transponder frequencies synced on Ch 4.",
-    unread_count: 0,
-    participant_count: 12,
-    other_user_id: null,
-    other_full_name: null,
-    other_role: null,
-  },
-  {
-    id: "mock-ai-assistant",
-    title: "Hanbee AI Pit Strategist",
-    kind: "direct" as const,
-    last_body: "AI: Sector 2 apex delta is -0.14s. Ready for telemetry query.",
-    unread_count: 0,
-    participant_count: 2,
-    other_user_id: "ai-bot",
-    other_full_name: "Hanbee AI Pit Strategist",
-    other_role: "staff",
-  },
-];
-
 export default function ChatPage() {
   const [currentUserId, setCurrentUserId] = useState("");
   const [activeConversationId, setActiveConversationId] = useState("");
   const [inputValue, setInputValue] = useState("");
   const [search, setSearch] = useState("");
   const [error, setError] = useState("");
-  const [isTyping, setIsTyping] = useState<string | null>(null);
-  
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const queryClient = useQueryClient();
 
@@ -95,35 +58,7 @@ export default function ChatPage() {
   });
   const { data: contacts } = useQuery({ queryKey: ["chat-contacts"], queryFn: fetchChatContacts });
 
-  // Use backend conversations if any exist; otherwise fallback to rich interactive race channels
-  const conversations = (rawConversations && rawConversations.length > 0)
-    ? rawConversations
-    : MOCK_CONVERSATIONS;
-
-  const isMockActive = activeConversationId.startsWith("mock-");
-
-  // Local interactive message history for simulated channels
-  const [mockMessages, setMockMessages] = useState<Record<string, Array<{
-    id: string;
-    sender_id: string;
-    sender_name: string;
-    body: string;
-    created_at: string;
-    kind?: string;
-  }>>>({
-    "mock-squad-apex": [
-      { id: "m1", sender_id: "rohan", sender_name: "Rohan Varma", body: "Hey team! All 4 wheels and steering trim inspected on our Redline Buggy.", created_at: new Date(Date.now() - 3600000 * 2).toISOString() },
-      { id: "m2", sender_id: "aarav", sender_name: "Aarav Patel", body: "LiPo battery pack #2 is charged to 8.38V in the safe bag. Ready to roll!", created_at: new Date(Date.now() - 3600000).toISOString() },
-      { id: "m3", sender_id: "rohan", sender_name: "Rohan Varma", body: "Motor RPM calibrated. Let's do a fast stint! ⚡", created_at: new Date(Date.now() - 1800000).toISOString() },
-    ],
-    "mock-pit-control": [
-      { id: "p1", sender_id: "marshal", sender_name: "Race Control", body: "Scrutineering opened for Championship Group A. Bring cars to Bay 3.", created_at: new Date(Date.now() - 7200000).toISOString() },
-      { id: "p2", sender_id: "marshal", sender_name: "Race Control", body: "Transponder frequencies synced on Ch 4. Pre-grid in 15 minutes.", created_at: new Date(Date.now() - 3600000).toISOString() },
-    ],
-    "mock-ai-assistant": [
-      { id: "a1", sender_id: "ai", sender_name: "Hanbee AI", body: "Hello Driver! I am your AI Pit Strategist. Ask me about tire trim, battery limits, or sector delta times.", created_at: new Date(Date.now() - 7200000).toISOString() },
-    ],
-  });
+  const conversations = rawConversations ?? [];
 
   // Pick default conversation
   useEffect(() => {
@@ -138,22 +73,19 @@ export default function ChatPage() {
     queryFn: ({ pageParam }: { pageParam?: string }) => fetchChatMessages(activeConversationId, pageParam),
     initialPageParam: undefined as string | undefined,
     getNextPageParam: (lastPage) => (lastPage.length === CHAT_MESSAGE_PAGE_SIZE ? lastPage[0].created_at : undefined),
-    enabled: Boolean(activeConversationId) && !isMockActive,
+    enabled: Boolean(activeConversationId),
   });
 
-  const dbMessages = [...(messagesQuery.data?.pages ?? [])].reverse().flat();
-  const currentMockList = mockMessages[activeConversationId] || [];
-
-  const messages = isMockActive ? currentMockList : dbMessages;
+  const messages = [...(messagesQuery.data?.pages ?? [])].reverse().flat();
 
   const { data: receipts } = useQuery({
     queryKey: ["chat-receipts", activeConversationId],
     queryFn: () => fetchChatReadReceipts(activeConversationId),
-    enabled: Boolean(activeConversationId) && !isMockActive,
+    enabled: Boolean(activeConversationId),
   });
 
   useEffect(() => {
-    if (!activeConversationId || isMockActive) return;
+    if (!activeConversationId) return;
     const channel = getRealtimeClient()
       .channel(`chat-${activeConversationId}`)
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "messages", filter: `conversation_id=eq.${activeConversationId}` }, () => {
@@ -167,19 +99,19 @@ export default function ChatPage() {
     return () => {
       void getRealtimeClient().removeChannel(channel);
     };
-  }, [activeConversationId, queryClient, isMockActive]);
+  }, [activeConversationId, queryClient]);
 
   const markRead = useMutation({
     mutationFn: markChatRead,
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["chat-conversations"] }),
   });
   useEffect(() => {
-    if (activeConversationId && !isMockActive) markRead.mutate(activeConversationId);
-  }, [activeConversationId, isMockActive]);
+    if (activeConversationId) markRead.mutate(activeConversationId);
+  }, [activeConversationId]);
 
-  useEffect(() => { 
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }); 
-  }, [activeConversationId, messages.length, isTyping]);
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [activeConversationId, messages.length]);
 
   const openContact = useMutation({
     mutationFn: startDirectConversation,
@@ -204,76 +136,7 @@ export default function ChatPage() {
     const body = (customText ?? inputValue).trim();
     if (!body || !activeConversationId) return;
     setError("");
-
-    if (!isMockActive) {
-      sendMessage.mutate(body);
-      return;
-    }
-
-    // Interactive Mock Flow
-    setInputValue("");
-    const newMsgId = `usr-${Date.now()}`;
-    const userMsg = {
-      id: newMsgId,
-      sender_id: currentUserId,
-      sender_name: profile?.full_name || "You",
-      body,
-      created_at: new Date().toISOString(),
-    };
-
-    setMockMessages((prev) => ({
-      ...prev,
-      [activeConversationId]: [...(prev[activeConversationId] || []), userMsg],
-    }));
-
-    // Trigger realistic interactive reply after 1.2s
-    const typingName = activeConversationId === "mock-pit-control"
-      ? "Race Control"
-      : activeConversationId === "mock-ai-assistant"
-      ? "Hanbee AI Strategist"
-      : "Rohan Varma";
-
-    setIsTyping(typingName);
-
-    setTimeout(() => {
-      let replyBody = "Copy that! Telemetry synchronized with the team hub. Good luck on the run! 🏎️💨";
-      const lower = body.toLowerCase();
-
-      if (activeConversationId === "mock-pit-control") {
-        replyBody = "Race Control confirms: Transponder #42 locked on Ch 4. Pre-grid queue verified! 🏁";
-      } else if (activeConversationId === "mock-ai-assistant") {
-        if (lower.includes("lap") || lower.includes("fast")) {
-          replyBody = "Telemetry insight: Your best lap is 13.42s. Sector 2 entry speed was 44.8 km/h, which is the session benchmark!";
-        } else if (lower.includes("battery") || lower.includes("voltage")) {
-          replyBody = "Battery check: 2S LiPo sits at 8.38V. Optimal safety margin under the 8.40V maximum ceiling.";
-        } else {
-          replyBody = "AI Pit Analysis: Car balance is neutral. Maintain consistent braking at Turn 3 hairpin for maximum exit drive.";
-        }
-      } else {
-        if (lower.includes("lap") || lower.includes("fast")) {
-          replyBody = "Nice! That 13.42s lap puts us 2nd overall in Championship Group A! Let's protect the tires.";
-        } else if (lower.includes("battery") || lower.includes("trim")) {
-          replyBody = "Confirmed! Steering trim centered at 0°. Battery pack #2 is pre-warmed for heat 1.";
-        } else if (lower.includes("ready")) {
-          replyBody = "Let's bring home the podium! Heading over to the driver rostrum now! 🏆";
-        }
-      }
-
-      setMockMessages((prev) => ({
-        ...prev,
-        [activeConversationId]: [
-          ...(prev[activeConversationId] || []),
-          {
-            id: `reply-${Date.now()}`,
-            sender_id: "reply-bot",
-            sender_name: typingName,
-            body: replyBody,
-            created_at: new Date().toISOString(),
-          },
-        ],
-      }));
-      setIsTyping(null);
-    }, 1200);
+    sendMessage.mutate(body);
   }
 
   function isAllowedContact(theirRole: string | null | undefined) {
@@ -398,8 +261,8 @@ export default function ChatPage() {
                 <h2>{title}</h2>
                 <p>
                   {activeConversation.kind === "direct"
-                    ? activeContact?.relation.replaceAll("_", " ") ?? activeConversation.other_role ?? "Direct Channel"
-                    : `${activeConversation.participant_count} members online · 2.4GHz FHSS`}
+                    ? activeContact?.relation.replaceAll("_", " ") ?? activeConversation.other_role ?? "Direct message"
+                    : `${activeConversation.participant_count} members`}
                 </p>
               </div>
             </header>
@@ -425,7 +288,9 @@ export default function ChatPage() {
                 const previous = messages[index - 1];
                 const newDay = !previous || dayKey(previous.created_at) !== dayKey(message.created_at);
                 const mine = message.sender_id === currentUserId;
-                const seen = true;
+                const seen = (receipts ?? []).some(
+                  (r) => r.user_id !== currentUserId && r.last_read_at && r.last_read_at >= message.created_at,
+                );
 
                 return (
                   <div key={message.id}>
@@ -438,11 +303,6 @@ export default function ChatPage() {
                       <div className={styles.systemMessage}>{message.body}</div>
                     ) : (
                       <div className={`${styles.messageWrapper} ${mine ? styles.me : styles.other}`}>
-                        {"sender_name" in message && !mine && (
-                          <div style={{ fontSize: 11, color: "var(--text-muted)", marginBottom: 3, paddingLeft: 4 }}>
-                            {(message as any).sender_name}
-                          </div>
-                        )}
                         <div className={`${styles.message} ${mine ? styles.me : styles.other}`}>
                           {message.body}
                         </div>
@@ -459,15 +319,6 @@ export default function ChatPage() {
                   </div>
                 );
               })}
-
-              {isTyping && (
-                <div className={styles.typingIndicator}>
-                  <span>{isTyping} is typing</span>
-                  <div className={styles.typingDot} />
-                  <div className={styles.typingDot} />
-                  <div className={styles.typingDot} />
-                </div>
-              )}
 
               <div ref={messagesEndRef} />
             </div>
