@@ -75,9 +75,12 @@ async function upsertStudentAuthUser(email, password, fullName, invitedBy) {
 
 async function main() {
   console.log("Creating demo accounts...");
-  const staffId = await upsertAuthUser("jamie@hanbeelms.edu", "staff123", "Jamie Rivera", "staff");
-  const studentId = await upsertStudentAuthUser("ava@student.edu", "student123", "Ava Chen", staffId);
-  const managerId = await upsertAuthUser("morgan@hanbeelms.edu", "manager123", "Morgan Ellis", "manager");
+  // Passwords need one of each: lowercase, UPPERCASE, digit, symbol — the
+  // project's password policy (Supabase Auth settings, S10 hardening) now
+  // requires all four; the old all-lowercase demo passwords fail it.
+  const staffId = await upsertAuthUser("jamie@hanbeelms.edu", "Staff123!", "Jamie Rivera", "staff");
+  const studentId = await upsertStudentAuthUser("ava@student.edu", "Student123!", "Ava Chen", staffId);
+  const managerId = await upsertAuthUser("morgan@hanbeelms.edu", "Manager123!", "Morgan Ellis", "manager");
   // The handle_new_user trigger creates the profiles row automatically.
 
   console.log("Seeding course content...");
@@ -129,7 +132,7 @@ async function main() {
     audience: "all",
   });
 
-  console.log("Done. Demo accounts: jamie@hanbeelms.edu / staff123, ava@student.edu / student123, morgan@hanbeelms.edu / manager123");
+  console.log("Done. Demo accounts: jamie@hanbeelms.edu / Staff123!, ava@student.edu / Student123!, morgan@hanbeelms.edu / Manager123!");
 }
 
 main().catch((err) => {
