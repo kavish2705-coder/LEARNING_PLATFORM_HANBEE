@@ -14,6 +14,14 @@ function urlFromEnvFile() {
   }
 }
 
+// When stdout is a pipe (as it is under `node file.mjs` inside CI's
+// `test_output="$(node "$test_file")"`), console.log writes are queued
+// asynchronously. An uncaught exception kills the process immediately,
+// before the queued writes drain, silently dropping every PASS/FAIL line
+// printed before the crash. Forcing the handle blocking makes writes
+// synchronous so a crash never erases the diagnostic trail that led to it.
+try { process.stdout._handle?.setBlocking?.(true); } catch {}
+
 export async function connect() {
   const url = process.env.SUPABASE_DB_URL ?? urlFromEnvFile();
   if (!url) throw new Error("Set SUPABASE_DB_URL, or run create-test-role.mjs to create supabase/tests/.env.test.");
