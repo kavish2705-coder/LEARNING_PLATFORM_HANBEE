@@ -201,7 +201,7 @@ export default function HanbeeLmsOverview() {
             </div>
 
             {/* Recent Courses Preview Table */}
-            {recentCourses.length > 0 && (
+            {recentCourses.length > 0 ? (
               <div className={styles.tableContainer}>
                 <table className={styles.dataTable}>
                   <thead>
@@ -249,6 +249,13 @@ export default function HanbeeLmsOverview() {
                     ))}
                   </tbody>
                 </table>
+              </div>
+            ) : (
+              <div style={{ background: "var(--bg-surface-elevated)", border: "1px solid var(--border-elevated)", borderRadius: 12, padding: "28px 20px", textAlign: "center", color: "var(--text-muted)" }}>
+                <p style={{ margin: "0 0 12px 0", fontSize: 13 }}>No recent courses found in the learning catalog.</p>
+                <Link href="/dashboard/hanbee/courses" className={styles.secondaryActionBtn} style={{ display: "inline-flex", textDecoration: "none", alignItems: "center", gap: 6, padding: "8px 18px", fontSize: 13 }}>
+                  <BookOpen size={14} /> Create First Course
+                </Link>
               </div>
             )}
           </section>

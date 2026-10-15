@@ -505,7 +505,7 @@ export default function TournamentOverview() {
             <span className={styles.verifiedSchedulePill}>
               <ShieldCheck size={12} /> VERIFIED SCHEDULE
             </span>
-            <span style={{ fontSize: "13px", color: "var(--accent-subtle-text)", fontWeight: 700, letterSpacing: "-0.01em" }}>
+            <span style={{ fontSize: "13px", color: "var(--accent-subtle-text)", fontWeight: 700, letterSpacing: "-0.01em" }} suppressHydrationWarning>
               {new Date().getHours() < 12 ? "Good morning" : new Date().getHours() < 17 ? "Good afternoon" : "Good evening"}, {profile?.full_name ? profile.full_name.split(" ")[0] : "Driver"}! 👋
             </span>
           </div>
@@ -538,7 +538,9 @@ export default function TournamentOverview() {
         </div>
         <div className={styles.perfItem}>
           <span className={styles.perfLabel}>PADDOCK STANDING</span>
-          <span className={styles.perfValue} style={{ color: "#f59e0b" }}>Rank #1 (Championship Lead)</span>
+          <span className={styles.perfValue} style={{ color: userRank === 1 ? "#f59e0b" : "var(--accent-subtle-text)" }}>
+            {userRank === 1 ? "Rank #1 (Championship Lead)" : `Rank #${userRank} (${ptsBehind > 0 ? `${ptsBehind} pts behind P${userRank - 1}` : "Chasing Podium"})`}
+          </span>
         </div>
         <div className={styles.perfItem}>
           <span className={styles.perfLabel}>BEST QUALIFYING LAP</span>

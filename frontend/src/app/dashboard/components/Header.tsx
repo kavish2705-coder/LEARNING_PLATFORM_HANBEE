@@ -15,18 +15,19 @@ const ROLE_LABEL: Record<string, string> = {
   manager: "Manager",
 };
 
-function greeting() {
+function greeting(name?: string) {
   const hour = new Date().getHours();
-  if (hour < 12) return "Good morning,";
-  if (hour < 17) return "Good afternoon,";
-  return "Good evening,";
+  let timeStr = "Good morning";
+  if (hour >= 12 && hour < 17) timeStr = "Good afternoon";
+  else if (hour >= 17) timeStr = "Good evening";
+  return name ? `${timeStr},` : timeStr;
 }
 
 export default function Header({ toggleMobileMenu }: { toggleMobileMenu?: () => void }) {
   const { data: profile } = useSessionProfile();
   const { xp, isGaining, lastGained } = useUserXp();
   const name = profile?.full_name ?? "";
-  const initial = name.charAt(0).toUpperCase() || "H";
+  const initial = name.charAt(0).toUpperCase() || (profile?.role ? profile.role.charAt(0).toUpperCase() : "H");
   const today = new Date().toLocaleDateString([], { weekday: "short", month: "short", day: "numeric" });
 
   return (
@@ -36,8 +37,8 @@ export default function Header({ toggleMobileMenu }: { toggleMobileMenu?: () => 
           <Menu size={24} />
         </button>
         <div className={styles.greetingWrapper}>
-          <div className={styles.greeting}>{greeting()}</div>
-          <div className={styles.greetingName}>{name}</div>
+          <div className={styles.greeting} suppressHydrationWarning>{greeting(name)}</div>
+          <div className={styles.greetingName}>{name || "Welcome Back"}</div>
         </div>
       </div>
 
@@ -85,7 +86,7 @@ export default function Header({ toggleMobileMenu }: { toggleMobileMenu?: () => 
             </AnimatePresence>
           </Link>
         )}
-        <div className={styles.date}>{today}</div>
+        <div className={styles.date} suppressHydrationWarning>{today}</div>
         <NotificationBell />
 
         <div className={styles.headerUser} title={name ? `${name} (${profile ? ROLE_LABEL[profile.role] ?? profile.role : ""})` : ""}>
