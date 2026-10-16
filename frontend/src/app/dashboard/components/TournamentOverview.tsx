@@ -868,9 +868,6 @@ export default function TournamentOverview() {
         <div>
           <div className={styles.eventMeta}>
             <div>
-              <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "8px" }}>
-                <span className={styles.nextRacePill}>NEXT RACE</span>
-              </div>
               <h2 className={styles.eventTitle}>
                 {tournament?.title || "Hanbee RC Cup 2026"}
               </h2>
