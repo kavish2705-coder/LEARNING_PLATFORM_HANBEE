@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { 
   Trophy, CalendarDays, MapPin, Users, Zap,
   Radio, CheckCircle2, RotateCw, Award, Sparkles, 
-  ChevronRight, Flag, ShieldCheck, Activity, Cpu, 
+  ChevronRight, Flag, Activity, Cpu,
   Layers, Compass, Disc, Gamepad2, BatteryCharging, Wrench, IdCard
 } from "lucide-react";
 import Link from "next/link";
@@ -339,6 +339,9 @@ export default function TournamentOverview() {
   const userRank = userRankEntry?.rank ?? null;
   const teamAhead = userRank ? allRankedTeams.find((t) => t.rank === userRank - 1) : undefined;
   const ptsBehind = teamAhead && userRankEntry ? Math.max(0, teamAhead.points - userRankEntry.points) : 0;
+  const currentHour = new Date().getHours();
+  const timeGreeting = currentHour < 12 ? "Good morning" : currentHour < 17 ? "Good afternoon" : "Good evening";
+  const studentName = profile?.full_name ? profile.full_name.split(" ")[0] : "Driver";
 
   return (
     <div className={styles.tournamentHub}>
@@ -377,27 +380,12 @@ export default function TournamentOverview() {
       {/* ===== Hub Header ===== */}
       <header className={styles.hubHeader}>
         <div className={styles.hubHeaderLeft}>
-          <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap", marginBottom: "4px" }}>
-            <span className={styles.verifiedSchedulePill}>
-              <ShieldCheck size={12} /> VERIFIED SCHEDULE
-            </span>
-            <span style={{ fontSize: "13px", color: "var(--accent-subtle-text)", fontWeight: 700, letterSpacing: "-0.01em" }} suppressHydrationWarning>
-              {new Date().getHours() < 12 ? "Good morning" : new Date().getHours() < 17 ? "Good afternoon" : "Good evening"}, {profile?.full_name ? profile.full_name.split(" ")[0] : "Driver"}! 👋
-            </span>
-          </div>
-          <h1 className={styles.hubTitle}>
-            Tournament Track Hub
+          <h1 className={styles.hubTitle} suppressHydrationWarning>
+            {timeGreeting}, {studentName}!
           </h1>
           <p className={styles.hubSubtitle}>
             Live race countdown, quick RC car check, and squad standings.
           </p>
-        </div>
-
-        <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
-          <Link href="/dashboard/license" className={styles.licenseNavBtn}>
-            <IdCard size={15} />
-            <span>Driver License</span>
-          </Link>
         </div>
       </header>
 
@@ -432,9 +420,6 @@ export default function TournamentOverview() {
             <div>
               <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "8px" }}>
                 <span className={styles.nextRacePill}>NEXT RACE</span>
-                <span className={styles.verifiedSchedulePill}>
-                  <ShieldCheck size={12} /> VERIFIED SCHEDULE
-                </span>
               </div>
               <h2 className={styles.eventTitle}>
                 {tournament?.title || "Hanbee RC Cup 2026"}
@@ -500,23 +485,19 @@ export default function TournamentOverview() {
         </div>
       </div>
 
-      {/* ===== Zone 02: Interactive Pit Bay (Actionable Workstation) ===== */}
+      {/* ===== Car Safety Check & Practice Tasks ===== */}
       <div className={styles.sectionHeaderWrap}>
         <div className={styles.sectionHeaderLeft}>
-          <span className={styles.sectionCategoryTag}>
-            <Wrench size={12} />
-            ZONE 02 // PIT LANE WORKSHOP
-          </span>
-          <h3 className={styles.sectionGroupTitle}>Manual Hardware Inspection & Practice Drills</h3>
+          <h3 className={styles.sectionGroupTitle}>Car Safety Check & Practice Tasks</h3>
         </div>
         <div className={styles.sectionStatusPill}>
           {passedCount === 6 ? (
             <span className={styles.paddockClearedPill}>
-              <CheckCircle2 size={13} /> PADDOCK CLEARED FOR TRACK
+              <CheckCircle2 size={13} /> READY TO DRIVE
             </span>
           ) : (
             <span className={styles.paddockActionPill}>
-              <Wrench size={13} /> {6 - passedCount} CHECKS REQUIRED BEFORE RACE
+              <Wrench size={13} /> {6 - passedCount} CHECKS LEFT
             </span>
           )}
         </div>
@@ -773,11 +754,7 @@ export default function TournamentOverview() {
       {/* ===== Zone 03: Championship Telemetry & Benchmark Standings ===== */}
       <div className={styles.sectionHeaderWrap}>
         <div className={styles.sectionHeaderLeft}>
-          <span className={styles.sectionCategoryTag}>
-            <Flag size={12} />
-            ZONE 03 // CHAMPIONSHIP TELEMETRY
-          </span>
-          <h3 className={styles.sectionGroupTitle}>Championship Standings & Benchmark Grid</h3>
+          <h3 className={styles.sectionGroupTitle}>Championship Standings</h3>
         </div>
       </div>
 
