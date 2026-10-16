@@ -5,6 +5,7 @@ import { Menu, Zap } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import styles from "../layout.module.css";
 import NotificationBell from "./NotificationBell";
+import SearchBar from "./SearchBar";
 import { useSessionProfile } from "../../../lib/hooks/useSessionProfile";
 import { useUserXp } from "../../../lib/hooks/useUserXp";
 
@@ -28,6 +29,7 @@ export default function Header({ toggleMobileMenu }: { toggleMobileMenu?: () => 
         <button className={styles.mobileMenuBtn} onClick={toggleMobileMenu} aria-label="Toggle Menu">
           <Menu size={24} />
         </button>
+        <SearchBar />
       </div>
 
       <div className={styles.headerRight}>
