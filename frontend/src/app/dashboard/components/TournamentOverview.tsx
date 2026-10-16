@@ -413,77 +413,170 @@ export default function TournamentOverview() {
         </div>
       </div>
 
-      {/* ===== Zone 01: Grand Prix Race Countdown & F1 Start Lights ===== */}
-      <div className={styles.grandPrixCard}>
-        <div>
-          <div className={styles.eventMeta}>
-            <div>
-              <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "8px" }}>
-                <span className={styles.nextRacePill}>NEXT RACE</span>
-              </div>
-              <h2 className={styles.eventTitle}>
-                {tournament?.title || "Hanbee RC Cup 2026"}
-              </h2>
-              <div className={styles.eventCircuit}>
-                <Compass size={14} color="#7dd3e8" />
-                <span>{tournament?.venue || "Hanbee Track, Chennai"}</span>
-              </div>
-            </div>
-
-            <div style={{ fontFamily: "monospace", fontSize: "12px", color: "var(--text-muted)" }}>
-              <div><CalendarDays size={13} style={{ display: "inline", marginRight: 4 }} /> {tournament?.starts_at ? new Date(tournament.starts_at).toLocaleDateString([], { month: "short", day: "numeric", year: "numeric" }) : "Oct 24, 2026"}</div>
-              <div>{tournament?.starts_at ? new Date(tournament.starts_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "10:00 AM IST"}</div>
-            </div>
-          </div>
-
-          {/* F1 5-Light Start Gantry */}
-          <div className={styles.f1Gantry}>
-            {[1, 2, 3, 4, 5].map((light) => (
-              <div key={light} className={styles.f1LightHousing}>
-                <div 
-                  className={styles.f1LightRed} 
-                  style={{ animationDelay: `${light * 0.18}s` }} 
-                />
-              </div>
-            ))}
-          </div>
-
-          {/* Live Countdown Display */}
-          <div className={styles.countdownGrid}>
-            <div className={styles.countdownBox}>
-              <span className={styles.countdownDigit}>{String(timeLeft.days).padStart(2, "0")}</span>
-              <span className={styles.countdownUnit}>Days</span>
-            </div>
-            <div className={styles.countdownBox}>
-              <span className={styles.countdownDigit}>{String(timeLeft.hours).padStart(2, "0")}</span>
-              <span className={styles.countdownUnit}>Hours</span>
-            </div>
-            <div className={styles.countdownBox}>
-              <span className={styles.countdownDigit}>{String(timeLeft.minutes).padStart(2, "0")}</span>
-              <span className={styles.countdownUnit}>Minutes</span>
-            </div>
-            <div className={styles.countdownBox}>
-              <span className={styles.countdownDigit} style={{ color: "var(--accent-subtle-text)" }}>{String(timeLeft.seconds).padStart(2, "0")}</span>
-              <span className={styles.countdownUnit}>Seconds</span>
-            </div>
-          </div>
-        </div>
-
-        <div className={styles.countdownActions}>
-          <Link href="/dashboard/license" className={styles.licenseActionBtn}>
-            <IdCard size={15} />
-            <span>Driver License</span>
-          </Link>
-          <Link href={teamHref} className={styles.paddockBtn}>
-            <Users size={15} />
-            <span>{team ? "Manage Race Team" : "Register Race Team"}</span>
-          </Link>
-          <Link href="/dashboard/leaderboard" className={styles.gridBtn}>
-            <Flag size={15} />
-            <span>Live Grid Standings</span>
-          </Link>
+      {/* ===== 01: Championship Standings (First Box) ===== */}
+      <div className={styles.sectionHeaderWrap}>
+        <div className={styles.sectionHeaderLeft}>
+          <h3 className={styles.sectionGroupTitle}>Championship Standings</h3>
         </div>
       </div>
+
+      {/* ===== Section: Podium, Rivalry & Live Grid Standings ===== */}
+      <section className={styles.standingsSection}>
+        <div className={styles.cardHeaderTitle}>
+          <div className={styles.hubTitle} style={{ fontSize: "20px" }}>
+            <Award size={22} color="#fbbf24" />
+            <span>Active Grid Standings & Top 3 Podium</span>
+          </div>
+          <Link href="/dashboard/leaderboard" style={{ fontSize: "13px", color: "var(--accent-subtle-text)", textDecoration: "none", display: "flex", alignItems: "center", gap: 4 }}>
+            <span>Full Standings ({allRankedTeams.length} Teams)</span>
+            <ChevronRight size={14} />
+          </Link>
+        </div>
+
+        {allRankedTeams.length === 0 && (
+          <p style={{ color: "var(--text-muted)", padding: "16px 0" }}>No results have been posted for this tournament yet.</p>
+        )}
+
+        {allRankedTeams.length >= 3 && (
+          <div className={styles.podiumRow}>
+            {/* Gold - P1 */}
+            <motion.div
+              className={`${styles.podiumCard} ${styles.podiumCardGold}`}
+              whileHover={{ y: -5, scale: 1.02 }}
+              transition={{ type: "spring", stiffness: 350, damping: 22 }}
+            >
+              <div className={`${styles.podiumRank} ${styles.podiumRankGold}`}>1</div>
+              <div className={styles.podiumDetails}>
+                <h4>
+                  {allRankedTeams[0].name}
+                  {allRankedTeams[0].isUserTeam && (
+                    <span className={styles.userSquadTag} style={{ marginLeft: 6 }}>YOUR SQUAD</span>
+                  )}
+                </h4>
+                <p>{allRankedTeams[0].school}</p>
+              </div>
+              <div className={styles.podiumPts} style={{ color: "#fbbf24" }}>{allRankedTeams[0].points.toLocaleString()} pts</div>
+            </motion.div>
+
+            {/* Silver - P2 */}
+            <motion.div
+              className={`${styles.podiumCard} ${styles.podiumCardSilver}`}
+              whileHover={{ y: -5, scale: 1.02 }}
+              transition={{ type: "spring", stiffness: 350, damping: 22 }}
+            >
+              <div className={`${styles.podiumRank} ${styles.podiumRankSilver}`}>2</div>
+              <div className={styles.podiumDetails}>
+                <h4>
+                  {allRankedTeams[1].name}
+                  {allRankedTeams[1].isUserTeam && (
+                    <span className={styles.userSquadTag} style={{ marginLeft: 6 }}>YOUR SQUAD</span>
+                  )}
+                </h4>
+                <p>{allRankedTeams[1].school}</p>
+              </div>
+              <div className={styles.podiumPts} style={{ color: "#9ca3af" }}>{allRankedTeams[1].points.toLocaleString()} pts</div>
+            </motion.div>
+
+            {/* Bronze - P3 */}
+            <motion.div
+              className={`${styles.podiumCard} ${styles.podiumCardBronze}`}
+              whileHover={{ y: -5, scale: 1.02 }}
+              transition={{ type: "spring", stiffness: 350, damping: 22 }}
+            >
+              <div className={`${styles.podiumRank} ${styles.podiumRankBronze}`}>3</div>
+              <div className={styles.podiumDetails}>
+                <h4>
+                  {allRankedTeams[2].name}
+                  {allRankedTeams[2].isUserTeam && (
+                    <span className={styles.userSquadTag} style={{ marginLeft: 6 }}>YOUR SQUAD</span>
+                  )}
+                </h4>
+                <p>{allRankedTeams[2].school}</p>
+              </div>
+              <div className={styles.podiumPts} style={{ color: "#f59e0b" }}>{allRankedTeams[2].points.toLocaleString()} pts</div>
+            </motion.div>
+          </div>
+        )}
+
+        {/* Rivalry Indicator — only shown once the user's team has a real rank */}
+        {userRank !== null && userRankEntry && (
+          <div className={styles.rivalryBar}>
+            <div className={styles.rivalryLeft}>
+              <Flag size={18} color="var(--accent-subtle-text)" />
+              <span>
+                Your Squad: <strong>#{userRank} {teamName}</strong> ({userRankEntry.points.toLocaleString()} pts)
+              </span>
+              {teamAhead && (
+                <>
+                  <span style={{ opacity: 0.4 }}>|</span>
+                  <span style={{ fontSize: "13px", opacity: 0.9 }}>
+                    {userRank === 1 ? (
+                      <span>👑 <strong>Championship Leader!</strong> Defend your P1 grid position!</span>
+                    ) : (
+                      <span>Only <strong>{ptsBehind} pts behind #{userRank - 1} [{teamAhead.name}]</strong>!</span>
+                    )}
+                  </span>
+                </>
+              )}
+            </div>
+
+            <div className={styles.rivalryDelta}>
+              {userRank === 1 ? "P1 LEADER" : `GAP: -${ptsBehind} pts`}
+            </div>
+          </div>
+        )}
+
+        {/* Mobile Swipe Hint */}
+        <div className={styles.mobileSwipeHint}>
+          ← Swipe table horizontally to inspect lap times & telemetry →
+        </div>
+
+        {/* Full Grid Standings & Team Telemetry Table */}
+        <div className={styles.standingsTableContainer}>
+          <table className={styles.standingsTable}>
+            <thead className={styles.standingsThead}>
+              <tr>
+                <th>Grid Pos</th>
+                <th>Team & School</th>
+                <th style={{ textAlign: "right" }}>Total Points</th>
+              </tr>
+            </thead>
+            <tbody>
+              {allRankedTeams.map((t) => (
+                <tr
+                  key={t.id}
+                  className={`${styles.standingsRow} ${t.isUserTeam ? styles.standingsUserRow : ""}`}
+                >
+                  <td className={styles.standingsCell}>
+                    <div
+                      className={`${styles.standingsRankBadge} ${
+                        t.rank === 1 ? styles.rankP1 :
+                        t.rank === 2 ? styles.rankP2 :
+                        t.rank === 3 ? styles.rankP3 :
+                        styles.rankOther
+                      }`}
+                    >
+                      #{t.rank}
+                    </div>
+                  </td>
+                  <td className={styles.standingsCell}>
+                    <div className={styles.teamMetaTitle}>
+                      <span>{t.name}</span>
+                      {t.isUserTeam && <span className={styles.userSquadTag}>YOUR SQUAD • LIVE</span>}
+                    </div>
+                    <div className={styles.teamMetaSchool}>{t.school}</div>
+                  </td>
+                  <td className={styles.standingsCell}>
+                    <div className={styles.teamPointsBadge}>
+                      {t.points.toLocaleString()} pts
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
 
       {/* ===== Car Safety Check & Practice Tasks ===== */}
       <div className={styles.sectionHeaderWrap}>
@@ -751,170 +844,83 @@ export default function TournamentOverview() {
         </div>
       </div>
 
-      {/* ===== Zone 03: Championship Telemetry & Benchmark Standings ===== */}
+      {/* ===== 03: Grand Prix Race Countdown (Bottom of Screen) ===== */}
       <div className={styles.sectionHeaderWrap}>
         <div className={styles.sectionHeaderLeft}>
-          <h3 className={styles.sectionGroupTitle}>Championship Standings</h3>
+          <h3 className={styles.sectionGroupTitle}>Upcoming Race Countdown</h3>
         </div>
       </div>
 
-      {/* ===== Bottom Section: Podium, Rivalry & Live Grid Standings ===== */}
-      <section className={styles.standingsSection}>
-        <div className={styles.cardHeaderTitle}>
-          <div className={styles.hubTitle} style={{ fontSize: "20px" }}>
-            <Award size={22} color="#fbbf24" />
-            <span>Active Grid Standings & Top 3 Podium</span>
+      <div className={styles.grandPrixCard}>
+        <div>
+          <div className={styles.eventMeta}>
+            <div>
+              <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "8px" }}>
+                <span className={styles.nextRacePill}>NEXT RACE</span>
+              </div>
+              <h2 className={styles.eventTitle}>
+                {tournament?.title || "Hanbee RC Cup 2026"}
+              </h2>
+              <div className={styles.eventCircuit}>
+                <Compass size={14} color="#7dd3e8" />
+                <span>{tournament?.venue || "Hanbee Track, Chennai"}</span>
+              </div>
+            </div>
+
+            <div style={{ fontFamily: "monospace", fontSize: "12px", color: "var(--text-muted)" }}>
+              <div><CalendarDays size={13} style={{ display: "inline", marginRight: 4 }} /> {tournament?.starts_at ? new Date(tournament.starts_at).toLocaleDateString([], { month: "short", day: "numeric", year: "numeric" }) : "Oct 24, 2026"}</div>
+              <div>{tournament?.starts_at ? new Date(tournament.starts_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "10:00 AM IST"}</div>
+            </div>
           </div>
-          <Link href="/dashboard/leaderboard" style={{ fontSize: "13px", color: "var(--accent-subtle-text)", textDecoration: "none", display: "flex", alignItems: "center", gap: 4 }}>
-            <span>Full Standings ({allRankedTeams.length} Teams)</span>
-            <ChevronRight size={14} />
+
+          {/* F1 5-Light Start Gantry */}
+          <div className={styles.f1Gantry}>
+            {[1, 2, 3, 4, 5].map((light) => (
+              <div key={light} className={styles.f1LightHousing}>
+                <div
+                  className={styles.f1LightRed}
+                  style={{ animationDelay: `${light * 0.18}s` }}
+                />
+              </div>
+            ))}
+          </div>
+
+          {/* Live Countdown Display */}
+          <div className={styles.countdownGrid}>
+            <div className={styles.countdownBox}>
+              <span className={styles.countdownDigit}>{String(timeLeft.days).padStart(2, "0")}</span>
+              <span className={styles.countdownUnit}>Days</span>
+            </div>
+            <div className={styles.countdownBox}>
+              <span className={styles.countdownDigit}>{String(timeLeft.hours).padStart(2, "0")}</span>
+              <span className={styles.countdownUnit}>Hours</span>
+            </div>
+            <div className={styles.countdownBox}>
+              <span className={styles.countdownDigit}>{String(timeLeft.minutes).padStart(2, "0")}</span>
+              <span className={styles.countdownUnit}>Minutes</span>
+            </div>
+            <div className={styles.countdownBox}>
+              <span className={styles.countdownDigit} style={{ color: "var(--accent-subtle-text)" }}>{String(timeLeft.seconds).padStart(2, "0")}</span>
+              <span className={styles.countdownUnit}>Seconds</span>
+            </div>
+          </div>
+        </div>
+
+        <div className={styles.countdownActions}>
+          <Link href="/dashboard/license" className={styles.licenseActionBtn}>
+            <IdCard size={15} />
+            <span>Driver License</span>
+          </Link>
+          <Link href={teamHref} className={styles.paddockBtn}>
+            <Users size={15} />
+            <span>{team ? "Manage Race Team" : "Register Race Team"}</span>
+          </Link>
+          <Link href="/dashboard/leaderboard" className={styles.gridBtn}>
+            <Flag size={15} />
+            <span>Live Grid Standings</span>
           </Link>
         </div>
-
-        {allRankedTeams.length === 0 && (
-          <p style={{ color: "var(--text-muted)", padding: "16px 0" }}>No results have been posted for this tournament yet.</p>
-        )}
-
-        {allRankedTeams.length >= 3 && (
-          <div className={styles.podiumRow}>
-            {/* Gold - P1 */}
-            <motion.div
-              className={`${styles.podiumCard} ${styles.podiumCardGold}`}
-              whileHover={{ y: -5, scale: 1.02 }}
-              transition={{ type: "spring", stiffness: 350, damping: 22 }}
-            >
-              <div className={`${styles.podiumRank} ${styles.podiumRankGold}`}>1</div>
-              <div className={styles.podiumDetails}>
-                <h4>
-                  {allRankedTeams[0].name}
-                  {allRankedTeams[0].isUserTeam && (
-                    <span className={styles.userSquadTag} style={{ marginLeft: 6 }}>YOUR SQUAD</span>
-                  )}
-                </h4>
-                <p>{allRankedTeams[0].school}</p>
-              </div>
-              <div className={styles.podiumPts} style={{ color: "#fbbf24" }}>{allRankedTeams[0].points.toLocaleString()} pts</div>
-            </motion.div>
-
-            {/* Silver - P2 */}
-            <motion.div
-              className={`${styles.podiumCard} ${styles.podiumCardSilver}`}
-              whileHover={{ y: -5, scale: 1.02 }}
-              transition={{ type: "spring", stiffness: 350, damping: 22 }}
-            >
-              <div className={`${styles.podiumRank} ${styles.podiumRankSilver}`}>2</div>
-              <div className={styles.podiumDetails}>
-                <h4>
-                  {allRankedTeams[1].name}
-                  {allRankedTeams[1].isUserTeam && (
-                    <span className={styles.userSquadTag} style={{ marginLeft: 6 }}>YOUR SQUAD</span>
-                  )}
-                </h4>
-                <p>{allRankedTeams[1].school}</p>
-              </div>
-              <div className={styles.podiumPts} style={{ color: "#9ca3af" }}>{allRankedTeams[1].points.toLocaleString()} pts</div>
-            </motion.div>
-
-            {/* Bronze - P3 */}
-            <motion.div
-              className={`${styles.podiumCard} ${styles.podiumCardBronze}`}
-              whileHover={{ y: -5, scale: 1.02 }}
-              transition={{ type: "spring", stiffness: 350, damping: 22 }}
-            >
-              <div className={`${styles.podiumRank} ${styles.podiumRankBronze}`}>3</div>
-              <div className={styles.podiumDetails}>
-                <h4>
-                  {allRankedTeams[2].name}
-                  {allRankedTeams[2].isUserTeam && (
-                    <span className={styles.userSquadTag} style={{ marginLeft: 6 }}>YOUR SQUAD</span>
-                  )}
-                </h4>
-                <p>{allRankedTeams[2].school}</p>
-              </div>
-              <div className={styles.podiumPts} style={{ color: "#f59e0b" }}>{allRankedTeams[2].points.toLocaleString()} pts</div>
-            </motion.div>
-          </div>
-        )}
-
-        {/* Rivalry Indicator — only shown once the user's team has a real rank */}
-        {userRank !== null && userRankEntry && (
-          <div className={styles.rivalryBar}>
-            <div className={styles.rivalryLeft}>
-              <Flag size={18} color="var(--accent-subtle-text)" />
-              <span>
-                Your Squad: <strong>#{userRank} {teamName}</strong> ({userRankEntry.points.toLocaleString()} pts)
-              </span>
-              {teamAhead && (
-                <>
-                  <span style={{ opacity: 0.4 }}>|</span>
-                  <span style={{ fontSize: "13px", opacity: 0.9 }}>
-                    {userRank === 1 ? (
-                      <span>👑 <strong>Championship Leader!</strong> Defend your P1 grid position!</span>
-                    ) : (
-                      <span>Only <strong>{ptsBehind} pts behind #{userRank - 1} [{teamAhead.name}]</strong>!</span>
-                    )}
-                  </span>
-                </>
-              )}
-            </div>
-
-            <div className={styles.rivalryDelta}>
-              {userRank === 1 ? "P1 LEADER" : `GAP: -${ptsBehind} pts`}
-            </div>
-          </div>
-        )}
-
-        {/* Mobile Swipe Hint */}
-        <div className={styles.mobileSwipeHint}>
-          ← Swipe table horizontally to inspect lap times & telemetry →
-        </div>
-
-        {/* Full Grid Standings & Team Telemetry Table */}
-        <div className={styles.standingsTableContainer}>
-          <table className={styles.standingsTable}>
-            <thead className={styles.standingsThead}>
-              <tr>
-                <th>Grid Pos</th>
-                <th>Team & School</th>
-                <th style={{ textAlign: "right" }}>Total Points</th>
-              </tr>
-            </thead>
-            <tbody>
-              {allRankedTeams.map((t) => (
-                <tr
-                  key={t.id}
-                  className={`${styles.standingsRow} ${t.isUserTeam ? styles.standingsUserRow : ""}`}
-                >
-                  <td className={styles.standingsCell}>
-                    <div
-                      className={`${styles.standingsRankBadge} ${
-                        t.rank === 1 ? styles.rankP1 :
-                        t.rank === 2 ? styles.rankP2 :
-                        t.rank === 3 ? styles.rankP3 :
-                        styles.rankOther
-                      }`}
-                    >
-                      #{t.rank}
-                    </div>
-                  </td>
-                  <td className={styles.standingsCell}>
-                    <div className={styles.teamMetaTitle}>
-                      <span>{t.name}</span>
-                      {t.isUserTeam && <span className={styles.userSquadTag}>YOUR SQUAD • LIVE</span>}
-                    </div>
-                    <div className={styles.teamMetaSchool}>{t.school}</div>
-                  </td>
-                  <td className={styles.standingsCell}>
-                    <div className={styles.teamPointsBadge}>
-                      {t.points.toLocaleString()} pts
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </section>
+      </div>
 
     </div>
   );
