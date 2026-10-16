@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { 
   Trophy, CalendarDays, MapPin, Users, Flame, Zap, 
   Radio, CheckCircle2, RotateCw, Award, Sparkles, 
-  ChevronRight, Flag, ShieldCheck, Activity, Cpu, 
+  ChevronRight, Flag, Activity, Cpu, 
   Layers, Compass, Disc, Gamepad2, BatteryCharging, Wrench, IdCard
 } from "lucide-react";
 import Link from "next/link";
@@ -501,14 +501,6 @@ export default function TournamentOverview() {
       {/* ===== Hub Header ===== */}
       <header className={styles.hubHeader}>
         <div className={styles.hubHeaderLeft}>
-          <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap", marginBottom: "4px" }}>
-            <span className={styles.verifiedSchedulePill}>
-              <ShieldCheck size={12} /> VERIFIED SCHEDULE
-            </span>
-            <span style={{ fontSize: "13px", color: "var(--accent-subtle-text)", fontWeight: 700, letterSpacing: "-0.01em" }} suppressHydrationWarning>
-              {new Date().getHours() < 12 ? "Good morning" : new Date().getHours() < 17 ? "Good afternoon" : "Good evening"}, {profile?.full_name ? profile.full_name.split(" ")[0] : "Driver"}! 👋
-            </span>
-          </div>
           <h1 className={styles.hubTitle}>
             Tournament Track Hub
           </h1>
@@ -561,9 +553,6 @@ export default function TournamentOverview() {
             <div>
               <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "8px" }}>
                 <span className={styles.nextRacePill}>NEXT RACE</span>
-                <span className={styles.verifiedSchedulePill}>
-                  <ShieldCheck size={12} /> VERIFIED SCHEDULE
-                </span>
               </div>
               <h2 className={styles.eventTitle}>
                 {tournament?.title || "Hanbee RC Cup 2026"}
