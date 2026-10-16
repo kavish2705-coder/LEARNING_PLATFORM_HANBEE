@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useQuery, useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import styles from "./chat.module.css";
-import { Send, Search, Radio, Sparkles, Zap, Wrench, Flag, ChevronLeft } from "lucide-react";
+import { Send, Search, ChevronLeft } from "lucide-react";
 import {
   fetchChatContacts,
   fetchChatConversations,
@@ -60,17 +60,6 @@ const MOCK_CONVERSATIONS = [
     other_full_name: null,
     other_role: null,
   },
-  {
-    id: "mock-ai-assistant",
-    title: "Hanbee AI Pit Strategist",
-    kind: "direct" as const,
-    last_body: "AI: Sector 2 apex delta is -0.14s. Ready for telemetry query.",
-    unread_count: 0,
-    participant_count: 2,
-    other_user_id: "ai-bot",
-    other_full_name: "Hanbee AI Pit Strategist",
-    other_role: "staff",
-  },
 ];
 
 export default function ChatPage() {
@@ -126,9 +115,6 @@ export default function ChatPage() {
     "mock-pit-control": [
       { id: "p1", sender_id: "marshal", sender_name: "Race Control", body: "Scrutineering opened for Championship Group A. Bring cars to Bay 3.", created_at: new Date(Date.now() - 7200000).toISOString() },
       { id: "p2", sender_id: "marshal", sender_name: "Race Control", body: "Transponder frequencies synced on Ch 4. Pre-grid in 15 minutes.", created_at: new Date(Date.now() - 3600000).toISOString() },
-    ],
-    "mock-ai-assistant": [
-      { id: "a1", sender_id: "ai", sender_name: "Hanbee AI", body: "Hello Driver! I am your AI Pit Strategist. Ask me about tire trim, battery limits, or sector delta times.", created_at: new Date(Date.now() - 7200000).toISOString() },
     ],
   });
 
@@ -237,8 +223,6 @@ export default function ChatPage() {
     // Trigger realistic interactive reply after 1.2s
     const typingName = activeConversationId === "mock-pit-control"
       ? "Race Control"
-      : activeConversationId === "mock-ai-assistant"
-      ? "Hanbee AI Strategist"
       : "Rohan Varma";
 
     setIsTyping(typingName);
@@ -249,14 +233,6 @@ export default function ChatPage() {
 
       if (activeConversationId === "mock-pit-control") {
         replyBody = "Race Control confirms: Transponder #42 locked on Ch 4. Pre-grid queue verified! 🏁";
-      } else if (activeConversationId === "mock-ai-assistant") {
-        if (lower.includes("lap") || lower.includes("fast")) {
-          replyBody = "Telemetry insight: Your best lap is 13.42s. Sector 2 entry speed was 44.8 km/h, which is the session benchmark!";
-        } else if (lower.includes("battery") || lower.includes("voltage")) {
-          replyBody = "Battery check: 2S LiPo sits at 8.38V. Optimal safety margin under the 8.40V maximum ceiling.";
-        } else {
-          replyBody = "AI Pit Analysis: Car balance is neutral. Maintain consistent braking at Turn 3 hairpin for maximum exit drive.";
-        }
       } else {
         if (lower.includes("lap") || lower.includes("fast")) {
           replyBody = "Nice! That 13.42s lap puts us 2nd overall in Championship Group A! Let's protect the tires.";
@@ -295,8 +271,13 @@ export default function ChatPage() {
     }
   }
 
-  const conversationList = conversations;
-  const contactList = contacts ?? [];
+  const isAiEntity = (nameOrTitle?: string | null, id?: string | null, role?: string | null) => {
+    const s = `${nameOrTitle ?? ""} ${id ?? ""} ${role ?? ""}`.toLowerCase();
+    return s.includes("hanbee ai") || s.includes("pit strategist") || s.includes("mock-ai-assistant") || s.includes("ai-bot") || s.includes("ai strategist");
+  };
+
+  const conversationList = conversations.filter((c) => !isAiEntity(c.title ?? c.other_full_name, c.id, c.other_role));
+  const contactList = (contacts ?? []).filter((contact) => !isAiEntity(contact.full_name, contact.user_id, contact.role));
   const activeConversation = conversationList.find((c) => c.id === activeConversationId);
   const activeContact = contactList.find((c) => c.user_id === activeConversation?.other_user_id);
   
@@ -322,12 +303,8 @@ export default function ChatPage() {
       {/* Sidebar: Conversations */}
       <div className={styles.contactsSidebar}>
         <div className={styles.sidebarHeader}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+          <div style={{ marginBottom: 16 }}>
             <h2 style={{ margin: 0 }}>Race Comms</h2>
-            <span className={styles.commsBadge}>
-              <Radio size={12} />
-              LIVE
-            </span>
           </div>
           <div className={styles.inputWrapper}>
             <Search size={16} style={{ position: "absolute", left: 16, top: "50%", transform: "translateY(-50%)", color: "var(--text-muted)" }} />
@@ -496,34 +473,6 @@ export default function ChatPage() {
               )}
 
               <div ref={messagesEndRef} />
-            </div>
-
-            {/* Interactive Quick Prompts Bar Planted Directly Above Input */}
-            <div className={styles.quickChipsRow}>
-              <button
-                type="button"
-                className={styles.quickChip}
-                onClick={() => handleSend("⚡ What's our fastest lap time so far?")}
-              >
-                <Zap size={13} />
-                What&apos;s our fastest lap?
-              </button>
-              <button
-                type="button"
-                className={styles.quickChip}
-                onClick={() => handleSend("🔧 Check battery voltage & steering trim")}
-              >
-                <Wrench size={13} />
-                Battery voltage check
-              </button>
-              <button
-                type="button"
-                className={styles.quickChip}
-                onClick={() => handleSend("🏁 Ready for Qualifying Heat 1!")}
-              >
-                <Flag size={13} />
-                Ready for Qualifying!
-              </button>
             </div>
 
             {/* Interactive Input Bar */}
