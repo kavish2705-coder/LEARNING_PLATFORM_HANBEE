@@ -259,7 +259,9 @@ export async function requestPasswordReset(email: string) {
 }
 
 export async function updatePassword(accessToken: string, password: string) {
-  if (accessToken === "dummy-token") {
+  // Dev-only bypass, same pattern/reasoning as login/page.tsx's: gated on
+  // NODE_ENV so Next.js dead-code-eliminates this branch from prod bundles.
+  if (process.env.NODE_ENV === "development" && accessToken === "dummy-token") {
     return { id: "dummy-student", email: "student@hanbee.in" };
   }
   return supabaseFetch<{ id: string; email?: string }>("/auth/v1/user", {
