@@ -48,10 +48,16 @@ export default function ChatPage() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const queryClient = useQueryClient();
 
-  useEffect(() => { setCurrentUserId(readStoredSession()?.user.id ?? "user-self"); }, []);
-
   const { data: profile } = useSessionProfile();
   const myRole = profile?.role;
+  const effectiveUserId = profile?.id ?? readStoredSession()?.user?.id ?? currentUserId;
+
+  useEffect(() => {
+    const stored = readStoredSession()?.user?.id;
+    if (stored) setCurrentUserId(stored);
+    else if (profile?.id) setCurrentUserId(profile.id);
+    else setCurrentUserId("user-self");
+  }, [profile?.id]);
 
   const { data: rawConversations, isLoading: conversationsLoading } = useQuery({
     queryKey: ["chat-conversations"],
@@ -296,10 +302,19 @@ export default function ChatPage() {
               {messages.map((message, index) => {
                 const previous = messages[index - 1];
                 const newDay = !previous || dayKey(previous.created_at) !== dayKey(message.created_at);
-                const mine = message.sender_id === currentUserId;
+                const mine = Boolean(effectiveUserId && message.sender_id === effectiveUserId);
                 const seen = (receipts ?? []).some(
-                  (r) => r.user_id !== currentUserId && r.last_read_at && r.last_read_at >= message.created_at,
+                  (r) => r.user_id !== effectiveUserId && r.last_read_at && r.last_read_at >= message.created_at,
                 );
+
+                const otherName = ("sender_name" in message && (message as any).sender_name)
+                  ? (message as any).sender_name
+                  : ((message as any).sender?.full_name ??
+                     (activeConversation?.kind === "direct"
+                       ? (activeContact?.full_name ?? activeConversation?.other_full_name)
+                       : null) ??
+                     activeConversation?.title ??
+                     "Team Member");
 
                 return (
                   <div key={message.id} className={`${styles.messageRow} ${mine ? styles.me : styles.other}`}>
@@ -312,6 +327,9 @@ export default function ChatPage() {
                       <div className={styles.systemMessage}>{message.body}</div>
                     ) : (
                       <div className={`${styles.messageWrapper} ${mine ? styles.me : styles.other}`}>
+                        <div className={styles.senderLabel}>
+                          {mine ? "You" : otherName}
+                        </div>
                         <div className={`${styles.message} ${mine ? styles.me : styles.other}`}>
                           {message.body}
                         </div>

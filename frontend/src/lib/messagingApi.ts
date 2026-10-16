@@ -60,15 +60,28 @@ const MESSAGE_PAGE_SIZE = 50;
  * top of the thread). Without it, fetches the most recent page.
  */
 export async function fetchChatMessages(conversationId: string, before?: string) {
-  const query = new URLSearchParams({
-    select: "id,conversation_id,sender_id,body,kind,created_at",
+  const baseParams: Record<string, string> = {
     conversation_id: `eq.${conversationId}`,
     order: "created_at.desc",
     limit: String(MESSAGE_PAGE_SIZE),
-  });
-  if (before) query.set("created_at", `lt.${before}`);
-  const rows = await authenticatedSupabaseFetch<ChatMessage[]>(`/rest/v1/messages?${query.toString()}`);
-  return rows.reverse();
+  };
+  if (before) baseParams.created_at = `lt.${before}`;
+
+  try {
+    const query = new URLSearchParams({
+      select: "id,conversation_id,sender_id,body,kind,created_at,sender:profiles!sender_id(id,full_name,avatar_url)",
+      ...baseParams,
+    });
+    const rows = await authenticatedSupabaseFetch<ChatMessage[]>(`/rest/v1/messages?${query.toString()}`);
+    return rows.reverse();
+  } catch {
+    const fallbackQuery = new URLSearchParams({
+      select: "id,conversation_id,sender_id,body,kind,created_at",
+      ...baseParams,
+    });
+    const rows = await authenticatedSupabaseFetch<ChatMessage[]>(`/rest/v1/messages?${fallbackQuery.toString()}`);
+    return rows.reverse();
+  }
 }
 
 export const CHAT_MESSAGE_PAGE_SIZE = MESSAGE_PAGE_SIZE;

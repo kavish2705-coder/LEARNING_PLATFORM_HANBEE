@@ -195,35 +195,41 @@ export default function HanbeeOverview() {
           setTournament(event);
           const lb = await getLeaderboard(event.id).catch(() => []);
           if (Array.isArray(lb) && lb.length > 0) {
-            setDbTeams(lb.map((row, idx) => ({
-              id: row.team_id,
-              rank: row.rank || idx + 1,
-              team_name: row.team_name,
-              school_name: row.school_name || "Registered School",
-              car: "RC 4WD Buggy",
-              lap: row.notes?.includes("s") ? row.notes : "--",
-              speed: "25.0 km/h",
-              points: row.points || 0,
-              member_count: 5,
-              max_members: 5,
-              status: "verified" as const,
-              drivers: [],
-            })));
+            setDbTeams(lb.map((row, idx) => {
+              const matchedFallback = liveTeamsList.find(t => t.team_name.toLowerCase() === row.team_name.toLowerCase()) || liveTeamsList[idx % liveTeamsList.length];
+              return {
+                id: row.team_id,
+                rank: row.rank || idx + 1,
+                team_name: row.team_name,
+                school_name: row.school_name || "Registered School",
+                car: matchedFallback?.car || "RC 4WD Buggy",
+                lap: row.notes?.includes("s") ? row.notes : (matchedFallback?.lap || "--"),
+                speed: matchedFallback?.speed || "25.0 km/h",
+                points: row.points || 0,
+                member_count: matchedFallback?.member_count || 4,
+                max_members: 5,
+                status: "verified" as const,
+                drivers: matchedFallback?.drivers || [],
+              };
+            }));
           } else if (Array.isArray(verified) && verified.length > 0) {
-            setDbTeams(verified.map((v, idx) => ({
-              id: v.id,
-              rank: idx + 1,
-              team_name: v.name,
-              school_name: "Verified Academy",
-              car: "Thunder RC 4WD Buggy",
-              lap: "--",
-              speed: "25.0 km/h",
-              points: 1000 - idx * 50,
-              member_count: 5,
-              max_members: 5,
-              status: "verified" as const,
-              drivers: [],
-            })));
+            setDbTeams(verified.map((v, idx) => {
+              const matchedFallback = liveTeamsList.find(t => t.team_name.toLowerCase() === v.name.toLowerCase()) || liveTeamsList[idx % liveTeamsList.length];
+              return {
+                id: v.id,
+                rank: idx + 1,
+                team_name: v.name,
+                school_name: "Verified Academy",
+                car: matchedFallback?.car || "Thunder RC 4WD Buggy",
+                lap: matchedFallback?.lap || "--",
+                speed: matchedFallback?.speed || "25.0 km/h",
+                points: 1000 - idx * 50,
+                member_count: matchedFallback?.member_count || 4,
+                max_members: 5,
+                status: "verified" as const,
+                drivers: matchedFallback?.drivers || [],
+              };
+            }));
           }
         }
       } catch {
@@ -484,15 +490,23 @@ export default function HanbeeOverview() {
 
                               <div className={styles.driversMiniGrid}>
                                 {team.drivers && team.drivers.length > 0 ? (
-                                  team.drivers.map((driver) => (
-                                    <div key={driver.name} className={styles.driverMiniCard}>
-                                      <div className={styles.driverMiniName}>
-                                        {driver.name} {driver.isCaptain && <span style={{ color: "#f59e0b", fontSize: 10 }}>★</span>}
+                                  team.drivers.map((driver) => {
+                                    const initials = driver.name.split(" ").map(w => w[0]).slice(0, 2).join("");
+                                    return (
+                                      <div key={driver.name} className={styles.driverMiniCard}>
+                                        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                                          <div className={styles.driverAvatar}>{initials}</div>
+                                          <div style={{ flex: 1, minWidth: 0 }}>
+                                            <div className={styles.driverMiniName}>
+                                              {driver.name} {driver.isCaptain && <span style={{ color: "#f59e0b", fontSize: 10 }}>★</span>}
+                                            </div>
+                                            <div className={styles.driverMiniRole}>{driver.role}</div>
+                                          </div>
+                                        </div>
+                                        <div className={styles.driverMiniLap}>Best Lap: {driver.bestLap}</div>
                                       </div>
-                                      <div className={styles.driverMiniRole}>{driver.role}</div>
-                                      <div className={styles.driverMiniLap}>Best Lap: {driver.bestLap}</div>
-                                    </div>
-                                  ))
+                                    );
+                                  })
                                 ) : (
                                   <div style={{ color: "var(--text-muted)", fontSize: 12, padding: "8px 0" }}>
                                     Driver roster telemetry awaiting live transponder heat qualification.
