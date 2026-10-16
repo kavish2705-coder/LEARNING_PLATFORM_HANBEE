@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
-  Trophy, CalendarDays, MapPin, Users, Flame, Zap, 
+  Trophy, CalendarDays, MapPin, Users, Zap, 
   Radio, CheckCircle2, RotateCw, Award, Sparkles, 
   ChevronRight, Flag, Activity, Cpu, 
   Layers, Compass, Disc, Gamepad2, BatteryCharging, Wrench, IdCard
@@ -463,6 +463,9 @@ export default function TournamentOverview() {
   const userRank = allRankedTeams.find((t) => t.isUserTeam)?.rank ?? 4;
   const teamAhead = allRankedTeams.find((t) => t.rank === userRank - 1);
   const ptsBehind = teamAhead ? Math.max(0, teamAhead.points - xp) : 0;
+  const currentHour = new Date().getHours();
+  const timeGreeting = currentHour < 12 ? "Good morning" : currentHour < 17 ? "Good afternoon" : "Good evening";
+  const studentName = profile?.full_name ? profile.full_name.split(" ")[0] : "Driver";
 
   return (
     <div className={styles.tournamentHub}>
@@ -501,24 +504,12 @@ export default function TournamentOverview() {
       {/* ===== Hub Header ===== */}
       <header className={styles.hubHeader}>
         <div className={styles.hubHeaderLeft}>
-          <h1 className={styles.hubTitle}>
-            Tournament Track Hub
+          <h1 className={styles.hubTitle} suppressHydrationWarning>
+            {timeGreeting}, {studentName}!
           </h1>
           <p className={styles.hubSubtitle}>
             Live race countdown, quick RC car check, and squad standings.
           </p>
-        </div>
-
-        <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
-          <Link href="/dashboard/license" className={styles.licenseNavBtn}>
-            <IdCard size={15} />
-            <span>Driver License</span>
-          </Link>
-          <div className={styles.streakPill}>
-            <Flame size={16} className={styles.streakFlame} />
-            <span>4-Day Practice Streak</span>
-            <span className={styles.streakBonusTag}>+20% RP</span>
-          </div>
         </div>
       </header>
 
@@ -618,23 +609,19 @@ export default function TournamentOverview() {
         </div>
       </div>
 
-      {/* ===== Zone 02: Interactive Pit Bay (Actionable Workstation) ===== */}
+      {/* ===== Car Safety Check & Practice Tasks ===== */}
       <div className={styles.sectionHeaderWrap}>
         <div className={styles.sectionHeaderLeft}>
-          <span className={styles.sectionCategoryTag}>
-            <Wrench size={12} />
-            ZONE 02 // PIT LANE WORKSHOP
-          </span>
-          <h3 className={styles.sectionGroupTitle}>Manual Hardware Inspection & Practice Drills</h3>
+          <h3 className={styles.sectionGroupTitle}>Car Safety Check & Practice Tasks</h3>
         </div>
         <div className={styles.sectionStatusPill}>
           {passedCount === 6 ? (
             <span className={styles.paddockClearedPill}>
-              <CheckCircle2 size={13} /> PADDOCK CLEARED FOR TRACK
+              <CheckCircle2 size={13} /> READY TO DRIVE
             </span>
           ) : (
             <span className={styles.paddockActionPill}>
-              <Wrench size={13} /> {6 - passedCount} CHECKS REQUIRED BEFORE RACE
+              <Wrench size={13} /> {6 - passedCount} CHECKS LEFT
             </span>
           )}
         </div>
@@ -888,14 +875,10 @@ export default function TournamentOverview() {
         </div>
       </div>
 
-      {/* ===== Zone 03: Championship Telemetry & Benchmark Standings ===== */}
+      {/* ===== Championship Standings ===== */}
       <div className={styles.sectionHeaderWrap}>
         <div className={styles.sectionHeaderLeft}>
-          <span className={styles.sectionCategoryTag}>
-            <Flag size={12} />
-            ZONE 03 // CHAMPIONSHIP TELEMETRY
-          </span>
-          <h3 className={styles.sectionGroupTitle}>Championship Standings & Benchmark Grid</h3>
+          <h3 className={styles.sectionGroupTitle}>Championship Standings</h3>
         </div>
       </div>
 
@@ -912,16 +895,6 @@ export default function TournamentOverview() {
           </Link>
         </div>
 
-        {/* Benchmark Notice Banner (Transparency for simulated vs live teams) */}
-        {isSimulated && (
-          <div className={styles.benchmarkNotice}>
-            <span className={styles.simBadge}>SIMULATED BENCHMARK GRID</span>
-            <span className={styles.simNoticeText}>
-              7 rival squads are simulated AI benchmark targets for telemetry testing. Your squad (<strong>{teamName}</strong>) telemetry is live.
-            </span>
-          </div>
-        )}
-
         {/* 3D-styled Dynamic Podium */}
         <div className={styles.podiumRow}>
           {/* Gold - P1 */}
@@ -934,12 +907,8 @@ export default function TournamentOverview() {
             <div className={styles.podiumDetails}>
               <h4>
                 {allRankedTeams[0].name}
-                {allRankedTeams[0].isUserTeam ? (
+                {allRankedTeams[0].isUserTeam && (
                   <span className={styles.userSquadTag} style={{ marginLeft: 6 }}>YOUR SQUAD</span>
-                ) : isSimulated ? (
-                  <span className={styles.simSquadTag} style={{ marginLeft: 6 }}>BENCHMARK</span>
-                ) : (
-                  <span className={styles.userSquadTag} style={{ marginLeft: 6, background: "rgba(16, 185, 129, 0.15)", color: "#10b981" }}>OFFICIAL</span>
                 )}
               </h4>
               <p>{allRankedTeams[0].school} • {allRankedTeams[0].car}</p>
@@ -957,12 +926,8 @@ export default function TournamentOverview() {
             <div className={styles.podiumDetails}>
               <h4>
                 {allRankedTeams[1].name}
-                {allRankedTeams[1].isUserTeam ? (
+                {allRankedTeams[1].isUserTeam && (
                   <span className={styles.userSquadTag} style={{ marginLeft: 6 }}>YOUR SQUAD</span>
-                ) : isSimulated ? (
-                  <span className={styles.simSquadTag} style={{ marginLeft: 6 }}>BENCHMARK</span>
-                ) : (
-                  <span className={styles.userSquadTag} style={{ marginLeft: 6, background: "rgba(16, 185, 129, 0.15)", color: "#10b981" }}>OFFICIAL</span>
                 )}
               </h4>
               <p>{allRankedTeams[1].school} • {allRankedTeams[1].car}</p>
@@ -980,12 +945,8 @@ export default function TournamentOverview() {
             <div className={styles.podiumDetails}>
               <h4>
                 {allRankedTeams[2].name}
-                {allRankedTeams[2].isUserTeam ? (
+                {allRankedTeams[2].isUserTeam && (
                   <span className={styles.userSquadTag} style={{ marginLeft: 6 }}>YOUR SQUAD</span>
-                ) : isSimulated ? (
-                  <span className={styles.simSquadTag} style={{ marginLeft: 6 }}>BENCHMARK</span>
-                ) : (
-                  <span className={styles.userSquadTag} style={{ marginLeft: 6, background: "rgba(16, 185, 129, 0.15)", color: "#10b981" }}>OFFICIAL</span>
                 )}
               </h4>
               <p>{allRankedTeams[2].school} • {allRankedTeams[2].car}</p>
@@ -1059,12 +1020,8 @@ export default function TournamentOverview() {
                   <td className={styles.standingsCell}>
                     <div className={styles.teamMetaTitle}>
                       <span>{t.name}</span>
-                      {t.isUserTeam ? (
+                      {t.isUserTeam && (
                         <span className={styles.userSquadTag}>YOUR SQUAD • LIVE</span>
-                      ) : isSimulated ? (
-                        <span className={styles.simSquadTag}>BENCHMARK SIM</span>
-                      ) : (
-                        <span className={styles.userSquadTag} style={{ background: "rgba(16, 185, 129, 0.15)", color: "#10b981" }}>OFFICIAL ENTRY</span>
                       )}
                     </div>
                     <div className={styles.teamMetaSchool}>{t.school}</div>
