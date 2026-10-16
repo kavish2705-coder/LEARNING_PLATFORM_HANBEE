@@ -59,10 +59,20 @@ begin
     union
     select p.id from profiles p where p.role = 'staff' and p.approved and p.account_status = 'active'
     union
+    -- Hanbee staff reach every school's OWNER, across every active org --
+    -- they aren't a member of any org themselves, so this is deliberately
+    -- NOT scoped to my_org (that scoping is only for the school_staff
+    -- caller's own-org colleague branch below, which excludes staff
+    -- callers via my_r = 'school_staff').
     select m.user_id from organization_members m
       join organizations o on o.id = m.org_id and o.status = 'active'
       join profiles p on p.id = m.user_id and p.account_status = 'active'
-      where m.status = 'active' and my_org is not null and m.org_id = my_org and p.role = 'school_staff'
+      where m.status = 'active' and m.member_role = 'owner' and my_r = 'staff' and p.role = 'school_staff'
+    union
+    select m.user_id from organization_members m
+      join organizations o on o.id = m.org_id and o.status = 'active'
+      join profiles p on p.id = m.user_id and p.account_status = 'active'
+      where m.status = 'active' and my_r = 'school_staff' and my_org is not null and m.org_id = my_org and p.role = 'school_staff'
     union
     select m.user_id from organization_members m
       join organizations o on o.id = m.org_id and o.status = 'active'
