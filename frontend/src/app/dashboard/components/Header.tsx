@@ -15,14 +15,6 @@ const ROLE_LABEL: Record<string, string> = {
   manager: "Manager",
 };
 
-function greeting(name?: string) {
-  const hour = new Date().getHours();
-  let timeStr = "Good morning";
-  if (hour >= 12 && hour < 17) timeStr = "Good afternoon";
-  else if (hour >= 17) timeStr = "Good evening";
-  return name ? `${timeStr},` : timeStr;
-}
-
 export default function Header({ toggleMobileMenu }: { toggleMobileMenu?: () => void }) {
   const { data: profile } = useSessionProfile();
   const { xp, isGaining, lastGained } = useUserXp();
@@ -36,10 +28,6 @@ export default function Header({ toggleMobileMenu }: { toggleMobileMenu?: () => 
         <button className={styles.mobileMenuBtn} onClick={toggleMobileMenu} aria-label="Toggle Menu">
           <Menu size={24} />
         </button>
-        <div className={styles.greetingWrapper}>
-          <div className={styles.greeting} suppressHydrationWarning>{greeting(name)}</div>
-          <div className={styles.greetingName}>{name || "Welcome Back"}</div>
-        </div>
       </div>
 
       <div className={styles.headerRight}>
@@ -91,10 +79,6 @@ export default function Header({ toggleMobileMenu }: { toggleMobileMenu?: () => 
 
         <div className={styles.headerUser} title={name ? `${name} (${profile ? ROLE_LABEL[profile.role] ?? profile.role : ""})` : ""}>
           <div className={styles.avatar}>{initial}</div>
-          <div className={styles.headerUserText}>
-            <span className={styles.userName}>{name}</span>
-            <span className={styles.userRole}>{profile ? ROLE_LABEL[profile.role] ?? profile.role : ""}</span>
-          </div>
         </div>
       </div>
     </header>
