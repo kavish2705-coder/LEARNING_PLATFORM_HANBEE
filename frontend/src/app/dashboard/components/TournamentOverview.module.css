@@ -437,14 +437,28 @@
 .grandPrixCard {
   background: var(--bg-card);
   border-radius: 24px;
-  border: var(--border-subtle);
+  border: 1px solid var(--border-subtle);
   box-shadow: var(--clay-shadow-outer);
-  padding: 28px;
+  padding: 30px 32px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
+  position: relative;
+  overflow: hidden;
+  background-image: radial-gradient(ellipse at 50% 0%, rgba(125, 211, 232, 0.08) 0%, transparent 70%);
+}
+
+.grandPrixCard::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #7dd3e8, #10b981, transparent);
+  opacity: 0.9;
 }
 
 .eventMeta {
@@ -500,7 +514,7 @@
   border: 1px solid var(--border-elevated);
   border-radius: 16px;
   padding: 16px 20px;
-  margin-top: 24px;
+  margin-top: 0;
 }
 
 .perfItem {
@@ -578,41 +592,43 @@
 .countdownGrid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 12px;
+  gap: 16px;
   margin-bottom: 26px;
 }
 
 .countdownBox {
   background: var(--bg-surface-elevated);
   border: 1px solid var(--border-elevated);
-  border-radius: 14px;
-  padding: 14px 8px;
+  border-radius: 16px;
+  padding: 16px 10px;
   text-align: center;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 4px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
   transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), border-color 0.25s ease, box-shadow 0.25s ease;
 }
 
 .countdownBox:hover {
-  transform: translateY(-2px);
-  border-color: var(--accent-subtle-border);
-  box-shadow: 0 8px 18px -4px rgba(0, 0, 0, 0.2), var(--accent-glow);
+  transform: translateY(-3px);
+  border-color: rgba(125, 211, 232, 0.4);
+  box-shadow: 0 8px 24px -4px rgba(0, 0, 0, 0.3), 0 0 16px rgba(125, 211, 232, 0.2);
 }
 
 .countdownDigit {
   font-family: monospace;
-  font-size: 26px;
+  font-size: 32px;
   font-weight: 700;
   color: var(--text-main);
   letter-spacing: -0.02em;
 }
 
 .countdownUnit {
-  font-size: 10px;
+  font-size: 11px;
   text-transform: uppercase;
-  letter-spacing: 1px;
+  letter-spacing: 1.5px;
   color: var(--text-muted);
+  font-weight: 600;
 }
 
 /* CTA Row */
@@ -807,20 +823,11 @@
   margin: 0;
 }
 
-/* Diagnostic Checks List - Hidden Scroll Box Matching Right Card Size */
+/* Diagnostic Checks List */
 .diagnosticList {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  max-height: 295px;
-  overflow-y: auto;
-  padding-right: 2px;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-}
-
-.diagnosticList::-webkit-scrollbar {
-  display: none;
 }
 
 .diagRow {
@@ -1053,6 +1060,71 @@
   white-space: nowrap;
 }
 
+/* ===== Section Headers & Wrappers ===== */
+.sectionHeaderWrap {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: -12px;
+}
+
+.sectionHeaderLeft {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.sectionGroupTitle {
+  font-family: var(--font-heading);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-main);
+  letter-spacing: -0.01em;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.sectionStatusPill {
+  display: flex;
+  align-items: center;
+}
+
+.paddockClearedPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: monospace;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  color: #10b981;
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  padding: 4px 12px;
+  border-radius: 999px;
+  box-shadow: 0 0 12px rgba(16, 185, 129, 0.2);
+}
+
+.paddockActionPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: monospace;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  color: #f59e0b;
+  background: rgba(245, 158, 11, 0.12);
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  padding: 4px 12px;
+  border-radius: 999px;
+  box-shadow: 0 0 12px rgba(245, 158, 11, 0.2);
+}
+
 /* ===== Bottom Section: Podium & Rivalry Standings ===== */
 .standingsSection {
   background: var(--bg-card);
@@ -1065,6 +1137,20 @@
   gap: 22px;
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
+  position: relative;
+  overflow: hidden;
+  background-image: radial-gradient(ellipse at 80% 0%, rgba(251, 191, 36, 0.05) 0%, transparent 60%);
+}
+
+.standingsSection::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #fbbf24, #f59e0b, transparent);
+  opacity: 0.85;
 }
 
 .podiumRow {
@@ -1645,6 +1731,19 @@
 .activeWorkshopCard {
   border-color: rgba(8, 145, 178, 0.35) !important;
   box-shadow: 0 0 24px -6px rgba(8, 145, 178, 0.18), var(--clay-shadow-outer) !important;
+  position: relative;
+  overflow: hidden;
+}
+
+.activeWorkshopCard::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #7dd3e8, transparent);
+  opacity: 0.85;
 }
 
 /* ===== Mobile & 390px Breakpoints ===== */
