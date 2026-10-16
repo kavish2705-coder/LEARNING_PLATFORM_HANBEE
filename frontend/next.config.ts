@@ -12,11 +12,11 @@ import type { NextConfig } from "next";
 // never blocks — so there's no reason to weaken the policy this reports on).
 const csp = [
   "default-src 'self'",
-  "script-src 'self' 'unsafe-inline'",
+  "script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com",
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
   "font-src 'self' https://fonts.gstatic.com",
   "img-src 'self' data: https:",
-  "connect-src 'self' https://uthvqsnjqrvjqhfypamo.supabase.co wss://uthvqsnjqrvjqhfypamo.supabase.co",
+  "connect-src 'self' https://uthvqsnjqrvjqhfypamo.supabase.co wss://uthvqsnjqrvjqhfypamo.supabase.co https://challenges.cloudflare.com",
   "frame-src 'self' https:",
   "frame-ancestors 'self'",
   "base-uri 'self'",
