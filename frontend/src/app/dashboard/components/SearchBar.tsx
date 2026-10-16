@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
 import { 
   Search, X, CornerDownLeft, Trophy, BookOpen, 
   Clock, Bell, Settings, Users, MessageSquare, Bot, IdCard, 
@@ -272,7 +271,10 @@ export default function SearchBar() {
     }
   };
 
-  const isMac = typeof window !== "undefined" && navigator.platform?.toUpperCase().indexOf("MAC") >= 0;
+  const [isMac, setIsMac] = useState(false);
+  useEffect(() => {
+    setIsMac(typeof window !== "undefined" && navigator.platform?.toUpperCase().indexOf("MAC") >= 0);
+  }, []);
 
   return (
     <>
@@ -294,119 +296,109 @@ export default function SearchBar() {
           <Search size={14} className={styles.searchIcon} />
           <span className={styles.searchPlaceholder}>Quick Search...</span>
         </div>
-        <kbd className={styles.kbdBadge}>{isMac ? "⌘K" : "Ctrl K"}</kbd>
+        <kbd className={styles.kbdBadge} suppressHydrationWarning>{isMac ? "⌘K" : "Ctrl K"}</kbd>
       </div>
 
       {/* Centered Isolated Command Palette Modal */}
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div 
-            className={styles.paletteBackdrop}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.15 }}
-            onClick={() => setIsOpen(false)}
+      {isOpen && (
+        <div 
+          className={styles.paletteBackdrop}
+          onClick={() => setIsOpen(false)}
+        >
+          <div 
+            className={styles.paletteCard}
+            onClick={(e) => e.stopPropagation()}
           >
-            <motion.div 
-              className={styles.paletteCard}
-              initial={{ opacity: 0, scale: 0.96, y: -12 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.96, y: -8 }}
-              transition={{ duration: 0.18, ease: "easeOut" }}
-              onClick={(e) => e.stopPropagation()}
-            >
-              {/* Header Input */}
-              <div className={styles.paletteHeader}>
-                <Search size={16} className={styles.searchIcon} />
-                <input
-                  ref={inputRef}
-                  type="text"
-                  placeholder="Search pages, tools, telemetry..."
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  onKeyDown={handleInputKeyDown}
-                  className={styles.paletteInput}
-                  aria-label="Search Hanbee Platform"
-                  autoComplete="off"
-                  spellCheck={false}
-                />
-                {query ? (
-                  <button 
-                    type="button" 
-                    className={styles.clearBtn} 
-                    onClick={() => {
-                      setQuery("");
-                      inputRef.current?.focus();
-                    }}
-                    title="Clear query"
-                  >
-                    <X size={14} />
-                  </button>
-                ) : (
-                  <span 
-                    className={styles.escBadge} 
-                    onClick={() => setIsOpen(false)}
-                    title="Close search"
-                  >
-                    ESC
-                  </span>
-                )}
-              </div>
+            {/* Header Input */}
+            <div className={styles.paletteHeader}>
+              <Search size={16} className={styles.searchIcon} />
+              <input
+                ref={inputRef}
+                type="text"
+                placeholder="Search pages, tools, telemetry..."
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                onKeyDown={handleInputKeyDown}
+                className={styles.paletteInput}
+                aria-label="Search Hanbee Platform"
+                autoComplete="off"
+                spellCheck={false}
+              />
+              {query ? (
+                <button 
+                  type="button" 
+                  className={styles.clearBtn} 
+                  onClick={() => {
+                    setQuery("");
+                    inputRef.current?.focus();
+                  }}
+                  title="Clear query"
+                >
+                  <X size={14} />
+                </button>
+              ) : (
+                <span 
+                  className={styles.escBadge} 
+                  onClick={() => setIsOpen(false)}
+                  title="Close search"
+                >
+                  ESC
+                </span>
+              )}
+            </div>
 
-              {/* Filtered Results */}
-              <div className={styles.paletteResults}>
-                {filteredResults.length === 0 ? (
-                  <div className={styles.emptyState}>
-                    <div className={styles.emptyStateTitle}>No results found</div>
-                    <div className={styles.emptyStateDesc}>
-                      No matches found for &quot;<strong>{query}</strong>&quot;. Try searching for <em>License</em>, <em>Leaderboard</em>, <em>Team</em>, or <em>Courses</em>.
-                    </div>
+            {/* Filtered Results */}
+            <div className={styles.paletteResults}>
+              {filteredResults.length === 0 ? (
+                <div className={styles.emptyState}>
+                  <div className={styles.emptyStateTitle}>No results found</div>
+                  <div className={styles.emptyStateDesc}>
+                    No matches found for &quot;<strong>{query}</strong>&quot;. Try searching for <em>License</em>, <em>Leaderboard</em>, <em>Team</em>, or <em>Courses</em>.
                   </div>
-                ) : (
-                  filteredResults.map((item, index) => {
-                    const isSelected = index === selectedIndex;
-                    const Icon = item.icon;
+                </div>
+              ) : (
+                filteredResults.map((item, index) => {
+                  const isSelected = index === selectedIndex;
+                  const Icon = item.icon;
 
-                    return (
-                      <div
-                        key={item.id}
-                        className={`${styles.resultItem} ${isSelected ? styles.resultItemActive : ""}`}
-                        onClick={() => handleSelectItem(item)}
-                        onMouseEnter={() => setSelectedIndex(index)}
-                      >
-                        <div className={styles.resultLeft}>
-                          <div className={styles.resultIconBox}>
-                            <Icon size={16} />
-                          </div>
-                          <div className={styles.resultMeta}>
-                            <span className={styles.resultTitle}>{item.title}</span>
-                            <span className={styles.resultDesc}>{item.description}</span>
-                          </div>
+                  return (
+                    <div
+                      key={item.id}
+                      className={`${styles.resultItem} ${isSelected ? styles.resultItemActive : ""}`}
+                      onClick={() => handleSelectItem(item)}
+                      onMouseEnter={() => setSelectedIndex(index)}
+                    >
+                      <div className={styles.resultLeft}>
+                        <div className={styles.resultIconBox}>
+                          <Icon size={16} />
                         </div>
-                        <div className={styles.resultEnter}>
-                          <CornerDownLeft size={13} />
+                        <div className={styles.resultMeta}>
+                          <span className={styles.resultTitle}>{item.title}</span>
+                          <span className={styles.resultDesc}>{item.description}</span>
                         </div>
                       </div>
-                    );
-                  })
-                )}
-              </div>
+                      <div className={styles.resultEnter}>
+                        <CornerDownLeft size={13} />
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
 
-              {/* Helper Footer */}
-              <div className={styles.paletteFooter}>
-                <div className={styles.footerHint}>
-                  <span className={styles.footerKbd}>↑↓</span> Navigate
-                  <span className={styles.footerKbd} style={{ marginLeft: 6 }}>↵</span> Select
-                </div>
-                <div>
-                  <span className={styles.footerKbd}>ESC</span> to close
-                </div>
+            {/* Helper Footer */}
+            <div className={styles.paletteFooter}>
+              <div className={styles.footerHint}>
+                <span className={styles.footerKbd}>↑↓</span> Navigate
+                <span className={styles.footerKbd} style={{ marginLeft: 6 }}>↵</span> Select
               </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+              <div>
+                <span className={styles.footerKbd}>ESC</span> to close
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }

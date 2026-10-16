@@ -64,7 +64,7 @@ const MOCK_CONVERSATIONS = [
 
 export default function ChatPage() {
   const [currentUserId, setCurrentUserId] = useState("");
-  const [activeConversationId, setActiveConversationId] = useState("");
+  const [activeConversationId, setActiveConversationId] = useState("mock-squad-apex");
   const [inputValue, setInputValue] = useState("");
   const [search, setSearch] = useState("");
   const [error, setError] = useState("");
@@ -373,7 +373,7 @@ export default function ChatPage() {
       {/* Main Chat Area */}
       <div className={styles.mainChat}>
         {activeConversation ? (
-          <>
+          <div className={styles.activeChatWrapper}>
             <header className={styles.chatHeader}>
               <button
                 type="button"
@@ -436,7 +436,7 @@ export default function ChatPage() {
                   <div key={message.id} className={`${styles.messageRow} ${mine ? styles.me : styles.other}`}>
                     {newDay && (
                       <div className={styles.daySeparator}>
-                        <span>{dayLabel(message.created_at)}</span>
+                        <span suppressHydrationWarning>{dayLabel(message.created_at)}</span>
                       </div>
                     )}
                     {message.kind === "system" ? (
@@ -449,8 +449,8 @@ export default function ChatPage() {
                         <div className={`${styles.message} ${mine ? styles.me : styles.other}`}>
                           {message.body}
                         </div>
-                        <time className={styles.timestamp} dateTime={message.created_at}>
-                          {formatTime(message.created_at)}
+                        <time className={styles.timestamp} dateTime={message.created_at} suppressHydrationWarning>
+                          <span>{formatTime(message.created_at)}</span>
                           {mine && (
                             <span className={seen ? styles.tickSeen : styles.tick} aria-label="Delivered">
                               {" ✓✓"}
@@ -502,9 +502,9 @@ export default function ChatPage() {
                 </button>
               </div>
             </div>
-          </>
+          </div>
         ) : (
-          <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", color: "var(--text-muted)" }}>
+          <div className={styles.noChatSelected}>
             Select a channel or contact to start chatting.
           </div>
         )}
