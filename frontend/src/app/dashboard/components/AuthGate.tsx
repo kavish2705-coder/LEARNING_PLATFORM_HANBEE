@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import type { ReactNode } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { AUTH_SESSION_KEY, getCurrentAccount, readStoredSession, type SupabaseSession } from "../../../lib/supabaseAuth";
 
 const ROLE_HOME: Record<string, string> = {
@@ -30,11 +30,24 @@ const ROLE_AREAS: Record<string, string[]> = {
 
 export default function AuthGate({ children }: { children: ReactNode }) {
   const router = useRouter();
+  const pathname = usePathname();
   const [ready, setReady] = useState(false);
   const [message, setMessage] = useState("");
 
   useEffect(() => {
     let active = true;
+    // Re-validate on every path change, not just on mount. AuthGate wraps
+    // the whole dashboard layout, so it never remounts between routes --
+    // without this, an internal router.replace() redirect (e.g. a
+    // school-staff account hitting a student-only URL) would land on the
+    // new, correctly-authorized page but this effect would never re-run to
+    // flip `ready` to true, freezing the app on "Checking your account..."
+    // forever even though every request behind it had already succeeded.
+    // Deliberately not resetting `ready` to false here: setReady(true) is
+    // idempotent (React skips the re-render when the value is unchanged),
+    // so ordinary in-app navigation between two allowed pages stays
+    // instant -- only a genuinely disallowed path leaves `ready` false
+    // long enough to show the spinner during its redirect.
 
     async function restoreSession() {
       const session = readStoredSession();
@@ -54,7 +67,7 @@ export default function AuthGate({ children }: { children: ReactNode }) {
         }
         window.localStorage.setItem(AUTH_SESSION_KEY, JSON.stringify(account.session));
         const home = ROLE_HOME[account.role] ?? "/dashboard";
-        const path = window.location.pathname;
+        const path = pathname ?? window.location.pathname;
         const allowed = ROLE_AREAS[account.role] ?? [];
         if (!allowed.some((area) => (area === "/dashboard" ? path === area : path === area || path.startsWith(`${area}/`)))) {
           router.replace(home);
@@ -76,7 +89,7 @@ export default function AuthGate({ children }: { children: ReactNode }) {
 
     void restoreSession();
     return () => { active = false; };
-  }, [router]);
+  }, [router, pathname]);
 
   if (message) {
     return (

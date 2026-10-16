@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useQuery, useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import styles from "./chat.module.css";
-import { Send, Search, Radio, Zap, Wrench, Flag, ChevronLeft } from "lucide-react";
+import { Send, Search, Radio, Zap, Wrench, Flag, ChevronLeft, User, Users, Inbox } from "lucide-react";
 import {
   fetchChatContacts,
   fetchChatConversations,
@@ -44,6 +44,12 @@ export default function ChatPage() {
   const [search, setSearch] = useState("");
   const [error, setError] = useState("");
   const [mobileView, setMobileView] = useState<"list" | "chat">("list");
+  // Purely a left-list filter -- deliberately not wired into
+  // activeConversationId, the message/receipt queries, or the realtime
+  // subscription below, all of which key only off activeConversationId.
+  // Switching tabs can never crash or bleed one thread into another,
+  // because nothing about an already-open thread's data depends on it.
+  const [chatTab, setChatTab] = useState<"solo" | "group">("solo");
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const queryClient = useQueryClient();
@@ -123,7 +129,13 @@ export default function ChatPage() {
   const openContact = useMutation({
     mutationFn: startDirectConversation,
     onSuccess: async (conversationId) => {
-      await queryClient.invalidateQueries({ queryKey: ["chat-conversations"] });
+      // Both caches need invalidating -- otherwise the person stays
+      // listed under "Direct Contacts" (the pre-conversation list)
+      // *and* shows up as the new conversation, duplicated in the Solo tab.
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["chat-conversations"] }),
+        queryClient.invalidateQueries({ queryKey: ["chat-contacts"] }),
+      ]);
       setActiveConversationId(conversationId);
     },
     onError: (reason) => setError(reason instanceof Error ? reason.message : "You can't start a conversation with this person."),
@@ -171,10 +183,27 @@ export default function ChatPage() {
     return (conversation.title ?? conversation.other_full_name ?? "Group chat").toLowerCase().includes(search.toLowerCase());
   });
 
+  // chat_contacts() is a permissions list -- "who you're allowed to
+  // message" -- by design independent of whether a conversation already
+  // exists (same as any real contacts list never disappearing once you've
+  // texted someone). The direct-conversations list already covers anyone
+  // with a real thread, so exclude them here to avoid showing the same
+  // person twice in the Solo tab.
+  const directConversationUserIds = new Set(
+    conversationList.filter((c) => c.kind === "direct").map((c) => c.other_user_id),
+  );
   const visibleContacts = contactList.filter((contact) => {
     if (!isAllowedContact(contact.role)) return false;
+    if (directConversationUserIds.has(contact.user_id)) return false;
     return contact.full_name.toLowerCase().includes(search.toLowerCase());
   });
+
+  // Strict split: a conversation only ever appears under the tab matching
+  // its real `kind` -- Solo can never show a group thread or vice versa.
+  const soloConversations = visibleConversations.filter((c) => c.kind === "direct");
+  const groupConversations = visibleConversations.filter((c) => c.kind === "group");
+  const soloCount = soloConversations.length + visibleContacts.length;
+  const groupCount = groupConversations.length;
 
   const formatTime = (value: string | null) =>
     value ? new Date(value).toLocaleString([], { dateStyle: "short", timeStyle: "short" }) : "";
@@ -204,54 +233,119 @@ export default function ChatPage() {
           </div>
         </div>
 
+        <div className={styles.chatTabBar}>
+          <button
+            type="button"
+            className={`${styles.chatTabBtn} ${chatTab === "solo" ? styles.chatTabBtnActive : ""}`}
+            onClick={() => setChatTab("solo")}
+          >
+            <User size={14} />
+            Solo
+            {soloCount > 0 && <span className={styles.chatTabCount}>{soloCount}</span>}
+          </button>
+          <button
+            type="button"
+            className={`${styles.chatTabBtn} ${chatTab === "group" ? styles.chatTabBtnActive : ""}`}
+            onClick={() => setChatTab("group")}
+          >
+            <Users size={14} />
+            Group
+            {groupCount > 0 && <span className={styles.chatTabCount}>{groupCount}</span>}
+          </button>
+        </div>
+
         <div className={styles.contactsList}>
           {conversationsLoading && <p role="status" style={{ padding: 16 }}>Loading channels…</p>}
-          {visibleConversations.map((conv) => {
-            const contactName = conv.kind === "direct" ? conv.other_full_name ?? "Hanbee user" : conv.title ?? "Group chat";
-            const isSelected = activeConversationId === conv.id;
-            return (
-              <button
-                key={conv.id}
-                type="button"
-                className={`${styles.contactItem} ${isSelected ? styles.active : ""}`}
-                onClick={() => { setActiveConversationId(conv.id); setMobileView("chat"); }}
-              >
-                <div className={styles.contactAvatar}>
-                  {initials(contactName)}
-                  <span className={styles.statusIndicator} />
-                </div>
-                <div className={styles.contactInfo}>
-                  <div className={styles.contactName}>{contactName}</div>
-                  <div className={styles.contactPreview}>{conv.last_body ?? "No messages yet"}</div>
-                </div>
-                {conv.unread_count > 0 && (
-                  <span style={{ background: "var(--accent-subtle-bg)", color: "var(--accent-subtle-text)", border: "1px solid var(--accent-subtle-border)", padding: "2px 6px", borderRadius: 999, fontSize: 11, fontWeight: 700 }}>
-                    {conv.unread_count}
-                  </span>
-                )}
-              </button>
-            );
-          })}
 
-          {visibleContacts.length > 0 && <h3 style={{ padding: "14px 20px 4px", fontSize: 12, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: 1 }}>Direct Contacts</h3>}
-          {visibleContacts.map((contact: ChatContact) => (
-            <button
-              key={contact.user_id}
-              type="button"
-              className={styles.contactItem}
-              onClick={() => { openContact.mutate(contact.user_id); setMobileView("chat"); }}
-              disabled={openContact.isPending}
-            >
-              <div className={styles.contactAvatar}>{initials(contact.full_name)}</div>
-              <div className={styles.contactInfo}>
-                <div className={styles.contactName}>{contact.full_name}</div>
-                <div className={styles.contactPreview}>
-                  {contact.relation.replaceAll("_", " ")}
-                  {contact.org_name ? ` · ${contact.org_name}` : ""}
+          {chatTab === "solo" && (
+            <>
+              {soloConversations.map((conv) => {
+                const contactName = conv.other_full_name ?? "Hanbee user";
+                const isSelected = activeConversationId === conv.id;
+                return (
+                  <button
+                    key={conv.id}
+                    type="button"
+                    className={`${styles.contactItem} ${isSelected ? styles.active : ""}`}
+                    onClick={() => { setActiveConversationId(conv.id); setMobileView("chat"); }}
+                  >
+                    <div className={styles.contactAvatar}>
+                      {initials(contactName)}
+                      <span className={styles.statusIndicator} />
+                    </div>
+                    <div className={styles.contactInfo}>
+                      <div className={styles.contactName}>{contactName}</div>
+                      <div className={styles.contactPreview}>{conv.last_body ?? "No messages yet"}</div>
+                    </div>
+                    {conv.unread_count > 0 && <span className={styles.chatTabCount}>{conv.unread_count}</span>}
+                  </button>
+                );
+              })}
+
+              {visibleContacts.length > 0 && (
+                <h3 style={{ padding: "14px 20px 4px", fontSize: 12, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: 1 }}>Direct Contacts</h3>
+              )}
+              {visibleContacts.map((contact: ChatContact) => (
+                <button
+                  key={contact.user_id}
+                  type="button"
+                  className={styles.contactItem}
+                  onClick={() => { openContact.mutate(contact.user_id); setMobileView("chat"); }}
+                  disabled={openContact.isPending}
+                >
+                  <div className={styles.contactAvatar}>{initials(contact.full_name)}</div>
+                  <div className={styles.contactInfo}>
+                    <div className={styles.contactName}>{contact.full_name}</div>
+                    <div className={styles.contactPreview}>
+                      {contact.relation.replaceAll("_", " ")}
+                      {contact.org_name ? ` · ${contact.org_name}` : ""}
+                    </div>
+                  </div>
+                </button>
+              ))}
+
+              {!conversationsLoading && soloConversations.length === 0 && visibleContacts.length === 0 && (
+                <div className={styles.chatEmptyState}>
+                  <User size={28} aria-hidden="true" />
+                  <p>No direct messages yet. People you can message will appear here.</p>
                 </div>
-              </div>
-            </button>
-          ))}
+              )}
+            </>
+          )}
+
+          {chatTab === "group" && (
+            <>
+              {groupConversations.map((conv) => {
+                const contactName = conv.title ?? "Group chat";
+                const isSelected = activeConversationId === conv.id;
+                return (
+                  <button
+                    key={conv.id}
+                    type="button"
+                    className={`${styles.contactItem} ${isSelected ? styles.active : ""}`}
+                    onClick={() => { setActiveConversationId(conv.id); setMobileView("chat"); }}
+                  >
+                    <div className={styles.contactAvatar}>
+                      {initials(contactName)}
+                      <span className={styles.statusIndicator} />
+                    </div>
+                    <div className={styles.contactInfo}>
+                      <div className={styles.contactName}>{contactName}</div>
+                      <div className={styles.contactPreview}>{conv.last_body ?? "No messages yet"}</div>
+                    </div>
+                    {conv.unread_count > 0 && <span className={styles.chatTabCount}>{conv.unread_count}</span>}
+                  </button>
+                );
+              })}
+
+              {!conversationsLoading && groupConversations.length === 0 && (
+                <div className={styles.chatEmptyState}>
+                  <Inbox size={28} aria-hidden="true" />
+                  <p>You're not part of any group chat yet.</p>
+                </div>
+              )}
+            </>
+          )}
         </div>
       </div>
 

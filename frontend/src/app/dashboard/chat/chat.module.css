@@ -40,6 +40,62 @@
   outline: none;
 }
 
+.chatTabBar {
+  display: flex;
+  gap: 8px;
+  padding: 0 24px 16px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.chatTabBtn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: transparent;
+  border: var(--border-subtle);
+  color: var(--text-muted);
+  padding: 8px 12px;
+  border-radius: var(--clay-radius-md);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.chatTabBtn:hover {
+  background: var(--bg-card);
+  box-shadow: var(--clay-shadow-outer);
+}
+
+.chatTabBtnActive {
+  background: var(--bg-card);
+  box-shadow: var(--clay-shadow-button);
+  color: var(--text-main);
+  border-radius: 20px;
+}
+
+.chatTabCount {
+  background: var(--accent-subtle-bg);
+  color: var(--accent-subtle-text);
+  border: 1px solid var(--accent-subtle-border);
+  padding: 1px 7px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.chatEmptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 8px;
+  padding: 40px 24px;
+  color: var(--text-muted);
+}
+
 .contactsList {
   flex: 1;
   overflow-y: auto;

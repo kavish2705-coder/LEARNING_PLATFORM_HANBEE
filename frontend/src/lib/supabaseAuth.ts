@@ -234,7 +234,9 @@ export async function signUpWithPassword(input: {
   const signupPath = confirmationRedirect
     ? `/auth/v1/signup?redirect_to=${encodeURIComponent(confirmationRedirect)}`
     : "/auth/v1/signup";
-  return supabaseFetch<{ user?: { id: string; email?: string }; access_token?: string }>(signupPath, {
+  // Migration 0045 auto-confirms new email addresses, so this returns a
+  // full session (same shape as login) immediately, not just a user stub.
+  return supabaseFetch<AuthSessionResponse>(signupPath, {
     method: "POST",
     body: JSON.stringify({
       email: input.email.trim(),
