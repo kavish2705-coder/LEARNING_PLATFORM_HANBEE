@@ -1,8 +1,8 @@
 /* ===== Search Bar Container ===== */
 .searchContainer {
   position: relative;
-  width: 320px;
-  margin-left: 40px;
+  width: clamp(240px, 22vw, 320px);
+  margin-left: 0;
   z-index: 50;
 }
 
@@ -365,8 +365,8 @@
 /* Responsive Media Queries */
 @media (max-width: 900px) {
   .searchContainer {
-    width: 240px;
-    margin-left: 20px;
+    width: 220px;
+    margin-left: 0;
   }
   .shortcutBadge {
     display: none;

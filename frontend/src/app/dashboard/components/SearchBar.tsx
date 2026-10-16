@@ -93,16 +93,6 @@ export default function SearchBar() {
       keywords: ["check", "inspection", "hardware", "readiness", "gauge", "wheels", "remote", "trim"],
       role: ["student"],
     },
-    {
-      id: "pit-tasks",
-      title: "Pit Tasks & Practice Drills",
-      description: "Steering trim calibration, voltage checks & bounties",
-      href: "/dashboard",
-      category: "TOURNAMENT & RC",
-      icon: Sparkles,
-      keywords: ["pit", "tasks", "bounties", "drills", "xp", "bonus", "voltage", "steering"],
-      role: ["student"],
-    },
 
     // Learning / Courses Items
     {
