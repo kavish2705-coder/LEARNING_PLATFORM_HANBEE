@@ -38,16 +38,6 @@ export default function TournamentOverview() {
   });
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
-  // Daily Pit Tasks State
-  const [completedTasks, setCompletedTasks] = useState<Record<string, boolean>>(() => {
-    if (typeof window !== "undefined") {
-      try {
-        const saved = localStorage.getItem("hanbee_pit_tasks");
-        if (saved) return JSON.parse(saved);
-      } catch {}
-    }
-    return {};
-  });
 
   // Manual RC Car Hardware Inspection Checklist (Wheels, Car body, Motor, wiring, Remote controller condition, Battery)
   const inspectionItems = [
@@ -201,51 +191,6 @@ export default function TournamentOverview() {
     return () => { active = false; };
   }, [profileLoading, profile?.role]);
 
-  // Daily Driver Pit Tasks Definition
-  const pitTasks = [
-    {
-      id: "task_steering",
-      title: "Remote Steering Trim Test",
-      desc: "Calibrate left & right trim so car drives perfectly straight on tarmac.",
-      points: 25,
-      icon: Gamepad2,
-    },
-    {
-      id: "task_battery",
-      title: "Check Battery Voltage (7.4V)",
-      desc: "Verify rechargeable toy battery pack is safe and above nominal voltage.",
-      points: 35,
-      icon: BatteryCharging,
-    },
-    {
-      id: "task_tires",
-      title: "Clean Wheel Hubs & Tread",
-      desc: "Clear dust particles from wheel axles for minimal rolling resistance.",
-      points: 20,
-      icon: Disc,
-    },
-    {
-      id: "task_trial",
-      title: "3-Lap Virtual Practice Drill",
-      desc: "Practice run on the gym course simulation to dial in lap throttle timing.",
-      points: 50,
-      icon: Zap,
-    },
-  ];
-
-  const handleCompletePitTask = (taskId: string, points: number, title: string) => {
-    if (completedTasks[taskId]) return;
-    const updated = { ...completedTasks, [taskId]: true };
-    setCompletedTasks(updated);
-    if (typeof window !== "undefined") {
-      try {
-        localStorage.setItem("hanbee_pit_tasks", JSON.stringify(updated));
-      } catch {}
-    }
-    addXpTask(taskId, points, title);
-    setToastMessage(`⚡ Task Completed: +${points} XP for "${title}"!`);
-    setTimeout(() => setToastMessage(null), 3500);
-  };
 
   const handleClaimBounty = (id: string, points: number, title: string) => {
     if (claimedBounties[id]) return;
@@ -936,71 +881,10 @@ export default function TournamentOverview() {
 
       </div>
 
-      {/* ===== Interactive Quick Pit Tasks & Practice Drills ===== */}
-      <div className={styles.pitTasksCard}>
-        <div className={styles.cardHeaderTitle}>
-          <div className={styles.telemetryHeading}>
-            <Sparkles size={18} color="#10b981" />
-            <span>Quick Pit Tasks & Practice Drills</span>
-          </div>
-          <span className={styles.localSimNotice}>
-            <Zap size={11} /> Click to Complete • Local Points
-          </span>
-        </div>
-
-        <div className={styles.pitTasksGrid}>
-          {pitTasks.map((task) => {
-            const isDone = !!completedTasks[task.id];
-            const Icon = task.icon;
-            return (
-              <motion.div
-                key={task.id}
-                className={`${styles.pitTaskItem} ${isDone ? styles.pitTaskItemDone : ""}`}
-                onClick={() => handleCompletePitTask(task.id, task.points, task.title)}
-                whileHover={{ y: -2, scale: 1.01 }}
-                whileTap={{ scale: 0.985 }}
-                transition={{ type: "spring", stiffness: 450, damping: 25 }}
-              >
-                <div className={styles.pitTaskLeft}>
-                  <div className={`${styles.pitTaskIconWrap} ${isDone ? styles.pitTaskIconWrapDone : ""}`}>
-                    <Icon size={17} />
-                  </div>
-                  <div className={styles.pitTaskMeta}>
-                    <h5>{task.title}</h5>
-                    <p>{task.desc}</p>
-                  </div>
-                </div>
-
-                <div>
-                  {isDone ? (
-                    <span className={styles.pitTaskDoneBadge}>
-                      <CheckCircle2 size={12} />
-                      <span>Done (+{task.points} XP)</span>
-                    </span>
-                  ) : (
-                    <button
-                      type="button"
-                      className={styles.pitTaskActionBtn}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleCompletePitTask(task.id, task.points, task.title);
-                      }}
-                    >
-                      <Zap size={11} />
-                      <span>+{task.points} XP</span>
-                    </button>
-                  )}
-                </div>
-              </motion.div>
-            );
-          })}
-        </div>
-      </div>
-
       {/* ===== 03: Grand Prix Race Countdown (Bottom of Screen) ===== */}
       <div className={styles.sectionHeaderWrap}>
         <div className={styles.sectionHeaderLeft}>
-          <h3 className={styles.sectionGroupTitle}>Upcoming Race Countdown</h3>
+          <h3 className={styles.sectionGroupTitle}>Next Race</h3>
         </div>
       </div>
 
