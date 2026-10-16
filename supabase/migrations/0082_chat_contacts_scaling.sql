@@ -61,18 +61,23 @@ begin
     union
     -- Hanbee staff reach every school's OWNER, across every active org --
     -- they aren't a member of any org themselves, so this is deliberately
-    -- NOT scoped to my_org (that scoping is only for the school_staff
-    -- caller's own-org colleague branch below, which excludes staff
-    -- callers via my_r = 'school_staff').
+    -- NOT scoped to my_org (unlike the own-org branch below, which only
+    -- ever matches when the caller is actually in an org -- a staff
+    -- caller's my_org is always null, so this one is the only way staff
+    -- see any school_staff candidates at all).
     select m.user_id from organization_members m
       join organizations o on o.id = m.org_id and o.status = 'active'
       join profiles p on p.id = m.user_id and p.account_status = 'active'
       where m.status = 'active' and m.member_role = 'owner' and my_r = 'staff' and p.role = 'school_staff'
     union
+    -- Own-org school_staff/owners: needed by BOTH school_staff callers
+    -- (colleague relation, any member_role) and student callers (owner/
+    -- staff relation, chat_relation_dir re-validates the member_role
+    -- restriction for students) -- not gated to one caller role.
     select m.user_id from organization_members m
       join organizations o on o.id = m.org_id and o.status = 'active'
       join profiles p on p.id = m.user_id and p.account_status = 'active'
-      where m.status = 'active' and my_r = 'school_staff' and my_org is not null and m.org_id = my_org and p.role = 'school_staff'
+      where m.status = 'active' and my_org is not null and m.org_id = my_org and p.role = 'school_staff'
     union
     select m.user_id from organization_members m
       join organizations o on o.id = m.org_id and o.status = 'active'
