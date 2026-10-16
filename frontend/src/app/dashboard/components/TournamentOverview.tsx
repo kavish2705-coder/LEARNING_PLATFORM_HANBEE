@@ -601,8 +601,6 @@ export default function TournamentOverview() {
                 <th>RC Chassis</th>
                 <th>Best Lap</th>
                 <th>Top Speed</th>
-                <th>Pit Readiness</th>
-                <th>Status</th>
                 <th style={{ textAlign: "right" }}>Total Points</th>
               </tr>
             </thead>
@@ -641,28 +639,6 @@ export default function TournamentOverview() {
                   </td>
                   <td className={styles.standingsCell}>
                     <span className={styles.speedBadge}>{t.topSpeed}</span>
-                  </td>
-                  <td className={styles.standingsCell}>
-                    <div className={styles.readinessBarWrap}>
-                      <div className={styles.readinessBarBg}>
-                        <div 
-                          className={styles.readinessBarFill} 
-                          style={{ width: `${t.readiness}%` }}
-                        />
-                      </div>
-                      <span className={styles.readinessBarText}>{t.readiness}%</span>
-                    </div>
-                  </td>
-                  <td className={styles.standingsCell}>
-                    <span 
-                      className={`${styles.statusPill} ${
-                        t.statusType === "active" ? styles.statusActive : 
-                        t.statusType === "tuning" ? styles.statusTuning : 
-                        styles.statusPaddock
-                      }`}
-                    >
-                      {t.status}
-                    </span>
                   </td>
                   <td className={styles.standingsCell}>
                     <div className={styles.teamPointsBadge}>

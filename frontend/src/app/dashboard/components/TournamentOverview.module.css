@@ -3,7 +3,7 @@
 .tournamentHub {
   display: flex;
   flex-direction: column;
-  gap: 32px;
+  gap: 40px;
   animation: fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
@@ -436,10 +436,10 @@
 /* ===== Grand Prix Countdown Card ===== */
 .grandPrixCard {
   background: var(--bg-card);
-  border-radius: 24px;
+  border-radius: 26px;
   border: 1px solid var(--border-subtle);
   box-shadow: var(--clay-shadow-outer);
-  padding: 30px 32px;
+  padding: 36px 40px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -465,16 +465,17 @@
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 20px;
+  margin-bottom: 24px;
 }
 
 .eventTitle {
   font-family: var(--font-heading);
-  font-size: 24px;
+  font-size: 28px;
   font-weight: 700;
   color: var(--text-main);
-  margin: 6px 0 8px;
-  letter-spacing: -0.01em;
+  margin: 10px 0 12px;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
 }
 
 .nextRacePill {
@@ -508,34 +509,36 @@
 
 .teamPerformanceStrip {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 14px;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
   background: var(--bg-surface-elevated);
   border: 1px solid var(--border-elevated);
-  border-radius: 16px;
-  padding: 16px 20px;
+  border-radius: 20px;
+  padding: 22px 28px;
   margin-top: 0;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
 }
 
 .perfItem {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
 }
 
 .perfLabel {
   font-family: monospace;
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
-  letter-spacing: 1px;
+  letter-spacing: 1.2px;
   color: var(--text-muted);
   text-transform: uppercase;
 }
 
 .perfValue {
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 700;
   color: var(--text-main);
+  line-height: 1.4;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -592,19 +595,19 @@
 .countdownGrid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
-  margin-bottom: 26px;
+  gap: 18px;
+  margin-bottom: 28px;
 }
 
 .countdownBox {
   background: var(--bg-surface-elevated);
   border: 1px solid var(--border-elevated);
-  border-radius: 16px;
-  padding: 16px 10px;
+  border-radius: 18px;
+  padding: 20px 14px;
   text-align: center;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
   transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), border-color 0.25s ease, box-shadow 0.25s ease;
 }
@@ -617,41 +620,42 @@
 
 .countdownDigit {
   font-family: monospace;
-  font-size: 32px;
+  font-size: 34px;
   font-weight: 700;
   color: var(--text-main);
   letter-spacing: -0.02em;
+  text-shadow: 0 0 20px rgba(125, 211, 232, 0.25);
 }
 
 .countdownUnit {
   font-size: 11px;
   text-transform: uppercase;
-  letter-spacing: 1.5px;
+  letter-spacing: 1.8px;
   color: var(--text-muted);
-  font-weight: 600;
+  font-weight: 700;
 }
 
 /* CTA Row */
 .countdownActions {
   display: flex;
-  gap: 12px;
-  margin-top: auto;
+  gap: 16px;
+  margin-top: 10px;
   flex-wrap: wrap;
 }
 
 .paddockBtn,
 .licenseActionBtn,
 .gridBtn {
-  flex: 1 1 170px;
+  flex: 1 1 180px;
   min-width: 0;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  padding: 12px 18px;
+  gap: 10px;
+  padding: 14px 22px;
   border-radius: 999px;
   font-weight: 600;
-  font-size: 13px;
+  font-size: 14px;
   text-decoration: none;
   text-align: center;
   white-space: nowrap;
@@ -721,8 +725,8 @@
 /* ===== Second Section: Car Telemetry & Bounties ===== */
 .middleGrid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 28px;
+  grid-template-columns: 1.08fr 0.92fr;
+  gap: 32px;
   align-items: stretch;
 }
 
@@ -735,13 +739,13 @@
 /* Car Telemetry & Readiness */
 .telemetryCard {
   background: var(--bg-card);
-  border-radius: 24px;
+  border-radius: 26px;
   border: var(--border-subtle);
   box-shadow: var(--clay-shadow-outer);
-  padding: 28px;
+  padding: 32px 34px;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 24px;
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   height: 100%;
@@ -755,34 +759,34 @@
 
 .telemetryHeading {
   font-family: var(--font-heading);
-  font-size: 18px;
-  font-weight: 600;
+  font-size: 19px;
+  font-weight: 700;
   color: var(--text-main);
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
 }
 
 /* Readiness Dial */
 .readinessGauge {
   display: flex;
   align-items: center;
-  gap: 20px;
+  gap: 22px;
   background: var(--bg-surface-elevated);
-  padding: 16px 20px;
-  border-radius: 18px;
+  padding: 20px 24px;
+  border-radius: 20px;
   border: 1px solid var(--border-elevated);
 }
 
 .gaugeCircle {
-  width: 64px;
-  height: 64px;
+  width: 68px;
+  height: 68px;
   border-radius: 50%;
   background: conic-gradient(#10b981 0% 92%, rgba(255, 255, 255, 0.1) 92% 100%);
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 0 16px rgba(16, 185, 129, 0.4);
+  box-shadow: 0 0 18px rgba(16, 185, 129, 0.4);
   flex-shrink: 0;
   transition: background 0.6s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.6s cubic-bezier(0.16, 1, 0.3, 1), transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
@@ -792,8 +796,8 @@
 }
 
 .gaugeInner {
-  width: 50px;
-  height: 50px;
+  width: 52px;
+  height: 52px;
   border-radius: 50%;
   background: var(--bg-card);
   display: flex;
@@ -801,7 +805,7 @@
   justify-content: center;
   font-family: monospace;
   font-weight: 700;
-  font-size: 14px;
+  font-size: 15px;
   color: #10b981;
   transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
@@ -811,35 +815,38 @@
 }
 
 .readinessDetails h4 {
-  font-size: 15px;
-  font-weight: 600;
+  font-size: 16px;
+  font-weight: 700;
   color: var(--text-main);
-  margin: 0 0 4px;
+  margin: 0 0 5px;
+  line-height: 1.3;
 }
 
 .readinessDetails p {
-  font-size: 12px;
+  font-size: 13px;
   color: var(--text-muted);
   margin: 0;
+  line-height: 1.4;
 }
 
 /* Diagnostic Checks List */
 .diagnosticList {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
 }
 
 .diagRow {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 16px;
-  border-radius: 14px;
+  padding: 14px 18px;
+  border-radius: 16px;
   background: var(--bg-surface-elevated);
   border: 1px solid var(--border-elevated);
   font-size: 13px;
   cursor: pointer;
+  gap: 14px;
   transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
@@ -962,13 +969,13 @@
 /* ===== Pit-Stop Bounties & Quests ===== */
 .bountiesCard {
   background: var(--bg-card);
-  border-radius: 24px;
+  border-radius: 26px;
   border: var(--border-subtle);
   box-shadow: var(--clay-shadow-outer);
-  padding: 28px;
+  padding: 32px 34px;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 24px;
   height: 100%;
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
@@ -977,18 +984,18 @@
 .bountyList {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 16px;
 }
 
 .bountyItem {
   background: var(--bg-surface-elevated);
   border: 1px solid var(--border-elevated);
-  border-radius: 16px;
-  padding: 16px 20px;
+  border-radius: 18px;
+  padding: 20px 22px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
+  gap: 18px;
   transition: border-color 0.3s ease, background 0.3s ease;
 }
 
@@ -1000,14 +1007,14 @@
 .bountyLeft {
   display: flex;
   align-items: flex-start;
-  gap: 14px;
+  gap: 16px;
   flex: 1;
 }
 
 .bountyIconWrap {
-  width: 38px;
-  height: 38px;
-  border-radius: 12px;
+  width: 42px;
+  height: 42px;
+  border-radius: 14px;
   background: var(--accent-subtle-bg);
   color: var(--accent-subtle-text);
   display: flex;
@@ -1017,16 +1024,18 @@
 }
 
 .bountyMeta h4 {
-  font-size: 15px;
-  font-weight: 600;
+  font-size: 16px;
+  font-weight: 700;
   color: var(--text-main);
-  margin: 0 0 4px;
+  margin: 0 0 5px;
+  line-height: 1.3;
 }
 
 .bountyMeta p {
-  font-size: 12px;
+  font-size: 13px;
   color: var(--text-muted);
   margin: 0;
+  line-height: 1.45;
 }
 
 .claimBtn {
@@ -1066,19 +1075,20 @@
   justify-content: space-between;
   align-items: center;
   flex-wrap: wrap;
-  gap: 12px;
-  margin-bottom: -12px;
+  gap: 14px;
+  margin-top: 4px;
+  margin-bottom: 2px;
 }
 
 .sectionHeaderLeft {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
 }
 
 .sectionGroupTitle {
   font-family: var(--font-heading);
-  font-size: 20px;
+  font-size: 22px;
   font-weight: 700;
   color: var(--text-main);
   letter-spacing: -0.01em;
@@ -1104,7 +1114,7 @@
   color: #10b981;
   background: rgba(16, 185, 129, 0.12);
   border: 1px solid rgba(16, 185, 129, 0.35);
-  padding: 4px 12px;
+  padding: 6px 14px;
   border-radius: 999px;
   box-shadow: 0 0 12px rgba(16, 185, 129, 0.2);
 }
@@ -1120,7 +1130,7 @@
   color: #f59e0b;
   background: rgba(245, 158, 11, 0.12);
   border: 1px solid rgba(245, 158, 11, 0.35);
-  padding: 4px 12px;
+  padding: 6px 14px;
   border-radius: 999px;
   box-shadow: 0 0 12px rgba(245, 158, 11, 0.2);
 }
@@ -1128,13 +1138,13 @@
 /* ===== Bottom Section: Podium & Rivalry Standings ===== */
 .standingsSection {
   background: var(--bg-card);
-  border-radius: 24px;
+  border-radius: 26px;
   border: var(--border-subtle);
   box-shadow: var(--clay-shadow-outer);
-  padding: 28px;
+  padding: 34px 38px;
   display: flex;
   flex-direction: column;
-  gap: 22px;
+  gap: 28px;
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   position: relative;
@@ -1156,7 +1166,7 @@
 .podiumRow {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 20px;
+  gap: 22px;
 }
 
 @media (max-width: 800px) {
@@ -1166,11 +1176,11 @@
 }
 
 .podiumCard {
-  border-radius: 18px;
-  padding: 20px;
+  border-radius: 20px;
+  padding: 22px 24px;
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 18px;
   background: var(--bg-surface-elevated);
   border: 1px solid var(--border-elevated);
   position: relative;
@@ -1200,13 +1210,14 @@
 .podiumRank {
   font-size: 28px;
   font-weight: 700;
-  width: 44px;
-  height: 44px;
-  border-radius: 12px;
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
   display: flex;
   align-items: center;
   justify-content: center;
   font-family: monospace;
+  flex-shrink: 0;
 }
 
 .podiumRankGold { background: rgba(251, 191, 36, 0.2); color: #fbbf24; }
@@ -1214,24 +1225,27 @@
 .podiumRankBronze { background: rgba(180, 83, 9, 0.2); color: #f59e0b; }
 
 .podiumDetails h4 {
-  font-size: 15px;
-  font-weight: 600;
+  font-size: 16px;
+  font-weight: 700;
   color: var(--text-main);
-  margin: 0 0 3px;
+  margin: 0 0 4px;
+  line-height: 1.35;
 }
 
 .podiumDetails p {
   font-size: 12px;
   color: var(--text-muted);
   margin: 0;
+  line-height: 1.4;
 }
 
 .podiumPts {
   margin-left: auto;
   font-family: monospace;
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 700;
   color: var(--accent-subtle-text);
+  letter-spacing: 0.5px;
 }
 
 /* Rivalry Callout Bar */
@@ -1240,19 +1254,23 @@
   align-items: center;
   justify-content: space-between;
   flex-wrap: wrap;
-  gap: 16px;
+  gap: 18px;
   background: var(--accent-subtle-bg);
   border: 1px solid var(--accent-subtle-border);
-  padding: 16px 24px;
-  border-radius: 16px;
+  padding: 20px 28px;
+  border-radius: 18px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
 }
 
 .rivalryLeft {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
   font-size: 14px;
   color: var(--text-main);
+  line-height: 1.5;
+  flex: 1;
+  min-width: 280px;
 }
 
 .rivalryDelta {
@@ -1400,30 +1418,31 @@
 /* ===== Full Grid Standings & Team Telemetry Table ===== */
 .standingsTableContainer {
   overflow-x: auto;
-  border-radius: 18px;
+  border-radius: 20px;
   border: 1px solid var(--border-elevated);
   background: var(--bg-surface-elevated);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
 }
 
 .standingsTable {
   width: 100%;
   border-collapse: collapse;
   text-align: left;
-  font-size: 13px;
+  font-size: 14px;
 }
 
 .standingsThead {
-  background: rgba(0, 0, 0, 0.15);
+  background: rgba(0, 0, 0, 0.2);
   border-bottom: 1px solid var(--border-elevated);
 }
 
 .standingsThead th {
-  padding: 14px 18px;
+  padding: 18px 24px;
   font-family: monospace;
   font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 1px;
+  letter-spacing: 1.3px;
   color: var(--text-muted);
 }
 
@@ -1451,7 +1470,7 @@
 }
 
 .standingsCell {
-  padding: 14px 18px;
+  padding: 18px 24px;
   vertical-align: middle;
 }
 
@@ -1805,7 +1824,7 @@
   }
 
   .standingsTable {
-    min-width: 650px;
+    min-width: 520px;
   }
 
   .standingsTableContainer {
