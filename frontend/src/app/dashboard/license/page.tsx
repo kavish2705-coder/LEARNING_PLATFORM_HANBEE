@@ -179,10 +179,6 @@ export default function DriverLicensePage() {
       {/* Header */}
       <header className={styles.pageHeader}>
         <div className={styles.headerLeft}>
-          <div className={styles.federationPill}>
-            <ShieldCheck size={14} />
-            HANBEE RACING // DRIVER PASS
-          </div>
           <h1 className={styles.pageTitle}>
             Student Driver License
           </h1>
@@ -386,7 +382,6 @@ export default function DriverLicensePage() {
           <div className={styles.countdownCard}>
             <div className={styles.countdownHeader}>
               <div className={styles.countdownTitleWrap}>
-                <span className={styles.countdownBadge}>NEXT RACE</span>
                 <h3 className={styles.countdownTitle}>{tournament?.title || "Hanbee RC Cup 2026"}</h3>
               </div>
               <span className={styles.countdownTrack}>Hanbee Track, Chennai</span>
