@@ -4,9 +4,9 @@ Supabase is HanbeeLms's authoritative authentication and database backend.
 Authorization lives in Postgres RLS policies and security-definer functions; the
 frontend uses only the public anon key. Authentication, course progress,
 certificates, teams, school operations, chat, announcements, staff attendance,
-manager review pages and the AI assistant call Supabase directly. The separate
-`backend/` Express routes are legacy and are not part of this Supabase-only
-architecture.
+manager review pages and the AI assistant call Supabase directly. The
+disconnected `backend/` Express placeholder has been removed; it was not part
+of this Supabase-only architecture.
 ## 1. Create the project
 
 Go to [supabase.com](https://supabase.com) → New Project (free tier is
@@ -28,6 +28,17 @@ tenant isolation, course assessments, chat, tournaments, attendance, and team
 formation. Migration `0040_ai_daily_capacity.sql` adds the shared AI quota used
 by the Edge Function. Migration `0041_solo_tournament_entries.sql` adds the
 solo-student tournament submission path and the Hanbee review queue.
+
+For local migration testing, install the Supabase CLI and Docker Desktop, then
+from the repository root run:
+
+```
+supabase start
+supabase db reset
+```
+
+The checked-in `config.toml` configures the local Supabase services; `db reset`
+recreates the local database and applies all migrations in order.
 ## 3. Get your API keys
 
 Project → **Settings → API**:
@@ -64,8 +75,7 @@ hosted payment QR on the solo tournament entry page.
   lessons/materials, enrollments, manual + autonomous attendance,
   announcements, certificates, discussions, messages, notifications, staff
   tasks/time entries, manager verifications/holidays, public applications,
-  invitations. Field-for-field mirrors what's already in
-  `frontend/src/lib/mock*.ts` and `backend/app/store.py`.
+  invitations. The frontend now uses Supabase as its data source.
 - `migrations/0002_rls.sql` — every table's access rules, explicit rather
   than assumed (Supabase denies all access by default once RLS is on).
 - `migrations/0003_functions.sql` — the handful of things plain row-level

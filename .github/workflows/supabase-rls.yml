@@ -1,0 +1,78 @@
+name: Supabase RLS tests
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  rls:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Install database test dependencies
+        run: |
+          npm ci --prefix supabase/tests
+          npm install --prefix supabase --no-save --package-lock=false
+
+      - name: Start a fresh local Supabase stack and apply migrations
+        run: |
+          supabase start
+          supabase db reset --local
+
+      - name: Configure local database connection
+        shell: bash
+        run: |
+          eval "$(supabase status --output env)"
+          {
+            echo "SUPABASE_URL=$API_URL"
+            echo "SUPABASE_SERVICE_ROLE_KEY=$SERVICE_ROLE_KEY"
+            echo "SUPABASE_DB_URL=postgresql://postgres:postgres@127.0.0.1:54322/postgres"
+          } >> "$GITHUB_ENV"
+
+      - name: Seed required test identities and course
+        run: |
+          npm --prefix supabase run seed
+          node supabase/tests/seed-ci.mjs
+
+      - name: Create test_support_* helper functions the RLS suites depend on
+        run: node supabase/tests/create-ci-test-support-functions.mjs
+
+      - name: Dump Postgres/auth logs on failure
+        if: failure()
+        run: |
+          docker ps -a
+          for name in $(docker ps -a --format '{{.Names}}' | grep -iE 'auth|_db_'); do
+            echo "::group::docker logs $name"
+            docker logs "$name" 2>&1 | tail -300
+            echo "::endgroup::"
+          done
+
+      - name: Run all RLS suites
+        shell: bash
+        run: |
+          set -euo pipefail
+          node supabase/tests/rls/schema_coverage.mjs
+          for test_file in supabase/tests/rls/0*.mjs; do
+            echo "::group::${test_file}"
+            test_output="$(node "$test_file")"
+            printf '%s\n' "$test_output"
+            if ! printf '%s\n' "$test_output" | grep -Eq '[0-9]+ passed, 0 failed$'; then
+              echo "::error::${test_file} reported failed assertions or no summary"
+              exit 1
+            fi
+            echo "::endgroup::"
+          done

@@ -1,7 +1,6 @@
 -- HanbeeLms — initial schema
--- See docs/PLAN.md §10.35 for context. Mirrors the shapes already established
--- across frontend/src/lib/mock*.ts and the FastAPI backend/ prototype, so
--- migrating off mock data changes as little application logic as possible.
+-- See docs/PLAN.md §10.35 for historical context. The schema was originally
+-- shaped to match the mock frontend and a now-removed FastAPI prototype.
 --
 -- Run this in the Supabase SQL Editor (or `supabase db push` with the CLI)
 -- against a fresh project, in order (0001, 0002, ...).
@@ -106,7 +105,7 @@ create table lesson_materials (
   lesson_id uuid not null references lessons(id) on delete cascade,
   file_name text not null,
   file_size_bytes bigint not null,
-  storage_path text not null, -- Supabase Storage object path, e.g. "materials/<lesson_id>/<file_name>"
+  storage_path text not null, -- lesson-attachments bucket object path: "<lesson_id>/<file_name>"
   uploaded_at timestamptz not null default now()
 );
 
@@ -154,8 +153,7 @@ create table attendance_marks (
 );
 
 -- ============================================================================
--- Autonomous attendance (real login/heartbeat sessions) — see backend/app/store.py.
--- Replaces the FastAPI prototype's in-memory Session dataclass with a durable table.
+-- Autonomous attendance (real login/heartbeat sessions), stored durably in Postgres.
 -- ============================================================================
 create table auto_attendance_sessions (
   id uuid primary key default gen_random_uuid(),
@@ -181,8 +179,7 @@ create table announcements (
 );
 
 -- ============================================================================
--- Certificates — mirrors backend/app/routers/certificates.py exactly,
--- including the unauthenticated-verify use case.
+-- Certificates, including an unauthenticated public verification lookup.
 -- ============================================================================
 create table certificates (
   id uuid primary key default gen_random_uuid(),
