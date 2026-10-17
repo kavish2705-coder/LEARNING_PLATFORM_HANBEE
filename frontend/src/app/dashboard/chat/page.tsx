@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useQuery, useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import styles from "./chat.module.css";
-import { Send, Search, Radio, Zap, Wrench, Flag, ChevronLeft, User, Users, Inbox } from "lucide-react";
+import { Send, Search, ChevronLeft, User, Users, Inbox } from "lucide-react";
 import {
   fetchChatContacts,
   fetchChatConversations,
@@ -44,11 +44,6 @@ export default function ChatPage() {
   const [search, setSearch] = useState("");
   const [error, setError] = useState("");
   const [mobileView, setMobileView] = useState<"list" | "chat">("list");
-  // Purely a left-list filter -- deliberately not wired into
-  // activeConversationId, the message/receipt queries, or the realtime
-  // subscription below, all of which key only off activeConversationId.
-  // Switching tabs can never crash or bleed one thread into another,
-  // because nothing about an already-open thread's data depends on it.
   const [chatTab, setChatTab] = useState<"solo" | "group">("solo");
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -73,7 +68,6 @@ export default function ChatPage() {
 
   const conversations = rawConversations ?? [];
 
-  // Pick default conversation
   useEffect(() => {
     if (activeConversationId || !conversations.length) return;
     const requestedId = new URLSearchParams(window.location.search).get("conversation");
@@ -129,9 +123,6 @@ export default function ChatPage() {
   const openContact = useMutation({
     mutationFn: startDirectConversation,
     onSuccess: async (conversationId) => {
-      // Both caches need invalidating -- otherwise the person stays
-      // listed under "Direct Contacts" (the pre-conversation list)
-      // *and* shows up as the new conversation, duplicated in the Solo tab.
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ["chat-conversations"] }),
         queryClient.invalidateQueries({ queryKey: ["chat-contacts"] }),
@@ -169,8 +160,13 @@ export default function ChatPage() {
     }
   }
 
-  const conversationList = conversations;
-  const contactList = contacts ?? [];
+  const isAiEntity = (nameOrTitle?: string | null, id?: string | null, role?: string | null) => {
+    const s = `${nameOrTitle ?? ""} ${id ?? ""} ${role ?? ""}`.toLowerCase();
+    return s.includes("hanbee ai") || s.includes("pit strategist") || s.includes("mock-ai-assistant") || s.includes("ai-bot") || s.includes("ai strategist");
+  };
+
+  const conversationList = conversations.filter((c) => !isAiEntity(c.title ?? c.other_full_name, c.id, c.other_role));
+  const contactList = (contacts ?? []).filter((contact) => !isAiEntity(contact.full_name, contact.user_id, contact.role));
   const activeConversation = conversationList.find((c) => c.id === activeConversationId);
   const activeContact = contactList.find((c) => c.user_id === activeConversation?.other_user_id);
   
@@ -183,12 +179,6 @@ export default function ChatPage() {
     return (conversation.title ?? conversation.other_full_name ?? "Group chat").toLowerCase().includes(search.toLowerCase());
   });
 
-  // chat_contacts() is a permissions list -- "who you're allowed to
-  // message" -- by design independent of whether a conversation already
-  // exists (same as any real contacts list never disappearing once you've
-  // texted someone). The direct-conversations list already covers anyone
-  // with a real thread, so exclude them here to avoid showing the same
-  // person twice in the Solo tab.
   const directConversationUserIds = new Set(
     conversationList.filter((c) => c.kind === "direct").map((c) => c.other_user_id),
   );
@@ -198,8 +188,6 @@ export default function ChatPage() {
     return contact.full_name.toLowerCase().includes(search.toLowerCase());
   });
 
-  // Strict split: a conversation only ever appears under the tab matching
-  // its real `kind` -- Solo can never show a group thread or vice versa.
   const soloConversations = visibleConversations.filter((c) => c.kind === "direct");
   const groupConversations = visibleConversations.filter((c) => c.kind === "group");
   const soloCount = soloConversations.length + visibleContacts.length;
@@ -213,12 +201,8 @@ export default function ChatPage() {
       {/* Sidebar: Conversations */}
       <div className={styles.contactsSidebar}>
         <div className={styles.sidebarHeader}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+          <div style={{ marginBottom: 16 }}>
             <h2 style={{ margin: 0 }}>Race Comms</h2>
-            <span className={styles.commsBadge}>
-              <Radio size={12} />
-              LIVE
-            </span>
           </div>
           <div className={styles.inputWrapper}>
             <Search size={16} style={{ position: "absolute", left: 16, top: "50%", transform: "translateY(-50%)", color: "var(--text-muted)" }} />
@@ -341,7 +325,7 @@ export default function ChatPage() {
               {!conversationsLoading && groupConversations.length === 0 && (
                 <div className={styles.chatEmptyState}>
                   <Inbox size={28} aria-hidden="true" />
-                  <p>You're not part of any group chat yet.</p>
+                  <p>You&apos;re not part of any group chat yet.</p>
                 </div>
               )}
             </>
@@ -352,7 +336,7 @@ export default function ChatPage() {
       {/* Main Chat Area */}
       <div className={styles.mainChat}>
         {activeConversation ? (
-          <>
+          <div className={styles.activeChatWrapper}>
             <header className={styles.chatHeader}>
               <button
                 type="button"
@@ -414,7 +398,7 @@ export default function ChatPage() {
                   <div key={message.id} className={`${styles.messageRow} ${mine ? styles.me : styles.other}`}>
                     {newDay && (
                       <div className={styles.daySeparator}>
-                        <span>{dayLabel(message.created_at)}</span>
+                        <span suppressHydrationWarning>{dayLabel(message.created_at)}</span>
                       </div>
                     )}
                     {message.kind === "system" ? (
@@ -427,8 +411,8 @@ export default function ChatPage() {
                         <div className={`${styles.message} ${mine ? styles.me : styles.other}`}>
                           {message.body}
                         </div>
-                        <time className={styles.timestamp} dateTime={message.created_at}>
-                          {formatTime(message.created_at)}
+                        <time className={styles.timestamp} dateTime={message.created_at} suppressHydrationWarning>
+                          <span>{formatTime(message.created_at)}</span>
                           {mine && (
                             <span className={seen ? styles.tickSeen : styles.tick} aria-label="Delivered">
                               {" ✓✓"}
@@ -442,34 +426,6 @@ export default function ChatPage() {
               })}
 
               <div ref={messagesEndRef} />
-            </div>
-
-            {/* Interactive Quick Prompts Bar Planted Directly Above Input */}
-            <div className={styles.quickChipsRow}>
-              <button
-                type="button"
-                className={styles.quickChip}
-                onClick={() => handleSend("⚡ What's our fastest lap time so far?")}
-              >
-                <Zap size={13} />
-                What&apos;s our fastest lap?
-              </button>
-              <button
-                type="button"
-                className={styles.quickChip}
-                onClick={() => handleSend("🔧 Check battery voltage & steering trim")}
-              >
-                <Wrench size={13} />
-                Battery voltage check
-              </button>
-              <button
-                type="button"
-                className={styles.quickChip}
-                onClick={() => handleSend("🏁 Ready for Qualifying Heat 1!")}
-              >
-                <Flag size={13} />
-                Ready for Qualifying!
-              </button>
             </div>
 
             {/* Interactive Input Bar */}
@@ -499,9 +455,9 @@ export default function ChatPage() {
                 </button>
               </div>
             </div>
-          </>
+          </div>
         ) : (
-          <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", color: "var(--text-muted)" }}>
+          <div className={styles.noChatSelected}>
             Select a channel or contact to start chatting.
           </div>
         )}

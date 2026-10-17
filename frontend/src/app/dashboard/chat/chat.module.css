@@ -110,15 +110,25 @@
   padding: 16px 24px;
   cursor: pointer;
   border-bottom: 1px solid var(--border-subtle);
-  transition: all 0.2s ease;
+  border-left: 3px solid transparent;
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+  text-align: left;
+  background: transparent;
+  border-top: none;
+  border-right: none;
+  width: 100%;
 }
 
 .contactItem:hover {
-  background: var(--bg-card-hover);
+  background: rgba(8, 145, 178, 0.08);
+  border-left-color: var(--color-primary);
+  transform: translateX(4px);
 }
 
 .contactItem.active {
-  background: var(--bg-card-hover);
+  background: rgba(8, 145, 178, 0.12);
+  border-left-color: var(--color-primary);
   box-shadow: var(--clay-shadow-active);
 }
 
@@ -135,6 +145,12 @@
   color: var(--text-main);
   position: relative;
   flex-shrink: 0;
+  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.22s ease;
+}
+
+.contactItem:hover .contactAvatar {
+  transform: scale(1.08);
+  box-shadow: 0 0 16px rgba(8, 145, 178, 0.35);
 }
 
 .statusIndicator {
@@ -164,6 +180,11 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  transition: color 0.2s ease;
+}
+
+.contactItem:hover .contactName {
+  color: var(--color-primary);
 }
 
 .contactPreview {
@@ -172,6 +193,11 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  transition: color 0.2s ease;
+}
+
+.contactItem:hover .contactPreview {
+  color: var(--text-main);
 }
 
 /* Main Chat Area */
@@ -184,6 +210,24 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
+}
+
+.activeChatWrapper {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  height: 100%;
+  overflow: hidden;
+}
+
+.noChatSelected {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  font-size: 14px;
 }
 
 .chatHeader {
@@ -272,6 +316,7 @@
   font-size: 14px;
   line-height: 1.5;
   word-break: break-word;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
 }
 
 .message.other {
@@ -282,11 +327,22 @@
   border-bottom-left-radius: 4px;
 }
 
+.message.other:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+}
+
 .message.me {
   background: linear-gradient(135deg, #0891b2 0%, #2563eb 100%);
   color: #ffffff;
   box-shadow: 0 4px 14px rgba(8, 145, 178, 0.3);
   border-bottom-right-radius: 4px;
+}
+
+.message.me:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(8, 145, 178, 0.45);
+  filter: brightness(1.04);
 }
 
 .timestamp {
