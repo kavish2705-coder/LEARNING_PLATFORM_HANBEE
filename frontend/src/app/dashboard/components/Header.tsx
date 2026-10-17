@@ -1,12 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { Search, Menu, Zap } from "lucide-react";
+import { usePathname } from "next/navigation";
+import { Menu, Zap, ChevronRight } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import styles from "../layout.module.css";
 import NotificationBell from "./NotificationBell";
+import SearchBar from "./SearchBar";
 import { useSessionProfile } from "../../../lib/hooks/useSessionProfile";
 import { useUserXp } from "../../../lib/hooks/useUserXp";
+import { useMode } from "../ModeContext";
 
 const ROLE_LABEL: Record<string, string> = {
   student: "Student",
@@ -15,19 +18,67 @@ const ROLE_LABEL: Record<string, string> = {
   manager: "Manager",
 };
 
-function greeting() {
-  const hour = new Date().getHours();
-  if (hour < 12) return "Good morning,";
-  if (hour < 17) return "Good afternoon,";
-  return "Good evening,";
-}
+const PAGE_TITLES: Record<string, string> = {
+  "/dashboard": "Overview",
+  "/dashboard/license": "Driver License",
+  "/dashboard/leaderboard": "Leaderboard",
+  "/dashboard/team": "My Team",
+  "/dashboard/announcements": "Announcements",
+  "/dashboard/chat": "Chat",
+  "/dashboard/settings": "Profile & Settings",
+  "/dashboard/courses": "My Courses",
+  "/dashboard/certificate": "Certificates",
+  "/dashboard/ai-assistant": "AI Assistant",
+  "/dashboard/attendance": "Live Attendance",
+  "/dashboard/school/overview": "School Overview",
+  "/dashboard/school/students": "Students",
+  "/dashboard/school/courses": "Courses",
+  "/dashboard/school/teams": "Teams",
+  "/dashboard/school/schedule": "Schedule",
+  "/dashboard/school/announcements": "Announcements",
+  "/dashboard/school/chat": "Chat",
+  "/dashboard/hanbee/my-space": "My Space",
+  "/dashboard/hanbee/lms": "Learning Overview",
+  "/dashboard/hanbee/schools": "Schools",
+  "/dashboard/hanbee/courses": "Courses",
+  "/dashboard/hanbee/tournament": "Tournament Entries",
+  "/dashboard/hanbee/applications": "Applications",
+  "/dashboard/hanbee/assessment-reviews": "Quiz Reviews",
+  "/dashboard/hanbee/schedule": "Schedule",
+  "/dashboard/hanbee/announcements": "Announcements",
+  "/dashboard/hanbee/chat": "Chat",
+  "/dashboard/manager/monitor": "Monitor",
+  "/dashboard/manager/verifications": "Verifications",
+  "/dashboard/manager/schools": "Schools",
+  "/dashboard/manager/courses": "Courses",
+  "/dashboard/manager/hanbee-staff": "Hanbee Staff",
+  "/dashboard/manager/tasks": "Tasks",
+  "/dashboard/manager/schedule": "Schedule",
+  "/dashboard/manager/announcements": "Announcements",
+  "/dashboard/manager/chat": "Chat",
+};
 
 export default function Header({ toggleMobileMenu }: { toggleMobileMenu?: () => void }) {
+  const pathname = usePathname();
+  const { mode } = useMode();
   const { data: profile } = useSessionProfile();
   const { xp, isGaining, lastGained } = useUserXp();
   const name = profile?.full_name ?? "";
-  const initial = name.charAt(0).toUpperCase() || "H";
+  const initial = name.charAt(0).toUpperCase() || (profile?.role ? profile.role.charAt(0).toUpperCase() : "H");
   const today = new Date().toLocaleDateString([], { weekday: "short", month: "short", day: "numeric" });
+
+  const getPageTitle = () => {
+    if (pathname === "/dashboard") {
+      if (profile?.role === "student") {
+        return mode === "tournament" ? "Track Hub" : "Learning Hub";
+      }
+      return "Overview";
+    }
+    if (PAGE_TITLES[pathname]) return PAGE_TITLES[pathname];
+    const segment = pathname.split("/").filter(Boolean).pop();
+    if (!segment) return "Overview";
+    return segment.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+  };
 
   return (
     <header className={styles.header}>
@@ -35,15 +86,22 @@ export default function Header({ toggleMobileMenu }: { toggleMobileMenu?: () => 
         <button className={styles.mobileMenuBtn} onClick={toggleMobileMenu} aria-label="Toggle Menu">
           <Menu size={24} />
         </button>
-        <div className={styles.greetingWrapper}>
-          <div className={styles.greeting}>{greeting()}</div>
-          <div className={styles.greetingName}>{name}</div>
-        </div>
-      </div>
 
-      <div className={styles.searchBar}>
-        <Search size={16} className={styles.searchIcon} />
-        <input type="text" placeholder="Search..." className={styles.searchInput} aria-label="Search" />
+        {/* Dynamic Context Breadcrumbs */}
+        <nav className={styles.breadcrumbNav} aria-label="Breadcrumb">
+          {pathname === "/dashboard" ? (
+            <span className={styles.breadcrumbRootStatic}>Dashboard</span>
+          ) : (
+            <Link href="/dashboard" className={styles.breadcrumbRootLink} title="Back to Dashboard">
+              Dashboard
+            </Link>
+          )}
+          <ChevronRight size={13} className={styles.breadcrumbSep} />
+          <span className={styles.breadcrumbCurrent}>{getPageTitle()}</span>
+        </nav>
+
+        {/* Global Quick Search with Ctrl+K shortcut */}
+        <SearchBar />
       </div>
 
       <div className={styles.headerRight}>
@@ -90,18 +148,21 @@ export default function Header({ toggleMobileMenu }: { toggleMobileMenu?: () => 
             </AnimatePresence>
           </Link>
         )}
-        <div className={styles.date}>{today}</div>
+        <div className={styles.date} suppressHydrationWarning>{today}</div>
         <NotificationBell />
 
-        <div className={styles.headerUser} title={name ? `${name} (${profile ? ROLE_LABEL[profile.role] ?? profile.role : ""})` : ""}>
-          <div className={styles.avatar}>{initial}</div>
-          <div className={styles.headerUserText}>
-            <span className={styles.userName}>{name}</span>
-            <span className={styles.userRole}>{profile ? ROLE_LABEL[profile.role] ?? profile.role : ""}</span>
-          </div>
+        {/* Profile Avatar Button */}
+        <div className={styles.headerUser}>
+          <Link 
+            href="/dashboard/settings" 
+            className={styles.headerUserBtn} 
+            title={name ? `${name} • View Profile & Settings` : "View Profile & Settings"}
+            aria-label="View Profile and Settings"
+          >
+            <div className={styles.avatar}>{initial}</div>
+          </Link>
         </div>
       </div>
     </header>
   );
 }
-

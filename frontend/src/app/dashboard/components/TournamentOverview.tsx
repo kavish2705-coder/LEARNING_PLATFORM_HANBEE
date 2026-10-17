@@ -3,9 +3,9 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
-  Trophy, CalendarDays, MapPin, Users, Flame, Zap, 
+  Trophy, CalendarDays, MapPin, Users, Zap, 
   Radio, CheckCircle2, RotateCw, Award, Sparkles, 
-  ChevronRight, Flag, ShieldCheck, Activity, Cpu, 
+  ChevronRight, Flag, Activity, Cpu, 
   Layers, Compass, Disc, Gamepad2, BatteryCharging, Wrench, IdCard
 } from "lucide-react";
 import Link from "next/link";
@@ -38,16 +38,6 @@ export default function TournamentOverview() {
   });
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
-  // Daily Pit Tasks State
-  const [completedTasks, setCompletedTasks] = useState<Record<string, boolean>>(() => {
-    if (typeof window !== "undefined") {
-      try {
-        const saved = localStorage.getItem("hanbee_pit_tasks");
-        if (saved) return JSON.parse(saved);
-      } catch {}
-    }
-    return {};
-  });
 
   // Manual RC Car Hardware Inspection Checklist (Wheels, Car body, Motor, wiring, Remote controller condition, Battery)
   const inspectionItems = [
@@ -201,51 +191,6 @@ export default function TournamentOverview() {
     return () => { active = false; };
   }, [profileLoading, profile?.role]);
 
-  // Daily Driver Pit Tasks Definition
-  const pitTasks = [
-    {
-      id: "task_steering",
-      title: "Remote Steering Trim Test",
-      desc: "Calibrate left & right trim so car drives perfectly straight on tarmac.",
-      points: 25,
-      icon: Gamepad2,
-    },
-    {
-      id: "task_battery",
-      title: "Check Battery Voltage (7.4V)",
-      desc: "Verify rechargeable toy battery pack is safe and above nominal voltage.",
-      points: 35,
-      icon: BatteryCharging,
-    },
-    {
-      id: "task_tires",
-      title: "Clean Wheel Hubs & Tread",
-      desc: "Clear dust particles from wheel axles for minimal rolling resistance.",
-      points: 20,
-      icon: Disc,
-    },
-    {
-      id: "task_trial",
-      title: "3-Lap Virtual Practice Drill",
-      desc: "Practice run on the gym course simulation to dial in lap throttle timing.",
-      points: 50,
-      icon: Zap,
-    },
-  ];
-
-  const handleCompletePitTask = (taskId: string, points: number, title: string) => {
-    if (completedTasks[taskId]) return;
-    const updated = { ...completedTasks, [taskId]: true };
-    setCompletedTasks(updated);
-    if (typeof window !== "undefined") {
-      try {
-        localStorage.setItem("hanbee_pit_tasks", JSON.stringify(updated));
-      } catch {}
-    }
-    addXpTask(taskId, points, title);
-    setToastMessage(`⚡ Task Completed: +${points} XP for "${title}"!`);
-    setTimeout(() => setToastMessage(null), 3500);
-  };
 
   const handleClaimBounty = (id: string, points: number, title: string) => {
     if (claimedBounties[id]) return;
@@ -463,6 +408,9 @@ export default function TournamentOverview() {
   const userRank = allRankedTeams.find((t) => t.isUserTeam)?.rank ?? 4;
   const teamAhead = allRankedTeams.find((t) => t.rank === userRank - 1);
   const ptsBehind = teamAhead ? Math.max(0, teamAhead.points - xp) : 0;
+  const currentHour = new Date().getHours();
+  const timeGreeting = currentHour < 12 ? "Good morning" : currentHour < 17 ? "Good afternoon" : "Good evening";
+  const studentName = profile?.full_name ? profile.full_name.split(" ")[0] : "Driver";
 
   return (
     <div className={styles.tournamentHub}>
@@ -501,128 +449,222 @@ export default function TournamentOverview() {
       {/* ===== Hub Header ===== */}
       <header className={styles.hubHeader}>
         <div className={styles.hubHeaderLeft}>
-          <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
-            <div className={styles.seasonBadge}>
-              <Trophy size={13} />
-              Season 2026 // Cup Series
-            </div>
-            <span className={styles.officialBadge}>
-              <ShieldCheck size={11} /> Official Event
-            </span>
-          </div>
-          <h1 className={styles.hubTitle}>
-            Tournament Track Hub
+          <h1 className={styles.hubTitle} suppressHydrationWarning>
+            {timeGreeting}, {studentName}!
           </h1>
           <p className={styles.hubSubtitle}>
             Live race countdown, quick RC car check, and squad standings.
           </p>
         </div>
-
-        <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
-          <Link href="/dashboard/license" className={styles.licenseNavBtn}>
-            <IdCard size={15} />
-            <span>Driver License</span>
-          </Link>
-          <div className={styles.streakPill}>
-            <Flame size={16} className={styles.streakFlame} />
-            <span>4-Day Practice Streak</span>
-            <span className={styles.streakBonusTag}>+20% RP</span>
-          </div>
-        </div>
       </header>
 
-      {/* ===== Zone 01: Grand Prix Race Countdown & F1 Start Lights ===== */}
-      <div className={styles.grandPrixCard}>
-        <div>
-          <div className={styles.eventMeta}>
-            <div>
-              <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "6px" }}>
-                <span className={styles.seasonBadge}>NEXT RACE</span>
-                <span className={styles.officialBadge}>
-                  <ShieldCheck size={11} /> Verified Schedule
-                </span>
-              </div>
-              <h2 className={styles.eventTitle}>
-                {tournament?.title || "Hanbee RC Cup Autumn Race"}
-              </h2>
-              <div className={styles.eventCircuit}>
-                <Compass size={14} color="#7dd3e8" />
-                <span>{tournament?.venue || "Apex Indoor RC Track • School Gym Course"}</span>
-              </div>
-            </div>
-
-            <div style={{ fontFamily: "monospace", fontSize: "12px", color: "var(--text-muted)" }}>
-              <div><CalendarDays size={13} style={{ display: "inline", marginRight: 4 }} /> {tournament?.starts_at ? new Date(tournament.starts_at).toLocaleDateString([], { month: "short", day: "numeric", year: "numeric" }) : "Oct 24, 2026"}</div>
-              <div>{tournament?.starts_at ? new Date(tournament.starts_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "10:00 AM IST"}</div>
-            </div>
-          </div>
-
-          {/* F1 5-Light Start Gantry */}
-          <div className={styles.f1Gantry}>
-            {[1, 2, 3, 4, 5].map((light) => (
-              <div key={light} className={styles.f1LightHousing}>
-                <div 
-                  className={styles.f1LightRed} 
-                  style={{ animationDelay: `${light * 0.18}s` }} 
-                />
-              </div>
-            ))}
-          </div>
-
-          {/* Live Countdown Display */}
-          <div className={styles.countdownGrid}>
-            <div className={styles.countdownBox}>
-              <span className={styles.countdownDigit}>{String(timeLeft.days).padStart(2, "0")}</span>
-              <span className={styles.countdownUnit}>Days</span>
-            </div>
-            <div className={styles.countdownBox}>
-              <span className={styles.countdownDigit}>{String(timeLeft.hours).padStart(2, "0")}</span>
-              <span className={styles.countdownUnit}>Hours</span>
-            </div>
-            <div className={styles.countdownBox}>
-              <span className={styles.countdownDigit}>{String(timeLeft.minutes).padStart(2, "0")}</span>
-              <span className={styles.countdownUnit}>Minutes</span>
-            </div>
-            <div className={styles.countdownBox}>
-              <span className={styles.countdownDigit} style={{ color: "var(--accent-subtle-text)" }}>{String(timeLeft.seconds).padStart(2, "0")}</span>
-              <span className={styles.countdownUnit}>Seconds</span>
-            </div>
-          </div>
+      {/* ===== Overview of Team Performance ===== */}
+      <div className={styles.teamPerformanceStrip}>
+        <div className={styles.perfItem}>
+          <span className={styles.perfLabel}>ACTIVE TEAM</span>
+          <span className={styles.perfValue}>{team?.name || "Vortex Racing"} ({schoolName || "Delhi Tech Academy"})</span>
         </div>
-
-        <div className={styles.countdownActions}>
-          <Link href="/dashboard/license" className={styles.licenseActionBtn}>
-            <IdCard size={15} />
-            <span>Driver License</span>
-          </Link>
-          <Link href={teamHref} className={styles.paddockBtn}>
-            <Users size={15} />
-            <span>{team ? "Manage Race Team" : "Register Race Team"}</span>
-          </Link>
-          <Link href="/dashboard/leaderboard" className={styles.gridBtn}>
-            <Flag size={15} />
-            <span>Live Grid Standings</span>
-          </Link>
+        <div className={styles.perfItem}>
+          <span className={styles.perfLabel}>PADDOCK STANDING</span>
+          <span className={styles.perfValue} style={{ color: userRank === 1 ? "#f59e0b" : "var(--accent-subtle-text)" }}>
+            {userRank === 1 ? "Rank #1 (Championship Lead)" : `Rank #${userRank} (${ptsBehind > 0 ? `${ptsBehind} pts behind P${userRank - 1}` : "Chasing Podium"})`}
+          </span>
+        </div>
+        <div className={styles.perfItem}>
+          <span className={styles.perfLabel}>BEST QUALIFYING LAP</span>
+          <span className={styles.perfValue} style={{ color: "var(--accent-subtle-text)" }}>12.84s</span>
+        </div>
+        <div className={styles.perfItem}>
+          <span className={styles.perfLabel}>PRE-RACE READINESS</span>
+          <span className={styles.perfValue} style={{ color: readinessScore === 100 ? "#10b981" : "#7dd3e8" }}>
+            {readinessScore}% {readinessScore === 100 ? "· Track Ready" : "· In Inspection"}
+          </span>
         </div>
       </div>
 
-      {/* ===== Zone 02: Interactive Pit Bay (Actionable Workstation) ===== */}
+      {/* ===== 01: Championship Standings (First Box) ===== */}
       <div className={styles.sectionHeaderWrap}>
         <div className={styles.sectionHeaderLeft}>
-          <span className={styles.sectionCategoryTag}>
-            <Wrench size={12} />
-            ZONE 02 // PIT LANE WORKSHOP
-          </span>
-          <h3 className={styles.sectionGroupTitle}>Manual Hardware Inspection & Practice Drills</h3>
+          <h3 className={styles.sectionGroupTitle}>Championship Standings</h3>
+        </div>
+      </div>
+
+      {/* ===== Section: Podium, Rivalry & Live Grid Standings ===== */}
+      <section className={styles.standingsSection}>
+        <div className={styles.cardHeaderTitle}>
+          <div className={styles.hubTitle} style={{ fontSize: "20px" }}>
+            <Award size={22} color="#fbbf24" />
+            <span>Active Grid Standings & Top 3 Podium</span>
+          </div>
+          <Link href="/dashboard/leaderboard" style={{ fontSize: "13px", color: "var(--accent-subtle-text)", textDecoration: "none", display: "flex", alignItems: "center", gap: 4 }}>
+            <span>Full Standings (8 Teams)</span>
+            <ChevronRight size={14} />
+          </Link>
+        </div>
+
+        {/* 3D-styled Dynamic Podium */}
+        <div className={styles.podiumRow}>
+          {/* Gold - P1 */}
+          <motion.div 
+            className={`${styles.podiumCard} ${styles.podiumCardGold}`}
+            whileHover={{ y: -5, scale: 1.02 }}
+            transition={{ type: "spring", stiffness: 350, damping: 22 }}
+          >
+            <div className={`${styles.podiumRank} ${styles.podiumRankGold}`}>1</div>
+            <div className={styles.podiumDetails}>
+              <h4>
+                {allRankedTeams[0].name}
+                {allRankedTeams[0].isUserTeam && (
+                  <span className={styles.userSquadTag} style={{ marginLeft: 6 }}>YOUR SQUAD</span>
+                )}
+              </h4>
+              <p>{allRankedTeams[0].school} • {allRankedTeams[0].car}</p>
+            </div>
+            <div className={styles.podiumPts} style={{ color: "#fbbf24" }}>{allRankedTeams[0].points.toLocaleString()} pts</div>
+          </motion.div>
+
+          {/* Silver - P2 */}
+          <motion.div 
+            className={`${styles.podiumCard} ${styles.podiumCardSilver}`}
+            whileHover={{ y: -5, scale: 1.02 }}
+            transition={{ type: "spring", stiffness: 350, damping: 22 }}
+          >
+            <div className={`${styles.podiumRank} ${styles.podiumRankSilver}`}>2</div>
+            <div className={styles.podiumDetails}>
+              <h4>
+                {allRankedTeams[1].name}
+                {allRankedTeams[1].isUserTeam && (
+                  <span className={styles.userSquadTag} style={{ marginLeft: 6 }}>YOUR SQUAD</span>
+                )}
+              </h4>
+              <p>{allRankedTeams[1].school} • {allRankedTeams[1].car}</p>
+            </div>
+            <div className={styles.podiumPts} style={{ color: "#9ca3af" }}>{allRankedTeams[1].points.toLocaleString()} pts</div>
+          </motion.div>
+
+          {/* Bronze - P3 */}
+          <motion.div 
+            className={`${styles.podiumCard} ${styles.podiumCardBronze}`}
+            whileHover={{ y: -5, scale: 1.02 }}
+            transition={{ type: "spring", stiffness: 350, damping: 22 }}
+          >
+            <div className={`${styles.podiumRank} ${styles.podiumRankBronze}`}>3</div>
+            <div className={styles.podiumDetails}>
+              <h4>
+                {allRankedTeams[2].name}
+                {allRankedTeams[2].isUserTeam && (
+                  <span className={styles.userSquadTag} style={{ marginLeft: 6 }}>YOUR SQUAD</span>
+                )}
+              </h4>
+              <p>{allRankedTeams[2].school} • {allRankedTeams[2].car}</p>
+            </div>
+            <div className={styles.podiumPts} style={{ color: "#f59e0b" }}>{allRankedTeams[2].points.toLocaleString()} pts</div>
+          </motion.div>
+        </div>
+
+        {/* Dynamic Rivalry Indicator */}
+        <div className={styles.rivalryBar}>
+          <div className={styles.rivalryLeft}>
+            <Flag size={18} color="var(--accent-subtle-text)" />
+            <span>
+              Your Squad: <strong>#{userRank} {teamName}</strong> ({xp.toLocaleString()} XP)
+            </span>
+            <span style={{ opacity: 0.4 }}>|</span>
+            <span style={{ fontSize: "13px", opacity: 0.9 }}>
+              {userRank === 1 ? (
+                <span>👑 <strong>Championship Leader!</strong> Defend your P1 grid position!</span>
+              ) : userRank <= 3 ? (
+                <span>🎉 <strong>Podium Position Secured!</strong> Only <strong>{ptsBehind} XP behind #{userRank - 1} [{teamAhead?.name}]</strong> for the next position!</span>
+              ) : (
+                <span>Only <strong>{ptsBehind} XP behind #{userRank - 1} [{teamAhead?.name}]</strong>! Complete pit tasks or checks to climb the podium!</span>
+              )}
+            </span>
+          </div>
+
+          <div className={styles.rivalryDelta}>
+            {userRank === 1 ? "P1 LEADER" : `GAP: -${ptsBehind} XP`}
+          </div>
+        </div>
+
+        {/* Mobile Swipe Hint */}
+        <div className={styles.mobileSwipeHint}>
+          ← Swipe table horizontally to inspect lap times & telemetry →
+        </div>
+
+        {/* Full Grid Standings & Team Telemetry Table */}
+        <div className={styles.standingsTableContainer}>
+          <table className={styles.standingsTable}>
+            <thead className={styles.standingsThead}>
+              <tr>
+                <th>Grid Pos</th>
+                <th>Team & School</th>
+                <th>RC Chassis</th>
+                <th>Best Lap</th>
+                <th>Top Speed</th>
+                <th style={{ textAlign: "right" }}>Total Points</th>
+              </tr>
+            </thead>
+            <tbody>
+              {allRankedTeams.map((t) => (
+                <tr 
+                  key={t.id} 
+                  className={`${styles.standingsRow} ${t.isUserTeam ? styles.standingsUserRow : ""}`}
+                >
+                  <td className={styles.standingsCell}>
+                    <div 
+                      className={`${styles.standingsRankBadge} ${
+                        t.rank === 1 ? styles.rankP1 : 
+                        t.rank === 2 ? styles.rankP2 : 
+                        t.rank === 3 ? styles.rankP3 : 
+                        styles.rankOther
+                      }`}
+                    >
+                      #{t.rank}
+                    </div>
+                  </td>
+                  <td className={styles.standingsCell}>
+                    <div className={styles.teamMetaTitle}>
+                      <span>{t.name}</span>
+                      {t.isUserTeam && (
+                        <span className={styles.userSquadTag}>YOUR SQUAD • LIVE</span>
+                      )}
+                    </div>
+                    <div className={styles.teamMetaSchool}>{t.school}</div>
+                  </td>
+                  <td className={styles.standingsCell} style={{ color: "var(--text-muted)", fontSize: "12px" }}>
+                    {t.car}
+                  </td>
+                  <td className={styles.standingsCell}>
+                    <span className={styles.lapTimeBadge}>{t.bestLap}</span>
+                  </td>
+                  <td className={styles.standingsCell}>
+                    <span className={styles.speedBadge}>{t.topSpeed}</span>
+                  </td>
+                  <td className={styles.standingsCell}>
+                    <div className={styles.teamPointsBadge}>
+                      {t.points.toLocaleString()} pts
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      {/* ===== Car Safety Check & Practice Tasks ===== */}
+      <div className={styles.sectionHeaderWrap}>
+        <div className={styles.sectionHeaderLeft}>
+          <h3 className={styles.sectionGroupTitle}>Car Safety Check & Practice Tasks</h3>
         </div>
         <div className={styles.sectionStatusPill}>
           {passedCount === 6 ? (
             <span className={styles.paddockClearedPill}>
-              <CheckCircle2 size={13} /> PADDOCK CLEARED FOR TRACK
+              <CheckCircle2 size={13} /> READY TO DRIVE
             </span>
           ) : (
             <span className={styles.paddockActionPill}>
-              <Wrench size={13} /> {6 - passedCount} CHECKS REQUIRED BEFORE RACE
+              <Wrench size={13} /> {6 - passedCount} CHECKS LEFT
             </span>
           )}
         </div>
@@ -815,290 +857,80 @@ export default function TournamentOverview() {
 
       </div>
 
-      {/* ===== Interactive Quick Pit Tasks & Practice Drills ===== */}
-      <div className={styles.pitTasksCard}>
-        <div className={styles.cardHeaderTitle}>
-          <div className={styles.telemetryHeading}>
-            <Sparkles size={18} color="#10b981" />
-            <span>Quick Pit Tasks & Practice Drills</span>
-          </div>
-          <span className={styles.localSimNotice}>
-            <Zap size={11} /> Click to Complete • Local Points
-          </span>
-        </div>
-
-        <div className={styles.pitTasksGrid}>
-          {pitTasks.map((task) => {
-            const isDone = !!completedTasks[task.id];
-            const Icon = task.icon;
-            return (
-              <motion.div
-                key={task.id}
-                className={`${styles.pitTaskItem} ${isDone ? styles.pitTaskItemDone : ""}`}
-                onClick={() => handleCompletePitTask(task.id, task.points, task.title)}
-                whileHover={{ y: -2, scale: 1.01 }}
-                whileTap={{ scale: 0.985 }}
-                transition={{ type: "spring", stiffness: 450, damping: 25 }}
-              >
-                <div className={styles.pitTaskLeft}>
-                  <div className={`${styles.pitTaskIconWrap} ${isDone ? styles.pitTaskIconWrapDone : ""}`}>
-                    <Icon size={17} />
-                  </div>
-                  <div className={styles.pitTaskMeta}>
-                    <h5>{task.title}</h5>
-                    <p>{task.desc}</p>
-                  </div>
-                </div>
-
-                <div>
-                  {isDone ? (
-                    <span className={styles.pitTaskDoneBadge}>
-                      <CheckCircle2 size={12} />
-                      <span>Done (+{task.points} XP)</span>
-                    </span>
-                  ) : (
-                    <button
-                      type="button"
-                      className={styles.pitTaskActionBtn}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleCompletePitTask(task.id, task.points, task.title);
-                      }}
-                    >
-                      <Zap size={11} />
-                      <span>+{task.points} XP</span>
-                    </button>
-                  )}
-                </div>
-              </motion.div>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* ===== Zone 03: Championship Telemetry & Benchmark Standings ===== */}
+      {/* ===== 03: Grand Prix Race Countdown (Bottom of Screen) ===== */}
       <div className={styles.sectionHeaderWrap}>
         <div className={styles.sectionHeaderLeft}>
-          <span className={styles.sectionCategoryTag}>
-            <Flag size={12} />
-            ZONE 03 // CHAMPIONSHIP TELEMETRY
-          </span>
-          <h3 className={styles.sectionGroupTitle}>Championship Standings & Benchmark Grid</h3>
+          <h3 className={styles.sectionGroupTitle}>Next Race</h3>
         </div>
       </div>
 
-      {/* ===== Bottom Section: Podium, Rivalry & Live Grid Standings ===== */}
-      <section className={styles.standingsSection}>
-        <div className={styles.cardHeaderTitle}>
-          <div className={styles.hubTitle} style={{ fontSize: "20px" }}>
-            <Award size={22} color="#fbbf24" />
-            <span>Active Grid Standings & Top 3 Podium</span>
+      <div className={styles.grandPrixCard}>
+        <div>
+          <div className={styles.eventMeta}>
+            <div>
+              <h2 className={styles.eventTitle}>
+                {tournament?.title || "Hanbee RC Cup 2026"}
+              </h2>
+              <div className={styles.eventCircuit}>
+                <Compass size={14} color="#7dd3e8" />
+                <span>{tournament?.venue || "Hanbee Track, Chennai"}</span>
+              </div>
+            </div>
+
+            <div style={{ fontFamily: "monospace", fontSize: "12px", color: "var(--text-muted)" }}>
+              <div><CalendarDays size={13} style={{ display: "inline", marginRight: 4 }} /> {tournament?.starts_at ? new Date(tournament.starts_at).toLocaleDateString([], { month: "short", day: "numeric", year: "numeric" }) : "Oct 24, 2026"}</div>
+              <div>{tournament?.starts_at ? new Date(tournament.starts_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "10:00 AM IST"}</div>
+            </div>
           </div>
-          <Link href="/dashboard/leaderboard" style={{ fontSize: "13px", color: "var(--accent-subtle-text)", textDecoration: "none", display: "flex", alignItems: "center", gap: 4 }}>
-            <span>Full Standings (8 Teams)</span>
-            <ChevronRight size={14} />
+
+          {/* F1 5-Light Start Gantry */}
+          <div className={styles.f1Gantry}>
+            {[1, 2, 3, 4, 5].map((light) => (
+              <div key={light} className={styles.f1LightHousing}>
+                <div 
+                  className={styles.f1LightRed} 
+                  style={{ animationDelay: `${light * 0.18}s` }} 
+                />
+              </div>
+            ))}
+          </div>
+
+          {/* Live Countdown Display */}
+          <div className={styles.countdownGrid}>
+            <div className={styles.countdownBox}>
+              <span className={styles.countdownDigit}>{String(timeLeft.days).padStart(2, "0")}</span>
+              <span className={styles.countdownUnit}>Days</span>
+            </div>
+            <div className={styles.countdownBox}>
+              <span className={styles.countdownDigit}>{String(timeLeft.hours).padStart(2, "0")}</span>
+              <span className={styles.countdownUnit}>Hours</span>
+            </div>
+            <div className={styles.countdownBox}>
+              <span className={styles.countdownDigit}>{String(timeLeft.minutes).padStart(2, "0")}</span>
+              <span className={styles.countdownUnit}>Minutes</span>
+            </div>
+            <div className={styles.countdownBox}>
+              <span className={styles.countdownDigit} style={{ color: "var(--accent-subtle-text)" }}>{String(timeLeft.seconds).padStart(2, "0")}</span>
+              <span className={styles.countdownUnit}>Seconds</span>
+            </div>
+          </div>
+        </div>
+
+        <div className={styles.countdownActions}>
+          <Link href="/dashboard/license" className={styles.licenseActionBtn}>
+            <IdCard size={15} />
+            <span>Driver License</span>
+          </Link>
+          <Link href={teamHref} className={styles.paddockBtn}>
+            <Users size={15} />
+            <span>{team ? "Manage Race Team" : "Register Race Team"}</span>
+          </Link>
+          <Link href="/dashboard/leaderboard" className={styles.gridBtn}>
+            <Flag size={15} />
+            <span>Live Grid Standings</span>
           </Link>
         </div>
-
-        {/* Benchmark Notice Banner (Transparency for simulated vs live teams) */}
-        {isSimulated && (
-          <div className={styles.benchmarkNotice}>
-            <span className={styles.simBadge}>SIMULATED BENCHMARK GRID</span>
-            <span className={styles.simNoticeText}>
-              7 rival squads are simulated AI benchmark targets for telemetry testing. Your squad (<strong>{teamName}</strong>) telemetry is live.
-            </span>
-          </div>
-        )}
-
-        {/* 3D-styled Dynamic Podium */}
-        <div className={styles.podiumRow}>
-          {/* Gold - P1 */}
-          <motion.div 
-            className={`${styles.podiumCard} ${styles.podiumCardGold}`}
-            whileHover={{ y: -5, scale: 1.02 }}
-            transition={{ type: "spring", stiffness: 350, damping: 22 }}
-          >
-            <div className={`${styles.podiumRank} ${styles.podiumRankGold}`}>1</div>
-            <div className={styles.podiumDetails}>
-              <h4>
-                {allRankedTeams[0].name}
-                {allRankedTeams[0].isUserTeam ? (
-                  <span className={styles.userSquadTag} style={{ marginLeft: 6 }}>YOUR SQUAD</span>
-                ) : isSimulated ? (
-                  <span className={styles.simSquadTag} style={{ marginLeft: 6 }}>BENCHMARK</span>
-                ) : (
-                  <span className={styles.userSquadTag} style={{ marginLeft: 6, background: "rgba(16, 185, 129, 0.15)", color: "#10b981" }}>OFFICIAL</span>
-                )}
-              </h4>
-              <p>{allRankedTeams[0].school} • {allRankedTeams[0].car}</p>
-            </div>
-            <div className={styles.podiumPts} style={{ color: "#fbbf24" }}>{allRankedTeams[0].points.toLocaleString()} pts</div>
-          </motion.div>
-
-          {/* Silver - P2 */}
-          <motion.div 
-            className={`${styles.podiumCard} ${styles.podiumCardSilver}`}
-            whileHover={{ y: -5, scale: 1.02 }}
-            transition={{ type: "spring", stiffness: 350, damping: 22 }}
-          >
-            <div className={`${styles.podiumRank} ${styles.podiumRankSilver}`}>2</div>
-            <div className={styles.podiumDetails}>
-              <h4>
-                {allRankedTeams[1].name}
-                {allRankedTeams[1].isUserTeam ? (
-                  <span className={styles.userSquadTag} style={{ marginLeft: 6 }}>YOUR SQUAD</span>
-                ) : isSimulated ? (
-                  <span className={styles.simSquadTag} style={{ marginLeft: 6 }}>BENCHMARK</span>
-                ) : (
-                  <span className={styles.userSquadTag} style={{ marginLeft: 6, background: "rgba(16, 185, 129, 0.15)", color: "#10b981" }}>OFFICIAL</span>
-                )}
-              </h4>
-              <p>{allRankedTeams[1].school} • {allRankedTeams[1].car}</p>
-            </div>
-            <div className={styles.podiumPts} style={{ color: "#9ca3af" }}>{allRankedTeams[1].points.toLocaleString()} pts</div>
-          </motion.div>
-
-          {/* Bronze - P3 */}
-          <motion.div 
-            className={`${styles.podiumCard} ${styles.podiumCardBronze}`}
-            whileHover={{ y: -5, scale: 1.02 }}
-            transition={{ type: "spring", stiffness: 350, damping: 22 }}
-          >
-            <div className={`${styles.podiumRank} ${styles.podiumRankBronze}`}>3</div>
-            <div className={styles.podiumDetails}>
-              <h4>
-                {allRankedTeams[2].name}
-                {allRankedTeams[2].isUserTeam ? (
-                  <span className={styles.userSquadTag} style={{ marginLeft: 6 }}>YOUR SQUAD</span>
-                ) : isSimulated ? (
-                  <span className={styles.simSquadTag} style={{ marginLeft: 6 }}>BENCHMARK</span>
-                ) : (
-                  <span className={styles.userSquadTag} style={{ marginLeft: 6, background: "rgba(16, 185, 129, 0.15)", color: "#10b981" }}>OFFICIAL</span>
-                )}
-              </h4>
-              <p>{allRankedTeams[2].school} • {allRankedTeams[2].car}</p>
-            </div>
-            <div className={styles.podiumPts} style={{ color: "#f59e0b" }}>{allRankedTeams[2].points.toLocaleString()} pts</div>
-          </motion.div>
-        </div>
-
-        {/* Dynamic Rivalry Indicator */}
-        <div className={styles.rivalryBar}>
-          <div className={styles.rivalryLeft}>
-            <Flag size={18} color="var(--accent-subtle-text)" />
-            <span>
-              Your Squad: <strong>#{userRank} {teamName}</strong> ({xp.toLocaleString()} XP)
-            </span>
-            <span style={{ opacity: 0.4 }}>|</span>
-            <span style={{ fontSize: "13px", opacity: 0.9 }}>
-              {userRank === 1 ? (
-                <span>👑 <strong>Championship Leader!</strong> Defend your P1 grid position!</span>
-              ) : userRank <= 3 ? (
-                <span>🎉 <strong>Podium Position Secured!</strong> Only <strong>{ptsBehind} XP behind #{userRank - 1} [{teamAhead?.name}]</strong> for the next position!</span>
-              ) : (
-                <span>Only <strong>{ptsBehind} XP behind #{userRank - 1} [{teamAhead?.name}]</strong>! Complete pit tasks or checks to climb the podium!</span>
-              )}
-            </span>
-          </div>
-
-          <div className={styles.rivalryDelta}>
-            {userRank === 1 ? "P1 LEADER" : `GAP: -${ptsBehind} XP`}
-          </div>
-        </div>
-
-        {/* Mobile Swipe Hint */}
-        <div className={styles.mobileSwipeHint}>
-          ← Swipe table horizontally to inspect lap times & telemetry →
-        </div>
-
-        {/* Full Grid Standings & Team Telemetry Table */}
-        <div className={styles.standingsTableContainer}>
-          <table className={styles.standingsTable}>
-            <thead className={styles.standingsThead}>
-              <tr>
-                <th>Grid Pos</th>
-                <th>Team & School</th>
-                <th>RC Chassis</th>
-                <th>Best Lap</th>
-                <th>Top Speed</th>
-                <th>Pit Readiness</th>
-                <th>Status</th>
-                <th style={{ textAlign: "right" }}>Total Points</th>
-              </tr>
-            </thead>
-            <tbody>
-              {allRankedTeams.map((t) => (
-                <tr 
-                  key={t.id} 
-                  className={`${styles.standingsRow} ${t.isUserTeam ? styles.standingsUserRow : ""}`}
-                >
-                  <td className={styles.standingsCell}>
-                    <div 
-                      className={`${styles.standingsRankBadge} ${
-                        t.rank === 1 ? styles.rankP1 : 
-                        t.rank === 2 ? styles.rankP2 : 
-                        t.rank === 3 ? styles.rankP3 : 
-                        styles.rankOther
-                      }`}
-                    >
-                      #{t.rank}
-                    </div>
-                  </td>
-                  <td className={styles.standingsCell}>
-                    <div className={styles.teamMetaTitle}>
-                      <span>{t.name}</span>
-                      {t.isUserTeam ? (
-                        <span className={styles.userSquadTag}>YOUR SQUAD • LIVE</span>
-                      ) : isSimulated ? (
-                        <span className={styles.simSquadTag}>BENCHMARK SIM</span>
-                      ) : (
-                        <span className={styles.userSquadTag} style={{ background: "rgba(16, 185, 129, 0.15)", color: "#10b981" }}>OFFICIAL ENTRY</span>
-                      )}
-                    </div>
-                    <div className={styles.teamMetaSchool}>{t.school}</div>
-                  </td>
-                  <td className={styles.standingsCell} style={{ color: "var(--text-muted)", fontSize: "12px" }}>
-                    {t.car}
-                  </td>
-                  <td className={styles.standingsCell}>
-                    <span className={styles.lapTimeBadge}>{t.bestLap}</span>
-                  </td>
-                  <td className={styles.standingsCell}>
-                    <span className={styles.speedBadge}>{t.topSpeed}</span>
-                  </td>
-                  <td className={styles.standingsCell}>
-                    <div className={styles.readinessBarWrap}>
-                      <div className={styles.readinessBarBg}>
-                        <div 
-                          className={styles.readinessBarFill} 
-                          style={{ width: `${t.readiness}%` }}
-                        />
-                      </div>
-                      <span className={styles.readinessBarText}>{t.readiness}%</span>
-                    </div>
-                  </td>
-                  <td className={styles.standingsCell}>
-                    <span 
-                      className={`${styles.statusPill} ${
-                        t.statusType === "active" ? styles.statusActive : 
-                        t.statusType === "tuning" ? styles.statusTuning : 
-                        styles.statusPaddock
-                      }`}
-                    >
-                      {t.status}
-                    </span>
-                  </td>
-                  <td className={styles.standingsCell}>
-                    <div className={styles.teamPointsBadge}>
-                      {t.points.toLocaleString()} pts
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </section>
+      </div>
 
     </div>
   );

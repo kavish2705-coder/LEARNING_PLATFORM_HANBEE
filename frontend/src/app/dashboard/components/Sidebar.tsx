@@ -45,10 +45,11 @@ const schoolMenu = [
 ];
 const staffMenu = [
   { name: "My Space", href: "/dashboard/hanbee/my-space", icon: LayoutDashboard },
+  { name: "Tournament Grid", href: "/dashboard/leaderboard", icon: Trophy },
   { name: "Learning overview", href: "/dashboard/hanbee/lms", icon: Activity },
   { name: "Schools", href: "/dashboard/hanbee/schools", icon: School },
   { name: "Courses", href: "/dashboard/hanbee/courses", icon: BookOpen },
-  { name: "Tournament entries", href: "/dashboard/hanbee/tournament", icon: Trophy },
+  { name: "Tournament entries", href: "/dashboard/hanbee/tournament", icon: Users },
   { name: "Applications", href: "/dashboard/hanbee/applications", icon: ClipboardList },
   { name: "Quiz reviews", href: "/dashboard/hanbee/assessment-reviews", icon: ClipboardCheck },
   { name: "Schedule", href: "/dashboard/hanbee/schedule", icon: CalendarDays },
@@ -59,13 +60,14 @@ const staffMenu = [
 ];
 const managerMenu = [
   { name: "Overview", href: "/dashboard/manager/monitor", icon: LayoutDashboard },
+  { name: "Tournament Grid", href: "/dashboard/leaderboard", icon: Trophy },
   { name: "Learning overview", href: "/dashboard/hanbee/lms", icon: Activity },
   { name: "Verifications", href: "/dashboard/manager/verifications", icon: UserCheck },
   { name: "Schools", href: "/dashboard/manager/schools", icon: School },
   { name: "Courses", href: "/dashboard/hanbee/courses", icon: BookOpen },
   { name: "Course applications", href: "/dashboard/hanbee/applications", icon: ClipboardList },
   { name: "Quiz reviews", href: "/dashboard/hanbee/assessment-reviews", icon: ClipboardCheck },
-  { name: "Tournament entries", href: "/dashboard/hanbee/tournament", icon: Trophy },
+  { name: "Tournament entries", href: "/dashboard/hanbee/tournament", icon: Users },
   { name: "Hanbee staff", href: "/dashboard/manager/hanbee-staff", icon: Users },
   { name: "Tasks", href: "/dashboard/manager/tasks", icon: ClipboardList },
   { name: "Schedule", href: "/dashboard/hanbee/schedule", icon: CalendarDays },

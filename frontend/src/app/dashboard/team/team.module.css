@@ -1,0 +1,741 @@
+/* ===== My Team & Squad Telemetry Styling ===== */
+
+.teamPage {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  animation: fadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Hero Team Banner */
+.heroBanner {
+  position: relative;
+  overflow: hidden;
+  background: var(--bg-card);
+  border-radius: var(--clay-radius-md);
+  box-shadow: var(--clay-shadow-outer);
+  border: var(--border-subtle);
+  padding: 32px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 24px;
+}
+
+.heroBanner::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 320px;
+  height: 100%;
+  background: radial-gradient(circle at right center, rgba(125, 211, 232, 0.08), transparent 70%);
+  pointer-events: none;
+}
+
+.heroLeft {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 1;
+}
+
+.metaRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.teamStatusBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-family: monospace;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  background: rgba(16, 185, 129, 0.12);
+  color: #10b981;
+  border: 1px solid rgba(16, 185, 129, 0.35);
+}
+
+.teamStatusDraft {
+  background: rgba(245, 158, 11, 0.12);
+  color: #f59e0b;
+  border-color: rgba(245, 158, 11, 0.35);
+}
+
+.schoolBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text-muted);
+  background: var(--bg-input);
+  padding: 4px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--border-subtle);
+}
+
+.teamName {
+  font-family: var(--font-heading);
+  font-size: clamp(28px, 3vw, 36px);
+  font-weight: 700;
+  color: var(--text-main);
+  letter-spacing: -0.02em;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.teamSubtitle {
+  font-size: 14px;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.heroRight {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  z-index: 1;
+  flex-wrap: wrap;
+}
+
+/* Team Points Pill - Grey slightly darker (#475569) as aligned */
+.pointsPill {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  background: var(--bg-surface-elevated);
+  box-shadow: var(--clay-shadow-button);
+  border: 1px solid var(--border-elevated);
+  padding: 12px 20px;
+  border-radius: var(--clay-radius-sm);
+}
+
+.pointsLabel {
+  font-size: 11px;
+  font-family: monospace;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: #475569; /* Slightly darker grey */
+}
+
+.pointsValue {
+  font-family: var(--font-heading);
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--accent-subtle-text);
+  line-height: 1.1;
+}
+
+/* Quick Metrics Row */
+.metricsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 16px;
+}
+
+.metricCard {
+  background: var(--bg-card);
+  box-shadow: var(--clay-shadow-outer);
+  border: var(--border-subtle);
+  border-radius: var(--clay-radius-sm);
+  padding: 18px 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.metricCard:hover {
+  transform: translateY(-2px);
+  border-color: rgba(125, 211, 232, 0.3);
+}
+
+.metricIconBox {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--accent-subtle-bg);
+  border: 1px solid var(--accent-subtle-border);
+  color: var(--accent-subtle-text);
+  flex-shrink: 0;
+}
+
+.metricInfo {
+  display: flex;
+  flex-direction: column;
+}
+
+.metricLabel {
+  font-size: 11px;
+  font-family: monospace;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.metricVal {
+  font-family: var(--font-heading);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-top: 2px;
+}
+
+.metricSub {
+  font-size: 11px;
+  color: #10b981;
+  font-weight: 500;
+}
+
+/* Tabs Navigation */
+.tabsBar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  padding-bottom: 12px;
+  overflow-x: auto;
+}
+
+.tabButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  background: transparent;
+  color: var(--text-muted);
+  border: 1px solid transparent;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.tabButton:hover {
+  color: var(--text-main);
+  background: var(--bg-surface-elevated);
+}
+
+.tabButtonActive {
+  color: var(--accent-subtle-text);
+  background: var(--accent-subtle-bg);
+  border-color: var(--accent-subtle-border);
+  box-shadow: 0 0 16px rgba(8, 145, 178, 0.15);
+}
+
+/* Capacity Slots Tracker */
+.slotsBanner {
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--border-elevated);
+  border-radius: var(--clay-radius-sm);
+  padding: 18px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.slotsInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.slotsTitle {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-main);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.slotsDesc {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.slotsVisual {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.slotPill {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  font-family: monospace;
+}
+
+.slotFilled {
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.45);
+  color: #10b981;
+}
+
+.slotEmpty {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px dashed rgba(255, 255, 255, 0.15);
+  color: var(--text-muted);
+}
+
+/* Drivers Roster Grid */
+.rosterGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 20px;
+}
+
+.driverCard {
+  background: var(--bg-card);
+  box-shadow: var(--clay-shadow-outer);
+  border: var(--border-subtle);
+  border-radius: var(--clay-radius-md);
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  position: relative;
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.driverCard:hover {
+  transform: translateY(-2px);
+  border-color: rgba(125, 211, 232, 0.25);
+}
+
+.driverCardSelf {
+  border-color: rgba(125, 211, 232, 0.45);
+  box-shadow: 0 0 20px rgba(8, 145, 178, 0.12), var(--clay-shadow-outer);
+}
+
+.driverHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.driverProfile {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.driverAvatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--border-elevated);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 16px;
+  color: var(--text-main);
+}
+
+.driverAvatarSelf {
+  background: var(--accent-subtle-bg);
+  border-color: var(--accent-subtle-border);
+  color: var(--accent-subtle-text);
+}
+
+.driverNameRow {
+  display: flex;
+  flex-direction: column;
+}
+
+.driverName {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-main);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.driverRole {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-family: monospace;
+}
+
+.driverBadge {
+  font-size: 10px;
+  font-family: monospace;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 6px;
+  text-transform: uppercase;
+}
+
+.badgeCaptain {
+  background: rgba(245, 158, 11, 0.15);
+  color: #f59e0b;
+  border: 1px solid rgba(245, 158, 11, 0.35);
+}
+
+.badgeYou {
+  background: rgba(125, 211, 232, 0.15);
+  color: var(--accent-subtle-text);
+  border: 1px solid rgba(125, 211, 232, 0.35);
+}
+
+/* Telemetry Mini Board */
+.driverTelemetry {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  background: var(--bg-surface-elevated);
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--border-elevated);
+}
+
+.telemItem {
+  display: flex;
+  flex-direction: column;
+}
+
+.telemKey {
+  font-size: 10px;
+  font-family: monospace;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+.telemVal {
+  font-size: 14px;
+  font-family: monospace;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-top: 2px;
+}
+
+.fastLapHighlight {
+  color: #a855f7; /* Purple F1 fast lap indicator */
+}
+
+/* Read Only / Protection Badge */
+.readOnlyGuard {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 8px;
+  font-size: 11px;
+  color: #94a3b8;
+}
+
+.readOnlyGuardLock {
+  color: #64748b;
+  flex-shrink: 0;
+}
+
+.selfActiveBadge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  background: rgba(16, 185, 129, 0.08);
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  border-radius: 8px;
+  font-size: 11px;
+  color: #10b981;
+  font-weight: 500;
+}
+
+/* Telemetry Simulator / Practice Logger */
+.loggerContainer {
+  background: var(--bg-card);
+  box-shadow: var(--clay-shadow-outer);
+  border: var(--border-subtle);
+  border-radius: var(--clay-radius-md);
+  padding: 26px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.loggerHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.loggerTitleGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.loggerTitle {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-main);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.loggerDesc {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.runSimBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--accent-subtle-bg);
+  border: 1px solid var(--accent-subtle-border);
+  color: var(--accent-subtle-text);
+  padding: 10px 20px;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.runSimBtn:hover:not(:disabled) {
+  background: rgba(125, 211, 232, 0.2);
+  transform: translateY(-1px);
+  box-shadow: 0 0 16px rgba(8, 145, 178, 0.25);
+}
+
+.runSimBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Laps Comparison Table */
+.timingTableWrapper {
+  overflow-x: auto;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: var(--bg-surface-elevated);
+}
+
+.timingTable {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 13px;
+}
+
+.timingTable th {
+  padding: 12px 16px;
+  font-family: monospace;
+  font-size: 11px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  background: rgba(0, 0, 0, 0.2);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.timingTable td {
+  padding: 12px 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  color: var(--text-main);
+  font-family: monospace;
+}
+
+.timingTable tr:last-child td {
+  border-bottom: none;
+}
+
+.timingTable tr:hover td {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.purpleText {
+  color: #c084fc;
+  font-weight: 700;
+}
+
+.greenText {
+  color: #34d399;
+  font-weight: 600;
+}
+
+/* Team Formation Form Cards */
+.formSection {
+  background: var(--bg-card);
+  box-shadow: var(--clay-shadow-outer);
+  border: var(--border-subtle);
+  border-radius: var(--clay-radius-md);
+  padding: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.formHeader {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.formTitle {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.formSubtitle {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.inlineForm {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.textInput {
+  flex: 1;
+  min-width: 240px;
+  background: var(--bg-input);
+  border: 1px solid var(--border-elevated);
+  box-shadow: var(--clay-shadow-active);
+  border-radius: 10px;
+  padding: 10px 16px;
+  color: var(--text-main);
+  font-size: 14px;
+  outline: none;
+}
+
+.textInput:focus {
+  border-color: var(--accent-subtle-border);
+  box-shadow: 0 0 0 2px rgba(8, 145, 178, 0.2);
+}
+
+.actionBtn {
+  background: var(--accent-subtle-bg);
+  border: 1px solid var(--accent-subtle-border);
+  color: var(--accent-subtle-text);
+  padding: 10px 22px;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.actionBtn:hover:not(:disabled) {
+  background: rgba(125, 211, 232, 0.25);
+  box-shadow: 0 0 16px rgba(8, 145, 178, 0.3);
+}
+
+.actionBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.secondaryBtn {
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--border-elevated);
+  color: var(--text-main);
+  padding: 10px 20px;
+  border-radius: 10px;
+  font-weight: 500;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.secondaryBtn:hover:not(:disabled) {
+  background: var(--bg-card-hover);
+  border-color: var(--text-muted);
+}
+
+.dangerBtn {
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #ef4444;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.dangerBtn:hover {
+  background: rgba(239, 68, 68, 0.2);
+}
+
+/* Notice & Alert */
+.noticeAlert {
+  padding: 14px 18px;
+  border-radius: 12px;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.noticeAlertSuccess {
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  color: #10b981;
+}
+
+.noticeAlertError {
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  color: #ef4444;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .heroBanner {
+    padding: 20px;
+  }
+  .pointsPill {
+    align-items: flex-start;
+    width: 100%;
+  }
+  .metricsGrid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .rosterGrid {
+    grid-template-columns: 1fr;
+  }
+}

@@ -3,8 +3,9 @@
 .licensePage {
   display: flex;
   flex-direction: column;
-  gap: 32px;
-  max-width: 1200px;
+  gap: 24px;
+  max-width: 1280px;
+  width: 100%;
   margin: 0 auto;
   animation: fadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
@@ -20,10 +21,10 @@
   justify-content: space-between;
   align-items: center;
   flex-wrap: wrap;
-  gap: 20px;
+  gap: 16px;
   background: var(--bg-card);
-  padding: 24px 32px;
-  border-radius: var(--clay-radius-md, 24px);
+  padding: 20px 28px;
+  border-radius: var(--clay-radius-md, 20px);
   box-shadow: var(--clay-shadow-outer);
   border: var(--border-subtle);
   backdrop-filter: blur(16px);
@@ -33,29 +34,17 @@
 .headerLeft {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
 }
 
 .federationPill {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  font-family: monospace;
-  font-size: 11px;
-  letter-spacing: 1.5px;
-  text-transform: uppercase;
-  color: var(--accent-subtle-text);
-  background: var(--accent-subtle-bg);
-  border: 1px solid var(--accent-subtle-border);
-  padding: 4px 12px;
-  border-radius: 999px;
-  width: fit-content;
+  display: none;
 }
 
 .pageTitle {
   font-family: var(--font-heading);
-  font-size: clamp(26px, 2.6vw, 34px);
-  font-weight: 600;
+  font-size: clamp(24px, 2.4vw, 30px);
+  font-weight: 700;
   color: var(--text-main);
   letter-spacing: -0.02em;
   margin: 0;
@@ -65,7 +54,7 @@
 }
 
 .pageSubtitle {
-  font-size: 14px;
+  font-size: 13.5px;
   color: var(--text-muted);
   margin: 0;
 }
@@ -85,7 +74,7 @@
   color: var(--btn-secondary-text);
   font-weight: 500;
   font-size: 13px;
-  padding: 10px 18px;
+  padding: 9px 18px;
   border-radius: 999px;
   cursor: pointer;
   text-decoration: none;
@@ -108,7 +97,7 @@
   border: 1px solid var(--accent-subtle-border);
   font-weight: 600;
   font-size: 13px;
-  padding: 10px 20px;
+  padding: 9px 20px;
   border-radius: 999px;
   cursor: pointer;
   box-shadow: var(--clay-shadow-button), var(--accent-glow);
@@ -125,8 +114,8 @@
 /* Main Layout Grid */
 .licenseGrid {
   display: grid;
-  grid-template-columns: 1.15fr 0.85fr;
-  gap: 32px;
+  grid-template-columns: minmax(0, 1.06fr) minmax(0, 0.94fr);
+  gap: 24px;
   align-items: start;
 }
 
@@ -146,14 +135,14 @@
 
 .licenseCard {
   position: relative;
-  border-radius: 26px;
+  border-radius: 24px;
   background: linear-gradient(135deg, rgba(24, 25, 32, 0.98) 0%, rgba(12, 13, 18, 0.99) 100%);
   border: 1px solid rgba(125, 211, 232, 0.3);
   box-shadow: 
     0 24px 60px -12px rgba(0, 0, 0, 0.85),
     0 0 40px rgba(8, 145, 178, 0.18),
     inset 0 1px 0 rgba(255, 255, 255, 0.25);
-  padding: 32px;
+  padding: 26px 28px;
   overflow: hidden;
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
@@ -173,7 +162,7 @@
 .cardSpecularGlare {
   position: absolute;
   inset: 0;
-  border-radius: 26px;
+  border-radius: 24px;
   pointer-events: none;
   mix-blend-mode: screen;
   z-index: 2;
@@ -213,8 +202,8 @@
   justify-content: space-between;
   align-items: center;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  padding-bottom: 18px;
-  margin-bottom: 24px;
+  padding-bottom: 16px;
+  margin-bottom: 20px;
 }
 
 .cardFederationTitle {
@@ -247,22 +236,22 @@
 .driverRow {
   display: flex;
   align-items: center;
-  gap: 22px;
-  margin-bottom: 28px;
+  gap: 18px;
+  margin-bottom: 22px;
 }
 
 .avatarContainer {
   position: relative;
-  width: 76px;
-  height: 76px;
-  border-radius: 20px;
+  width: 70px;
+  height: 70px;
+  border-radius: 18px;
   background: var(--color-primary);
   border: 2px solid var(--accent-subtle-border);
   display: flex;
   align-items: center;
   justify-content: center;
   font-family: var(--font-heading);
-  font-size: 28px;
+  font-size: 26px;
   font-weight: 700;
   color: var(--color-primary-text);
   box-shadow: var(--clay-shadow-button), var(--accent-glow);
@@ -277,12 +266,12 @@
 .driverInfoMeta {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 3px;
 }
 
 .driverName {
   font-family: var(--font-heading);
-  font-size: 24px;
+  font-size: 22px;
   font-weight: 700;
   color: #fff;
   margin: 0;
@@ -309,9 +298,9 @@
   gap: 12px;
   background: rgba(0, 0, 0, 0.35);
   border: 1px solid rgba(255, 255, 255, 0.05);
-  border-radius: 16px;
-  padding: 16px;
-  margin-bottom: 24px;
+  border-radius: 14px;
+  padding: 14px 16px;
+  margin-bottom: 20px;
 }
 
 .statItem {
@@ -329,7 +318,7 @@
 }
 
 .statValue {
-  font-size: 18px;
+  font-size: 17px;
   font-weight: 700;
   color: #fff;
   font-family: monospace;
@@ -345,7 +334,7 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
-  margin-bottom: 26px;
+  margin-bottom: 20px;
 }
 
 .xpHeader {
@@ -480,15 +469,15 @@
 .sidebarCol {
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 20px;
 }
 
 .infoCard {
   background: var(--bg-card);
   border: var(--border-subtle);
-  border-radius: var(--clay-radius-md, 24px);
+  border-radius: var(--clay-radius-md, 20px);
   box-shadow: var(--clay-shadow-outer);
-  padding: 24px;
+  padding: 20px 24px;
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   display: flex;
@@ -498,8 +487,8 @@
 
 .cardTitle {
   font-family: var(--font-heading);
-  font-size: 18px;
-  font-weight: 600;
+  font-size: 16px;
+  font-weight: 700;
   color: var(--text-main);
   margin: 0;
   display: flex;
@@ -509,20 +498,20 @@
 
 .badgesGrid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
 }
 
 .badgeCard {
   background: var(--bg-surface-elevated);
   border: 1px solid var(--border-elevated);
-  border-radius: 16px;
-  padding: 14px;
+  border-radius: 14px;
+  padding: 12px 14px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 5px;
   cursor: pointer;
-  transition: border-color 0.25s cubic-bezier(0.16, 1, 0.3, 1), background 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: border-color 0.25s cubic-bezier(0.16, 1, 0.3, 1), background 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1), transform 0.2s ease;
 }
 
 .badgeCard:hover {
@@ -538,14 +527,15 @@
 }
 
 .badgeIconWrap {
-  width: 28px;
-  height: 28px;
-  border-radius: 8px;
+  width: 26px;
+  height: 26px;
+  border-radius: 7px;
   background: var(--accent-subtle-bg);
   color: var(--accent-subtle-text);
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
 }
 
 .badgeName {
@@ -553,27 +543,31 @@
   font-weight: 600;
   color: var(--text-main);
   margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .badgeDesc {
   font-size: 11px;
   color: var(--text-muted);
   margin: 0;
+  line-height: 1.35;
 }
 
 /* Machine Registry Card */
 .registryList {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
 }
 
 .registryRow {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 13px;
-  padding: 8px 12px;
+  font-size: 12.5px;
+  padding: 9px 12px;
   border-radius: 10px;
   background: var(--bg-surface-elevated);
   border: 1px solid var(--border-elevated);
@@ -597,7 +591,7 @@
 }
 
 .returnPaddockLink {
-  margin-top: 8px;
+  margin-top: 4px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -607,7 +601,7 @@
   color: var(--accent-subtle-text);
   font-size: 13px;
   font-weight: 600;
-  padding: 12px;
+  padding: 11px 16px;
   border-radius: 12px;
   text-decoration: none;
   transition: all 0.2s ease;
@@ -663,5 +657,215 @@
     align-items: flex-start;
     gap: 12px;
   }
+}
+
+/* ===== Countdown Card on top of Achievements ===== */
+.countdownCard {
+  background: var(--bg-card);
+  border: var(--border-subtle);
+  border-radius: var(--clay-radius-md, 20px);
+  box-shadow: var(--clay-shadow-outer);
+  padding: 20px 24px;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.countdownHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.countdownTitleWrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.countdownBadge {
+  display: none;
+}
+
+.countdownTitle {
+  font-family: var(--font-heading);
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text-main);
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+.countdownTrack {
+  font-size: 12.5px;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.timerGrid {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--border-elevated);
+  border-radius: 14px;
+  padding: 12px 18px;
+}
+
+.timerSegment {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  flex: 1;
+}
+
+.timerNumber {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--text-main);
+  font-family: monospace;
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+
+.timerLabel {
+  font-size: 9px;
+  font-weight: 700;
+  font-family: monospace;
+  letter-spacing: 1.2px;
+  color: var(--text-muted);
+}
+
+.timerColon {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--accent-subtle-text);
+  line-height: 1;
+  margin-top: -8px;
+}
+
+/* ===== Light Theme Adaptation for License Card ===== */
+[data-theme="light"] .licenseCard {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.96) 0%, rgba(245, 247, 250, 0.98) 100%);
+  border: 1px solid rgba(79, 70, 229, 0.22);
+  box-shadow: 
+    0 20px 48px -12px rgba(0, 0, 0, 0.1),
+    0 0 32px rgba(79, 70, 229, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 1);
+}
+
+[data-theme="light"] .licenseCard:hover {
+  box-shadow: 
+    0 28px 60px -14px rgba(0, 0, 0, 0.15),
+    0 0 42px rgba(79, 70, 229, 0.16),
+    inset 0 1px 0 rgba(255, 255, 255, 1);
+}
+
+[data-theme="light"] .licenseCard::before {
+  background: linear-gradient(
+    45deg,
+    transparent 35%,
+    rgba(79, 70, 229, 0.04) 45%,
+    rgba(14, 165, 233, 0.06) 50%,
+    rgba(236, 72, 153, 0.04) 55%,
+    transparent 65%
+  );
+}
+
+[data-theme="light"] .cardHeader {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.07);
+}
+
+[data-theme="light"] .cardFederationTitle {
+  color: #4338ca;
+}
+
+[data-theme="light"] .licenseSuperBadge {
+  background: rgba(245, 158, 11, 0.12);
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  color: #b45309;
+}
+
+[data-theme="light"] .driverName {
+  color: #0f172a;
+}
+
+[data-theme="light"] .driverCallsign {
+  color: #4338ca;
+}
+
+[data-theme="light"] .driverChassis {
+  color: #475569;
+}
+
+[data-theme="light"] .statsTriple {
+  background: rgba(0, 0, 0, 0.035);
+  border: 1px solid rgba(0, 0, 0, 0.07);
+}
+
+[data-theme="light"] .statLabel {
+  color: #64748b;
+}
+
+[data-theme="light"] .statValue {
+  color: #0f172a;
+}
+
+[data-theme="light"] .statValueAccent {
+  color: #4338ca;
+  text-shadow: none;
+}
+
+[data-theme="light"] .xpHeader {
+  color: #334155;
+}
+
+[data-theme="light"] .xpTrack {
+  background: rgba(0, 0, 0, 0.08);
+}
+
+[data-theme="light"] .specsSheet {
+  background: rgba(0, 0, 0, 0.035);
+  border: 1px solid rgba(79, 70, 229, 0.16);
+  color: #1e293b;
+}
+
+[data-theme="light"] .specKey {
+  color: #4338ca;
+}
+
+[data-theme="light"] .specVal {
+  color: #0f172a;
+}
+
+[data-theme="light"] .cardFooter {
+  border-top: 1px solid rgba(0, 0, 0, 0.07);
+}
+
+[data-theme="light"] .barcodeBar {
+  background: rgba(15, 23, 42, 0.82);
+}
+
+[data-theme="light"] .licenseSerial {
+  color: #475569;
+}
+
+[data-theme="light"] .flipCardBtn {
+  background: rgba(79, 70, 229, 0.08);
+  border: 1px solid rgba(79, 70, 229, 0.22);
+  color: #4338ca;
+}
+
+[data-theme="light"] .flipCardBtn:hover {
+  background: rgba(79, 70, 229, 0.16);
+  border-color: #4338ca;
+  color: #312e81;
 }
 

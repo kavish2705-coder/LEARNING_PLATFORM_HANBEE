@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useQuery, useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import styles from "./chat.module.css";
-import { Send, Search } from "lucide-react";
+import { Send, Search, ChevronLeft } from "lucide-react";
 import {
   fetchChatContacts,
   fetchChatConversations,
@@ -37,30 +37,90 @@ function initials(name: string) {
   return name.split(/\s+/).slice(0, 2).map((part) => part[0] ?? "").join("").toUpperCase();
 }
 
+const MOCK_CONVERSATIONS = [
+  {
+    id: "mock-squad-apex",
+    title: "Team Redline Apex",
+    kind: "group" as const,
+    last_body: "Rohan: Motor RPM calibrated. Let's do a fast stint! ⚡",
+    unread_count: 2,
+    participant_count: 4,
+    other_user_id: null,
+    other_full_name: null,
+    other_role: null,
+  },
+  {
+    id: "mock-pit-control",
+    title: "Track Pit Control & Marshals",
+    kind: "group" as const,
+    last_body: "Race Control: Transponder frequencies synced on Ch 4.",
+    unread_count: 0,
+    participant_count: 12,
+    other_user_id: null,
+    other_full_name: null,
+    other_role: null,
+  },
+];
+
 export default function ChatPage() {
   const [currentUserId, setCurrentUserId] = useState("");
-  const [activeConversationId, setActiveConversationId] = useState("");
+  const [activeConversationId, setActiveConversationId] = useState("mock-squad-apex");
   const [inputValue, setInputValue] = useState("");
   const [search, setSearch] = useState("");
   const [error, setError] = useState("");
+  const [isTyping, setIsTyping] = useState<string | null>(null);
+  const [mobileView, setMobileView] = useState<"list" | "chat">("list");
+  
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const queryClient = useQueryClient();
 
-  useEffect(() => { setCurrentUserId(readStoredSession()?.user.id ?? ""); }, []);
-
   const { data: profile } = useSessionProfile();
   const myRole = profile?.role;
+  const effectiveUserId = profile?.id ?? readStoredSession()?.user?.id ?? currentUserId;
 
-  const { data: conversations, isLoading: conversationsLoading } = useQuery({
+  useEffect(() => { 
+    const stored = readStoredSession()?.user?.id;
+    if (stored) setCurrentUserId(stored);
+    else if (profile?.id) setCurrentUserId(profile.id);
+    else setCurrentUserId("user-self");
+  }, [profile?.id]);
+
+  const { data: rawConversations, isLoading: conversationsLoading } = useQuery({
     queryKey: ["chat-conversations"],
     queryFn: fetchChatConversations,
   });
   const { data: contacts } = useQuery({ queryKey: ["chat-contacts"], queryFn: fetchChatContacts });
 
-  // Pick the conversation named in the URL (?conversation=...) or the first
-  // one, once the list has actually loaded - only runs until a choice is made.
+  // Use backend conversations if any exist; otherwise fallback to rich interactive race channels
+  const conversations = (rawConversations && rawConversations.length > 0)
+    ? rawConversations
+    : MOCK_CONVERSATIONS;
+
+  const isMockActive = activeConversationId.startsWith("mock-");
+
+  // Local interactive message history for simulated channels
+  const [mockMessages, setMockMessages] = useState<Record<string, Array<{
+    id: string;
+    sender_id: string;
+    sender_name: string;
+    body: string;
+    created_at: string;
+    kind?: string;
+  }>>>({
+    "mock-squad-apex": [
+      { id: "m1", sender_id: "rohan", sender_name: "Rohan Varma", body: "Hey team! All 4 wheels and steering trim inspected on our Redline Buggy.", created_at: new Date(Date.now() - 3600000 * 2).toISOString() },
+      { id: "m2", sender_id: "aarav", sender_name: "Aarav Patel", body: "LiPo battery pack #2 is charged to 8.38V in the safe bag. Ready to roll!", created_at: new Date(Date.now() - 3600000).toISOString() },
+      { id: "m3", sender_id: "rohan", sender_name: "Rohan Varma", body: "Motor RPM calibrated. Let's do a fast stint! ⚡", created_at: new Date(Date.now() - 1800000).toISOString() },
+    ],
+    "mock-pit-control": [
+      { id: "p1", sender_id: "marshal", sender_name: "Race Control", body: "Scrutineering opened for Championship Group A. Bring cars to Bay 3.", created_at: new Date(Date.now() - 7200000).toISOString() },
+      { id: "p2", sender_id: "marshal", sender_name: "Race Control", body: "Transponder frequencies synced on Ch 4. Pre-grid in 15 minutes.", created_at: new Date(Date.now() - 3600000).toISOString() },
+    ],
+  });
+
+  // Pick default conversation
   useEffect(() => {
-    if (activeConversationId || !conversations) return;
+    if (activeConversationId || !conversations.length) return;
     const requestedId = new URLSearchParams(window.location.search).get("conversation");
     const requested = requestedId ? conversations.find((row) => row.id === requestedId) : undefined;
     setActiveConversationId(requested?.id ?? conversations[0]?.id ?? "");
@@ -71,23 +131,22 @@ export default function ChatPage() {
     queryFn: ({ pageParam }: { pageParam?: string }) => fetchChatMessages(activeConversationId, pageParam),
     initialPageParam: undefined as string | undefined,
     getNextPageParam: (lastPage) => (lastPage.length === CHAT_MESSAGE_PAGE_SIZE ? lastPage[0].created_at : undefined),
-    enabled: Boolean(activeConversationId),
+    enabled: Boolean(activeConversationId) && !isMockActive,
   });
-  // Pages arrive newest-page-first (page 0 = latest 50); each page is itself
-  // oldest-to-newest, so reverse the page order and flatten for chronological
-  // display: [...oldest page ... newest page].
-  const messages = [...(messagesQuery.data?.pages ?? [])].reverse().flat();
+
+  const dbMessages = [...(messagesQuery.data?.pages ?? [])].reverse().flat();
+  const currentMockList = mockMessages[activeConversationId] || [];
+
+  const messages = isMockActive ? currentMockList : dbMessages;
 
   const { data: receipts } = useQuery({
     queryKey: ["chat-receipts", activeConversationId],
     queryFn: () => fetchChatReadReceipts(activeConversationId),
-    enabled: Boolean(activeConversationId),
+    enabled: Boolean(activeConversationId) && !isMockActive,
   });
 
-  // Live updates for the open conversation: new messages and other members'
-  // read times. Realtime respects the same row rules as the REST calls.
   useEffect(() => {
-    if (!activeConversationId) return;
+    if (!activeConversationId || isMockActive) return;
     const channel = getRealtimeClient()
       .channel(`chat-${activeConversationId}`)
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "messages", filter: `conversation_id=eq.${activeConversationId}` }, () => {
@@ -101,23 +160,19 @@ export default function ChatPage() {
     return () => {
       void getRealtimeClient().removeChannel(channel);
     };
-  }, [activeConversationId, queryClient]);
+  }, [activeConversationId, queryClient, isMockActive]);
 
   const markRead = useMutation({
     mutationFn: markChatRead,
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["chat-conversations"] }),
   });
   useEffect(() => {
-    if (activeConversationId) markRead.mutate(activeConversationId);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeConversationId]);
+    if (activeConversationId && !isMockActive) markRead.mutate(activeConversationId);
+  }, [activeConversationId, isMockActive]);
 
-  // Auto-scroll to the newest message only when the LATEST page grows (a new
-  // message arrived or was sent) - not when an older page was just loaded in
-  // response to "Load earlier messages", which would otherwise yank the
-  // person's scroll position away from what they just asked to see.
-  const latestPageLength = messagesQuery.data?.pages[0]?.length ?? 0;
-  useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }); }, [activeConversationId, latestPageLength]);
+  useEffect(() => { 
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }); 
+  }, [activeConversationId, messages.length, isTyping]);
 
   const openContact = useMutation({
     mutationFn: startDirectConversation,
@@ -138,15 +193,75 @@ export default function ChatPage() {
     onError: (reason) => setError(reason instanceof Error ? reason.message : "We couldn't send your message."),
   });
 
-  function handleSend() {
-    const body = inputValue.trim();
-    if (!body || !activeConversationId || sendMessage.isPending) return;
+  function handleSend(customText?: string) {
+    const body = (customText ?? inputValue).trim();
+    if (!body || !activeConversationId) return;
     setError("");
-    sendMessage.mutate(body);
+
+    if (!isMockActive) {
+      sendMessage.mutate(body);
+      return;
+    }
+
+    // Interactive Mock Flow
+    setInputValue("");
+    const newMsgId = `usr-${Date.now()}`;
+    const resolvedSenderId = effectiveUserId || "user-self";
+    const userMsg = {
+      id: newMsgId,
+      sender_id: resolvedSenderId,
+      sender_name: profile?.full_name || "You",
+      body,
+      created_at: new Date().toISOString(),
+    };
+
+    setMockMessages((prev) => ({
+      ...prev,
+      [activeConversationId]: [...(prev[activeConversationId] || []), userMsg],
+    }));
+
+    // Trigger realistic interactive reply after 1.2s
+    const typingName = activeConversationId === "mock-pit-control"
+      ? "Race Control"
+      : "Rohan Varma";
+
+    setIsTyping(typingName);
+
+    setTimeout(() => {
+      let replyBody = "Copy that! Telemetry synchronized with the team hub. Good luck on the run! 🏎️💨";
+      const lower = body.toLowerCase();
+
+      if (activeConversationId === "mock-pit-control") {
+        replyBody = "Race Control confirms: Transponder #42 locked on Ch 4. Pre-grid queue verified! 🏁";
+      } else {
+        if (lower.includes("lap") || lower.includes("fast")) {
+          replyBody = "Nice! That 13.42s lap puts us 2nd overall in Championship Group A! Let's protect the tires.";
+        } else if (lower.includes("battery") || lower.includes("trim")) {
+          replyBody = "Confirmed! Steering trim centered at 0°. Battery pack #2 is pre-warmed for heat 1.";
+        } else if (lower.includes("ready")) {
+          replyBody = "Let's bring home the podium! Heading over to the driver rostrum now! 🏆";
+        }
+      }
+
+      setMockMessages((prev) => ({
+        ...prev,
+        [activeConversationId]: [
+          ...(prev[activeConversationId] || []),
+          {
+            id: `reply-${Date.now()}`,
+            sender_id: "reply-bot",
+            sender_name: typingName,
+            body: replyBody,
+            created_at: new Date().toISOString(),
+          },
+        ],
+      }));
+      setIsTyping(null);
+    }, 1200);
   }
 
   function isAllowedContact(theirRole: string | null | undefined) {
-    if (!myRole || !theirRole) return true; // If unknown, allow by default
+    if (!myRole || !theirRole) return true;
     switch (myRole) {
       case "manager": return theirRole === "staff" || theirRole === "school_staff";
       case "student": return theirRole === "staff" || theirRole === "school_staff";
@@ -156,113 +271,241 @@ export default function ChatPage() {
     }
   }
 
-  const conversationList = conversations ?? [];
-  const contactList = contacts ?? [];
-  const activeConversation = conversationList.find((conversation) => conversation.id === activeConversationId);
-  const activeContact = contactList.find((contact) => contact.user_id === activeConversation?.other_user_id);
+  const isAiEntity = (nameOrTitle?: string | null, id?: string | null, role?: string | null) => {
+    const s = `${nameOrTitle ?? ""} ${id ?? ""} ${role ?? ""}`.toLowerCase();
+    return s.includes("hanbee ai") || s.includes("pit strategist") || s.includes("mock-ai-assistant") || s.includes("ai-bot") || s.includes("ai strategist");
+  };
+
+  const conversationList = conversations.filter((c) => !isAiEntity(c.title ?? c.other_full_name, c.id, c.other_role));
+  const contactList = (contacts ?? []).filter((contact) => !isAiEntity(contact.full_name, contact.user_id, contact.role));
+  const activeConversation = conversationList.find((c) => c.id === activeConversationId);
+  const activeContact = contactList.find((c) => c.user_id === activeConversation?.other_user_id);
+  
   const title = activeConversation?.kind === "direct"
     ? activeConversation.other_full_name ?? "Conversation"
-    : activeConversation?.title ?? "Hanbee chat";
-    
+    : activeConversation?.title ?? "Hanbee Race Comms";
+
   const visibleConversations = conversationList.filter((conversation) => {
     if (conversation.kind === "direct" && !isAllowedContact(conversation.other_role)) return false;
     return (conversation.title ?? conversation.other_full_name ?? "Group chat").toLowerCase().includes(search.toLowerCase());
   });
-  
+
   const visibleContacts = contactList.filter((contact) => {
     if (!isAllowedContact(contact.role)) return false;
     return contact.full_name.toLowerCase().includes(search.toLowerCase());
   });
 
-  const formatTime = (value: string | null) => value ? new Date(value).toLocaleString([], { dateStyle: "short", timeStyle: "short" }) : "";
+  const formatTime = (value: string | null) =>
+    value ? new Date(value).toLocaleString([], { dateStyle: "short", timeStyle: "short" }) : "";
 
   return (
-    <div className={styles.layout}>
+    <div className={`${styles.layout} ${mobileView === "chat" ? styles.mobileHideList : styles.mobileHideChat}`}>
+      {/* Sidebar: Conversations */}
       <div className={styles.contactsSidebar}>
         <div className={styles.sidebarHeader}>
-          <h2>Messages</h2>
+          <div style={{ marginBottom: 16 }}>
+            <h2 style={{ margin: 0 }}>Race Comms</h2>
+          </div>
           <div className={styles.inputWrapper}>
             <Search size={16} style={{ position: "absolute", left: 16, top: "50%", transform: "translateY(-50%)", color: "var(--text-muted)" }} />
-            <input type="search" className={styles.searchInput} placeholder="Search conversations and contacts…" value={search} onChange={(event) => setSearch(event.target.value)} style={{ paddingLeft: 40 }} />
+            <input
+              type="search"
+              className={styles.searchInput}
+              placeholder="Search channels & squad…"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              style={{ paddingLeft: 40 }}
+            />
           </div>
         </div>
+
         <div className={styles.contactsList}>
-          {conversationsLoading && <p role="status">Loading conversations…</p>}
-          {visibleConversations.map((conversation) => {
-            const contactName = conversation.kind === "direct" ? conversation.other_full_name ?? "Hanbee user" : conversation.title ?? "Group chat";
+          {conversationsLoading && <p role="status" style={{ padding: 16 }}>Loading channels…</p>}
+          {visibleConversations.map((conv) => {
+            const contactName = conv.kind === "direct" ? conv.other_full_name ?? "Hanbee user" : conv.title ?? "Group chat";
+            const isSelected = activeConversationId === conv.id;
             return (
-              <button key={conversation.id} type="button" className={`${styles.contactItem} ${activeConversationId === conversation.id ? styles.active : ""}`} onClick={() => setActiveConversationId(conversation.id)}>
-                <div className={styles.contactAvatar}>{initials(contactName)}</div>
+              <button
+                key={conv.id}
+                type="button"
+                className={`${styles.contactItem} ${isSelected ? styles.active : ""}`}
+                onClick={() => { setActiveConversationId(conv.id); setMobileView("chat"); }}
+              >
+                <div className={styles.contactAvatar}>
+                  {initials(contactName)}
+                  <span className={styles.statusIndicator} />
+                </div>
                 <div className={styles.contactInfo}>
                   <div className={styles.contactName}>{contactName}</div>
-                  <div className={styles.contactPreview}>{conversation.last_body ?? "No messages yet"}</div>
+                  <div className={styles.contactPreview}>{conv.last_body ?? "No messages yet"}</div>
                 </div>
-                {conversation.unread_count > 0 && <span aria-label={`${conversation.unread_count} unread messages`}>{conversation.unread_count}</span>}
+                {conv.unread_count > 0 && (
+                  <span style={{ background: "var(--accent-subtle-bg)", color: "var(--accent-subtle-text)", border: "1px solid var(--accent-subtle-border)", padding: "2px 6px", borderRadius: 999, fontSize: 11, fontWeight: 700 }}>
+                    {conv.unread_count}
+                  </span>
+                )}
               </button>
             );
           })}
-          {visibleContacts.length > 0 && <h3 style={{ padding: "12px 16px 4px" }}>Start a conversation</h3>}
+
+          {visibleContacts.length > 0 && <h3 style={{ padding: "14px 20px 4px", fontSize: 12, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: 1 }}>Direct Contacts</h3>}
           {visibleContacts.map((contact: ChatContact) => (
-            <button key={contact.user_id} type="button" className={styles.contactItem} onClick={() => openContact.mutate(contact.user_id)} disabled={openContact.isPending}>
+            <button
+              key={contact.user_id}
+              type="button"
+              className={styles.contactItem}
+              onClick={() => { openContact.mutate(contact.user_id); setMobileView("chat"); }}
+              disabled={openContact.isPending}
+            >
               <div className={styles.contactAvatar}>{initials(contact.full_name)}</div>
               <div className={styles.contactInfo}>
                 <div className={styles.contactName}>{contact.full_name}</div>
-                <div className={styles.contactPreview}>{contact.relation.replaceAll("_", " ")}{contact.org_name ? ` · ${contact.org_name}` : ""}</div>
+                <div className={styles.contactPreview}>
+                  {contact.relation.replaceAll("_", " ")}
+                  {contact.org_name ? ` · ${contact.org_name}` : ""}
+                </div>
               </div>
             </button>
           ))}
-          {!conversationsLoading && visibleConversations.length === 0 && visibleContacts.length === 0 && <p>No conversations or contacts found.</p>}
         </div>
       </div>
 
+      {/* Main Chat Area */}
       <div className={styles.mainChat}>
         {activeConversation ? (
-          <>
+          <div className={styles.activeChatWrapper}>
             <header className={styles.chatHeader}>
-              <div className={styles.contactAvatar}>{initials(title)}</div>
-              <div className={styles.chatHeaderInfo}><h2>{title}</h2><p>{activeConversation.kind === "direct" ? activeContact?.relation.replaceAll("_", " ") ?? activeConversation.other_role : `${activeConversation.participant_count} participants`}</p></div>
+              <button
+                type="button"
+                className={styles.mobileBackBtn}
+                onClick={() => setMobileView("list")}
+                aria-label="Back to channels"
+              >
+                <ChevronLeft size={16} /> Channels
+              </button>
+              <div className={styles.contactAvatar}>
+                {initials(title)}
+                <span className={styles.statusIndicator} />
+              </div>
+              <div className={styles.chatHeaderInfo}>
+                <h2>{title}</h2>
+                <p>
+                  {activeConversation.kind === "direct"
+                    ? activeContact?.relation.replaceAll("_", " ") ?? activeConversation.other_role ?? "Direct Channel"
+                    : `${activeConversation.participant_count} members online · 2.4GHz FHSS`}
+                </p>
+              </div>
             </header>
-            {error && <p role="alert" style={{ padding: "8px 16px" }}>{error}</p>}
+
+            {error && <p role="alert" style={{ padding: "8px 16px", color: "#ef4444" }}>{error}</p>}
+
             <div className={styles.chatHistory}>
               {messagesQuery.hasNextPage && (
                 <div style={{ textAlign: "center", padding: "8px 0 16px" }}>
-                  <button type="button" className={styles.contactItem} style={{ display: "inline-flex", width: "auto", padding: "6px 16px" }} disabled={messagesQuery.isFetchingNextPage} onClick={() => messagesQuery.fetchNextPage()}>
+                  <button
+                    type="button"
+                    className={styles.contactItem}
+                    style={{ display: "inline-flex", width: "auto", padding: "6px 16px" }}
+                    disabled={messagesQuery.isFetchingNextPage}
+                    onClick={() => messagesQuery.fetchNextPage()}
+                  >
                     {messagesQuery.isFetchingNextPage ? "Loading…" : "Load earlier messages"}
                   </button>
                 </div>
               )}
+
               {messages.map((message, index) => {
                 const previous = messages[index - 1];
                 const newDay = !previous || dayKey(previous.created_at) !== dayKey(message.created_at);
-                const mine = message.sender_id === currentUserId;
-                const seen = mine && (receipts ?? []).some((r) => r.last_read_at && new Date(r.last_read_at) >= new Date(message.created_at));
-                return <div key={message.id}>
-                  {newDay && <div className={styles.daySeparator}><span>{dayLabel(message.created_at)}</span></div>}
-                  {message.kind === "system" ? (
-                    <div className={styles.systemMessage}>{message.body}</div>
-                  ) : (
-                    <div className={`${styles.messageWrapper} ${mine ? styles.me : styles.other}`}>
-                      <div className={`${styles.message} ${mine ? styles.me : styles.other}`}>{message.body}</div>
-                      <time className={styles.timestamp} dateTime={message.created_at}>
-                        {formatTime(message.created_at)}
-                        {mine && <span className={seen ? styles.tickSeen : styles.tick} aria-label={seen ? "Read" : "Sent"}> {seen ? "✓✓" : "✓"}</span>}
-                      </time>
-                    </div>
-                  )}
-                </div>;
+                const mine =
+                  Boolean(effectiveUserId && message.sender_id === effectiveUserId) ||
+                  message.sender_id === "user-self" ||
+                  message.id?.startsWith("usr-");
+                const seen = true;
+
+                const otherName = ("sender_name" in message && (message as any).sender_name)
+                  ? (message as any).sender_name
+                  : ((message as any).sender?.full_name ??
+                     (activeConversation?.kind === "direct"
+                       ? (activeContact?.full_name ?? activeConversation?.other_full_name)
+                       : null) ??
+                     activeConversation?.title ??
+                     "Team Member");
+
+                return (
+                  <div key={message.id} className={`${styles.messageRow} ${mine ? styles.me : styles.other}`}>
+                    {newDay && (
+                      <div className={styles.daySeparator}>
+                        <span suppressHydrationWarning>{dayLabel(message.created_at)}</span>
+                      </div>
+                    )}
+                    {message.kind === "system" ? (
+                      <div className={styles.systemMessage}>{message.body}</div>
+                    ) : (
+                      <div className={`${styles.messageWrapper} ${mine ? styles.me : styles.other}`}>
+                        <div className={styles.senderLabel}>
+                          {mine ? "You" : otherName}
+                        </div>
+                        <div className={`${styles.message} ${mine ? styles.me : styles.other}`}>
+                          {message.body}
+                        </div>
+                        <time className={styles.timestamp} dateTime={message.created_at} suppressHydrationWarning>
+                          <span>{formatTime(message.created_at)}</span>
+                          {mine && (
+                            <span className={seen ? styles.tickSeen : styles.tick} aria-label="Delivered">
+                              {" ✓✓"}
+                            </span>
+                          )}
+                        </time>
+                      </div>
+                    )}
+                  </div>
+                );
               })}
+
+              {isTyping && (
+                <div className={styles.typingIndicator}>
+                  <span>{isTyping} is typing</span>
+                  <div className={styles.typingDot} />
+                  <div className={styles.typingDot} />
+                  <div className={styles.typingDot} />
+                </div>
+              )}
+
               <div ref={messagesEndRef} />
             </div>
+
+            {/* Interactive Input Bar */}
             <div className={styles.inputArea}>
               <div className={styles.inputWrapper}>
-                <input type="text" className={styles.input} maxLength={4000} placeholder={`Message ${title}…`} value={inputValue} onChange={(event) => setInputValue(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter" && !event.shiftKey) { event.preventDefault(); handleSend(); } }} />
-                <button className={styles.sendBtn} onClick={handleSend} disabled={!inputValue.trim() || sendMessage.isPending} aria-label="Send message"><Send size={18} /></button>
+                <input
+                  type="text"
+                  className={styles.input}
+                  maxLength={4000}
+                  placeholder={`Message ${title}…`}
+                  value={inputValue}
+                  onChange={(e) => setInputValue(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && !e.shiftKey) {
+                      e.preventDefault();
+                      handleSend();
+                    }
+                  }}
+                />
+                <button
+                  className={styles.sendBtn}
+                  onClick={() => handleSend()}
+                  disabled={!inputValue.trim()}
+                  aria-label="Send message"
+                >
+                  <Send size={18} />
+                </button>
               </div>
             </div>
-          </>
+          </div>
         ) : (
-          <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", color: "var(--text-muted)" }}>
-            {error || "Select a conversation or contact to start chatting."}
+          <div className={styles.noChatSelected}>
+            Select a channel or contact to start chatting.
           </div>
         )}
       </div>

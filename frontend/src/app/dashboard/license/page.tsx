@@ -5,14 +5,15 @@ import { motion, AnimatePresence } from "framer-motion";
 import { 
   ShieldCheck, RotateCw, Copy, Check, Award, Trophy, 
   Flame, Zap, Wrench, Users, ArrowLeft, Sparkles, 
-  CheckCircle2, Compass, Cpu, Radio, BatteryCharging
+  CheckCircle2, Compass, Cpu, Radio, BatteryCharging,
+  Timer, Calendar
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import styles from "./license.module.css";
 import { useSessionProfile } from "../../../lib/hooks/useSessionProfile";
 import { useUserXp } from "../../../lib/hooks/useUserXp";
-import { fetchUpcomingTournament, fetchMyTeamFormation, fetchMySchool, type MyTeamFormation } from "../../../lib/teamFormationApi";
+import { fetchUpcomingTournament, fetchMyTeamFormation, fetchMySchool, type MyTeamFormation, type UpcomingTournament } from "../../../lib/teamFormationApi";
 
 export default function DriverLicensePage() {
   const router = useRouter();
@@ -21,8 +22,15 @@ export default function DriverLicensePage() {
   const [isFlipped, setIsFlipped] = useState(false);
   const [copied, setCopied] = useState(false);
   const [team, setTeam] = useState<MyTeamFormation["my_team"]>(null);
-  const [schoolName, setSchoolName] = useState("Delhi Tech Academy");
+  const [schoolName, setSchoolName] = useState("Your School");
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [tournament, setTournament] = useState<UpcomingTournament | null>(null);
+  const [timeLeft, setTimeLeft] = useState({
+    days: 0,
+    hours: 0,
+    minutes: 0,
+    seconds: 0,
+  });
 
   // Guard: Driver License is strictly student-only
   useEffect(() => {
@@ -70,27 +78,28 @@ export default function DriverLicensePage() {
     setGlarePos((prev) => ({ ...prev, opacity: 0 }));
   };
 
-  const driverName = profile?.full_name || "Alex Mitchell";
+  const driverName = profile?.full_name || "Student";
   const driverInitials = driverName
     .split(/\s+/)
     .slice(0, 2)
     .map((part: string) => part[0])
     .join("")
-    .toUpperCase() || "AM";
-  const teamName = team?.name || "Vortex Racing";
-  const serialNumber = "HB-2026-9042";
+    .toUpperCase() || "ST";
+  const teamName = team?.name || "No team yet";
+  const serialNumber = profile?.id ? `HB-${profile.id.slice(0, 8).toUpperCase()}` : "HB-PENDING";
 
   useEffect(() => {
     let active = true;
     async function loadTeam() {
       try {
-        const [tournament, schoolInfo] = await Promise.all([
+        const [tournamentData, schoolInfo] = await Promise.all([
           fetchUpcomingTournament(),
           fetchMySchool(),
         ]);
         if (schoolInfo?.name && active) setSchoolName(schoolInfo.name);
-        if (tournament && active) {
-          const formation = await fetchMyTeamFormation(tournament.id);
+        if (tournamentData && active) {
+          setTournament(tournamentData);
+          const formation = await fetchMyTeamFormation(tournamentData.id);
           if (active) setTeam(formation.my_team);
         }
       } catch {
@@ -100,6 +109,26 @@ export default function DriverLicensePage() {
     void loadTeam();
     return () => { active = false; };
   }, []);
+
+  useEffect(() => {
+    function calculateTimeLeft() {
+      const targetTime = tournament?.starts_at 
+        ? new Date(tournament.starts_at).getTime()
+        : new Date("2026-10-24T10:00:00+05:30").getTime();
+      const diff = Math.max(0, targetTime - Date.now());
+      return {
+        days: Math.floor(diff / (1000 * 60 * 60 * 24)),
+        hours: Math.floor((diff / (1000 * 60 * 60)) % 24),
+        minutes: Math.floor((diff / 1000 / 60) % 60),
+        seconds: Math.floor((diff / 1000) % 60),
+      };
+    }
+    setTimeLeft(calculateTimeLeft());
+    const timer = setInterval(() => {
+      setTimeLeft(calculateTimeLeft());
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [tournament?.starts_at]);
 
   const handleCopySerial = () => {
     if (typeof navigator !== "undefined" && navigator.clipboard) {
@@ -150,10 +179,6 @@ export default function DriverLicensePage() {
       {/* Header */}
       <header className={styles.pageHeader}>
         <div className={styles.headerLeft}>
-          <div className={styles.federationPill}>
-            <ShieldCheck size={14} />
-            HANBEE RACING // DRIVER PASS
-          </div>
           <h1 className={styles.pageTitle}>
             Student Driver License
           </h1>
@@ -353,6 +378,38 @@ export default function DriverLicensePage() {
         {/* Right Column: Career Achievements & Registry */}
         <div className={styles.sidebarCol}>
           
+          {/* Next Race Live Countdown Card on top of achievement card as requested */}
+          <div className={styles.countdownCard}>
+            <div className={styles.countdownHeader}>
+              <div className={styles.countdownTitleWrap}>
+                <h3 className={styles.countdownTitle}>{tournament?.title || "Hanbee RC Cup 2026"}</h3>
+              </div>
+              <span className={styles.countdownTrack}>Hanbee Track, Chennai</span>
+            </div>
+
+            <div className={styles.timerGrid}>
+              <div className={styles.timerSegment}>
+                <span className={styles.timerNumber}>{String(timeLeft.days).padStart(2, "0")}</span>
+                <span className={styles.timerLabel}>DAYS</span>
+              </div>
+              <div className={styles.timerColon}>:</div>
+              <div className={styles.timerSegment}>
+                <span className={styles.timerNumber}>{String(timeLeft.hours).padStart(2, "0")}</span>
+                <span className={styles.timerLabel}>HOURS</span>
+              </div>
+              <div className={styles.timerColon}>:</div>
+              <div className={styles.timerSegment}>
+                <span className={styles.timerNumber}>{String(timeLeft.minutes).padStart(2, "0")}</span>
+                <span className={styles.timerLabel}>MINUTES</span>
+              </div>
+              <div className={styles.timerColon}>:</div>
+              <div className={styles.timerSegment}>
+                <span className={styles.timerNumber}>{String(timeLeft.seconds).padStart(2, "0")}</span>
+                <span className={styles.timerLabel}>SECONDS</span>
+              </div>
+            </div>
+          </div>
+
           {/* Driver Career Badges */}
           <div className={styles.infoCard}>
             <h3 className={styles.cardTitle}>
