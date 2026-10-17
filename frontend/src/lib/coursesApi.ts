@@ -1,4 +1,4 @@
-import { authenticatedSupabaseFetch } from "./supabaseAuth";
+import { authenticatedSupabaseFetch, readStoredSession } from "./supabaseAuth";
 
 type Enrollment = { id: string; section_id: string; status: "active" | "completed" };
 type Section = { id: string; course_id: string; name: string };
@@ -66,8 +66,12 @@ async function fetchRows<T>(table: string, params: Record<string, string>): Prom
 }
 
 export async function fetchMyCourses(): Promise<StudentCourseSummary[]> {
+  const session = readStoredSession();
+  if (!session) throw new Error("Your session has expired. Sign in again to continue.");
+
   const enrollments = await fetchRows<Enrollment>("enrollments", {
     select: "id,section_id,status",
+    student_id: `eq.${session.user.id}`,
     status: "in.(active,completed)",
     order: "enrolled_date.desc",
   });

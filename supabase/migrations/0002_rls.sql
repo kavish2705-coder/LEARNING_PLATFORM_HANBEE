@@ -127,7 +127,7 @@ create policy "a user heartbeats only their own session"
 
 -- ----------------------------------------------------------------------------
 -- announcements — audience-scoped read, staff/manager write.
--- Mirrors backend/app/store.py's announcements_for() logic exactly.
+-- Audience-scoped visibility is enforced in Postgres, not a server-side app.
 -- ----------------------------------------------------------------------------
 alter table announcements enable row level security;
 

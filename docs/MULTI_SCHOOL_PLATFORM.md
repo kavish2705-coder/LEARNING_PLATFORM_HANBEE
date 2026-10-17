@@ -67,6 +67,36 @@ Every rule lives in the database, never only in the browser. Suspended or revoke
 | 0034 | Working on a holiday or a day off counts as present, never late |
 | 0028 | **Tenant scoping**: announcements (`org_id`, pinned, edit and delete rules), calendar (`org_id`, personal `owner_id`), school staff read-only enrollments, discussions limited to enrolled students, profile visibility by school, anonymous tournament-registration insert closed, revocation honoured by course access and lesson completion |
 | 0041 | Solo-student tournament entries, payment declaration, and the Hanbee tournament application review queue |
+| 0042 | Server-side search and pagination for the school directory, with a matching count RPC |
+| 0043 | Search, status filtering, pagination, and count RPCs for the assessment review queue |
+| 0044 | Optional status/search filtering for course application listings |
+| 0045 | Tracks the `auth.users` auto-confirm trigger in migrations and pins its `search_path` |
+| 0046 | Makes per-user hourly AI capacity reservation atomic under concurrent requests |
+| 0047 | Adds database payload-length checks for staff tasks and profile names, plus a staff-task index |
+| 0048 | Enforces at most one manager with a partial unique index; promotes `info@hanbee.in` when that profile exists |
+| 0049 | Adds notification read/count RPCs and notification creation for assessment, school, team, and application decisions |
+| 0050 | Adds tournament-result change history and enforces unique ranks per tournament |
+| 0051 | Adds seven-day team-invitation expiry and allows expired pending invitations to be replaced |
+| 0052 | Adds search, pagination, and count RPCs for certificate listings and addable tournament students |
+| 0053 | Persists each student's AI chat history with owner-scoped read/delete policies |
+| 0054 | Fixes the ambiguous `usage_date` reference in the shared daily AI-capacity RPC |
+| 0055 | Corrects the assessment-submission notification link to the current review route |
+| 0056 | Adds an atomic per-user AI request-per-minute capacity RPC |
+| 0057 | Publishes notifications to Supabase Realtime |
+| 0058 | Adds a participant-scoped chat read-receipts RPC |
+| 0059 | Seeds the Java course, section, and lessons when a staff/manager owner exists; skips demo content on an empty database |
+| 0060 | Replaces the Java placeholder lessons with the 25 Java-notes chapters when the course exists |
+| 0061 | Adds an optional validated hex colour to tournament teams |
+| 0062 | Adds student ID and preferred team name fields, with guarded student-ID writes |
+| 0063 | Adds the signed-in student's rank/points RPC for the latest tournament with results |
+| 0064 | Adds per-user notification preferences and suppresses disabled notification kinds |
+| 0065 | Allows rejected/withdrawn tournament team names to be reused |
+| 0066 | Removes stale membership rows when a student re-enters a tournament as a solo team |
+| 0067 | Makes school registration number and official email optional at signup |
+| 0068 | Adds indexes for previously unindexed foreign-key columns |
+| 0069 | Adds an atomic adjacent-module reorder RPC |
+| 0070 | Adds atomic server-side module/lesson creation with locked parent ordering |
+| 0071 | Adds atomic full-order RPCs for modules and lessons |
 
 ### The five allowed signup paths (everything else is refused)
 1. `invite_token` plus the invited email: solo student, co-staff, or a manager-created Hanbee staff or manager account.
@@ -133,7 +163,7 @@ Invite mail links: `mailto:` (default app), Outlook web (`https://outlook.office
 - [x] Hanbee staff portal: my space (clock in/out, tasks), tournament management, LMS overview (with quiz review), schools directory with first-verifier-wins, school detail, courses with student table, applications
 - [x] Manager portal: monitor, verifications, schools, Hanbee staff overview
 - [x] Old mock pages (48 files) and 29 obsolete browser specs removed
-- [x] Browser suite: 77 passed, 5 skipped (4 on-demand demo-content checks, 1 clock-in test), 0 failed (`frontend/tests/e2e/`, run with `--workers=1`)
+- [ ] Browser suite: no `frontend/tests/e2e/` directory exists in this checkout, so the previously recorded 77-pass result is not verifiable here
 - [x] Student dashboard redesigned as a simple template-style portal, with a real attendance page; solo option appears only when a school closes (join another school or continue solo)
 - [x] Tasks redesigned: List and Board, Low/Medium/High priority, manager-only "All employees' tasks" tab (read only); Tasks menu for Hanbee staff, school staff and manager
 - [x] Schedule redesigned like the reference: Week, Day, Month, mini calendar, holidays on the calendar, manager adds and deletes holidays; manager gets a Schedule menu item
@@ -160,8 +190,8 @@ Invite mail links: `mailto:` (default app), Outlook web (`https://outlook.office
 
 ## 11. Launch checklist (before real users)
 
-Unique index for one manager plus a written recovery procedure; rotate the database password and the Gemini key; replace seeded test accounts (`ava@student.edu`, `jamie@hanbeelms.edu`, `morgan@hanbeelms.edu`) or change their passwords; decide the long-term manager (`hanbeetechnology@gmail.com` is the real manager; `morgan@hanbeelms.edu` is a seeded account); set JWT expiry short in the dashboard; SMTP for password reset and email confirmation until then an admin password reset; privacy text covering monitoring of minors and the school's guardian-consent attestation (needs a legal review); real tournament date and venue; rate limit and CAPTCHA on the public inquiry form; restrict the AI function's allowed origin; upgrade the Supabase plan if concurrent users grow.
+The one-manager unique index is in migration 0048; still write and verify its recovery procedure. Rotate the database password and Gemini key; replace seeded test accounts (`ava@student.edu`, `jamie@hanbeelms.edu`, `morgan@hanbeelms.edu`) or change their passwords; verify the permanent manager account; set JWT expiry in the dashboard; configure SMTP for password reset and email confirmation (signup is currently auto-confirmed); review privacy text for monitoring minors and guardian consent; set the real tournament date and venue; rate-limit and add CAPTCHA to the public inquiry form; configure the AI function's allowed origin; upgrade the Supabase plan if concurrent users grow.
 
 ## 12. Later (not this phase)
 
-Real payment gateway; SMTP and email confirmation; certificates and discussions screens; chat media, voice, reactions, search, push; staging project and CI security suite; manager two-step login; one-manager enforcement; the other developer's polished UI.
+Real payment gateway; SMTP and email confirmation; certificates and discussions screens; chat media, voice, reactions, search, push; staging project and CI security suite; mandatory manager two-step login; the other developer's polished UI.

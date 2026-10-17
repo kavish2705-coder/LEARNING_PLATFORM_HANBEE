@@ -20,6 +20,10 @@ begin
   if v_owner is null then
     select id into v_owner from profiles where role in ('staff', 'manager') order by created_at limit 1;
   end if;
+  if v_owner is null then
+    raise notice 'Skipping Java course seed because no staff or manager profile exists yet';
+    return;
+  end if;
 
   insert into courses (title, description, status, cover_accent, owner_id)
   values (

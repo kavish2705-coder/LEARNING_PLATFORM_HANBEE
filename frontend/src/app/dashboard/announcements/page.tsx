@@ -1,9 +1,9 @@
 "use client";
 
 import { FormEvent, useEffect, useState, useMemo } from "react";
-import { 
-  Bell, AlertCircle, CheckCircle2, Radio, Flag, 
-  ShieldCheck, Wrench, Sparkles, Filter, Pin, 
+import {
+  Bell, AlertCircle, CheckCircle2, Radio, Flag,
+  ShieldCheck, Sparkles, Filter, Pin,
   Send, Users, Trash2, Edit3, Check
 } from "lucide-react";
 import styles from "./announcements.module.css";
@@ -22,7 +22,7 @@ import {
   type AnnouncementRow 
 } from "../../../lib/announcementsApi";
 
-type CategoryFilter = "all" | "tournament" | "technical" | "school";
+type CategoryFilter = "all" | "tournament" | "school";
 
 interface EnrichedAnnouncement {
   id: string;
@@ -32,11 +32,10 @@ interface EnrichedAnnouncement {
   authorName: string;
   authorRole: string;
   authorRoleBadge: "badgeDirector" | "badgeStaff" | "badgeSchool";
-  category: "tournament" | "technical" | "school";
+  category: "tournament" | "school";
   categoryLabel: string;
   priority: "critical" | "standard";
   timeLabel: string;
-  acknowledgedCount: number;
 }
 
 export default function AnnouncementsPage() {
@@ -157,89 +156,25 @@ export default function AnnouncementsPage() {
     });
   };
 
-  // Enriched announcements list with high-octane fallback items
   const enrichedList: EnrichedAnnouncement[] = useMemo(() => {
-    if (announcements.length > 0) {
-      return announcements.map((row) => {
-        const author = authors.get(row.author_id);
-        const isMgr = author?.role === "manager";
-        const isSchool = author?.role === "school_staff";
-        return {
-          id: row.id,
-          title: row.title,
-          body: row.body,
-          audience: row.audience,
-          authorName: author?.full_name || "Tournament Official",
-          authorRole: isMgr ? "Race Director" : isSchool ? "School Staff" : "Hanbee Staff",
-          authorRoleBadge: isMgr ? "badgeDirector" : isSchool ? "badgeSchool" : "badgeStaff",
-          category: isSchool ? "school" : row.title.toLowerCase().includes("lipo") || row.title.toLowerCase().includes("tech") ? "technical" : "tournament",
-          categoryLabel: isSchool ? "School Notice" : "Official Directive",
-          priority: "standard",
-          timeLabel: new Date(row.created_at).toLocaleDateString([], { month: "short", day: "numeric" }),
-          acknowledgedCount: 24,
-        };
-      });
-    }
-
-    // Default realistic tournament directives
-    return [
-      {
-        id: "bulletin-1",
-        title: "National RC Grand Prix: Circuit Layout & Transponder Frequencies Released",
-        body: "The official 450m circuit blueprint for Round 1 is now published. All RC Buggies must sync their transponders to Ch 4 (2.4GHz FHSS). Practice grid slots will open 30 minutes before qualifying heats.",
-        audience: "all",
-        authorName: "Vikram Singhania",
-        authorRole: "Race Director",
-        authorRoleBadge: "badgeDirector",
-        category: "tournament",
-        categoryLabel: "Tournament Directive",
-        priority: "critical",
-        timeLabel: "Today · 10:30 AM",
-        acknowledgedCount: 42,
-      },
-      {
-        id: "bulletin-2",
-        title: "LiPo Battery Safety & Pre-Grid Voltage Limits (Max 8.40V)",
-        body: "Technical Scrutineering Notice: All 2S LiPo battery packs must not exceed 8.40V at pit lane entry. Battery charging is strictly confined to safety bags in the designated charging paddock.",
-        audience: "all",
-        authorName: "Marcus Vance",
-        authorRole: "Chief Scrutineer",
-        authorRoleBadge: "badgeStaff",
-        category: "technical",
-        categoryLabel: "Technical Bulletin",
-        priority: "critical",
-        timeLabel: "Yesterday · 4:15 PM",
-        acknowledgedCount: 38,
-      },
-      {
-        id: "bulletin-3",
-        title: "Squad Formation Guidelines: 1 to 5 Drivers Permitted per Team",
-        body: "In accordance with updated tournament regulations, teams are officially approved with anywhere between 1 and 5 registered drivers. Solo racers will compete in designated individual qualifier heats.",
-        audience: "all",
-        authorName: "Hanbee Tournament Committee",
-        authorRole: "Hanbee Staff",
-        authorRoleBadge: "badgeStaff",
-        category: "tournament",
-        categoryLabel: "Rule Update",
+    return announcements.map((row) => {
+      const author = authors.get(row.author_id);
+      const isMgr = author?.role === "manager";
+      const isSchool = author?.role === "school_staff";
+      return {
+        id: row.id,
+        title: row.title,
+        body: row.body,
+        audience: row.audience,
+        authorName: author?.full_name || "Hanbee",
+        authorRole: isMgr ? "Manager" : isSchool ? "School Staff" : "Hanbee Staff",
+        authorRoleBadge: isMgr ? "badgeDirector" : isSchool ? "badgeSchool" : "badgeStaff",
+        category: isSchool ? "school" : "tournament",
+        categoryLabel: isSchool ? "School Notice" : "Announcement",
         priority: "standard",
-        timeLabel: "Oct 11 · 2:00 PM",
-        acknowledgedCount: 65,
-      },
-      {
-        id: "bulletin-4",
-        title: "St. Xavier Tech: Paddock Timetable & School Lab Practice Access",
-        body: "The STEM workshop and test track will remain open daily from 3:30 PM to 6:00 PM for squad telemetry testing and steering trim adjustments. School passes are required at entry.",
-        audience: "student",
-        authorName: "Dr. A. Kulkarni",
-        authorRole: "School Headmaster",
-        authorRoleBadge: "badgeSchool",
-        category: "school",
-        categoryLabel: "School Notice",
-        priority: "standard",
-        timeLabel: "Oct 10 · 9:00 AM",
-        acknowledgedCount: 29,
-      },
-    ];
+        timeLabel: new Date(row.created_at).toLocaleDateString([], { month: "short", day: "numeric" }),
+      };
+    });
   }, [announcements, authors]);
 
   const filteredBulletins = useMemo(() => {
@@ -279,14 +214,6 @@ export default function AnnouncementsPage() {
         >
           <Flag size={14} />
           Tournament Directives
-        </button>
-        <button
-          type="button"
-          className={`${styles.tabBtn} ${activeFilter === "technical" ? styles.tabBtnActive : ""}`}
-          onClick={() => setActiveFilter("technical")}
-        >
-          <Wrench size={14} />
-          Technical Bulletins
         </button>
         <button
           type="button"
@@ -423,12 +350,12 @@ export default function AnnouncementsPage() {
                   {isAck ? (
                     <>
                       <Check size={14} />
-                      Acknowledged ({item.acknowledgedCount + 1})
+                      Acknowledged
                     </>
                   ) : (
                     <>
                       <CheckCircle2 size={14} />
-                      Mark Acknowledged ({item.acknowledgedCount})
+                      Mark Acknowledged
                     </>
                   )}
                 </button>

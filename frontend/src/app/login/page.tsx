@@ -96,8 +96,11 @@ function LoginContent() {
     e.preventDefault();
     setAuthError("");
     setSubmitting(true);
-    // DEVELOPER BYPASS: Allows frontend testing without a backend database
-    if (password === "password" && isLogin) {
+    // DEVELOPER BYPASS: Allows frontend testing without a backend database.
+    // Dev-only — process.env.NODE_ENV is inlined and dead-code-eliminated by
+    // Next.js at build time, so this entire block (and the fake session it
+    // creates) is stripped from the production bundle, not just hidden.
+    if (process.env.NODE_ENV === "development" && password === "password" && isLogin) {
       const e = email.trim().toLowerCase();
       let dummyRole: HanbeeRole | null = null;
       if (e === "student@hanbee.in") dummyRole = "student";

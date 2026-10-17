@@ -16,7 +16,7 @@ const GREETING: Message = {
 };
 
 const PROMPTS = [
-  "Explain my last lap time",
+  "Help me understand my current course",
   "Suggest a training routine",
   "How do I tune my suspension?",
   "What are the best tires for carpet?",

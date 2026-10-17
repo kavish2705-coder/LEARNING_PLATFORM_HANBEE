@@ -2,12 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { 
-  ShieldCheck, RotateCw, Copy, Check, Award, Trophy, 
-  Flame, Zap, Wrench, Users, ArrowLeft, Sparkles, 
-  CheckCircle2, Compass, Cpu, Radio, BatteryCharging,
-  Timer, Calendar
-} from "lucide-react";
+import { ShieldCheck, RotateCw, Copy, Check, Award, ArrowLeft, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import styles from "./license.module.css";
@@ -48,8 +43,6 @@ export default function DriverLicensePage() {
     return null;
   }
 
-  // Dynamic Rank & Progression
-  const rankNumber = xp >= 1850 ? "#1 Rank" : xp >= 1620 ? "#2 Rank" : xp >= 1490 ? "#3 Rank" : "#4 Rank";
   const rpTarget = 2000;
   const rpPercent = Math.min(100, Math.round((xp / rpTarget) * 100));
 
@@ -252,10 +245,7 @@ export default function DriverLicensePage() {
               <div className={styles.driverInfoMeta}>
                 <h2 className={styles.driverName}>{driverName}</h2>
                 <p className={styles.driverCallsign}>
-                  [HB-42] {teamName} • {schoolName}
-                </p>
-                <p className={styles.driverChassis}>
-                  CAR: Thunder RC 4WD Buggy (1:16 Toy Scale)
+                  {teamName} • {schoolName}
                 </p>
               </div>
             </div>
@@ -271,17 +261,9 @@ export default function DriverLicensePage() {
                 >
                   {/* Front Stats */}
                   <div className={styles.statsTriple}>
-                    <div className={styles.statItem}>
-                      <span className={styles.statLabel}>BEST LAP</span>
-                      <span className={`${styles.statValue} ${styles.statValueAccent}`}>12.84s</span>
-                    </div>
                     <div className={styles.statItem} title="Practice Simulation Race Points (Saved to local browser profile)">
                       <span className={styles.statLabel}>PRACTICE RP</span>
                       <span className={styles.statValue}>{xp.toLocaleString()} RP</span>
-                    </div>
-                    <div className={styles.statItem}>
-                      <span className={styles.statLabel}>TRACK RANK</span>
-                      <span className={styles.statValue}>{rankNumber}</span>
                     </div>
                   </div>
 
@@ -375,9 +357,9 @@ export default function DriverLicensePage() {
           </motion.div>
         </div>
 
-        {/* Right Column: Career Achievements & Registry */}
+        {/* Right Column */}
         <div className={styles.sidebarCol}>
-          
+
           {/* Next Race Live Countdown Card on top of achievement card as requested */}
           <div className={styles.countdownCard}>
             <div className={styles.countdownHeader}>
@@ -414,106 +396,17 @@ export default function DriverLicensePage() {
           <div className={styles.infoCard}>
             <h3 className={styles.cardTitle}>
               <Award size={18} color="#fbbf24" />
-              <span>Racer Badges & Trophies</span>
+              <span>Achievements</span>
             </h3>
-
-            <div className={styles.badgesGrid}>
-              <motion.div 
-                className={styles.badgeCard}
-                whileHover={{ y: -4, scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                transition={{ type: "spring", stiffness: 400, damping: 25 }}
-              >
-                <div className={styles.badgeTop}>
-                  <div className={styles.badgeIconWrap}>
-                    <Zap size={15} />
-                  </div>
-                  <h4 className={styles.badgeName}>Quick Lap</h4>
-                </div>
-                <p className={styles.badgeDesc}>Clocked a lap under 14 seconds</p>
-              </motion.div>
-
-              <motion.div 
-                className={styles.badgeCard}
-                whileHover={{ y: -4, scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                transition={{ type: "spring", stiffness: 400, damping: 25 }}
-              >
-                <div className={styles.badgeTop}>
-                  <div className={styles.badgeIconWrap}>
-                    <Wrench size={15} />
-                  </div>
-                  <h4 className={styles.badgeName}>Pre-Race Check</h4>
-                </div>
-                <p className={styles.badgeDesc}>Checked all 6 car parts</p>
-              </motion.div>
-
-              <motion.div 
-                className={styles.badgeCard}
-                whileHover={{ y: -4, scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                transition={{ type: "spring", stiffness: 400, damping: 25 }}
-              >
-                <div className={styles.badgeTop}>
-                  <div className={styles.badgeIconWrap}>
-                    <Flame size={15} />
-                  </div>
-                  <h4 className={styles.badgeName}>4-Day Streak</h4>
-                </div>
-                <p className={styles.badgeDesc}>Practiced 4 days in a row</p>
-              </motion.div>
-
-              <motion.div 
-                className={styles.badgeCard}
-                whileHover={{ y: -4, scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                transition={{ type: "spring", stiffness: 400, damping: 25 }}
-              >
-                <div className={styles.badgeTop}>
-                  <div className={styles.badgeIconWrap}>
-                    <Trophy size={15} />
-                  </div>
-                  <h4 className={styles.badgeName}>Club Driver</h4>
-                </div>
-                <p className={styles.badgeDesc}>Official Hanbee RC racer</p>
-              </motion.div>
-            </div>
-          </div>
-
-          {/* Machine Registry */}
-          <div className={styles.infoCard}>
-            <h3 className={styles.cardTitle}>
-              <Compass size={18} color="#7dd3e8" />
-              <span>RC Car Info</span>
-            </h3>
-
-            <div className={styles.registryList}>
-              <div className={styles.registryRow}>
-                <span className={styles.registryLabel}>Car Model</span>
-                <span className={styles.registryVal}>1:16 4WD Toy Buggy</span>
-              </div>
-              <div className={styles.registryRow}>
-                <span className={styles.registryLabel}>Car Body</span>
-                <span className={styles.registryVal}>Plastic Shell & Bumper</span>
-              </div>
-              <div className={styles.registryRow}>
-                <span className={styles.registryLabel}>Remote Link</span>
-                <span className={styles.registryVal}>2.4GHz Connected</span>
-              </div>
-              <div className={styles.registryRow}>
-                <span className={styles.registryLabel}>Car Status</span>
-                <span className={styles.registryStatusOk}>
-                  <CheckCircle2 size={13} />
-                  <span>Checked & Ready to Drive!</span>
-                </span>
-              </div>
-            </div>
+            <p style={{ fontSize: 13, color: "var(--text-muted)" }}>
+              See your real earned milestones on the{" "}
+              <Link href="/dashboard/achievements">Achievements page</Link>.
+            </p>
 
             <Link href="/dashboard" className={styles.returnPaddockLink}>
               <span>Back to Race Track & Hub →</span>
             </Link>
           </div>
-
         </div>
 
       </div>

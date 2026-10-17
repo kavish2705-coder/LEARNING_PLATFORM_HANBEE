@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useQuery, useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import styles from "./chat.module.css";
-import { Send, Search, ChevronLeft } from "lucide-react";
+import { Send, Search, ChevronLeft, User, Users, Inbox } from "lucide-react";
 import {
   fetchChatContacts,
   fetchChatConversations,
@@ -37,40 +37,15 @@ function initials(name: string) {
   return name.split(/\s+/).slice(0, 2).map((part) => part[0] ?? "").join("").toUpperCase();
 }
 
-const MOCK_CONVERSATIONS = [
-  {
-    id: "mock-squad-apex",
-    title: "Team Redline Apex",
-    kind: "group" as const,
-    last_body: "Rohan: Motor RPM calibrated. Let's do a fast stint! ⚡",
-    unread_count: 2,
-    participant_count: 4,
-    other_user_id: null,
-    other_full_name: null,
-    other_role: null,
-  },
-  {
-    id: "mock-pit-control",
-    title: "Track Pit Control & Marshals",
-    kind: "group" as const,
-    last_body: "Race Control: Transponder frequencies synced on Ch 4.",
-    unread_count: 0,
-    participant_count: 12,
-    other_user_id: null,
-    other_full_name: null,
-    other_role: null,
-  },
-];
-
 export default function ChatPage() {
   const [currentUserId, setCurrentUserId] = useState("");
-  const [activeConversationId, setActiveConversationId] = useState("mock-squad-apex");
+  const [activeConversationId, setActiveConversationId] = useState("");
   const [inputValue, setInputValue] = useState("");
   const [search, setSearch] = useState("");
   const [error, setError] = useState("");
-  const [isTyping, setIsTyping] = useState<string | null>(null);
   const [mobileView, setMobileView] = useState<"list" | "chat">("list");
-  
+  const [chatTab, setChatTab] = useState<"solo" | "group">("solo");
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const queryClient = useQueryClient();
 
@@ -78,7 +53,7 @@ export default function ChatPage() {
   const myRole = profile?.role;
   const effectiveUserId = profile?.id ?? readStoredSession()?.user?.id ?? currentUserId;
 
-  useEffect(() => { 
+  useEffect(() => {
     const stored = readStoredSession()?.user?.id;
     if (stored) setCurrentUserId(stored);
     else if (profile?.id) setCurrentUserId(profile.id);
@@ -91,34 +66,8 @@ export default function ChatPage() {
   });
   const { data: contacts } = useQuery({ queryKey: ["chat-contacts"], queryFn: fetchChatContacts });
 
-  // Use backend conversations if any exist; otherwise fallback to rich interactive race channels
-  const conversations = (rawConversations && rawConversations.length > 0)
-    ? rawConversations
-    : MOCK_CONVERSATIONS;
+  const conversations = rawConversations ?? [];
 
-  const isMockActive = activeConversationId.startsWith("mock-");
-
-  // Local interactive message history for simulated channels
-  const [mockMessages, setMockMessages] = useState<Record<string, Array<{
-    id: string;
-    sender_id: string;
-    sender_name: string;
-    body: string;
-    created_at: string;
-    kind?: string;
-  }>>>({
-    "mock-squad-apex": [
-      { id: "m1", sender_id: "rohan", sender_name: "Rohan Varma", body: "Hey team! All 4 wheels and steering trim inspected on our Redline Buggy.", created_at: new Date(Date.now() - 3600000 * 2).toISOString() },
-      { id: "m2", sender_id: "aarav", sender_name: "Aarav Patel", body: "LiPo battery pack #2 is charged to 8.38V in the safe bag. Ready to roll!", created_at: new Date(Date.now() - 3600000).toISOString() },
-      { id: "m3", sender_id: "rohan", sender_name: "Rohan Varma", body: "Motor RPM calibrated. Let's do a fast stint! ⚡", created_at: new Date(Date.now() - 1800000).toISOString() },
-    ],
-    "mock-pit-control": [
-      { id: "p1", sender_id: "marshal", sender_name: "Race Control", body: "Scrutineering opened for Championship Group A. Bring cars to Bay 3.", created_at: new Date(Date.now() - 7200000).toISOString() },
-      { id: "p2", sender_id: "marshal", sender_name: "Race Control", body: "Transponder frequencies synced on Ch 4. Pre-grid in 15 minutes.", created_at: new Date(Date.now() - 3600000).toISOString() },
-    ],
-  });
-
-  // Pick default conversation
   useEffect(() => {
     if (activeConversationId || !conversations.length) return;
     const requestedId = new URLSearchParams(window.location.search).get("conversation");
@@ -131,22 +80,19 @@ export default function ChatPage() {
     queryFn: ({ pageParam }: { pageParam?: string }) => fetchChatMessages(activeConversationId, pageParam),
     initialPageParam: undefined as string | undefined,
     getNextPageParam: (lastPage) => (lastPage.length === CHAT_MESSAGE_PAGE_SIZE ? lastPage[0].created_at : undefined),
-    enabled: Boolean(activeConversationId) && !isMockActive,
+    enabled: Boolean(activeConversationId),
   });
 
-  const dbMessages = [...(messagesQuery.data?.pages ?? [])].reverse().flat();
-  const currentMockList = mockMessages[activeConversationId] || [];
-
-  const messages = isMockActive ? currentMockList : dbMessages;
+  const messages = [...(messagesQuery.data?.pages ?? [])].reverse().flat();
 
   const { data: receipts } = useQuery({
     queryKey: ["chat-receipts", activeConversationId],
     queryFn: () => fetchChatReadReceipts(activeConversationId),
-    enabled: Boolean(activeConversationId) && !isMockActive,
+    enabled: Boolean(activeConversationId),
   });
 
   useEffect(() => {
-    if (!activeConversationId || isMockActive) return;
+    if (!activeConversationId) return;
     const channel = getRealtimeClient()
       .channel(`chat-${activeConversationId}`)
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "messages", filter: `conversation_id=eq.${activeConversationId}` }, () => {
@@ -160,24 +106,27 @@ export default function ChatPage() {
     return () => {
       void getRealtimeClient().removeChannel(channel);
     };
-  }, [activeConversationId, queryClient, isMockActive]);
+  }, [activeConversationId, queryClient]);
 
   const markRead = useMutation({
     mutationFn: markChatRead,
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["chat-conversations"] }),
   });
   useEffect(() => {
-    if (activeConversationId && !isMockActive) markRead.mutate(activeConversationId);
-  }, [activeConversationId, isMockActive]);
+    if (activeConversationId) markRead.mutate(activeConversationId);
+  }, [activeConversationId]);
 
-  useEffect(() => { 
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }); 
-  }, [activeConversationId, messages.length, isTyping]);
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [activeConversationId, messages.length]);
 
   const openContact = useMutation({
     mutationFn: startDirectConversation,
     onSuccess: async (conversationId) => {
-      await queryClient.invalidateQueries({ queryKey: ["chat-conversations"] });
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["chat-conversations"] }),
+        queryClient.invalidateQueries({ queryKey: ["chat-contacts"] }),
+      ]);
       setActiveConversationId(conversationId);
     },
     onError: (reason) => setError(reason instanceof Error ? reason.message : "You can't start a conversation with this person."),
@@ -197,67 +146,7 @@ export default function ChatPage() {
     const body = (customText ?? inputValue).trim();
     if (!body || !activeConversationId) return;
     setError("");
-
-    if (!isMockActive) {
-      sendMessage.mutate(body);
-      return;
-    }
-
-    // Interactive Mock Flow
-    setInputValue("");
-    const newMsgId = `usr-${Date.now()}`;
-    const resolvedSenderId = effectiveUserId || "user-self";
-    const userMsg = {
-      id: newMsgId,
-      sender_id: resolvedSenderId,
-      sender_name: profile?.full_name || "You",
-      body,
-      created_at: new Date().toISOString(),
-    };
-
-    setMockMessages((prev) => ({
-      ...prev,
-      [activeConversationId]: [...(prev[activeConversationId] || []), userMsg],
-    }));
-
-    // Trigger realistic interactive reply after 1.2s
-    const typingName = activeConversationId === "mock-pit-control"
-      ? "Race Control"
-      : "Rohan Varma";
-
-    setIsTyping(typingName);
-
-    setTimeout(() => {
-      let replyBody = "Copy that! Telemetry synchronized with the team hub. Good luck on the run! 🏎️💨";
-      const lower = body.toLowerCase();
-
-      if (activeConversationId === "mock-pit-control") {
-        replyBody = "Race Control confirms: Transponder #42 locked on Ch 4. Pre-grid queue verified! 🏁";
-      } else {
-        if (lower.includes("lap") || lower.includes("fast")) {
-          replyBody = "Nice! That 13.42s lap puts us 2nd overall in Championship Group A! Let's protect the tires.";
-        } else if (lower.includes("battery") || lower.includes("trim")) {
-          replyBody = "Confirmed! Steering trim centered at 0°. Battery pack #2 is pre-warmed for heat 1.";
-        } else if (lower.includes("ready")) {
-          replyBody = "Let's bring home the podium! Heading over to the driver rostrum now! 🏆";
-        }
-      }
-
-      setMockMessages((prev) => ({
-        ...prev,
-        [activeConversationId]: [
-          ...(prev[activeConversationId] || []),
-          {
-            id: `reply-${Date.now()}`,
-            sender_id: "reply-bot",
-            sender_name: typingName,
-            body: replyBody,
-            created_at: new Date().toISOString(),
-          },
-        ],
-      }));
-      setIsTyping(null);
-    }, 1200);
+    sendMessage.mutate(body);
   }
 
   function isAllowedContact(theirRole: string | null | undefined) {
@@ -290,10 +179,19 @@ export default function ChatPage() {
     return (conversation.title ?? conversation.other_full_name ?? "Group chat").toLowerCase().includes(search.toLowerCase());
   });
 
+  const directConversationUserIds = new Set(
+    conversationList.filter((c) => c.kind === "direct").map((c) => c.other_user_id),
+  );
   const visibleContacts = contactList.filter((contact) => {
     if (!isAllowedContact(contact.role)) return false;
+    if (directConversationUserIds.has(contact.user_id)) return false;
     return contact.full_name.toLowerCase().includes(search.toLowerCase());
   });
+
+  const soloConversations = visibleConversations.filter((c) => c.kind === "direct");
+  const groupConversations = visibleConversations.filter((c) => c.kind === "group");
+  const soloCount = soloConversations.length + visibleContacts.length;
+  const groupCount = groupConversations.length;
 
   const formatTime = (value: string | null) =>
     value ? new Date(value).toLocaleString([], { dateStyle: "short", timeStyle: "short" }) : "";
@@ -319,54 +217,119 @@ export default function ChatPage() {
           </div>
         </div>
 
+        <div className={styles.chatTabBar}>
+          <button
+            type="button"
+            className={`${styles.chatTabBtn} ${chatTab === "solo" ? styles.chatTabBtnActive : ""}`}
+            onClick={() => setChatTab("solo")}
+          >
+            <User size={14} />
+            Solo
+            {soloCount > 0 && <span className={styles.chatTabCount}>{soloCount}</span>}
+          </button>
+          <button
+            type="button"
+            className={`${styles.chatTabBtn} ${chatTab === "group" ? styles.chatTabBtnActive : ""}`}
+            onClick={() => setChatTab("group")}
+          >
+            <Users size={14} />
+            Group
+            {groupCount > 0 && <span className={styles.chatTabCount}>{groupCount}</span>}
+          </button>
+        </div>
+
         <div className={styles.contactsList}>
           {conversationsLoading && <p role="status" style={{ padding: 16 }}>Loading channels…</p>}
-          {visibleConversations.map((conv) => {
-            const contactName = conv.kind === "direct" ? conv.other_full_name ?? "Hanbee user" : conv.title ?? "Group chat";
-            const isSelected = activeConversationId === conv.id;
-            return (
-              <button
-                key={conv.id}
-                type="button"
-                className={`${styles.contactItem} ${isSelected ? styles.active : ""}`}
-                onClick={() => { setActiveConversationId(conv.id); setMobileView("chat"); }}
-              >
-                <div className={styles.contactAvatar}>
-                  {initials(contactName)}
-                  <span className={styles.statusIndicator} />
-                </div>
-                <div className={styles.contactInfo}>
-                  <div className={styles.contactName}>{contactName}</div>
-                  <div className={styles.contactPreview}>{conv.last_body ?? "No messages yet"}</div>
-                </div>
-                {conv.unread_count > 0 && (
-                  <span style={{ background: "var(--accent-subtle-bg)", color: "var(--accent-subtle-text)", border: "1px solid var(--accent-subtle-border)", padding: "2px 6px", borderRadius: 999, fontSize: 11, fontWeight: 700 }}>
-                    {conv.unread_count}
-                  </span>
-                )}
-              </button>
-            );
-          })}
 
-          {visibleContacts.length > 0 && <h3 style={{ padding: "14px 20px 4px", fontSize: 12, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: 1 }}>Direct Contacts</h3>}
-          {visibleContacts.map((contact: ChatContact) => (
-            <button
-              key={contact.user_id}
-              type="button"
-              className={styles.contactItem}
-              onClick={() => { openContact.mutate(contact.user_id); setMobileView("chat"); }}
-              disabled={openContact.isPending}
-            >
-              <div className={styles.contactAvatar}>{initials(contact.full_name)}</div>
-              <div className={styles.contactInfo}>
-                <div className={styles.contactName}>{contact.full_name}</div>
-                <div className={styles.contactPreview}>
-                  {contact.relation.replaceAll("_", " ")}
-                  {contact.org_name ? ` · ${contact.org_name}` : ""}
+          {chatTab === "solo" && (
+            <>
+              {soloConversations.map((conv) => {
+                const contactName = conv.other_full_name ?? "Hanbee user";
+                const isSelected = activeConversationId === conv.id;
+                return (
+                  <button
+                    key={conv.id}
+                    type="button"
+                    className={`${styles.contactItem} ${isSelected ? styles.active : ""}`}
+                    onClick={() => { setActiveConversationId(conv.id); setMobileView("chat"); }}
+                  >
+                    <div className={styles.contactAvatar}>
+                      {initials(contactName)}
+                      <span className={styles.statusIndicator} />
+                    </div>
+                    <div className={styles.contactInfo}>
+                      <div className={styles.contactName}>{contactName}</div>
+                      <div className={styles.contactPreview}>{conv.last_body ?? "No messages yet"}</div>
+                    </div>
+                    {conv.unread_count > 0 && <span className={styles.chatTabCount}>{conv.unread_count}</span>}
+                  </button>
+                );
+              })}
+
+              {visibleContacts.length > 0 && (
+                <h3 style={{ padding: "14px 20px 4px", fontSize: 12, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: 1 }}>Direct Contacts</h3>
+              )}
+              {visibleContacts.map((contact: ChatContact) => (
+                <button
+                  key={contact.user_id}
+                  type="button"
+                  className={styles.contactItem}
+                  onClick={() => { openContact.mutate(contact.user_id); setMobileView("chat"); }}
+                  disabled={openContact.isPending}
+                >
+                  <div className={styles.contactAvatar}>{initials(contact.full_name)}</div>
+                  <div className={styles.contactInfo}>
+                    <div className={styles.contactName}>{contact.full_name}</div>
+                    <div className={styles.contactPreview}>
+                      {contact.relation.replaceAll("_", " ")}
+                      {contact.org_name ? ` · ${contact.org_name}` : ""}
+                    </div>
+                  </div>
+                </button>
+              ))}
+
+              {!conversationsLoading && soloConversations.length === 0 && visibleContacts.length === 0 && (
+                <div className={styles.chatEmptyState}>
+                  <User size={28} aria-hidden="true" />
+                  <p>No direct messages yet. People you can message will appear here.</p>
                 </div>
-              </div>
-            </button>
-          ))}
+              )}
+            </>
+          )}
+
+          {chatTab === "group" && (
+            <>
+              {groupConversations.map((conv) => {
+                const contactName = conv.title ?? "Group chat";
+                const isSelected = activeConversationId === conv.id;
+                return (
+                  <button
+                    key={conv.id}
+                    type="button"
+                    className={`${styles.contactItem} ${isSelected ? styles.active : ""}`}
+                    onClick={() => { setActiveConversationId(conv.id); setMobileView("chat"); }}
+                  >
+                    <div className={styles.contactAvatar}>
+                      {initials(contactName)}
+                      <span className={styles.statusIndicator} />
+                    </div>
+                    <div className={styles.contactInfo}>
+                      <div className={styles.contactName}>{contactName}</div>
+                      <div className={styles.contactPreview}>{conv.last_body ?? "No messages yet"}</div>
+                    </div>
+                    {conv.unread_count > 0 && <span className={styles.chatTabCount}>{conv.unread_count}</span>}
+                  </button>
+                );
+              })}
+
+              {!conversationsLoading && groupConversations.length === 0 && (
+                <div className={styles.chatEmptyState}>
+                  <Inbox size={28} aria-hidden="true" />
+                  <p>You&apos;re not part of any group chat yet.</p>
+                </div>
+              )}
+            </>
+          )}
         </div>
       </div>
 
@@ -391,8 +354,8 @@ export default function ChatPage() {
                 <h2>{title}</h2>
                 <p>
                   {activeConversation.kind === "direct"
-                    ? activeContact?.relation.replaceAll("_", " ") ?? activeConversation.other_role ?? "Direct Channel"
-                    : `${activeConversation.participant_count} members online · 2.4GHz FHSS`}
+                    ? activeContact?.relation.replaceAll("_", " ") ?? activeConversation.other_role ?? "Direct message"
+                    : `${activeConversation.participant_count} members`}
                 </p>
               </div>
             </header>
@@ -417,11 +380,10 @@ export default function ChatPage() {
               {messages.map((message, index) => {
                 const previous = messages[index - 1];
                 const newDay = !previous || dayKey(previous.created_at) !== dayKey(message.created_at);
-                const mine =
-                  Boolean(effectiveUserId && message.sender_id === effectiveUserId) ||
-                  message.sender_id === "user-self" ||
-                  message.id?.startsWith("usr-");
-                const seen = true;
+                const mine = Boolean(effectiveUserId && message.sender_id === effectiveUserId);
+                const seen = (receipts ?? []).some(
+                  (r) => r.user_id !== effectiveUserId && r.last_read_at && r.last_read_at >= message.created_at,
+                );
 
                 const otherName = ("sender_name" in message && (message as any).sender_name)
                   ? (message as any).sender_name
@@ -462,15 +424,6 @@ export default function ChatPage() {
                   </div>
                 );
               })}
-
-              {isTyping && (
-                <div className={styles.typingIndicator}>
-                  <span>{isTyping} is typing</span>
-                  <div className={styles.typingDot} />
-                  <div className={styles.typingDot} />
-                  <div className={styles.typingDot} />
-                </div>
-              )}
 
               <div ref={messagesEndRef} />
             </div>

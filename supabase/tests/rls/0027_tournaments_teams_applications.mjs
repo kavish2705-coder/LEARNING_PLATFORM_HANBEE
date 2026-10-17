@@ -7,7 +7,7 @@ const asUser = async (u) => { await c.query("reset role"); await c.query("set lo
 const asAnon = async () => { await c.query("reset role"); await c.query("set local role anon"); await c.query("select set_config('request.jwt.claims',$1,true)",[JSON.stringify({role:"anon"})]); };
 const asOwner = async () => { await c.query("reset role"); await c.query("select set_config('request.jwt.claims','',true)"); };
 const tryq = async (sql,p)=>{ await c.query("savepoint s"); try{const r=await c.query(sql,p); await c.query("release savepoint s"); return {r};}catch(e){await c.query("rollback to savepoint s"); return {e};} };
-const one = async (sql,p) => (await c.query(sql,p)).rows[0];
+const one = async (sql,p) => (await c.query(sql,p)).rows[0] ?? {};
 const signup = async (email, meta) => { await asOwner(); const uid = (await one("select gen_random_uuid() u")).u;
   const r = await tryq("select test_support_signup($1,$2,$3::jsonb)",[uid,email,JSON.stringify(meta)]);
   return { ...r, uid }; };
@@ -157,7 +157,7 @@ await asOwner(); await c.query("update profiles set is_solo=true where id=$1",[c
 await asUser(c1); check("after converting to solo the student sees tournaments", await cnt("select count(*)::int n from tournaments")===2+baseT);
 
 // --- solo team
-await asUser(solo); r=await tryq("select create_solo_team($1) t",[T]); check("solo creates team of one",ok(r)); const soloTeam=r.r.rows[0].t;
+await asUser(solo); r=await tryq("select create_solo_team($1) t",[T]); check("solo creates team of one",ok(r),r.e?.message); const soloTeam=r.r?.rows[0]?.t;
 r=await tryq("select create_solo_team($1)",[T]); check("solo cannot make a second team",!!r.e);
 check("solo sees own team + roster of one", await cnt("select count(*)::int n from tournament_teams")===1 && await cnt("select count(*)::int n from get_team_roster($1)",[soloTeam])===1);
 r=await tryq("select add_team_member($1,$2)",[soloTeam,solo2]); check("solo cannot add members",!!r.e);
@@ -165,16 +165,16 @@ await asUser(a1); r=await tryq("select create_solo_team($1)",[T2]); check("schoo
 await asUser(staffA); r=await tryq("select create_solo_team($1)",[T2]); check("school staff cannot create solo team",!!r.e);
 await asUser(solo2); r=await tryq("select apply_team($1,true)",[soloTeam]); check("other solo cannot apply someone else's team",!!r.e);
 await asUser(solo); r=await tryq("select apply_team($1,true)",[soloTeam]); check("solo applies own team",ok(r));
-await asUser(jamie); await c.query("select decide_team($1,'verified')",[soloTeam]); check("Hanbee verifies solo team",(await one("select status s from tournament_teams where id=$1",[soloTeam])).s==="verified");
+await asUser(jamie); r=await tryq("select decide_team($1,'verified')",[soloTeam]); check("Hanbee verifies solo team",ok(r),r.e?.message); if(!r.e) check("solo team status is verified",(await one("select status s from tournament_teams where id=$1",[soloTeam])).s==="verified");
 await asUser(solo2); check("solo2 does not see solo's team", await cnt("select count(*)::int n from tournament_teams")===0);
 
 // --- courses
-await asUser(a1); r=await tryq("select apply_for_course($1,true) a",[course]); check("school student applies for course",ok(r)); const app1=r.r.rows[0].a;
+await asUser(a1); r=await tryq("select apply_for_course($1,true) a",[course]); check("school student applies for course",ok(r),r.e?.message); const app1=r.r?.rows[0]?.a;
 r=await tryq("select apply_for_course($1,true)",[course]); check("duplicate application refused",!!r.e);
 r=await tryq("select apply_for_course($1,true)",[draftCourse]); check("unpublished course refused",!!r.e);
 r=await tryq("update applications set status='verified' where id=$1",[app1]); check("direct application update blocked",!!r.e);
 r=await tryq("insert into applications (course_id,applicant_id,status) values ($1,$2,'verified')",[draftCourse,a1]); check("direct application insert blocked",!!r.e);
-await asUser(solo2); r=await tryq("select apply_for_course($1,true) a",[course]); check("solo applies for course",ok(r)); const app2=r.r.rows[0].a;
+await asUser(solo2); r=await tryq("select apply_for_course($1,true) a",[course]); check("solo applies for course",ok(r),r.e?.message); const app2=r.r?.rows[0]?.a;
 await asUser(a3); r=await tryq("select apply_for_course($1,true)",[course]); check("suspended student cannot apply",!!r.e);
 await asUser(staffA); check("school A sees own student's application (read-only)", await cnt("select count(*)::int n from applications")===1 && await cnt("select count(*)::int n from list_course_applications()")===1);
 r=await tryq("update applications set status='verified'",[]); check("school staff cannot update applications",!!r.e);

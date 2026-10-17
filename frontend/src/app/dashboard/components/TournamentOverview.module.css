@@ -1616,80 +1616,6 @@
 }
 
 /* ===== Section Grouping & Information Hierarchy ===== */
-.sectionHeaderWrap {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-  flex-wrap: wrap;
-  gap: 12px;
-  margin-top: 12px;
-  margin-bottom: -12px;
-  padding: 0 4px;
-}
-
-.sectionHeaderLeft {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.sectionCategoryTag {
-  font-family: monospace;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 1.2px;
-  text-transform: uppercase;
-  color: var(--accent-subtle-text);
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.sectionGroupTitle {
-  font-family: var(--font-heading);
-  font-size: 20px;
-  font-weight: 600;
-  color: var(--text-main);
-  margin: 0;
-  letter-spacing: -0.01em;
-}
-
-.sectionStatusPill {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.paddockClearedPill {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  background: rgba(16, 185, 129, 0.12);
-  border: 1px solid rgba(16, 185, 129, 0.35);
-  color: #10b981;
-  font-size: 11px;
-  font-weight: 700;
-  font-family: monospace;
-  padding: 5px 12px;
-  border-radius: 999px;
-  letter-spacing: 0.5px;
-}
-
-.paddockActionPill {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  background: rgba(245, 158, 11, 0.12);
-  border: 1px solid rgba(245, 158, 11, 0.35);
-  color: #f59e0b;
-  font-size: 11px;
-  font-weight: 700;
-  font-family: monospace;
-  padding: 5px 12px;
-  border-radius: 999px;
-  letter-spacing: 0.5px;
-}
-
 .officialBadge {
   display: inline-flex;
   align-items: center;
@@ -1886,5 +1812,3 @@
     font-size: 12px;
   }
 }
-
-
