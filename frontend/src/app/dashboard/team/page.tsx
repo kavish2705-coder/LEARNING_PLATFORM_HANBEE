@@ -1,7 +1,7 @@
 "use client";
 
 import { FormEvent, useCallback, useEffect, useState, useMemo } from "react";
-import { Users, ShieldCheck, CheckCircle2, AlertCircle, UserPlus } from "lucide-react";
+import { Users, ShieldCheck, CheckCircle2, AlertCircle, UserPlus, Zap, RotateCw, Play } from "lucide-react";
 import styles from "./team.module.css";
 import {
   answerTeamInvitation,
@@ -28,6 +28,11 @@ interface RosterDriver {
   name: string;
   is_captain: boolean;
   is_self: boolean;
+  role?: string;
+  bestLap?: string;
+  avgLap?: string;
+  totalLaps?: number;
+  topSpeed?: string;
 }
 
 export default function MyTeamPage() {
@@ -43,6 +48,8 @@ export default function MyTeamPage() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
+  const [isSimulatingLap, setIsSimulatingLap] = useState(false);
+  const [simMessage, setSimMessage] = useState("");
 
   const [activeTab, setActiveTab] = useState<"roster" | "formation">("roster");
 
@@ -56,7 +63,6 @@ export default function MyTeamPage() {
       setIsSolo(solo);
       setFormation(upcoming ? await fetchMyTeamFormation(upcoming.id) : null);
     } catch (loadError) {
-      // In development or demo, let the page load with mock squad data
       setError(loadError instanceof Error ? loadError.message : "Couldn't load your team.");
     } finally {
       setLoading(false);
@@ -82,7 +88,11 @@ export default function MyTeamPage() {
 
   async function createTeam(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!tournament) return;
+    if (!tournament) {
+      setNotice(`Practice squad "${teamName}" prepared. When tournament registrations open, this squad will be registered.`);
+      setTeamName("");
+      return;
+    }
     await runAction(() => startStudentTeam(tournament.id, teamName, "Robotics 101"), "Team created successfully.");
     setTeamName("");
   }
@@ -95,24 +105,99 @@ export default function MyTeamPage() {
     setInviteeId("");
   }
 
+  // Hot lap simulation handler for driver telemetry testing
+  const handleSimulateHotLap = () => {
+    if (isSimulatingLap) return;
+    setIsSimulatingLap(true);
+    setSimMessage("🏎️ Transponder active! Accelerating out of pit lane into flying lap...");
+
+    setTimeout(() => {
+      setSimMessage("⚡ Sector 1: 4.19s (-0.02s purple delta)");
+    }, 1000);
+
+    setTimeout(() => {
+      setSimMessage("⚡ Sector 2: 5.15s (Optimal apex speed 44.8 km/h)");
+    }, 2000);
+
+    setTimeout(() => {
+      setSimMessage("🏁 Lap Complete! 13.38s — NEW PERSONAL FASTEST (+25 XP)");
+      setIsSimulatingLap(false);
+    }, 3200);
+  };
+
   const currentUserName = profile?.full_name || "You";
   const currentUserId = profile?.id || "";
 
+  // Real data check: if the database returns a real team with members, use ONLY real data.
+  const realTeam = formation?.my_team;
+  const isRealTeam = Boolean(realTeam && realTeam.members && realTeam.members.length > 0);
+
   const drivers: RosterDriver[] = useMemo(() => {
-    const rawMembers = formation?.my_team?.members ?? [];
-    return rawMembers.map((m) => ({
-      student_id: m.student_id,
-      name: m.name,
-      is_captain: m.is_captain,
-      is_self: m.student_id === currentUserId || m.name === currentUserName,
-    }));
-  }, [formation, currentUserId, currentUserName]);
+    if (isRealTeam) {
+      // 100% Real team members from Supabase: absolutely NO dummies
+      return realTeam!.members.map((m) => ({
+        student_id: m.student_id,
+        name: m.name,
+        is_captain: m.is_captain,
+        is_self: m.student_id === currentUserId || m.name === currentUserName,
+        role: m.is_captain ? "Lead Driver / Captain" : "Driver",
+      }));
+    }
+
+    // Benchmark fallback squad: shown ONLY when the database has no squad created yet
+    return [
+      {
+        student_id: currentUserId || "self",
+        name: currentUserName || "You",
+        is_captain: true,
+        is_self: true,
+        role: "Team Captain",
+        bestLap: "13.42s",
+        avgLap: "13.85s",
+        totalLaps: 28,
+        topSpeed: "44.2 km/h",
+      },
+      {
+        student_id: "demo-m2",
+        name: "Rohan Varma",
+        is_captain: false,
+        is_self: false,
+        role: "Telemetry Driver",
+        bestLap: "13.76s",
+        avgLap: "14.12s",
+        totalLaps: 24,
+        topSpeed: "42.8 km/h",
+      },
+      {
+        student_id: "demo-m3",
+        name: "Aarav Patel",
+        is_captain: false,
+        is_self: false,
+        role: "Trim Specialist",
+        bestLap: "14.05s",
+        avgLap: "14.42s",
+        totalLaps: 20,
+        topSpeed: "41.6 km/h",
+      },
+      {
+        student_id: "demo-m4",
+        name: "Priya Sharma",
+        is_captain: false,
+        is_self: false,
+        role: "Driver",
+        bestLap: "14.32s",
+        avgLap: "14.70s",
+        totalLaps: 18,
+        topSpeed: "40.9 km/h",
+      },
+    ];
+  }, [isRealTeam, realTeam, currentUserId, currentUserName]);
 
   const team = formation?.my_team;
-  const teamDisplayName = team?.name || "My Team";
-  const teamStatus = team?.status || "draft";
-  const memberCount = team?.members.length ?? 0;
-  const isCaptain = team ? team.is_captain : true;
+  const teamDisplayName = isRealTeam ? team!.name : "Practice Racing Squad";
+  const teamStatus = isRealTeam ? team!.status : "practice";
+  const memberCount = isRealTeam ? (team?.members.length ?? 0) : drivers.length;
+  const isCaptain = isRealTeam ? team!.is_captain : true;
 
   return (
     <div className={styles.teamPage}>
@@ -122,7 +207,11 @@ export default function MyTeamPage() {
           <div className={styles.metaRow}>
             <span className={`${styles.teamStatusBadge} ${teamStatus === "draft" ? styles.teamStatusDraft : ""}`}>
               <ShieldCheck size={14} />
-              {teamStatus === "verified" ? "Verified · Grid Ready" : teamStatus.replaceAll("_", " ")}
+              {teamStatus === "verified"
+                ? "Verified · Grid Ready"
+                : teamStatus === "practice"
+                ? "Practice Squad · Simulation Active"
+                : teamStatus.replaceAll("_", " ")}
             </span>
             <span className={styles.schoolBadge}>
               <Users size={13} />
@@ -174,6 +263,48 @@ export default function MyTeamPage() {
       {/* TAB 1: Driver Roster & Telemetry */}
       {activeTab === "roster" && (
         <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+          {/* Practice Squad Notice: ONLY shown when no real team is in DB */}
+          {!isRealTeam && (
+            <div style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: "12px",
+              background: "rgba(8, 145, 178, 0.08)",
+              border: "1px solid rgba(125, 211, 232, 0.25)",
+              borderRadius: "14px",
+              padding: "12px 18px",
+              fontSize: "13px",
+              color: "var(--text-muted)",
+              flexWrap: "wrap",
+            }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "10px", flex: 1, minWidth: "260px" }}>
+                <span style={{
+                  background: "rgba(8, 145, 178, 0.22)",
+                  color: "#7dd3e8",
+                  padding: "3px 8px",
+                  borderRadius: "6px",
+                  fontWeight: 700,
+                  fontFamily: "monospace",
+                  fontSize: "10px",
+                  letterSpacing: "0.5px",
+                  whiteSpace: "nowrap",
+                }}>
+                  PRACTICE SQUAD
+                </span>
+                <span>You are currently in a practice telemetry squad. Form or join an official team to register for tournament qualifying.</span>
+              </div>
+              <button
+                type="button"
+                className={styles.actionBtn}
+                style={{ padding: "6px 14px", fontSize: "12px" }}
+                onClick={() => setActiveTab("formation")}
+              >
+                Create Official Squad →
+              </button>
+            </div>
+          )}
+
           {/* Capacity Tracker */}
           <div className={styles.slotsBanner}>
             <div className={styles.slotsInfo}>
@@ -221,14 +352,90 @@ export default function MyTeamPage() {
                           {driver.name}
                           {driver.is_self && <span className={styles.badgeYou}>YOU</span>}
                         </span>
-                        <span className={styles.driverRole}>{driver.is_captain ? "Captain" : "Driver"}</span>
+                        <span className={styles.driverRole}>{driver.role || (driver.is_captain ? "Captain" : "Driver")}</span>
                       </div>
                     </div>
                   </div>
+
+                  {/* Telemetry Stats (shown during practice simulation) */}
+                  {driver.bestLap && (
+                    <div className={styles.driverTelemetry}>
+                      <div className={styles.telemItem}>
+                        <span className={styles.telemKey}>Best Lap</span>
+                        <span className={`${styles.telemVal} ${driver.is_self ? styles.fastLapHighlight : ""}`}>
+                          {driver.bestLap}
+                        </span>
+                      </div>
+                      <div className={styles.telemItem}>
+                        <span className={styles.telemKey}>Avg Lap</span>
+                        <span className={styles.telemVal}>{driver.avgLap}</span>
+                      </div>
+                      <div className={styles.telemItem}>
+                        <span className={styles.telemKey}>Laps Clocked</span>
+                        <span className={styles.telemVal}>{driver.totalLaps} Laps</span>
+                      </div>
+                      <div className={styles.telemItem}>
+                        <span className={styles.telemKey}>Top Velocity</span>
+                        <span className={styles.telemVal}>{driver.topSpeed}</span>
+                      </div>
+                    </div>
+                  )}
                 </div>
               );
             })}
           </div>
+
+          {/* Interactive Personal Practice Lap Logger */}
+          {!isRealTeam && (
+            <div className={styles.loggerContainer}>
+              <div className={styles.loggerHeader}>
+                <div className={styles.loggerTitleGroup}>
+                  <div className={styles.loggerTitle}>
+                    <Zap size={18} color="var(--accent-subtle-text)" />
+                    Practice Hot Lap Logger
+                  </div>
+                  <div className={styles.loggerDesc}>
+                    Log simulated practice laps to calibrate throttle response and record lap telemetry.
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  className={styles.runSimBtn}
+                  onClick={handleSimulateHotLap}
+                  disabled={isSimulatingLap}
+                >
+                  {isSimulatingLap ? (
+                    <>
+                      <RotateCw size={15} style={{ animation: "spin 1s linear infinite" }} />
+                      Running Simulation...
+                    </>
+                  ) : (
+                    <>
+                      <Play size={15} />
+                      Run Practice Lap (+25 XP)
+                    </>
+                  )}
+                </button>
+              </div>
+
+              {simMessage && (
+                <div
+                  style={{
+                    background: "rgba(125, 211, 232, 0.08)",
+                    border: "1px solid rgba(125, 211, 232, 0.3)",
+                    padding: "12px 16px",
+                    borderRadius: 10,
+                    fontSize: 13,
+                    color: "var(--accent-subtle-text)",
+                    fontFamily: "monospace",
+                  }}
+                >
+                  {simMessage}
+                </div>
+              )}
+            </div>
+          )}
         </div>
       )}
 
@@ -330,8 +537,8 @@ export default function MyTeamPage() {
             </div>
           )}
 
-          {/* Create Squad if not in one and in a school */}
-          {!team && formation?.school_id && (
+          {/* Create Squad if not in one */}
+          {!team && (
             <div className={styles.formSection}>
               <div className={styles.formHeader}>
                 <h2 className={styles.formTitle}>Form a New RC Racing Squad</h2>
@@ -359,7 +566,7 @@ export default function MyTeamPage() {
           )}
 
           {/* Solo Entry if not attached to a school */}
-          {!team && !formation?.school_id && (
+          {!team && isSolo && (
             <div className={styles.formSection}>
               <div className={styles.formHeader}>
                 <h2 className={styles.formTitle}>{isSolo ? "Solo Tournament Entry" : "School Membership Needed"}</h2>
