@@ -4,7 +4,7 @@ import { FormEvent, useCallback, useEffect, useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   Users, Trophy, Flag, ShieldCheck, Clock, Zap, 
-  Flame, Award, CheckCircle2, AlertCircle, Lock, 
+  Flame, Award, CheckCircle2, AlertCircle, 
   Plus, UserPlus, Play, RotateCw, Sparkles, ChevronRight,
   Gauge, Activity, Compass, Disc, Wrench
 } from "lucide-react";
@@ -516,22 +516,6 @@ export default function MyTeamPage() {
                       <span className={styles.telemVal}>{driver.topSpeed}</span>
                     </div>
                   </div>
-
-                  {/* Anti-Tampering Protection Guard */}
-                  {driver.is_self ? (
-                    <div className={styles.selfActiveBadge}>
-                      <Activity size={14} />
-                      <span>Your Active Telemetry Transponder</span>
-                    </div>
-                  ) : (
-                    <div
-                      className={styles.readOnlyGuard}
-                      title="Teammate telemetry is locked by tournament marshals to prevent tampering."
-                    >
-                      <Lock size={13} className={styles.readOnlyGuardLock} />
-                      <span>Verified Marshal Telemetry · Read Only</span>
-                    </div>
-                  )}
                 </div>
               );
             })}

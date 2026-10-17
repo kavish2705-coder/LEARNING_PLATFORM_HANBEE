@@ -446,36 +446,6 @@
   color: #a855f7; /* Purple F1 fast lap indicator */
 }
 
-/* Read Only / Protection Badge */
-.readOnlyGuard {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 12px;
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 8px;
-  font-size: 11px;
-  color: #94a3b8;
-}
-
-.readOnlyGuardLock {
-  color: #64748b;
-  flex-shrink: 0;
-}
-
-.selfActiveBadge {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 12px;
-  background: rgba(16, 185, 129, 0.08);
-  border: 1px solid rgba(16, 185, 129, 0.25);
-  border-radius: 8px;
-  font-size: 11px;
-  color: #10b981;
-  font-weight: 500;
-}
 
 /* Telemetry Simulator / Practice Logger */
 .loggerContainer {
