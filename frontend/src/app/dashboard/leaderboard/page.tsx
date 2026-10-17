@@ -133,7 +133,6 @@ export default function LeaderboardPage() {
                     </div>
                     <p style={{ fontSize: "13px", color: "var(--text-muted)", margin: "3px 0 0" }}>
                       {team.school_name ?? "Solo entry"}
-                      {"car" in team && ` • ${(team as typeof demoTeams[0]).car}`}
                     </p>
                   </div>
                   {"lap" in team && (

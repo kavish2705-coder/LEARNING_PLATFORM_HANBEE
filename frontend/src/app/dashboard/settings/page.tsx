@@ -13,15 +13,51 @@ import {
   updatePassword,
 } from "../../../lib/supabaseAuth";
 
-const NOTIFICATION_KINDS: { kind: string; label: string }[] = [
-  { kind: "team_invitation", label: "Team invitations" },
-  { kind: "team_verified", label: "Team approved" },
-  { kind: "team_rejected", label: "Team not approved" },
-  { kind: "application_verified", label: "Course application approved" },
-  { kind: "application_rejected", label: "Course application rejected" },
-  { kind: "assessment_verified", label: "Assessment reviewed" },
-  { kind: "school_verified", label: "School verified" },
+interface NotificationKindItem {
+  kind: string;
+  label: string;
+  desc: string;
+}
+
+const NOTIFICATION_KINDS: NotificationKindItem[] = [
+  { 
+    kind: "team_invitation", 
+    label: "Team invitations", 
+    desc: "Alerts when a teammate invites you to join their racing squad" 
+  },
+  { 
+    kind: "team_verified", 
+    label: "Team approved", 
+    desc: "Notification when your team formation is verified for the race grid" 
+  },
+  { 
+    kind: "team_rejected", 
+    label: "Team not approved", 
+    desc: "Alerts if team submission needs updates or additional drivers" 
+  },
+  { 
+    kind: "application_verified", 
+    label: "Course application approved", 
+    desc: "Confirmation when your learning course or workshop registration is accepted" 
+  },
+  { 
+    kind: "application_rejected", 
+    label: "Course application rejected", 
+    desc: "Alerts when a course application could not be approved" 
+  },
+  { 
+    kind: "assessment_verified", 
+    label: "Assessment reviewed", 
+    desc: "Feedback and results when your test or practice module is graded" 
+  },
+  { 
+    kind: "school_verified", 
+    label: "School verified", 
+    desc: "Institutional verification status and school onboarding alerts" 
+  },
 ];
+
+const LOCAL_PREFS_KEY = "hanbee_notification_preferences";
 
 export default function SettingsPage() {
   const { theme, setTheme, accentHue, setAccentHue, accentLightness, setAccentLightness } = useTheme();
@@ -33,6 +69,19 @@ export default function SettingsPage() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [busy, setBusy] = useState<"" | "profile" | "password">("");
   const [preferredTeam, setPreferredTeam] = useState("");
+  const [status, setStatus] = useState<{ tone: "ok" | "error"; text: string } | null>(null);
+
+  // Local state for notification toggles with local storage persistence
+  const [localPrefs, setLocalPrefs] = useState<Record<string, boolean>>(() => {
+    if (typeof window === "undefined") return {};
+    try {
+      const stored = window.localStorage.getItem(LOCAL_PREFS_KEY);
+      if (stored) return JSON.parse(stored);
+    } catch {
+      // Ignore parse errors
+    }
+    return {};
+  });
 
   const { data: extra } = useQuery({
     queryKey: ["account-extra", profile?.id],
@@ -47,12 +96,80 @@ export default function SettingsPage() {
     if (extra?.[0]) setPreferredTeam(extra[0].preferred_team_name ?? "");
   }, [extra]);
 
+  // Fetch notification preferences from server when available
   const { data: prefs } = useQuery({
     queryKey: ["notification-prefs", profile?.id],
-    queryFn: () => authenticatedSupabaseFetch<{ kind: string; enabled: boolean }[]>("/rest/v1/notification_preferences?select=kind,enabled"),
+    queryFn: async () => {
+      if (!profile?.id || profile.id.startsWith("dummy-")) {
+        return Object.entries(localPrefs).map(([kind, enabled]) => ({ kind, enabled }));
+      }
+      try {
+        return await authenticatedSupabaseFetch<{ kind: string; enabled: boolean }[]>(
+          "/rest/v1/notification_preferences?select=kind,enabled"
+        );
+      } catch {
+        return [];
+      }
+    },
     enabled: Boolean(profile?.id),
   });
-  const enabledFor = (kind: string) => prefs?.find((p) => p.kind === kind)?.enabled ?? true;
+
+  // Sync server preferences into local state
+  useEffect(() => {
+    if (prefs && prefs.length > 0) {
+      setLocalPrefs((prev) => {
+        const next = { ...prev };
+        for (const p of prefs) {
+          next[p.kind] = p.enabled;
+        }
+        return next;
+      });
+    }
+  }, [prefs]);
+
+  const enabledFor = (kind: string) => {
+    if (typeof localPrefs[kind] === "boolean") {
+      return localPrefs[kind];
+    }
+    const fromServer = prefs?.find((p) => p.kind === kind);
+    return fromServer ? fromServer.enabled : true;
+  };
+
+  async function toggleNotification(kind: string, nextState: boolean) {
+    // 1. Optimistic instant local update
+    const updated = { ...localPrefs, [kind]: nextState };
+    setLocalPrefs(updated);
+    try {
+      window.localStorage.setItem(LOCAL_PREFS_KEY, JSON.stringify(updated));
+    } catch {
+      // Ignore storage errors
+    }
+
+    // 2. Persist to server if real session
+    if (profile?.id && !profile.id.startsWith("dummy-")) {
+      try {
+        await authenticatedSupabaseFetch("/rest/v1/notification_preferences?on_conflict=user_id,kind", {
+          method: "POST",
+          headers: { Prefer: "resolution=merge-duplicates,return=minimal" },
+          body: JSON.stringify({ user_id: profile.id, kind, enabled: nextState }),
+        });
+      } catch (reason) {
+        console.error("Failed to sync notification preference:", reason);
+      }
+    }
+
+    // 3. User feedback
+    const targetItem = NOTIFICATION_KINDS.find((k) => k.kind === kind);
+    const actionLabel = nextState ? "enabled" : "disabled";
+    setStatus({ 
+      tone: "ok", 
+      text: `${targetItem?.label || "Notification"} ${actionLabel}.` 
+    });
+
+    setTimeout(() => {
+      setStatus((current) => current?.text.includes("Notification") || current?.text.includes("enabled") || current?.text.includes("disabled") ? null : current);
+    }, 2400);
+  }
 
   async function savePreferredTeam(event: React.FormEvent) {
     event.preventDefault();
@@ -60,11 +177,13 @@ export default function SettingsPage() {
     setBusy("profile");
     setStatus(null);
     try {
-      await authenticatedSupabaseFetch(`/rest/v1/profiles?id=eq.${profile.id}`, {
-        method: "PATCH",
-        headers: { Prefer: "return=minimal" },
-        body: JSON.stringify({ preferred_team_name: preferredTeam.trim() || null }),
-      });
+      if (!profile.id.startsWith("dummy-")) {
+        await authenticatedSupabaseFetch(`/rest/v1/profiles?id=eq.${profile.id}`, {
+          method: "PATCH",
+          headers: { Prefer: "return=minimal" },
+          body: JSON.stringify({ preferred_team_name: preferredTeam.trim() || null }),
+        });
+      }
       await queryClient.invalidateQueries({ queryKey: ["account-extra"] });
       setStatus({ tone: "ok", text: "Preferred team name saved." });
     } catch (reason) {
@@ -73,22 +192,6 @@ export default function SettingsPage() {
       setBusy("");
     }
   }
-
-  async function toggleNotification(kind: string, enabled: boolean) {
-    if (!profile) return;
-    setStatus(null);
-    try {
-      await authenticatedSupabaseFetch("/rest/v1/notification_preferences?on_conflict=user_id,kind", {
-        method: "POST",
-        headers: { Prefer: "resolution=merge-duplicates,return=minimal" },
-        body: JSON.stringify({ user_id: profile.id, kind, enabled }),
-      });
-      await queryClient.invalidateQueries({ queryKey: ["notification-prefs"] });
-    } catch (reason) {
-      setStatus({ tone: "error", text: reason instanceof Error ? reason.message : "We couldn't save that choice." });
-    }
-  }
-  const [status, setStatus] = useState<{ tone: "ok" | "error"; text: string } | null>(null);
 
   useEffect(() => {
     if (profile) setFullName(profile.full_name ?? "");
@@ -146,7 +249,7 @@ export default function SettingsPage() {
     <div>
       <div className={styles.pageHeader}>
         <h1 className={styles.pageTitle}>Settings</h1>
-        <p className={styles.pageSubtitle}>Manage your account and preferences</p>
+        <p className={styles.pageSubtitle}>Manage your account, team details, and notification preferences</p>
       </div>
 
       {status && (
@@ -202,7 +305,6 @@ export default function SettingsPage() {
               <span>{busy === "password" ? "Changing..." : "Change Password"}</span>
             </button>
           </form>
-
         </section>
 
         <section className={styles.sectionCard}>
@@ -224,13 +326,47 @@ export default function SettingsPage() {
         </section>
 
         <section className={styles.sectionCard}>
-          <h2 className={styles.sectionTitle}>Notifications</h2>
-          {NOTIFICATION_KINDS.map(({ kind, label }) => (
-            <label key={kind} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 0" }}>
-              <span>{label}</span>
-              <input type="checkbox" checked={enabledFor(kind)} onChange={(e) => void toggleNotification(kind, e.target.checked)} />
-            </label>
-          ))}
+          <div className={styles.sectionHeaderWrap}>
+            <h2 className={styles.sectionTitle}>Notifications</h2>
+            <span className={styles.sectionBadge}>Alert Preferences</span>
+          </div>
+          <p className={styles.sectionSubtitle}>
+            Configure which alerts you want to receive for team invites, tournament approvals, and course updates.
+          </p>
+
+          <div className={styles.notificationList}>
+            {NOTIFICATION_KINDS.map(({ kind, label, desc }) => {
+              const isEnabled = enabledFor(kind);
+              return (
+                <div 
+                  key={kind} 
+                  className={styles.notificationItem}
+                  onClick={() => void toggleNotification(kind, !isEnabled)}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      void toggleNotification(kind, !isEnabled);
+                    }
+                  }}
+                >
+                  <div className={styles.notificationInfo}>
+                    <span className={styles.notificationLabel}>{label}</span>
+                    <span className={styles.notificationDesc}>{desc}</span>
+                  </div>
+
+                  <div 
+                    className={`${styles.switchToggle} ${isEnabled ? styles.switchToggleActive : ""}`}
+                    aria-checked={isEnabled}
+                    role="switch"
+                  >
+                    <div className={`${styles.switchKnob} ${isEnabled ? styles.switchKnobActive : ""}`} />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </section>
 
         <section className={styles.sectionCard}>

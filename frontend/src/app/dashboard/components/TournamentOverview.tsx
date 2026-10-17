@@ -597,8 +597,8 @@ export default function TournamentOverview() {
             <thead className={styles.standingsThead}>
               <tr>
                 <th>Grid Pos</th>
-                <th>Team & School</th>
-                <th>RC Chassis</th>
+                <th>Team</th>
+                <th>School</th>
                 <th>Best Lap</th>
                 <th>Top Speed</th>
                 <th style={{ textAlign: "right" }}>Total Points</th>
@@ -629,10 +629,9 @@ export default function TournamentOverview() {
                         <span className={styles.userSquadTag}>YOUR SQUAD • LIVE</span>
                       )}
                     </div>
-                    <div className={styles.teamMetaSchool}>{t.school}</div>
                   </td>
-                  <td className={styles.standingsCell} style={{ color: "var(--text-muted)", fontSize: "12px" }}>
-                    {t.car}
+                  <td className={styles.standingsCell}>
+                    <span className={styles.teamSchoolText}>{t.school}</span>
                   </td>
                   <td className={styles.standingsCell}>
                     <span className={styles.lapTimeBadge}>{t.bestLap}</span>

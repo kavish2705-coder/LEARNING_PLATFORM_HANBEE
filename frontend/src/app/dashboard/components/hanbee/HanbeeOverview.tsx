@@ -417,8 +417,8 @@ export default function HanbeeOverview() {
                 <thead>
                   <tr>
                     <th>Rank</th>
-                    <th>Team & School</th>
-                    <th>Car Model</th>
+                    <th>Team</th>
+                    <th>School</th>
                     <th>Roster Size</th>
                     <th>Best Lap</th>
                     <th>Points</th>
@@ -440,12 +440,11 @@ export default function HanbeeOverview() {
                             </span>
                           </td>
                           <td>
-                            <div className={styles.teamNameCell}>
-                              <span className={styles.teamNameText}>{team.team_name}</span>
-                              <span className={styles.schoolText}>{team.school_name}</span>
-                            </div>
+                            <span className={styles.teamNameText}>{team.team_name}</span>
                           </td>
-                          <td>{team.car}</td>
+                          <td>
+                            <span className={styles.schoolText}>{team.school_name}</span>
+                          </td>
                           <td>
                             <span className={styles.capacityPill}>
                               <Users size={12} />

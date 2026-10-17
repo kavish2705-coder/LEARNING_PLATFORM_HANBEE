@@ -159,7 +159,7 @@ export default function MyTeamPage() {
       {
         student_id: "self",
         name: currentUserName,
-        role: "Lead Driver / Captain",
+        role: "Team Captain",
         is_captain: true,
         is_self: true,
         bestLap: "13.42s",
@@ -167,7 +167,7 @@ export default function MyTeamPage() {
         totalLaps: 28,
         topSpeed: "44.2 km/h",
         consistency: "96.4%",
-        status: "On Track",
+        status: "Ready",
         laps: [
           { lapNumber: 1, s1: "4.29s", s2: "5.21s", s3: "4.12s", total: "13.62s" },
           { lapNumber: 2, s1: "4.23s", s2: "5.18s", s3: "4.05s", total: "13.46s" },
@@ -178,7 +178,7 @@ export default function MyTeamPage() {
       {
         student_id: "m2",
         name: "Rohan Varma",
-        role: "Telemetry & Pit Strategist",
+        role: "Driver",
         is_captain: false,
         is_self: false,
         bestLap: "13.76s",
@@ -196,7 +196,7 @@ export default function MyTeamPage() {
       {
         student_id: "m3",
         name: "Aarav Patel",
-        role: "Hardware & Motor Specialist",
+        role: "Driver",
         is_captain: false,
         is_self: false,
         bestLap: "14.05s",
@@ -204,7 +204,7 @@ export default function MyTeamPage() {
         totalLaps: 20,
         topSpeed: "41.6 km/h",
         consistency: "93.1%",
-        status: "Pits",
+        status: "Ready",
         laps: [
           { lapNumber: 1, s1: "4.44s", s2: "5.41s", s3: "4.30s", total: "14.15s" },
           { lapNumber: 2, s1: "4.40s", s2: "5.38s", s3: "4.27s", total: "14.05s" },
@@ -213,7 +213,7 @@ export default function MyTeamPage() {
       {
         student_id: "m4",
         name: "Priya Sharma",
-        role: "Aerodynamics & Trim Engineer",
+        role: "Driver",
         is_captain: false,
         is_self: false,
         bestLap: "14.32s",
@@ -299,33 +299,16 @@ export default function MyTeamPage() {
       {/* Hero Team Banner */}
       <div className={styles.heroBanner}>
         <div className={styles.heroLeft}>
-          <div className={styles.metaRow}>
-            <span className={`${styles.teamStatusBadge} ${teamStatus === "draft" ? styles.teamStatusDraft : ""}`}>
-              <ShieldCheck size={14} />
-              {teamStatus === "verified" ? "Verified · Grid Ready" : teamStatus.replaceAll("_", " ")}
-            </span>
-            <span className={styles.schoolBadge}>
-              <Flag size={13} />
-              St. Xavier Tech
-            </span>
-            <span className={styles.schoolBadge}>
-              <Users size={13} />
-              {memberCount}/{MAX_TEAM_SIZE} Drivers (Min: {MIN_TEAM_SIZE})
-            </span>
-          </div>
-
           <h1 className={styles.teamName}>
             {teamDisplayName}
             {isCaptain && <span className={styles.badgeCaptain}>Captain</span>}
           </h1>
-
           <p className={styles.teamSubtitle}>
-            Redline RC Buggy (4WD) · 2.4GHz FHSS Ch 4 · Championship Group A
+            St. Xavier Tech • {memberCount} Registered Drivers
           </p>
         </div>
 
         <div className={styles.heroRight}>
-          {/* Team Points Pill with grey label slightly darker */}
           <div className={styles.pointsPill}>
             <span className={styles.pointsLabel}>Team Points</span>
             <span className={styles.pointsValue}>1,850 pts</span>
@@ -356,7 +339,6 @@ export default function MyTeamPage() {
           <div className={styles.metricInfo}>
             <span className={styles.metricLabel}>Team Avg Lap</span>
             <span className={styles.metricVal}>14.28s</span>
-            <span className={styles.metricSub}>Top 5% in Grid</span>
           </div>
         </div>
 
@@ -367,7 +349,6 @@ export default function MyTeamPage() {
           <div className={styles.metricInfo}>
             <span className={styles.metricLabel}>Session Fast Lap</span>
             <span className={styles.metricVal} style={{ color: "#a855f7" }}>{selfDriver.bestLap}</span>
-            <span className={styles.metricSub} style={{ color: "#c084fc" }}>Set by {selfDriver.name}</span>
           </div>
         </div>
 
@@ -378,7 +359,6 @@ export default function MyTeamPage() {
           <div className={styles.metricInfo}>
             <span className={styles.metricLabel}>Practice Laps</span>
             <span className={styles.metricVal}>68 Laps</span>
-            <span className={styles.metricSub}>Telemetry Synced</span>
           </div>
         </div>
 
@@ -389,7 +369,6 @@ export default function MyTeamPage() {
           <div className={styles.metricInfo}>
             <span className={styles.metricLabel}>Consistency</span>
             <span className={styles.metricVal}>95.4%</span>
-            <span className={styles.metricSub}>High Precision</span>
           </div>
         </div>
       </div>
@@ -401,58 +380,30 @@ export default function MyTeamPage() {
           className={`${styles.tabButton} ${activeTab === "roster" ? styles.tabButtonActive : ""}`}
           onClick={() => setActiveTab("roster")}
         >
-          <Users size={16} />
-          Driver Roster & Telemetry ({memberCount}/{MAX_TEAM_SIZE})
+          <Users size={15} />
+          Driver Roster ({memberCount})
         </button>
         <button
           type="button"
           className={`${styles.tabButton} ${activeTab === "laps" ? styles.tabButtonActive : ""}`}
           onClick={() => setActiveTab("laps")}
         >
-          <Clock size={16} />
-          Lap-by-Lap Timing Board
+          <Clock size={15} />
+          Timing Board
         </button>
         <button
           type="button"
           className={`${styles.tabButton} ${activeTab === "formation" ? styles.tabButtonActive : ""}`}
           onClick={() => setActiveTab("formation")}
         >
-          <UserPlus size={16} />
-          Squad Formation & Invitations
+          <UserPlus size={15} />
+          Squad Formation
         </button>
       </div>
 
-      {/* TAB 1: Driver Roster & Telemetry */}
+      {/* TAB 1: Driver Roster */}
       {activeTab === "roster" && (
         <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
-          {/* Capacity Tracker */}
-          <div className={styles.slotsBanner}>
-            <div className={styles.slotsInfo}>
-              <div className={styles.slotsTitle}>
-                <ShieldCheck size={16} color="var(--accent-subtle-text)" />
-                Team Roster Capacity: {memberCount} of {MAX_TEAM_SIZE} Drivers (Min: {MIN_TEAM_SIZE})
-              </div>
-              <div className={styles.slotsDesc}>
-                Official tournament teams require between 1 and 5 registered students. All teammates have equal track eligibility.
-              </div>
-            </div>
-
-            <div className={styles.slotsVisual}>
-              {[1, 2, 3, 4, 5].map((slotNum) => {
-                const isFilled = slotNum <= memberCount;
-                return (
-                  <div
-                    key={slotNum}
-                    className={`${styles.slotPill} ${isFilled ? styles.slotFilled : styles.slotEmpty}`}
-                    title={isFilled ? `Driver Slot ${slotNum}: Registered` : `Driver Slot ${slotNum}: Available`}
-                  >
-                    {isFilled ? slotNum : "+"}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
           {/* Drivers Grid */}
           <div className={styles.rosterGrid}>
             {drivers.map((driver) => {
@@ -468,28 +419,13 @@ export default function MyTeamPage() {
                         {initial}
                       </div>
                       <div className={styles.driverNameRow}>
-                        <span className={styles.driverName}>
-                          {driver.name}
+                        <div className={styles.driverName}>
+                          <span>{driver.name}</span>
                           {driver.is_self && <span className={styles.badgeYou}>YOU</span>}
-                        </span>
+                        </div>
                         <span className={styles.driverRole}>{driver.role}</span>
                       </div>
                     </div>
-
-                    <span
-                      style={{
-                        fontSize: 10,
-                        fontWeight: 700,
-                        fontFamily: "monospace",
-                        padding: "3px 8px",
-                        borderRadius: 6,
-                        background: driver.status === "On Track" ? "rgba(16, 185, 129, 0.15)" : "rgba(255, 255, 255, 0.05)",
-                        color: driver.status === "On Track" ? "#10b981" : "var(--text-muted)",
-                        border: driver.status === "On Track" ? "1px solid rgba(16, 185, 129, 0.4)" : "1px solid rgba(255, 255, 255, 0.1)",
-                      }}
-                    >
-                      {driver.status}
-                    </span>
                   </div>
 
                   {/* Telemetry Stats */}
@@ -527,10 +463,10 @@ export default function MyTeamPage() {
               <div className={styles.loggerTitleGroup}>
                 <div className={styles.loggerTitle}>
                   <Zap size={18} color="var(--accent-subtle-text)" />
-                  My Practice Hot Lap Simulator
+                  Practice Hot Lap
                 </div>
                 <div className={styles.loggerDesc}>
-                  Test your RC Buggy throttle curves on the virtual circuit to record personal telemetry and earn practice RP. Teammates cannot alter your logged data.
+                  Log simulated practice laps to calibrate throttle response and record lap telemetry.
                 </div>
               </div>
 
@@ -543,12 +479,12 @@ export default function MyTeamPage() {
                 {isSimulatingLap ? (
                   <>
                     <RotateCw size={15} style={{ animation: "spin 1s linear infinite" }} />
-                    Running Circuit Simulation...
+                    Running Simulation...
                   </>
                 ) : (
                   <>
                     <Play size={15} />
-                    Run Practice Lap (+25 RP)
+                    Run Practice Lap (+25 XP)
                   </>
                 )}
               </button>
@@ -580,9 +516,9 @@ export default function MyTeamPage() {
         <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
           <div className={styles.loggerHeader}>
             <div>
-              <h2 style={{ fontSize: 18, margin: "0 0 4px" }}>Telemetry Sector Splits & Timing Board</h2>
+              <h2 style={{ fontSize: 18, margin: "0 0 4px" }}>Sector Splits & Timing Board</h2>
               <p style={{ fontSize: 13, color: "var(--text-muted)", margin: 0 }}>
-                Individual lap timings across Sector 1 (Hairpin), Sector 2 (High-Speed Chicane), and Sector 3 (Main Straight).
+                Sector timings and delta telemetry recorded across practice sessions.
               </p>
             </div>
           </div>
@@ -597,8 +533,7 @@ export default function MyTeamPage() {
                   <th>Sector 2</th>
                   <th>Sector 3</th>
                   <th>Lap Time</th>
-                  <th>Status / Delta</th>
-                  <th>Integrity</th>
+                  <th>Delta</th>
                 </tr>
               </thead>
               <tbody>
@@ -622,13 +557,6 @@ export default function MyTeamPage() {
                         <span style={{ color: lap.isFastest ? "#c084fc" : "#10b981", fontSize: 11 }}>
                           {lap.isFastest ? "-0.18s Purple" : "+0.12s Valid"}
                         </span>
-                      </td>
-                      <td>
-                        {driver.is_self ? (
-                          <span style={{ color: "#10b981", fontSize: 11 }}>● Logged by You</span>
-                        ) : (
-                          <span style={{ color: "#64748b", fontSize: 11 }}>🔒 Protected</span>
-                        )}
                       </td>
                     </tr>
                   ))

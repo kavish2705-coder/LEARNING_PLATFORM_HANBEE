@@ -1,7 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useState, useMemo } from "react";
-import { CheckCircle2, Edit3, Check } from "lucide-react";
+import { Edit3 } from "lucide-react";
 import styles from "./announcements.module.css";
 import { useSessionProfile } from "../../../lib/hooks/useSessionProfile";
 import { fetchMyOrganizationId } from "../../../lib/teamFormationApi";
@@ -346,14 +346,12 @@ export default function AnnouncementsPage() {
       )}
       <div className={styles.announcementsList}>
         {filteredBulletins.map((item) => {
-          const isAck = Boolean(acknowledged[item.id]);
           const initial = item.authorName.charAt(0).toUpperCase();
-          const isCritical = item.priority === "critical";
 
           return (
             <article 
               key={item.id} 
-              className={`${styles.announcementCard} ${isCritical ? styles.cardCritical : ""}`}
+              className={styles.announcementCard}
             >
               {/* Top Meta Bar */}
               <div className={styles.cardMetaBar}>
@@ -368,20 +366,13 @@ export default function AnnouncementsPage() {
                   <span className={styles.metaDot}>•</span>
                   <span className={styles.timeText}>{item.timeLabel}</span>
                 </div>
-
-                {isCritical && (
-                  <div className={styles.urgentBadge}>
-                    <span className={styles.urgentDot} />
-                    Urgent
-                  </div>
-                )}
               </div>
 
               {/* Title & Body */}
               <h2 className={styles.title}>{item.title}</h2>
               <p className={styles.bodyText}>{item.body}</p>
 
-              {/* Card Footer: Author Signature + Clean Acknowledge Button */}
+              {/* Card Footer: Author Signature */}
               <div className={styles.cardFooter}>
                 <div className={styles.authorSignature}>
                   <div className={styles.authorAvatar}>{initial}</div>
@@ -390,24 +381,6 @@ export default function AnnouncementsPage() {
                     <span className={styles.authorRole}>{item.authorRole}</span>
                   </div>
                 </div>
-
-                <button
-                  type="button"
-                  className={`${styles.ackBtn} ${isAck ? styles.ackBtnActive : ""}`}
-                  onClick={() => toggleAck(item.id)}
-                >
-                  {isAck ? (
-                    <>
-                      <Check size={14} />
-                      <span>Acknowledged ({item.acknowledgedCount + 1})</span>
-                    </>
-                  ) : (
-                    <>
-                      <CheckCircle2 size={14} />
-                      <span>Acknowledge ({item.acknowledgedCount})</span>
-                    </>
-                  )}
-                </button>
               </div>
             </article>
           );

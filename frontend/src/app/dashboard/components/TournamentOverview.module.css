@@ -1530,6 +1530,12 @@
   margin-top: 2px;
 }
 
+.teamSchoolText {
+  font-size: 13px;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
 .userSquadTag {
   background: var(--color-primary);
   color: var(--color-primary-text);

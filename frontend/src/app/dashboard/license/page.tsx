@@ -3,10 +3,9 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
-  ShieldCheck, RotateCw, Copy, Check, Award, Trophy, 
-  Flame, Zap, Wrench, Users, ArrowLeft, Sparkles, 
-  CheckCircle2, Compass, Cpu, Radio, BatteryCharging,
-  Timer, Calendar
+  ShieldCheck, Copy, Check, Award, Trophy, 
+  Flame, Zap, ArrowLeft, Sparkles, 
+  CheckCircle2, Radio, MapPin
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -19,7 +18,6 @@ export default function DriverLicensePage() {
   const router = useRouter();
   const { data: profile } = useSessionProfile();
   const { xp } = useUserXp();
-  const [isFlipped, setIsFlipped] = useState(false);
   const [copied, setCopied] = useState(false);
   const [team, setTeam] = useState<MyTeamFormation["my_team"]>(null);
   const [schoolName, setSchoolName] = useState("Your School");
@@ -61,7 +59,7 @@ export default function DriverLicensePage() {
     const rect = e.currentTarget.getBoundingClientRect();
     const x = (e.clientX - rect.left) / rect.width;
     const y = (e.clientY - rect.top) / rect.height;
-    // Ultra smooth subtle pitch & yaw tilt (±7deg)
+    // Smooth subtle pitch & yaw tilt (±7deg)
     setTilt({
       rotateX: (0.5 - y) * 14,
       rotateY: (x - 0.5) * 14,
@@ -69,7 +67,7 @@ export default function DriverLicensePage() {
     setGlarePos({
       x: x * 100,
       y: y * 100,
-      opacity: 0.22,
+      opacity: 0.2,
     });
   };
 
@@ -142,6 +140,41 @@ export default function DriverLicensePage() {
     }, 3000);
   };
 
+  const badges = [
+    {
+      id: "quick_lap",
+      name: "Quick Lap",
+      desc: "Clocked a lap under 14 seconds",
+      icon: Zap,
+      color: "#38bdf8",
+      bgColor: "rgba(56, 189, 248, 0.12)",
+    },
+    {
+      id: "pre_race_check",
+      name: "Pre-Race Check",
+      desc: "Checked all 6 car parts",
+      icon: ShieldCheck,
+      color: "#10b981",
+      bgColor: "rgba(16, 185, 129, 0.12)",
+    },
+    {
+      id: "streak",
+      name: "4-Day Streak",
+      desc: "Practiced 4 days in a row",
+      icon: Flame,
+      color: "#f97316",
+      bgColor: "rgba(249, 115, 22, 0.12)",
+    },
+    {
+      id: "club_driver",
+      name: "Club Driver",
+      desc: "Official Hanbee RC racer",
+      icon: Trophy,
+      color: "#fbbf24",
+      bgColor: "rgba(251, 191, 36, 0.12)",
+    },
+  ];
+
   return (
     <div className={styles.licensePage}>
       {/* Toast Notification */}
@@ -151,27 +184,10 @@ export default function DriverLicensePage() {
             initial={{ opacity: 0, y: -20, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -20, scale: 0.95 }}
-            style={{
-              position: "fixed",
-              top: 24,
-              right: 24,
-              zIndex: 9999,
-              background: "linear-gradient(135deg, rgba(8, 145, 178, 0.95), rgba(6, 78, 59, 0.95))",
-              backdropFilter: "blur(12px)",
-              border: "1px solid rgba(125, 211, 232, 0.4)",
-              color: "#fff",
-              padding: "14px 24px",
-              borderRadius: "14px",
-              boxShadow: "0 10px 30px rgba(0,0,0,0.5), 0 0 20px rgba(125, 211, 232, 0.4)",
-              fontWeight: 500,
-              fontSize: "14px",
-              display: "flex",
-              alignItems: "center",
-              gap: "10px",
-            }}
+            className={styles.toastNotification}
           >
             <Sparkles size={18} color="#7dd3e8" />
-            {toastMessage}
+            <span>{toastMessage}</span>
           </motion.div>
         )}
       </AnimatePresence>
@@ -183,7 +199,7 @@ export default function DriverLicensePage() {
             Student Driver License
           </h1>
           <p className={styles.pageSubtitle}>
-            Your official remote controlled racing pass, verified school team, and practice simulator RP.
+            Your official RC racing pass, school team, and practice stats.
           </p>
         </div>
 
@@ -194,7 +210,7 @@ export default function DriverLicensePage() {
             onClick={handleCopySerial}
           >
             {copied ? <Check size={14} color="#10b981" /> : <Copy size={14} />}
-            <span>{copied ? "Copied ID" : "Copy ID"}</span>
+            <span>{copied ? "Copied ID" : "Copy License ID"}</span>
           </button>
           <Link href="/dashboard" className={styles.actionBtnPrimary}>
             <ArrowLeft size={14} />
@@ -203,188 +219,179 @@ export default function DriverLicensePage() {
         </div>
       </header>
 
-      {/* Main Grid */}
+      {/* Balanced 2-Column Main Layout */}
       <div className={styles.licenseGrid}>
         
-        {/* Left Column: 3D Holographic Driver Card */}
-        <div className={styles.licensePerspectiveWrapper}>
-          <motion.div 
-            className={styles.licenseCard}
-            animate={{ 
-              rotateX: tilt.rotateX, 
-              rotateY: tilt.rotateY,
-            }}
-            transition={{ 
-              type: "spring", 
-              stiffness: 260, 
-              damping: 24, 
-              mass: 0.5 
-            }}
-            onMouseMove={handleCardMouseMove}
-            onMouseLeave={handleCardMouseLeave}
-          >
-            {/* Dynamic Specular Shimmer Spot following cursor */}
-            <div 
-              className={styles.cardSpecularGlare}
-              style={{
-                background: `radial-gradient(circle at ${glarePos.x}% ${glarePos.y}%, rgba(255, 255, 255, 0.28) 0%, rgba(125, 211, 232, 0.15) 24%, transparent 60%)`,
-                opacity: glarePos.opacity,
+        {/* Left Column: Driver License Pass + RC Car & Race Info */}
+        <div className={styles.leftCol}>
+          <div className={styles.licensePerspectiveWrapper}>
+            <motion.div 
+              className={styles.licenseCard}
+              animate={{ 
+                rotateX: tilt.rotateX, 
+                rotateY: tilt.rotateY,
               }}
-            />
+              transition={{ 
+                type: "spring", 
+                stiffness: 260, 
+                damping: 24, 
+                mass: 0.5 
+              }}
+              onMouseMove={handleCardMouseMove}
+              onMouseLeave={handleCardMouseLeave}
+            >
+              {/* Subtle Dynamic Glare following cursor */}
+              <div 
+                className={styles.cardSpecularGlare}
+                style={{
+                  background: `radial-gradient(circle at ${glarePos.x}% ${glarePos.y}%, rgba(255, 255, 255, 0.25) 0%, rgba(125, 211, 232, 0.12) 24%, transparent 60%)`,
+                  opacity: glarePos.opacity,
+                }}
+              />
 
-            {/* Card Header */}
-            <div className={styles.cardHeader}>
-              <div className={styles.cardFederationTitle}>
-                <ShieldCheck size={15} color="#7dd3e8" />
-                <span>HANBEE RACING CLUB // RC SERIES</span>
+              {/* Card Header */}
+              <div className={styles.cardHeader}>
+                <div className={styles.cardFederationTitle}>
+                  <ShieldCheck size={15} color="#7dd3e8" />
+                  <span>HANBEE RACING CLUB // RC SERIES</span>
+                </div>
+                <div className={styles.licenseSuperBadge}>
+                  RACER PASS
+                </div>
               </div>
-              <div className={styles.licenseSuperBadge}>
-                RACER PASS
+
+              {/* Driver Profile */}
+              <div className={styles.driverRow}>
+                <div className={styles.avatarContainer}>
+                  {driverInitials}
+                </div>
+
+                <div className={styles.driverInfoMeta}>
+                  <div className={styles.driverNameWrap}>
+                    <h2 className={styles.driverName}>{driverName}</h2>
+                    <span className={styles.statusVerifiedBadge}>● VERIFIED</span>
+                  </div>
+                  <p className={styles.driverCallsign}>
+                    [HB-42] {teamName} • {schoolName}
+                  </p>
+                </div>
+              </div>
+
+              {/* Stats Triple Row */}
+              <div className={styles.statsTriple}>
+                <div className={styles.statItem}>
+                  <span className={styles.statLabel}>BEST LAP</span>
+                  <span className={`${styles.statValue} ${styles.statValueAccent}`}>12.84s</span>
+                </div>
+                <div className={styles.statItem}>
+                  <span className={styles.statLabel}>PRACTICE RP</span>
+                  <span className={styles.statValue}>{xp.toLocaleString()} RP</span>
+                </div>
+                <div className={styles.statItem}>
+                  <span className={styles.statLabel}>TRACK RANK</span>
+                  <span className={styles.statValue}>{rankNumber}</span>
+                </div>
+              </div>
+
+              {/* Practice RP Progression */}
+              <div className={styles.xpBox}>
+                <div className={styles.xpHeader}>
+                  <span>Practice Tier: <strong>Rookie Champ</strong></span>
+                  <span>{xp.toLocaleString()} / 2,000 RP ({rpPercent}%)</span>
+                </div>
+                <div className={styles.xpTrack}>
+                  <motion.div 
+                    className={styles.xpFill} 
+                    initial={{ width: 0 }}
+                    animate={{ width: `${rpPercent}%` }}
+                    transition={{ duration: 1.1, ease: [0.34, 1.56, 0.64, 1], delay: 0.1 }}
+                  />
+                </div>
+              </div>
+
+              {/* Footer Barcode */}
+              <div className={styles.cardFooter}>
+                <div className={styles.barcodeArea}>
+                  <div className={styles.barcodeBar} style={{ width: 2 }} />
+                  <div className={styles.barcodeBar} style={{ width: 4 }} />
+                  <div className={styles.barcodeBar} style={{ width: 1 }} />
+                  <div className={styles.barcodeBar} style={{ width: 3 }} />
+                  <div className={styles.barcodeBar} style={{ width: 5 }} />
+                  <div className={styles.barcodeBar} style={{ width: 2 }} />
+                  <div className={styles.barcodeBar} style={{ width: 1 }} />
+                  <div className={styles.barcodeBar} style={{ width: 4 }} />
+                  <span className={styles.licenseSerial}>{serialNumber}</span>
+                </div>
+
+                <div className={styles.officialBadge}>
+                  <span>OFFICIAL PASS</span>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+
+          {/* RC Car & Race Info Card */}
+          <div className={styles.infoCard}>
+            <div className={styles.cardHeaderWithAction}>
+              <h3 className={styles.cardTitle}>
+                <Radio size={18} color="#7dd3e8" />
+                <span>RC Car & Race Info</span>
+              </h3>
+            </div>
+
+            <div className={styles.registryList}>
+              <div className={styles.registryRow}>
+                <span className={styles.registryLabel}>Car Model</span>
+                <span className={styles.registryVal}>4WD RC Buggy</span>
+              </div>
+              <div className={styles.registryRow}>
+                <span className={styles.registryLabel}>Remote Link</span>
+                <span className={styles.registryStatusOk}>
+                  <CheckCircle2 size={13} />
+                  <span>2.4GHz Connected</span>
+                </span>
+              </div>
+              <div className={styles.registryRow}>
+                <span className={styles.registryLabel}>Car Status</span>
+                <span className={styles.registryStatusOk}>
+                  <CheckCircle2 size={13} />
+                  <span>Checked & Ready to Drive</span>
+                </span>
+              </div>
+              <div className={styles.registryRow}>
+                <span className={styles.registryLabel}>Registered Team</span>
+                <span className={styles.registryVal}>{teamName}</span>
+              </div>
+              <div className={styles.registryRow}>
+                <span className={styles.registryLabel}>Track Location</span>
+                <span className={styles.registryVal}>Hanbee Track, Chennai</span>
               </div>
             </div>
 
-            {/* Driver Profile */}
-            <div className={styles.driverRow}>
-              <div className={styles.avatarContainer}>
-                {driverInitials}
-              </div>
-
-              <div className={styles.driverInfoMeta}>
-                <h2 className={styles.driverName}>{driverName}</h2>
-                <p className={styles.driverCallsign}>
-                  [HB-42] {teamName} • {schoolName}
-                </p>
-                <p className={styles.driverChassis}>
-                  CAR: Thunder RC 4WD Buggy (1:16 Toy Scale)
-                </p>
-              </div>
-            </div>
-
-            <AnimatePresence mode="wait">
-              {!isFlipped ? (
-                <motion.div
-                  key="front-stats"
-                  initial={{ opacity: 0, y: 10, filter: "blur(4px)" }}
-                  animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-                  exit={{ opacity: 0, y: -10, filter: "blur(4px)" }}
-                  transition={{ duration: 0.26, ease: [0.16, 1, 0.3, 1] }}
-                >
-                  {/* Front Stats */}
-                  <div className={styles.statsTriple}>
-                    <div className={styles.statItem}>
-                      <span className={styles.statLabel}>BEST LAP</span>
-                      <span className={`${styles.statValue} ${styles.statValueAccent}`}>12.84s</span>
-                    </div>
-                    <div className={styles.statItem} title="Practice Simulation Race Points (Saved to local browser profile)">
-                      <span className={styles.statLabel}>PRACTICE RP</span>
-                      <span className={styles.statValue}>{xp.toLocaleString()} RP</span>
-                    </div>
-                    <div className={styles.statItem}>
-                      <span className={styles.statLabel}>TRACK RANK</span>
-                      <span className={styles.statValue}>{rankNumber}</span>
-                    </div>
-                  </div>
-
-                  {/* RP Progression */}
-                  <div className={styles.xpBox}>
-                    <div className={styles.xpHeader}>
-                      <span>Practice Tier: <strong>Rookie Champ</strong></span>
-                      <span title="Stored locally in browser">{xp.toLocaleString()} / 2,000 RP ({rpPercent}%)</span>
-                    </div>
-                    <div className={styles.xpTrack}>
-                      <motion.div 
-                        className={styles.xpFill} 
-                        initial={{ width: 0 }}
-                        animate={{ width: `${rpPercent}%` }}
-                        transition={{ duration: 1.1, ease: [0.34, 1.56, 0.64, 1], delay: 0.1 }}
-                      />
-                    </div>
-                  </div>
-                </motion.div>
-              ) : (
-                <motion.div
-                  key="car-specs"
-                  initial={{ opacity: 0, y: 10, filter: "blur(4px)" }}
-                  animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-                  exit={{ opacity: 0, y: -10, filter: "blur(4px)" }}
-                  transition={{ duration: 0.26, ease: [0.16, 1, 0.3, 1] }}
-                >
-                  {/* Flipped Simple & Cool RC Car Parts */}
-                  <div className={styles.specsSheet}>
-                    <div className={styles.specRow}>
-                      <span className={styles.specKey}>Toy Motor</span>
-                      <span className={styles.specVal}>Standard DC Electric Motor</span>
-                    </div>
-                    <div className={styles.specRow}>
-                      <span className={styles.specKey}>Drive Type</span>
-                      <span className={styles.specVal}>4-Wheel Drive (All 4 wheels spin)</span>
-                    </div>
-                    <div className={styles.specRow}>
-                      <span className={styles.specKey}>Remote Control</span>
-                      <span className={styles.specVal}>2.4GHz Handheld Remote</span>
-                    </div>
-                    <div className={styles.specRow}>
-                      <span className={styles.specKey}>Steering</span>
-                      <span className={styles.specVal}>Left / Right Turning Motor</span>
-                    </div>
-                    <div className={styles.specRow}>
-                      <span className={styles.specKey}>Driving Range</span>
-                      <span className={styles.specVal}>About 30-40 Meters</span>
-                    </div>
-                    <div className={styles.specRow}>
-                      <span className={styles.specKey}>Battery</span>
-                      <span className={styles.specVal}>Rechargeable Toy Battery Pack</span>
-                    </div>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-
-            {/* Footer Barcode & Flip Button */}
-            <div className={styles.cardFooter}>
-              <div className={styles.barcodeArea}>
-                <div className={styles.barcodeBar} style={{ width: 2 }} />
-                <div className={styles.barcodeBar} style={{ width: 4 }} />
-                <div className={styles.barcodeBar} style={{ width: 1 }} />
-                <div className={styles.barcodeBar} style={{ width: 3 }} />
-                <div className={styles.barcodeBar} style={{ width: 5 }} />
-                <div className={styles.barcodeBar} style={{ width: 2 }} />
-                <div className={styles.barcodeBar} style={{ width: 1 }} />
-                <div className={styles.barcodeBar} style={{ width: 4 }} />
-                <span className={styles.licenseSerial}>{serialNumber}</span>
-              </div>
-
-              <motion.button 
-                type="button" 
-                className={styles.flipCardBtn} 
-                onClick={() => setIsFlipped(!isFlipped)}
-                whileHover={{ scale: 1.04 }}
-                whileTap={{ scale: 0.96 }}
-                transition={{ type: "spring", stiffness: 400, damping: 20 }}
-              >
-                <motion.span 
-                  animate={{ rotate: isFlipped ? 180 : 0 }} 
-                  transition={{ type: "spring", stiffness: 350, damping: 22 }}
-                  style={{ display: "inline-flex" }}
-                >
-                  <RotateCw size={13} />
-                </motion.span>
-                <span>{isFlipped ? "View Front Pass" : "View Car Parts"}</span>
-              </motion.button>
-            </div>
-          </motion.div>
+            <Link href="/dashboard" className={styles.returnPaddockLink}>
+              <span>Back to Race Track & Hub →</span>
+            </Link>
+          </div>
         </div>
 
-        {/* Right Column: Career Achievements & Registry */}
-        <div className={styles.sidebarCol}>
+        {/* Right Column: Next Race Countdown & Badges */}
+        <div className={styles.rightCol}>
           
-          {/* Next Race Live Countdown Card on top of achievement card as requested */}
+          {/* Next Race Countdown Card */}
           <div className={styles.countdownCard}>
             <div className={styles.countdownHeader}>
               <div className={styles.countdownTitleWrap}>
-                <h3 className={styles.countdownTitle}>{tournament?.title || "Hanbee RC Cup 2026"}</h3>
+                <div className={styles.countdownIconWrap}>
+                  <Trophy size={16} />
+                </div>
+                <div>
+                  <h3 className={styles.countdownTitle}>{tournament?.title || "Hanbee RC Cup 2026"}</h3>
+                  <div className={styles.countdownLocationWrap}>
+                    <MapPin size={12} color="var(--text-muted)" />
+                    <span className={styles.countdownTrack}>Hanbee Track, Chennai</span>
+                  </div>
+                </div>
               </div>
-              <span className={styles.countdownTrack}>Hanbee Track, Chennai</span>
             </div>
 
             <div className={styles.timerGrid}>
@@ -410,108 +417,43 @@ export default function DriverLicensePage() {
             </div>
           </div>
 
-          {/* Driver Career Badges */}
+          {/* Racer Badges & Trophies */}
           <div className={styles.infoCard}>
-            <h3 className={styles.cardTitle}>
-              <Award size={18} color="#fbbf24" />
-              <span>Racer Badges & Trophies</span>
-            </h3>
+            <div className={styles.cardHeaderWithAction}>
+              <h3 className={styles.cardTitle}>
+                <Award size={18} color="#fbbf24" />
+                <span>Racer Badges & Trophies</span>
+              </h3>
+              <span className={styles.badgesCountBadge}>
+                4 Earned
+              </span>
+            </div>
 
             <div className={styles.badgesGrid}>
-              <motion.div 
-                className={styles.badgeCard}
-                whileHover={{ y: -4, scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                transition={{ type: "spring", stiffness: 400, damping: 25 }}
-              >
-                <div className={styles.badgeTop}>
-                  <div className={styles.badgeIconWrap}>
-                    <Zap size={15} />
+              {badges.map((badge) => {
+                const IconComponent = badge.icon;
+                return (
+                  <div key={badge.id} className={styles.badgeCard}>
+                    <div className={styles.badgeTop}>
+                      <div 
+                        className={styles.badgeIconWrap}
+                        style={{ background: badge.bgColor, color: badge.color }}
+                      >
+                        <IconComponent size={15} />
+                      </div>
+                      <h4 className={styles.badgeName}>{badge.name}</h4>
+                    </div>
+                    <p className={styles.badgeDesc}>{badge.desc}</p>
+                    <div className={styles.badgeFooter}>
+                      <span className={styles.badgeUnlockedTag}>
+                        <Check size={11} color="#10b981" />
+                        <span>Earned</span>
+                      </span>
+                    </div>
                   </div>
-                  <h4 className={styles.badgeName}>Quick Lap</h4>
-                </div>
-                <p className={styles.badgeDesc}>Clocked a lap under 14 seconds</p>
-              </motion.div>
-
-              <motion.div 
-                className={styles.badgeCard}
-                whileHover={{ y: -4, scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                transition={{ type: "spring", stiffness: 400, damping: 25 }}
-              >
-                <div className={styles.badgeTop}>
-                  <div className={styles.badgeIconWrap}>
-                    <Wrench size={15} />
-                  </div>
-                  <h4 className={styles.badgeName}>Pre-Race Check</h4>
-                </div>
-                <p className={styles.badgeDesc}>Checked all 6 car parts</p>
-              </motion.div>
-
-              <motion.div 
-                className={styles.badgeCard}
-                whileHover={{ y: -4, scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                transition={{ type: "spring", stiffness: 400, damping: 25 }}
-              >
-                <div className={styles.badgeTop}>
-                  <div className={styles.badgeIconWrap}>
-                    <Flame size={15} />
-                  </div>
-                  <h4 className={styles.badgeName}>4-Day Streak</h4>
-                </div>
-                <p className={styles.badgeDesc}>Practiced 4 days in a row</p>
-              </motion.div>
-
-              <motion.div 
-                className={styles.badgeCard}
-                whileHover={{ y: -4, scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                transition={{ type: "spring", stiffness: 400, damping: 25 }}
-              >
-                <div className={styles.badgeTop}>
-                  <div className={styles.badgeIconWrap}>
-                    <Trophy size={15} />
-                  </div>
-                  <h4 className={styles.badgeName}>Club Driver</h4>
-                </div>
-                <p className={styles.badgeDesc}>Official Hanbee RC racer</p>
-              </motion.div>
+                );
+              })}
             </div>
-          </div>
-
-          {/* Machine Registry */}
-          <div className={styles.infoCard}>
-            <h3 className={styles.cardTitle}>
-              <Compass size={18} color="#7dd3e8" />
-              <span>RC Car Info</span>
-            </h3>
-
-            <div className={styles.registryList}>
-              <div className={styles.registryRow}>
-                <span className={styles.registryLabel}>Car Model</span>
-                <span className={styles.registryVal}>1:16 4WD Toy Buggy</span>
-              </div>
-              <div className={styles.registryRow}>
-                <span className={styles.registryLabel}>Car Body</span>
-                <span className={styles.registryVal}>Plastic Shell & Bumper</span>
-              </div>
-              <div className={styles.registryRow}>
-                <span className={styles.registryLabel}>Remote Link</span>
-                <span className={styles.registryVal}>2.4GHz Connected</span>
-              </div>
-              <div className={styles.registryRow}>
-                <span className={styles.registryLabel}>Car Status</span>
-                <span className={styles.registryStatusOk}>
-                  <CheckCircle2 size={13} />
-                  <span>Checked & Ready to Drive!</span>
-                </span>
-              </div>
-            </div>
-
-            <Link href="/dashboard" className={styles.returnPaddockLink}>
-              <span>Back to Race Track & Hub →</span>
-            </Link>
           </div>
 
         </div>
