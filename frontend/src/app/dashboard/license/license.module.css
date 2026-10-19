@@ -3,20 +3,19 @@
 .licensePage {
   display: flex;
   flex-direction: column;
-  gap: 28px;
-  max-width: 1200px;
+  gap: 24px;
+  max-width: 1280px;
   width: 100%;
   margin: 0 auto;
-  padding-bottom: 40px;
   animation: fadeIn 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(12px); }
+  from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* Page Top Header */
+/* Header */
 .pageHeader {
   display: flex;
   justify-content: space-between;
@@ -109,647 +108,520 @@
   box-shadow: var(--clay-shadow-elevated), var(--accent-glow);
 }
 
-/* ========================================================
-   HERO RACER PASS CARD (Exact Matching Mockup Design)
-   ======================================================== */
-.licenseStage {
-  width: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 48px 24px;
-  border-radius: 32px;
-  background: 
-    radial-gradient(circle at 50% 20%, rgba(56, 189, 248, 0.06) 0%, transparent 50%),
-    radial-gradient(ellipse at 50% 40%, #0c1527 0%, #030712 100%);
-  box-shadow: 
-    0 24px 60px rgba(0, 0, 0, 0.5),
-    inset 0 1px 0 rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.07);
-  position: relative;
-  overflow: hidden;
+/* Main Layout Grid - Balanced 2 Columns */
+.licenseGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+  gap: 24px;
+  align-items: start;
 }
 
-/* Subtle ambient track lighting behind the card */
-.licenseStage::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 20%;
-  right: 20%;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(56, 189, 248, 0.35), transparent);
-  pointer-events: none;
+.leftCol,
+.rightCol {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
 
-.licenseHeroContainer {
-  display: flex;
-  justify-content: center;
-  width: 100%;
+@media (max-width: 950px) {
+  .licenseGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ===== 3D License Card Container ===== */
+.licensePerspectiveWrapper {
   perspective: 1200px;
 }
 
-.racerPassCard {
+.licenseCard {
   position: relative;
-  width: 100%;
-  max-width: 920px;
-  border-radius: 28px;
-  background: linear-gradient(135deg, rgba(13, 20, 36, 0.94) 0%, rgba(8, 12, 22, 0.98) 100%);
-  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 24px;
+  background: linear-gradient(135deg, rgba(24, 25, 32, 0.98) 0%, rgba(12, 13, 18, 0.99) 100%);
+  border: 1px solid rgba(125, 211, 232, 0.28);
   box-shadow: 
-    0 24px 64px -10px rgba(0, 0, 0, 0.85),
-    0 0 0 1px rgba(56, 189, 248, 0.1),
-    0 0 45px rgba(8, 145, 178, 0.14);
-  padding: 34px 42px 30px;
+    0 24px 60px -12px rgba(0, 0, 0, 0.85),
+    0 0 35px rgba(8, 145, 178, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  padding: 24px 26px;
   overflow: hidden;
-  backdrop-filter: blur(28px);
-  -webkit-backdrop-filter: blur(28px);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
   transform-style: preserve-3d;
   will-change: transform;
-  transition: box-shadow 0.35s ease;
+  transition: box-shadow 0.4s ease;
 }
 
-.racerPassCard:hover {
+.licenseCard:hover {
   box-shadow: 
-    0 32px 75px -14px rgba(0, 0, 0, 0.9),
-    0 0 0 1px rgba(56, 189, 248, 0.18),
-    0 0 55px rgba(56, 189, 248, 0.22);
+    0 34px 75px -14px rgba(0, 0, 0, 0.95),
+    0 0 45px rgba(125, 211, 232, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.35);
 }
 
-/* Dynamic Interactive Glare Spot */
+/* Dynamic Interactive Specular Glare Spot */
 .cardSpecularGlare {
   position: absolute;
   inset: 0;
-  border-radius: 28px;
+  border-radius: 24px;
   pointer-events: none;
   mix-blend-mode: screen;
-  z-index: 3;
+  z-index: 2;
   transition: opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* Subtle Holographic Sheen */
-.racerPassCard::before {
+/* Holographic Sheen */
+.licenseCard::before {
   content: '';
   position: absolute;
-  top: -60%;
-  left: -60%;
-  width: 220%;
-  height: 220%;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
   background: linear-gradient(
     45deg,
     transparent 35%,
-    rgba(255, 255, 255, 0.03) 45%,
-    rgba(56, 189, 248, 0.06) 50%,
-    rgba(168, 85, 247, 0.04) 55%,
+    rgba(255, 255, 255, 0.04) 45%,
+    rgba(125, 211, 232, 0.08) 50%,
+    rgba(236, 72, 153, 0.05) 55%,
     transparent 65%
   );
   transform: rotate(-25deg);
   pointer-events: none;
-  animation: cardHolo 12s ease-in-out infinite alternate;
+  animation: holoSheen 9s ease-in-out infinite alternate;
 }
 
-@keyframes cardHolo {
-  0% { transform: translateY(-15%) rotate(-25deg); opacity: 0.3; }
-  50% { transform: translateY(12%) rotate(-20deg); opacity: 0.65; }
-  100% { transform: translateY(-15%) rotate(-25deg); opacity: 0.3; }
+@keyframes holoSheen {
+  0% { transform: translateY(-20%) rotate(-25deg); opacity: 0.3; }
+  50% { transform: translateY(15%) rotate(-20deg); opacity: 0.7; }
+  100% { transform: translateY(-20%) rotate(-25deg); opacity: 0.3; }
 }
 
-/* Background RC Buggy Graphic on the Right Side */
-.cardCarBg {
-  position: absolute;
-  right: -10px;
-  top: 15px;
-  width: 480px;
-  height: 280px;
-  background-image: url('/images/rc-buggy-card.jpg');
-  background-size: cover;
-  background-position: center;
-  pointer-events: none;
-  z-index: 1;
-  opacity: 0.44;
-  -webkit-mask-image: radial-gradient(ellipse at 68% 48%, rgba(0, 0, 0, 0.92) 0%, rgba(0, 0, 0, 0.45) 55%, transparent 78%);
-  mask-image: radial-gradient(ellipse at 68% 48%, rgba(0, 0, 0, 0.92) 0%, rgba(0, 0, 0, 0.45) 55%, transparent 78%);
-  filter: contrast(1.15) brightness(0.92);
-}
-
-/* Card Header: Shield, HANBEE RACING CLUB // RC SERIES, and RACER PASS */
+/* Card Header */
 .cardHeader {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 26px;
-  position: relative;
-  z-index: 2;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding-bottom: 14px;
+  margin-bottom: 18px;
 }
 
-.cardHeaderLeft {
+.cardFederationTitle {
   display: flex;
   align-items: center;
-  gap: 10px;
-}
-
-.shieldIcon {
-  color: #38bdf8;
-  filter: drop-shadow(0 0 8px rgba(56, 189, 248, 0.6));
-}
-
-.brandTitle {
-  font-family: var(--font-heading);
-  font-size: 14px;
-  font-weight: 800;
-  letter-spacing: 2px;
-  color: #ffffff;
-}
-
-.brandSubtitle {
-  font-family: monospace;
-  font-size: 12.5px;
-  font-weight: 600;
-  letter-spacing: 2px;
-  color: #64748b;
-  margin-left: 2px;
-}
-
-.racerPassBadge {
-  display: inline-flex;
-  align-items: center;
   gap: 8px;
-  padding: 6px 14px;
-  border-radius: 12px;
-  background: rgba(245, 158, 11, 0.08);
-  border: 1px solid rgba(245, 158, 11, 0.4);
-  color: #f59e0b;
   font-family: monospace;
-  font-size: 11.5px;
-  font-weight: 700;
+  font-size: 11px;
   letter-spacing: 1.5px;
-  box-shadow: 0 0 16px rgba(245, 158, 11, 0.12);
-  user-select: none;
+  color: #7dd3e8;
+  font-weight: 700;
+  text-transform: uppercase;
 }
 
-.crownIcon {
-  color: #f59e0b;
+.licenseSuperBadge {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.2) 0%, rgba(239, 68, 68, 0.2) 100%);
+  border: 1px solid rgba(245, 158, 11, 0.4);
+  color: #fbbf24;
+  font-family: monospace;
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 1.2px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  text-transform: uppercase;
 }
 
-/* Driver Profile Row */
+/* Driver Profile Info */
 .driverRow {
   display: flex;
   align-items: center;
-  gap: 22px;
-  margin-bottom: 28px;
-  position: relative;
-  z-index: 2;
+  gap: 16px;
+  margin-bottom: 20px;
 }
 
-.avatarSquare {
-  width: 90px;
-  height: 90px;
-  border-radius: 22px;
-  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
-  border: 2px solid rgba(96, 165, 250, 0.45);
-  box-shadow: 
-    0 10px 28px rgba(29, 78, 216, 0.42),
-    inset 0 1px 0 rgba(255, 255, 255, 0.25);
+.avatarContainer {
+  position: relative;
+  width: 66px;
+  height: 66px;
+  border-radius: 18px;
+  background: var(--color-primary);
+  border: 2px solid var(--accent-subtle-border);
   display: flex;
   align-items: center;
   justify-content: center;
   font-family: var(--font-heading);
-  font-size: 42px;
-  font-weight: 800;
-  color: #ffffff;
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--color-primary-text);
+  box-shadow: var(--clay-shadow-button), var(--accent-glow);
   flex-shrink: 0;
-  user-select: none;
-  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-.avatarSquare:hover {
-  transform: scale(1.05);
+.avatarContainer:hover {
+  transform: scale(1.05) rotate(2deg);
 }
 
-.driverMeta {
+.driverInfoMeta {
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 3px;
+  min-width: 0;
 }
 
-.driverNameRow {
+.driverNameWrap {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   flex-wrap: wrap;
 }
 
 .driverName {
   font-family: var(--font-heading);
-  font-size: clamp(26px, 2.5vw, 32px);
-  font-weight: 800;
-  color: #ffffff;
+  font-size: 22px;
+  font-weight: 700;
+  color: #fff;
   margin: 0;
-  line-height: 1.1;
   letter-spacing: -0.02em;
 }
 
-.verifiedBadge {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 4px 12px;
-  border-radius: 999px;
-  background: rgba(16, 185, 129, 0.12);
-  border: 1px solid rgba(16, 185, 129, 0.4);
-  color: #10b981;
+.driverCallsign {
   font-family: monospace;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 1px;
-  user-select: none;
+  font-size: 12px;
+  color: #7dd3e8;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.verifiedIcon {
-  color: #10b981;
-}
-
-.serialRow {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  font-family: monospace;
-  font-size: 15px;
-  font-weight: 600;
-  color: #cbd5e1;
-}
-
-.copyBtn {
-  background: transparent;
-  border: none;
-  padding: 2px 4px;
-  color: #94a3b8;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 4px;
-  transition: all 0.2s ease;
-}
-
-.copyBtn:hover {
-  color: #38bdf8;
-  transform: scale(1.15);
-}
-
-.teamSchoolRow {
-  font-family: monospace;
-  font-size: 14px;
-  color: #94a3b8;
-  letter-spacing: 0.3px;
-}
-
-/* 3-Card Telemetry Stats Grid */
-.statsGrid {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1.32fr;
-  gap: 16px;
-  margin-bottom: 22px;
-  position: relative;
-  z-index: 2;
-}
-
-.statCard {
-  background: rgba(13, 20, 36, 0.7);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 18px;
-  padding: 16px 20px;
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  transition: all 0.25s ease;
-}
-
-.statCard:hover {
-  border-color: rgba(56, 189, 248, 0.3);
-  transform: translateY(-2px);
-  box-shadow: 0 8px 24px -6px rgba(0, 0, 0, 0.4);
-}
-
-.statCardGold {
-  background: linear-gradient(135deg, rgba(245, 158, 11, 0.08) 0%, rgba(217, 119, 6, 0.03) 100%);
-  border: 1.5px solid rgba(245, 158, 11, 0.55);
-  border-radius: 18px;
-  padding: 16px 20px;
+/* Smart Chip & Class Badge Row */
+.chipRow {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  box-shadow: 0 4px 22px rgba(245, 158, 11, 0.12);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  transition: all 0.25s ease;
-  cursor: pointer;
+  margin-bottom: 16px;
+  gap: 12px;
 }
 
-.statCardGold:hover {
-  border-color: rgba(245, 158, 11, 0.85);
-  box-shadow: 0 8px 30px rgba(245, 158, 11, 0.24);
-  transform: translateY(-2px);
-}
-
-.statGoldLeft {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
-.statIconWrap {
+.smartChip {
+  width: 44px;
+  height: 32px;
+  border-radius: 6px;
+  background: linear-gradient(135deg, #ffd700 0%, #b8860b 50%, #e6ca65 100%);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.6), 0 2px 8px rgba(0, 0, 0, 0.4);
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 44px;
-  height: 44px;
   flex-shrink: 0;
 }
 
-.statInfo {
+.smartChipInner {
+  width: 32px;
+  height: 22px;
+  border: 1px solid rgba(0, 0, 0, 0.35);
+  border-radius: 3px;
+  position: relative;
+}
+
+.smartChipLineH {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: rgba(0, 0, 0, 0.35);
+  transform: translateY(-50%);
+}
+
+.smartChipLineV {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: rgba(0, 0, 0, 0.35);
+  transform: translateX(-50%);
+}
+
+.licenseClassBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: monospace;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  color: #7dd3e8;
+  background: rgba(8, 145, 178, 0.12);
+  border: 1px solid rgba(125, 211, 232, 0.3);
+  padding: 5px 11px;
+  border-radius: 8px;
+}
+
+/* 4-Stat Telemetry Matrix */
+.statsMatrix {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  background: rgba(0, 0, 0, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  padding: 12px 14px;
+  margin-bottom: 16px;
+}
+
+@media (max-width: 600px) {
+  .statsMatrix {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.statItem {
   display: flex;
   flex-direction: column;
   gap: 2px;
 }
 
 .statLabel {
+  font-size: 9px;
   font-family: monospace;
-  font-size: 11px;
-  letter-spacing: 1.2px;
-  color: #94a3b8;
-  font-weight: 600;
+  letter-spacing: 0.8px;
+  color: var(--text-muted);
   text-transform: uppercase;
 }
 
 .statValue {
-  font-family: var(--font-heading);
-  font-size: 26px;
-  font-weight: 800;
-  color: #ffffff;
-  line-height: 1.1;
+  font-size: 15.5px;
+  font-weight: 700;
+  color: #fff;
+  font-family: monospace;
+  line-height: 1.2;
 }
 
-.purpleTag {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
+.statValueAccent {
+  color: #7dd3e8;
+  text-shadow: 0 0 10px rgba(125, 211, 232, 0.4);
+}
+
+.statSubBadge {
+  font-size: 8px;
   font-family: monospace;
-  font-size: 10px;
   font-weight: 700;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  color: #10b981;
+}
+
+.statSubPurple {
   color: #c084fc;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-  margin-top: 2px;
 }
 
-.greenTag {
-  font-family: monospace;
-  font-size: 10px;
-  font-weight: 700;
-  color: #34d399;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-  margin-top: 2px;
-}
-
-.goldStatLabel {
-  font-family: monospace;
-  font-size: 11px;
-  letter-spacing: 1.2px;
-  color: #d97706;
-  font-weight: 700;
-  text-transform: uppercase;
-}
-
-.goldStatValue {
-  font-family: var(--font-heading);
-  font-size: 26px;
-  font-weight: 800;
-  color: #ffffff;
-  line-height: 1.1;
-}
-
-.rpUnit {
-  color: #f59e0b;
-  font-weight: 800;
-  margin-left: 4px;
-}
-
-.goldArrowBtn {
-  width: 38px;
-  height: 38px;
-  border-radius: 50%;
-  background: rgba(245, 158, 11, 0.15);
-  border: 1px solid rgba(245, 158, 11, 0.35);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  transition: all 0.2s ease;
-}
-
-.statCardGold:hover .goldArrowBtn {
-  background: rgba(245, 158, 11, 0.3);
-  transform: scale(1.08);
-}
-
-/* Bottom Action Bar: View Racing Profile */
-.viewProfileBtn {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  padding: 14px 24px;
-  border-radius: 16px;
-  background: rgba(13, 148, 136, 0.08);
-  border: 1.5px solid rgba(20, 184, 166, 0.5);
-  cursor: pointer;
-  transition: all 0.25s ease;
-  position: relative;
-  z-index: 2;
-  outline: none;
-}
-
-.viewProfileBtn:hover {
-  background: rgba(13, 148, 136, 0.16);
-  border-color: rgba(45, 212, 191, 0.85);
-  box-shadow: 0 0 24px rgba(20, 184, 166, 0.28);
-  transform: translateY(-1px);
-}
-
-.viewProfileLeft {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  font-family: monospace;
-  font-size: 15px;
-  font-weight: 600;
-  color: #f1f5f9;
-  letter-spacing: 0.5px;
-}
-
-.tealCircleArrow {
-  width: 34px;
-  height: 34px;
-  border-radius: 50%;
-  background: #0d9488;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 2px 10px rgba(13, 148, 136, 0.45);
-  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-
-.viewProfileBtn:hover .tealCircleArrow {
-  transform: translateX(3px) scale(1.05);
-  background: #14b8a6;
-}
-
-/* ========================================================
-   EXPANDED RACING PROFILE DETAILS
-   ======================================================== */
-.detailsDrawer {
-  width: 100%;
-  max-width: 860px;
-  margin: 0 auto;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-/* Interactive RC Motor Throttle Console */
+/* Interactive RC Throttle & RPM Console (Replaces Loading Bar!) */
 .throttleConsole {
-  background: linear-gradient(135deg, rgba(8, 145, 178, 0.12) 0%, rgba(9, 13, 24, 0.7) 100%);
-  border: 1px solid rgba(56, 189, 248, 0.28);
-  border-radius: 20px;
-  padding: 18px 24px;
+  background: linear-gradient(135deg, rgba(8, 145, 178, 0.08) 0%, rgba(0, 0, 0, 0.4) 100%);
+  border: 1px solid rgba(125, 211, 232, 0.22);
+  border-radius: 14px;
+  padding: 12px 16px;
+  margin-bottom: 16px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 20px;
+  gap: 14px;
   position: relative;
   overflow: hidden;
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
   transition: all 0.25s ease;
 }
 
 .throttleConsoleRevving {
   border-color: #38bdf8;
-  box-shadow: 0 0 35px rgba(56, 189, 248, 0.45), inset 0 0 20px rgba(56, 189, 248, 0.18);
-  background: linear-gradient(135deg, rgba(8, 145, 178, 0.22) 0%, rgba(14, 165, 233, 0.15) 100%);
+  box-shadow: 0 0 25px rgba(56, 189, 248, 0.35), inset 0 0 15px rgba(56, 189, 248, 0.15);
+  background: linear-gradient(135deg, rgba(8, 145, 178, 0.2) 0%, rgba(14, 165, 233, 0.1) 100%);
 }
 
 .throttleLeft {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 3px;
   flex: 1;
+  min-width: 0;
 }
 
 .throttleMetaRow {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  gap: 8px;
   font-family: monospace;
+  font-size: 11px;
 }
 
 .throttleLabel {
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 1px;
-  color: #94a3b8;
+  color: var(--text-muted);
   text-transform: uppercase;
+  letter-spacing: 0.6px;
+  font-size: 9.5px;
 }
 
 .throttleRpmVal {
-  font-size: 13px;
-  font-weight: 800;
+  font-weight: 700;
+  font-size: 13.5px;
   color: #38bdf8;
-  transition: all 0.15s ease;
+  font-family: monospace;
+  letter-spacing: 0.5px;
+  transition: color 0.15s ease;
 }
 
 .throttleRpmValActive {
   color: #f59e0b;
-  text-shadow: 0 0 10px rgba(245, 158, 11, 0.6);
-  transform: scale(1.05);
+  text-shadow: 0 0 12px rgba(245, 158, 11, 0.6);
 }
 
 .tachometerTrack {
-  height: 8px;
+  width: 100%;
+  height: 6px;
   background: rgba(255, 255, 255, 0.08);
   border-radius: 999px;
   overflow: hidden;
-  position: relative;
+  margin-top: 4px;
 }
 
 .tachometerFill {
   height: 100%;
-  background: linear-gradient(90deg, #38bdf8 0%, #10b981 60%, #ef4444 100%);
   border-radius: 999px;
-  transition: width 0.15s cubic-bezier(0.16, 1, 0.3, 1);
-  box-shadow: 0 0 10px rgba(56, 189, 248, 0.5);
+  background: linear-gradient(90deg, #10b981 0%, #38bdf8 65%, #f59e0b 85%, #ef4444 100%);
+  transition: width 0.12s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .revThrottleBtn {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
-  color: #fff;
+  gap: 7px;
+  background: linear-gradient(135deg, rgba(8, 145, 178, 0.25) 0%, rgba(56, 189, 248, 0.15) 100%);
   border: 1px solid rgba(125, 211, 232, 0.4);
+  color: #fff;
   font-family: monospace;
-  font-size: 13px;
-  font-weight: 800;
-  padding: 12px 20px;
-  border-radius: 12px;
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  padding: 8px 14px;
+  border-radius: 9px;
   cursor: pointer;
-  box-shadow: 0 4px 15px rgba(2, 132, 199, 0.4);
-  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  white-space: nowrap;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   flex-shrink: 0;
   user-select: none;
 }
 
 .revThrottleBtn:hover:not(:disabled) {
-  transform: scale(1.04) translateY(-1px);
-  box-shadow: 0 6px 20px rgba(56, 189, 248, 0.55);
+  background: linear-gradient(135deg, rgba(8, 145, 178, 0.4) 0%, rgba(56, 189, 248, 0.3) 100%);
+  border-color: #7dd3e8;
+  transform: translateY(-1px) scale(1.02);
+  box-shadow: 0 0 16px rgba(8, 145, 178, 0.4);
 }
 
+.revThrottleBtn:active:not(:disabled),
 .revThrottleBtnActive {
-  background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%);
-  border-color: #f97316;
-  box-shadow: 0 0 25px rgba(249, 115, 22, 0.7);
-  animation: pulseRev 0.2s infinite alternate;
+  transform: scale(0.96);
+  background: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%) !important;
+  border-color: #fbbf24 !important;
+  color: #000 !important;
+  box-shadow: 0 0 22px rgba(245, 158, 11, 0.6) !important;
 }
 
-@keyframes pulseRev {
-  from { transform: scale(1.02); }
-  to { transform: scale(1.06); }
+/* Digital Signature Row */
+.signatureRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+  padding: 0 4px;
+  font-size: 11px;
 }
 
-/* 2-Column Supporting Grid (RC Info & Badges) */
-.detailsGrid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 20px;
+.signatureLabel {
+  font-family: monospace;
+  font-size: 9.5px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
-@media (max-width: 820px) {
-  .detailsGrid {
-    grid-template-columns: 1fr;
-  }
+.signatureText {
+  font-family: 'Brush Script MT', 'Dancing Script', cursive, sans-serif;
+  font-size: 17px;
+  color: #7dd3e8;
+  letter-spacing: 1px;
+  opacity: 0.9;
 }
 
+/* Barcode Footer */
+.cardFooter {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  padding-top: 16px;
+}
+
+.barcodeArea {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  height: 28px;
+}
+
+.barcodeBar {
+  background: rgba(255, 255, 255, 0.7);
+  height: 100%;
+  border-radius: 1px;
+}
+
+.licenseSerial {
+  font-family: monospace;
+  font-size: 12px;
+  color: var(--text-muted);
+  letter-spacing: 1.5px;
+  margin-left: 10px;
+}
+
+.statusVerifiedBadge {
+  font-size: 10px;
+  font-family: monospace;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  color: #10b981;
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  padding: 2px 7px;
+  border-radius: 4px;
+  text-transform: uppercase;
+}
+
+.officialBadge {
+  font-size: 10px;
+  font-family: monospace;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  color: var(--accent-subtle-text);
+  background: var(--accent-subtle-bg);
+  border: 1px solid var(--accent-subtle-border);
+  padding: 4px 10px;
+  border-radius: 6px;
+  text-transform: uppercase;
+}
+
+/* ===== Info Cards ===== */
 .infoCard {
   background: var(--bg-card);
   border: var(--border-subtle);
-  border-radius: 20px;
+  border-radius: var(--clay-radius-md, 20px);
   box-shadow: var(--clay-shadow-outer);
-  padding: 22px 26px;
+  padding: 20px 24px;
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   display: flex;
@@ -775,17 +647,7 @@
   gap: 10px;
 }
 
-.badgesCountBadge {
-  font-size: 10.5px;
-  font-family: monospace;
-  font-weight: 700;
-  color: #fbbf24;
-  background: rgba(251, 191, 36, 0.12);
-  border: 1px solid rgba(251, 191, 36, 0.3);
-  padding: 3px 8px;
-  border-radius: 999px;
-}
-
+/* Registry List */
 .registryList {
   display: flex;
   flex-direction: column;
@@ -796,12 +658,11 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 13px;
-  padding: 10px 14px;
+  font-size: 12.5px;
+  padding: 9px 12px;
   border-radius: 10px;
   background: var(--bg-surface-elevated);
   border: 1px solid var(--border-elevated);
-  font-family: monospace;
 }
 
 .registryLabel {
@@ -810,15 +671,157 @@
 
 .registryVal {
   color: var(--text-main);
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .registryStatusOk {
   color: #10b981;
-  font-weight: 700;
+  font-weight: 600;
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 4px;
+}
+
+.returnPaddockLink {
+  margin-top: 2px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: var(--accent-subtle-bg);
+  border: 1px solid var(--accent-subtle-border);
+  color: var(--accent-subtle-text);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 10px 16px;
+  border-radius: 12px;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.returnPaddockLink:hover {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: var(--color-primary-text);
+  transform: translateY(-1px);
+}
+
+/* ===== Countdown Card ===== */
+.countdownCard {
+  background: var(--bg-card);
+  border: var(--border-subtle);
+  border-radius: var(--clay-radius-md, 20px);
+  box-shadow: var(--clay-shadow-outer);
+  padding: 20px 24px;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.countdownHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.countdownTitleWrap {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.countdownIconWrap {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: var(--accent-subtle-bg);
+  color: var(--accent-subtle-text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.countdownTitle {
+  font-family: var(--font-heading);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-main);
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+.countdownLocationWrap {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 2px;
+}
+
+.countdownTrack {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.timerGrid {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--border-elevated);
+  border-radius: 14px;
+  padding: 14px 18px;
+}
+
+.timerSegment {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  flex: 1;
+}
+
+.timerNumber {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--text-main);
+  font-family: monospace;
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+
+.timerLabel {
+  font-size: 9px;
+  font-weight: 700;
+  font-family: monospace;
+  letter-spacing: 1.2px;
+  color: var(--text-muted);
+}
+
+.timerColon {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--accent-subtle-text);
+  line-height: 1;
+  margin-top: -8px;
+}
+
+/* ===== Accolades Badges Grid ===== */
+.badgesCountBadge {
+  font-size: 10.5px;
+  font-family: monospace;
+  font-weight: 700;
+  color: #fbbf24;
+  background: rgba(251, 191, 36, 0.12);
+  border: 1px solid rgba(251, 191, 36, 0.3);
+  padding: 3px 8px;
+  border-radius: 999px;
 }
 
 .badgesGrid {
@@ -835,6 +838,7 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
+  cursor: default;
   transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
@@ -869,7 +873,7 @@
 }
 
 .badgeDesc {
-  font-size: 11.5px;
+  font-size: 12px;
   color: var(--text-muted);
   margin: 0;
   line-height: 1.4;
@@ -917,46 +921,37 @@
   gap: 10px;
 }
 
-/* Responsive Media Queries */
-@media (max-width: 820px) {
-  .racerPassCard {
-    padding: 24px 20px 22px;
-    border-radius: 22px;
-  }
-
-  .statsGrid {
+/* Responsive */
+@media (max-width: 950px) {
+  .licenseGrid {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .pageHeader {
+    padding: 16px 14px;
     gap: 12px;
   }
 
-  .cardCarBg {
-    width: 320px;
-    height: 200px;
-    opacity: 0.25;
-    right: -20px;
+  .headerActions {
+    width: 100%;
+    gap: 8px;
   }
 
-  .driverName {
-    font-size: 24px;
+  .actionBtnSecondary,
+  .actionBtnPrimary {
+    flex: 1;
+    justify-content: center;
+    padding: 8px 12px;
+    font-size: 12px;
   }
 
-  .avatarSquare {
-    width: 74px;
-    height: 74px;
-    font-size: 34px;
-    border-radius: 18px;
+  .licenseCard {
+    padding: 18px 14px;
   }
 
   .badgesGrid {
     grid-template-columns: 1fr;
-  }
-
-  .throttleConsole {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .revThrottleBtn {
-    justify-content: center;
   }
 }
