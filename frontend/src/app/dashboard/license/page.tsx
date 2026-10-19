@@ -48,8 +48,66 @@ export default function DriverLicensePage() {
 
   // Dynamic Rank & Progression
   const rankNumber = xp >= 1850 ? "#1 Rank" : xp >= 1620 ? "#2 Rank" : xp >= 1490 ? "#3 Rank" : "#4 Rank";
-  const rpTarget = 2000;
-  const rpPercent = Math.min(100, Math.round((xp / rpTarget) * 100));
+
+  // Interactive RC Motor Audio Synthesis
+  const [isRevving, setIsRevving] = useState(false);
+  const [rpm, setRpm] = useState(1400);
+
+  const playRcMotorRev = () => {
+    if (typeof window === "undefined") return;
+    try {
+      const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+      if (!AudioCtx) return;
+      const ctx = new AudioCtx();
+      if (ctx.state === "suspended") {
+        void ctx.resume();
+      }
+      const now = ctx.currentTime;
+
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      const filter = ctx.createBiquadFilter();
+
+      osc.type = "sawtooth";
+      filter.type = "lowpass";
+      filter.frequency.setValueAtTime(3200, now);
+
+      // Realistic electric RC motor whine (idle rev -> peak launch -> shift -> idle)
+      osc.frequency.setValueAtTime(320, now);
+      osc.frequency.exponentialRampToValueAtTime(1850, now + 0.35);
+      osc.frequency.setValueAtTime(1400, now + 0.42);
+      osc.frequency.exponentialRampToValueAtTime(2200, now + 0.85);
+      osc.frequency.exponentialRampToValueAtTime(280, now + 1.4);
+
+      gain.gain.setValueAtTime(0.01, now);
+      gain.gain.linearRampToValueAtTime(0.18, now + 0.08);
+      gain.gain.setValueAtTime(0.18, now + 0.9);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 1.45);
+
+      osc.connect(filter);
+      filter.connect(gain);
+      gain.connect(ctx.destination);
+
+      osc.start(now);
+      osc.stop(now + 1.45);
+    } catch {
+      // Graceful fallback if audio permissions are blocked
+    }
+  };
+
+  const handleRevMotor = () => {
+    if (isRevving) return;
+    setIsRevving(true);
+    playRcMotorRev();
+    setRpm(18650);
+
+    setTimeout(() => setRpm(14200), 400);
+    setTimeout(() => setRpm(19800), 800);
+    setTimeout(() => {
+      setRpm(1400);
+      setIsRevving(false);
+    }, 1450);
+  };
 
   // 3D Holographic Card Interactive Physics
   const [tilt, setTilt] = useState({ rotateX: 0, rotateY: 0 });
@@ -277,36 +335,78 @@ export default function DriverLicensePage() {
                 </div>
               </div>
 
-              {/* Stats Triple Row */}
-              <div className={styles.statsTriple}>
-                <div className={styles.statItem}>
-                  <span className={styles.statLabel}>BEST LAP</span>
-                  <span className={`${styles.statValue} ${styles.statValueAccent}`}>12.84s</span>
+              {/* Gold Smart Chip & Superlicense Class Row */}
+              <div className={styles.chipRow}>
+                <div className={styles.smartChip} title="2.4GHz Telemetry RFID Microchip">
+                  <div className={styles.smartChipInner}>
+                    <div className={styles.smartChipLineH} />
+                    <div className={styles.smartChipLineV} />
+                  </div>
                 </div>
-                <div className={styles.statItem}>
-                  <span className={styles.statLabel}>PRACTICE RP</span>
-                  <span className={styles.statValue}>{xp.toLocaleString()} RP</span>
-                </div>
-                <div className={styles.statItem}>
-                  <span className={styles.statLabel}>TRACK RANK</span>
-                  <span className={styles.statValue}>{rankNumber}</span>
+                <div className={styles.licenseClassBadge}>
+                  <Zap size={12} color="#7dd3e8" />
+                  <span>CLASS-A SUPERLICENSE // 4WD RC BUGGY</span>
                 </div>
               </div>
 
-              {/* Practice RP Progression */}
-              <div className={styles.xpBox}>
-                <div className={styles.xpHeader}>
-                  <span>Practice Tier: <strong>Rookie Champ</strong></span>
-                  <span>{xp.toLocaleString()} / 2,000 RP ({rpPercent}%)</span>
+              {/* 4-Stat Telemetry Matrix */}
+              <div className={styles.statsMatrix}>
+                <div className={styles.statItem}>
+                  <span className={styles.statLabel}>BEST LAP</span>
+                  <span className={`${styles.statValue} ${styles.statValueAccent}`}>12.84s</span>
+                  <span className={`${styles.statSubBadge} ${styles.statSubPurple}`}>⚡ PURPLE FAST</span>
                 </div>
-                <div className={styles.xpTrack}>
-                  <motion.div 
-                    className={styles.xpFill} 
-                    initial={{ width: 0 }}
-                    animate={{ width: `${rpPercent}%` }}
-                    transition={{ duration: 1.1, ease: [0.34, 1.56, 0.64, 1], delay: 0.1 }}
-                  />
+                <div className={styles.statItem}>
+                  <span className={styles.statLabel}>TOP SPEED</span>
+                  <span className={styles.statValue}>44.8 km/h</span>
+                  <span className={styles.statSubBadge}>PEAK APEX</span>
                 </div>
+                <div className={styles.statItem}>
+                  <span className={styles.statLabel}>LAUNCH REFLEX</span>
+                  <span className={styles.statValue}>0.18s</span>
+                  <span className={styles.statSubBadge}>REACTION SCORE</span>
+                </div>
+                <div className={styles.statItem}>
+                  <span className={styles.statLabel}>RACE POINTS</span>
+                  <span className={styles.statValue}>{xp.toLocaleString()} RP</span>
+                  <span className={styles.statSubBadge}>GRID TOTAL</span>
+                </div>
+              </div>
+
+              {/* Interactive Cockpit RC Throttle Console (Replaces Loading Bar!) */}
+              <div className={`${styles.throttleConsole} ${isRevving ? styles.throttleConsoleRevving : ""}`}>
+                <div className={styles.throttleLeft}>
+                  <div className={styles.throttleMetaRow}>
+                    <span className={styles.throttleLabel}>RC Motor RPM:</span>
+                    <span className={`${styles.throttleRpmVal} ${isRevving ? styles.throttleRpmValActive : ""}`}>
+                      {rpm.toLocaleString()} RPM {isRevving ? "⚡ BOOST" : "• IDLE"}
+                    </span>
+                  </div>
+                  <div className={styles.tachometerTrack}>
+                    <div 
+                      className={styles.tachometerFill}
+                      style={{ width: `${Math.min(100, Math.max(8, (rpm / 20000) * 100))}%` }}
+                    />
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  className={`${styles.revThrottleBtn} ${isRevving ? styles.revThrottleBtnActive : ""}`}
+                  onClick={handleRevMotor}
+                  disabled={isRevving}
+                  title="Click to test your RC car electric motor sound!"
+                >
+                  <Zap size={13} />
+                  <span>{isRevving ? "REVVED UP!" : "🏎️ Test Throttle"}</span>
+                </button>
+              </div>
+
+              {/* Driver Signature Stamp */}
+              <div className={styles.signatureRow}>
+                <span className={styles.signatureLabel}>Driver Signature:</span>
+                <span className={styles.signatureText}>{driverName}</span>
+                <span className={styles.statusVerifiedBadge} style={{ fontSize: 9 }}>FIA-RC // SEALED</span>
               </div>
 
               {/* Footer Barcode */}
