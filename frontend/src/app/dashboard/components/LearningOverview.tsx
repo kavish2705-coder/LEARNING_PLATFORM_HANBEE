@@ -37,7 +37,7 @@ export default function LearningOverview() {
       {currentCourse ? (
         <div className={`${styles.sectionCard} ${styles.learningHero}`}>
           <div className={styles.learningHeroContent}>
-            <span className={styles.metricLabel}>{currentCourse.status === "completed" ? "LAST COURSE" : "CONTINUE LEARNING"}</span>
+            <span className={styles.metricLabel}>{currentCourse.status === "completed" ? "Completed Course" : "Continue Learning"}</span>
             <h2 className={styles.learningHeroTitle}>{currentCourse.title}</h2>
             <p className={styles.bodyMuted}>
               {currentCourse.completedLessonCount} of {currentCourse.lessonCount} lessons completed
@@ -63,17 +63,17 @@ export default function LearningOverview() {
 
       <div className={styles.metricsRow}>
         <div className={styles.metricCard}>
-          <div className={styles.metricCardHeader}><span className={styles.metricLabel}>Courses in Progress</span><span className={styles.metricIconBadge}><BookOpen size={18} aria-hidden="true" /></span></div>
+          <div className={styles.metricCardHeader}><span className={styles.metricTitle}>Courses in Progress</span><span className={styles.metricIconBadge}><BookOpen size={18} aria-hidden="true" /></span></div>
           <div className={styles.metricValue}>{loading ? "—" : inProgress}</div>
           <div className={styles.metricSubtext}>Assigned and active</div>
         </div>
         <div className={styles.metricCard}>
-          <div className={styles.metricCardHeader}><span className={styles.metricLabel}>Lessons Completed</span><span className={styles.metricIconBadge}><ListChecks size={18} aria-hidden="true" /></span></div>
+          <div className={styles.metricCardHeader}><span className={styles.metricTitle}>Lessons Completed</span><span className={styles.metricIconBadge}><ListChecks size={18} aria-hidden="true" /></span></div>
           <div className={styles.metricValue}>{loading ? "—" : completedLessons}</div>
           <div className={styles.metricSubtext}>Across your courses</div>
         </div>
         <div className={styles.metricCard}>
-          <div className={styles.metricCardHeader}><span className={styles.metricLabel}>Courses Completed</span><span className={styles.metricIconBadge}><Award size={18} aria-hidden="true" /></span></div>
+          <div className={styles.metricCardHeader}><span className={styles.metricTitle}>Courses Completed</span><span className={styles.metricIconBadge}><Award size={18} aria-hidden="true" /></span></div>
           <div className={styles.metricValue}>{loading ? "—" : completed}</div>
           <div className={styles.metricSubtext}>Fully completed courses</div>
         </div>

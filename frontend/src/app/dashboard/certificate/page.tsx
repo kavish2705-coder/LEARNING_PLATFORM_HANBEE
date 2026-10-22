@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Award } from "lucide-react";
+import { Award, ChevronRight } from "lucide-react";
+import styles from "../dashboard.module.css";
 import { fetchMyCertificates, type StudentCertificate } from "../../../lib/certificatesApi";
 
 export default function CertificatePage() {
@@ -20,25 +21,58 @@ export default function CertificatePage() {
   }, []);
 
   return (
-    <div style={{ padding: 24 }}>
-      <h1 style={{ fontSize: 28, fontWeight: 600 }}>My Certificates</h1>
-      <p style={{ color: "var(--text-muted)", marginTop: 8 }}>Certificates issued for courses completed on Hanbee.</p>
-      {error && <p role="alert" style={{ marginTop: 20 }}>{error}</p>}
-      {loading && <p role="status" style={{ marginTop: 20 }}>Loading your certificates…</p>}
+    <div>
+      <div className={styles.pageHeader}>
+        <h1 className={styles.pageTitle}>My Certificates</h1>
+        <p className={styles.pageSubtitle}>Certificates issued for completed courses on Hanbee</p>
+      </div>
+
+      {error && <p role="alert" className={styles.sectionCard} style={{ color: "#ef4444" }}>{error}</p>}
+      {loading && (
+        <div className={styles.sectionCard} style={{ textAlign: "center", padding: "40px" }}>
+          <p role="status" style={{ color: "var(--text-muted)", margin: 0 }}>Loading your certificates…</p>
+        </div>
+      )}
+
       {!loading && !error && certificates.length === 0 && (
-        <section style={{ marginTop: 24, padding: 24, borderRadius: 16, background: "var(--bg-card)" }}>
-          <Award size={22} aria-hidden="true" />
-          <h2 style={{ marginTop: 12, fontSize: 18 }}>No certificates yet</h2>
-          <p style={{ marginTop: 6, color: "var(--text-muted)" }}>Complete an enrolled course to earn a certificate.</p>
-          <Link href="/dashboard/courses" style={{ display: "inline-block", marginTop: 14, color: "var(--text-main)" }}>View my courses</Link>
+        <section className={styles.sectionCard} style={{ textAlign: "center", padding: "48px 24px" }}>
+          <div style={{ display: "inline-flex", padding: 14, borderRadius: "50%", background: "rgba(8, 145, 178, 0.12)", color: "var(--color-primary)", marginBottom: 12 }}>
+            <Award size={32} aria-hidden="true" />
+          </div>
+          <h2 className={styles.sectionTitle} style={{ margin: "8px 0" }}>No certificates yet</h2>
+          <p style={{ color: "var(--text-muted)", margin: "0 auto 16px", maxWidth: 360 }}>
+            Complete an enrolled course to unlock your official verified certificate.
+          </p>
+          <Link href="/dashboard/courses" className={styles.actionBtn} style={{ display: "inline-flex", textDecoration: "none" }}>
+            Browse Courses <ChevronRight size={16} />
+          </Link>
         </section>
       )}
-      <div style={{ display: "grid", gap: 16, marginTop: 24 }}>
+
+      <div style={{ display: "grid", gap: 16 }}>
         {certificates.map((certificate) => (
-          <article key={certificate.id} style={{ padding: 24, borderRadius: 16, background: "var(--bg-card)", border: "1px solid var(--border-subtle)" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 12 }}><Award size={22} aria-hidden="true" /><h2 style={{ fontSize: 18, fontWeight: 600 }}>{certificate.course_title}</h2></div>
-            <p style={{ marginTop: 12, color: "var(--text-muted)" }}>Certificate serial: <strong>{certificate.serial}</strong></p>
-            <p style={{ marginTop: 4, color: "var(--text-muted)" }}>Issued {new Date(certificate.issued_at).toLocaleDateString()}</p>
+          <article key={certificate.id} className={styles.sectionCard}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+                <div style={{ display: "inline-flex", padding: 12, borderRadius: 14, background: "rgba(16, 185, 129, 0.12)", color: "#10b981" }}>
+                  <Award size={24} aria-hidden="true" />
+                </div>
+                <div>
+                  <h2 className={styles.sectionTitle} style={{ fontSize: 18 }}>{certificate.course_title}</h2>
+                  <p style={{ color: "var(--text-muted)", margin: "4px 0 0", fontSize: 13 }}>
+                    Issued on {new Date(certificate.issued_at).toLocaleDateString()}
+                  </p>
+                </div>
+              </div>
+              <div style={{ textAlign: "right" }}>
+                <span style={{ fontSize: 11, fontFamily: "monospace", letterSpacing: "1px", color: "var(--text-muted)", display: "block" }}>
+                  CERTIFICATE SERIAL
+                </span>
+                <span style={{ fontFamily: "monospace", fontSize: 14, fontWeight: 700, color: "var(--color-primary)" }}>
+                  {certificate.serial}
+                </span>
+              </div>
+            </div>
           </article>
         ))}
       </div>
