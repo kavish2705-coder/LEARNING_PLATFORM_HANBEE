@@ -67,7 +67,7 @@ export default function HanbeeOverview() {
       max_members: 5,
       status: "verified",
       drivers: [
-        { name: "Kavish Sharma", role: "Lead Driver / Captain", bestLap: "11.42s", isCaptain: true },
+        { name: "Aryan Sharma", role: "Lead Driver / Captain", bestLap: "11.42s", isCaptain: true },
         { name: "Rohan Varma", role: "Telemetry & Pit Strategist", bestLap: "11.76s" },
         { name: "Aarav Patel", role: "Hardware & Motor Specialist", bestLap: "12.05s" },
         { name: "Priya Sharma", role: "Aerodynamics & Trim Engineer", bestLap: "12.32s" },
