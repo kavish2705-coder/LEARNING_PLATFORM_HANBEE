@@ -17,53 +17,6 @@ import {
 } from "../../../../lib/schoolAdminApi";
 import { useSessionProfile } from "../../../../lib/hooks/useSessionProfile";
 
-const DEFAULT_SCHOOL_OVERVIEW: SchoolOverview = {
-  school: {
-    id: "org_default",
-    name: "Delhi Tech Academy",
-    status: "verified",
-    registration_no: "SCH-2026-DTA",
-    official_email: "staff@delhitech.edu",
-    created_at: new Date().toISOString(),
-    verified_at: new Date().toISOString(),
-    verified_by: "system",
-  },
-  people: {
-    owners: 1,
-    staff: 4,
-    students: 128,
-    pending_invites: 6,
-  },
-  tournament: {
-    teams_total: 8,
-    teams_by_status: {
-      approved: 5,
-      proposed: 2,
-      returned: 1,
-    },
-    participants: 32,
-    best_rank: 1,
-    next_tournament: {
-      id: "tourn_delhi_grand_prix",
-      title: "Delhi RC Grand Prix 2026",
-      starts_at: "2026-10-24T10:00:00+05:30",
-      venue: "Main Indoor Velodrome, Sector 4",
-    },
-  },
-  lms: {
-    students_enrolled: 114,
-    enrollments: 240,
-    lessons_completed: 680,
-    avg_completion_pct: 78,
-  },
-};
-
-const DEFAULT_SCHOOL_COURSES: SchoolCourseRow[] = [
-  { course_id: "c1", title: "RC Car Aerodynamics & Chassis Tuning", students: 48, avg_completion_pct: 85 },
-  { course_id: "c2", title: "Brushless Motor & ESC Telemetry", students: 36, avg_completion_pct: 72 },
-  { course_id: "c3", title: "Pit Lane Strategy & Circuit Mastery", students: 30, avg_completion_pct: 64 },
-];
-
 type OverviewTab = "tournament" | "learning";
 
 export default function SchoolOverviewPage() {
@@ -81,21 +34,19 @@ export default function SchoolOverviewPage() {
         const orgId = await fetchMyOrganizationId();
         if (!orgId) {
           if (!active) return;
-          setOverview(DEFAULT_SCHOOL_OVERVIEW);
-          setCourses(DEFAULT_SCHOOL_COURSES);
+          setError("Your account is not linked to an active school.");
           return;
         }
         const [summary, participation] = await Promise.all([
-          fetchSchoolOverview(orgId).catch(() => DEFAULT_SCHOOL_OVERVIEW), 
-          fetchSchoolCourseParticipation(orgId).catch(() => DEFAULT_SCHOOL_COURSES)
+          fetchSchoolOverview(orgId), 
+          fetchSchoolCourseParticipation(orgId)
         ]);
         if (!active) return;
-        setOverview(summary ?? DEFAULT_SCHOOL_OVERVIEW);
-        setCourses(participation?.length ? participation : DEFAULT_SCHOOL_COURSES);
+        setOverview(summary);
+        setCourses(participation ?? []);
       } catch (reason: unknown) {
         if (!active) return;
-        setOverview(DEFAULT_SCHOOL_OVERVIEW);
-        setCourses(DEFAULT_SCHOOL_COURSES);
+        setError(reason instanceof Error ? reason.message : "We couldn't load your school overview.");
       } finally {
         if (active) setLoading(false);
       }

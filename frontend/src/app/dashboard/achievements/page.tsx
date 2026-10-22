@@ -43,7 +43,7 @@ export default function AchievementsPage() {
             return (
               <article key={achievement.id} className={`${styles.metricCard} ${styles.achievementCard}`}>
                 <div className={styles.metricCardHeader}>
-                  <span className={styles.metricTitle}>Earned achievement</span>
+                  <span className={styles.metricLabel}>Earned achievement</span>
                   <Icon size={20} className={styles.metricIcon} aria-hidden="true" />
                 </div>
                 <h2 className={styles.achievementTitle}>{achievement.title}</h2>

@@ -190,7 +190,7 @@ function MyRank() {
   if (!row) return null;
   return (
     <div className={styles.sectionCard} style={{ marginBottom: 24 }}>
-      <span className={styles.metricTitle}>Your team in {row.tournament_title}</span>
+      <span className={styles.metricLabel}>Your team in {row.tournament_title}</span>
       <h2 className={styles.sectionTitle} style={{ marginTop: 8 }}>{row.team_name}: #{row.rank} of {row.field_size}</h2>
       <p style={{ color: "var(--text-muted)", marginTop: 6 }}>{row.points} points</p>
     </div>

@@ -5,12 +5,6 @@ import styles from "./SchoolOverview.module.css";
 import { fetchMyOrganizationId } from "../../../../lib/teamFormationApi";
 import { fetchSchoolCourseParticipation, type SchoolCourseRow } from "../../../../lib/schoolAdminApi";
 
-const DEFAULT_SCHOOL_COURSES: SchoolCourseRow[] = [
-  { course_id: "c1", title: "RC Car Aerodynamics & Chassis Tuning", students: 48, avg_completion_pct: 85 },
-  { course_id: "c2", title: "Brushless Motor & ESC Telemetry", students: 36, avg_completion_pct: 72 },
-  { course_id: "c3", title: "Pit Lane Strategy & Circuit Mastery", students: 30, avg_completion_pct: 64 },
-];
-
 export default function SchoolCourses() {
   const [courses, setCourses] = useState<SchoolCourseRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -20,16 +14,14 @@ export default function SchoolCourses() {
     let active = true;
     fetchMyOrganizationId()
       .then((id) => {
-        if (!id) {
-          if (active) setCourses(DEFAULT_SCHOOL_COURSES);
-          return;
-        }
-        return fetchSchoolCourseParticipation(id).then((rows) => {
-          if (active) setCourses(rows?.length ? rows : DEFAULT_SCHOOL_COURSES);
-        });
+        if (!id) throw new Error("Your account is not linked to an active school.");
+        return fetchSchoolCourseParticipation(id);
       })
-      .catch(() => {
-        if (active) setCourses(DEFAULT_SCHOOL_COURSES);
+      .then((rows) => {
+        if (active) setCourses(rows ?? []);
+      })
+      .catch((reason: unknown) => {
+        if (active) setError(reason instanceof Error ? reason.message : "We couldn't load course participation.");
       })
       .finally(() => {
         if (active) setLoading(false);
