@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { PlayCircle, BookOpen, ListChecks, Award } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
+import { PlayCircle, BookOpen, ListChecks, Award, AlertCircle, RotateCw } from "lucide-react";
 import Link from "next/link";
 import styles from "./school/SchoolOverview.module.css";
 import { fetchMyCourses, type StudentCourseSummary } from "../../../lib/coursesApi";
@@ -13,16 +13,22 @@ export default function LearningOverview() {
   const [error, setError] = useState("");
   const { data: profile } = useSessionProfile();
 
-  useEffect(() => {
-    let active = true;
-    fetchMyCourses()
-      .then((result) => { if (active) setCourses(result); })
-      .catch((reason: unknown) => {
-        if (active) setError(reason instanceof Error ? reason.message : "We couldn't load your courses.");
-      })
-      .finally(() => { if (active) setLoading(false); });
-    return () => { active = false; };
+  const loadCourses = useCallback(async () => {
+    setLoading(true);
+    setError("");
+    try {
+      const result = await fetchMyCourses();
+      setCourses(result ?? []);
+    } catch (reason: unknown) {
+      setError(reason instanceof Error ? reason.message : "We couldn't load your courses.");
+    } finally {
+      setLoading(false);
+    }
   }, []);
+
+  useEffect(() => {
+    void loadCourses();
+  }, [loadCourses]);
 
   const currentCourse = courses.find((course) => course.status === "in_progress") ?? courses[0];
   const inProgress = courses.filter((course) => course.status === "in_progress").length;
@@ -46,9 +52,29 @@ export default function LearningOverview() {
         </div>
       </header>
 
-      {error && <p role="alert" className={styles.sectionCard} style={{ color: "#ef4444" }}>{error}</p>}
-
-      {currentCourse ? (
+      {error ? (
+        <section className={styles.sectionCard} style={{ textAlign: "center", padding: "36px 20px" }} role="alert">
+          <div style={{ display: "inline-flex", padding: 12, borderRadius: "50%", background: "rgba(239, 68, 68, 0.12)", color: "#ef4444", marginBottom: 12 }}>
+            <AlertCircle size={28} />
+          </div>
+          <h2 className={styles.sectionTitle} style={{ color: "var(--text-primary)", fontSize: "18px" }}>
+            Unable to Load Courses
+          </h2>
+          <p style={{ color: "var(--text-muted)", marginTop: 6, fontSize: "13.5px", maxWidth: 440, marginInline: "auto" }}>
+            {error}
+          </p>
+          <div style={{ marginTop: 18, display: "flex", justifyContent: "center" }}>
+            <button
+              type="button"
+              onClick={() => void loadCourses()}
+              className={styles.actionBtn}
+              style={{ display: "inline-flex", alignItems: "center", gap: 8 }}
+            >
+              <RotateCw size={15} /> Try Again
+            </button>
+          </div>
+        </section>
+      ) : currentCourse ? (
         <section className={styles.sectionCard}>
           <div className={styles.sectionHeader}>
             <div>
@@ -75,7 +101,7 @@ export default function LearningOverview() {
         <section className={styles.sectionCard} style={{ textAlign: "center", padding: "40px" }}>
           <h2 className={styles.sectionTitle}>{loading ? "Loading your courses…" : "No courses assigned yet"}</h2>
           <p style={{ color: "var(--text-muted)", marginTop: 6, fontSize: "13.5px" }}>
-            {error || "Courses assigned to your account will appear here."}
+            Courses assigned to your account will appear here.
           </p>
           <Link href="/dashboard/courses" className={styles.textLink} style={{ marginTop: 12 }}>
             Browse all courses →

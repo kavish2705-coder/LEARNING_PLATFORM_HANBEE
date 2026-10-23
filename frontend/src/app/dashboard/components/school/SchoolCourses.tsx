@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { BookOpen } from "lucide-react";
 import styles from "./SchoolOverview.module.css";
+import EmptyState from "../../../../components/ui/EmptyState";
 import { fetchMyOrganizationId } from "../../../../lib/teamFormationApi";
 import { fetchSchoolCourseParticipation, type SchoolCourseRow } from "../../../../lib/schoolAdminApi";
 
@@ -46,6 +48,12 @@ export default function SchoolCourses() {
         <div className={styles.sectionCard} style={{ textAlign: "center", padding: "40px" }}>
           <p role="status" style={{ color: "var(--text-muted)", margin: 0 }}>Loading course progress…</p>
         </div>
+      ) : courses.length === 0 ? (
+        <EmptyState
+          icon={<BookOpen size={32} />}
+          title="No Course Enrollments Yet"
+          description="Your school currently has 0 active course enrollments. As soon as students begin their engineering coursework, real-time progress and completion rates will appear here."
+        />
       ) : (
         <div className={styles.sectionCard}>
           <div className={styles.sectionHeader}>
@@ -78,13 +86,6 @@ export default function SchoolCourses() {
                     </td>
                   </tr>
                 ))}
-                {courses.length === 0 && (
-                  <tr>
-                    <td colSpan={3} style={{ textAlign: "center", color: "var(--text-muted)", padding: "28px" }}>
-                      No student course participation yet.
-                    </td>
-                  </tr>
-                )}
               </tbody>
             </table>
           </div>

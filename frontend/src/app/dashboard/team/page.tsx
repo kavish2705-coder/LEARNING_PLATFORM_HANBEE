@@ -265,39 +265,19 @@ export default function MyTeamPage() {
         <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
           {/* Practice Squad Notice: ONLY shown when no real team is in DB */}
           {!isRealTeam && (
-            <div style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              gap: "12px",
-              background: "rgba(8, 145, 178, 0.08)",
-              border: "1px solid rgba(125, 211, 232, 0.25)",
-              borderRadius: "14px",
-              padding: "12px 18px",
-              fontSize: "13px",
-              color: "var(--text-muted)",
-              flexWrap: "wrap",
-            }}>
+            <div className={styles.practiceSquadBanner}>
               <div style={{ display: "flex", alignItems: "center", gap: "10px", flex: 1, minWidth: "260px" }}>
-                <span style={{
-                  background: "rgba(8, 145, 178, 0.22)",
-                  color: "#7dd3e8",
-                  padding: "3px 8px",
-                  borderRadius: "6px",
-                  fontWeight: 700,
-                  fontFamily: "monospace",
-                  fontSize: "10px",
-                  letterSpacing: "0.5px",
-                  whiteSpace: "nowrap",
-                }}>
+                <span className={styles.practiceSquadBadge}>
                   PRACTICE SQUAD
                 </span>
-                <span>You are currently in a practice telemetry squad. Form or join an official team to register for tournament qualifying.</span>
+                <span style={{ color: "var(--text-main)" }}>
+                  You are currently in a practice telemetry squad. Form or join an official team to register for tournament qualifying.
+                </span>
               </div>
               <button
                 type="button"
                 className={styles.actionBtn}
-                style={{ padding: "6px 14px", fontSize: "12px" }}
+                style={{ padding: "8px 16px", fontSize: "13px" }}
                 onClick={() => setActiveTab("formation")}
               >
                 Create Official Squad →
@@ -514,7 +494,7 @@ export default function MyTeamPage() {
                     onChange={(e) => setInviteeId(e.target.value)}
                     required
                     disabled={busy}
-                    className={styles.textInput}
+                    className={styles.selectInput}
                     style={{ flex: 1 }}
                   >
                     <option value="">Select a classmate</option>

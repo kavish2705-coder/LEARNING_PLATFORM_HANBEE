@@ -1,7 +1,9 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { Users } from "lucide-react";
 import styles from "../../components/school/SchoolOverview.module.css";
+import EmptyState from "../../../../components/ui/EmptyState";
 import {
   approveTeamApplication,
   fetchMyOrganizationId,
@@ -148,9 +150,11 @@ export default function SchoolTeams() {
       )}
       
       {organizationId && tournament && teams.length === 0 && (
-        <div className={styles.sectionCard}>
-          <p style={{ color: "var(--text-muted)", margin: 0 }}>No teams have been proposed yet.</p>
-        </div>
+        <EmptyState
+          icon={<Users size={32} />}
+          title="No teams have been proposed yet"
+          description="Students have not formed or submitted any teams for this tournament yet. When squads are formed, they will appear here for staff review and slot approval."
+        />
       )}
 
       <div style={{ display: "grid", gap: 16 }}>

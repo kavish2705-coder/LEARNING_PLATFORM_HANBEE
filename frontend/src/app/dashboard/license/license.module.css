@@ -921,6 +921,118 @@
   gap: 10px;
 }
 
+/* ===== Simplified Student ID Card ===== */
+.simpleIdHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding-bottom: 14px;
+  margin-bottom: 20px;
+}
+
+.simpleIdTitle {
+  font-family: monospace;
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  color: var(--accent);
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.simpleIdFields {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 4px 0 8px 0;
+}
+
+.simpleIdField {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 16px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+}
+
+.simpleIdLabel {
+  font-family: monospace;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+.simpleIdNameVal {
+  font-family: var(--font-heading);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-main);
+  letter-spacing: -0.01em;
+}
+
+.simpleIdVal {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.phoneEditBtn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 4px 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.phoneEditBtn:hover {
+  color: var(--accent);
+  background: rgba(125, 211, 232, 0.12);
+}
+
+.phoneInput {
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--border-elevated);
+  color: var(--text-main);
+  font-size: 14px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  outline: none;
+}
+
+.phoneInput:focus {
+  border-color: var(--color-primary);
+}
+
+.phoneSaveBtn {
+  background: var(--color-primary);
+  color: var(--color-primary-text);
+  border: none;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.phoneCancelBtn {
+  background: transparent;
+  border: 1px solid var(--border-subtle);
+  color: var(--text-muted);
+  font-size: 12px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
 /* Responsive */
 @media (max-width: 950px) {
   .licenseGrid {

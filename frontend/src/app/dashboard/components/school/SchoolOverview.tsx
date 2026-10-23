@@ -248,43 +248,42 @@ export default function SchoolOverviewPage() {
                     View courses <ChevronRight size={15} />
                   </Link>
                 </div>
-                <div className={styles.tableContainer}>
-                  <table className={styles.dataTable}>
-                    <thead>
-                      <tr>
-                        <th>Course</th>
-                        <th>Students</th>
-                        <th>Average progress</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {courses.map((course) => (
-                        <tr key={course.course_id}>
-                          <td className={styles.cellHighlight}>{course.title}</td>
-                          <td>{course.students}</td>
-                          <td>
-                            <div className={styles.progressWrap}>
-                              <div className={styles.progressBarTrack}>
-                                <div 
-                                  className={styles.progressBarFill} 
-                                  style={{ width: `${Math.max(0, Math.min(100, course.avg_completion_pct))}%` }} 
-                                />
-                              </div>
-                              <span>{course.avg_completion_pct}%</span>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                      {courses.length === 0 && (
+                {courses.length > 0 ? (
+                  <div className={styles.tableContainer}>
+                    <table className={styles.dataTable}>
+                      <thead>
                         <tr>
-                          <td colSpan={3} style={{ textAlign: "center", color: "var(--text-muted)", padding: "28px" }}>
-                            No school students are enrolled in a course yet.
-                          </td>
+                          <th>Course</th>
+                          <th>Students</th>
+                          <th>Average progress</th>
                         </tr>
-                      )}
-                    </tbody>
-                  </table>
-                </div>
+                      </thead>
+                      <tbody>
+                        {courses.map((course) => (
+                          <tr key={course.course_id}>
+                            <td className={styles.cellHighlight}>{course.title}</td>
+                            <td>{course.students}</td>
+                            <td>
+                              <div className={styles.progressWrap}>
+                                <div className={styles.progressBarTrack}>
+                                  <div 
+                                    className={styles.progressBarFill} 
+                                    style={{ width: `${Math.max(0, Math.min(100, course.avg_completion_pct))}%` }} 
+                                  />
+                                </div>
+                                <span>{course.avg_completion_pct}%</span>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  <div style={{ textAlign: "center", padding: "36px 16px", color: "var(--text-muted)" }}>
+                    <p style={{ margin: 0, fontSize: "14px" }}>No school students are enrolled in a course yet.</p>
+                  </div>
+                )}
               </section>
             </>
           )}

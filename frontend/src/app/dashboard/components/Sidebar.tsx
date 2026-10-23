@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { 
   LayoutDashboard, BookOpen, Clock, Bell, Settings, Trophy, 
   Users, MessageSquare, Bot, School, CalendarDays, ClipboardList, 
-  UserCheck, LogOut, ClipboardCheck, Activity, IdCard
+  UserCheck, LogOut, ClipboardCheck, Activity, IdCard, Search
 } from "lucide-react";
 import styles from "../layout.module.css";
 import ModeSwitcher from "./ModeSwitcher";
@@ -130,6 +130,22 @@ export default function Sidebar({
         </div>
         
         {profile?.role === "student" && <ModeSwitcher />}
+
+        <button
+          type="button"
+          className={styles.mobileSidebarSearchBtn}
+          onClick={() => {
+            setIsMobileMenuOpen?.(false);
+            window.dispatchEvent(new CustomEvent("hanbee:open-search"));
+          }}
+          aria-label="Search Hanbee Platform"
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <Search size={15} />
+            <span>Search...</span>
+          </div>
+          <kbd className={styles.mobileSidebarSearchKbd}>Ctrl K</kbd>
+        </button>
 
         <nav className={styles.navMenu}>
           {items.map((item) => {

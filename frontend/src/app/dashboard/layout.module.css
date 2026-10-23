@@ -87,8 +87,8 @@
 
 .navLinkActive {
   background: color-mix(in srgb, var(--color-primary) 14%, var(--bg-card));
-  color: var(--color-primary);
-  box-shadow: inset 3px 0 0 var(--color-primary);
+  color: var(--accent-subtle-text);
+  box-shadow: inset 3px 0 0 var(--accent-subtle-text);
   font-weight: 600;
 }
 
@@ -608,6 +608,13 @@
 
 .modeOption {
   flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: transparent;
+  border: none;
+  font-family: inherit;
   text-align: center;
   padding: 8px 0;
   font-size: 13px;
@@ -618,10 +625,17 @@
   transition: all 0.3s ease;
   z-index: 2;
   position: relative;
+  user-select: none;
+}
+
+.modeOption:focus-visible {
+  outline: 2px solid var(--accent-subtle-text);
+  outline-offset: 2px;
 }
 
 .modeOptionActive {
   color: var(--color-primary-text);
+  font-weight: 600;
 }
 
 .modeSwitcherGlider {
@@ -661,10 +675,8 @@
   z-index: 15;
 }
 
-@media (max-width: 1024px) {
-  .searchBar {
-    width: 200px;
-  }
+.mobileSidebarSearchBtn {
+  display: none;
 }
 
 @media (max-width: 768px) {
@@ -727,8 +739,40 @@
     max-width: 110px;
   }
 
-  .searchBar {
-    display: none;
+  .mobileSidebarSearchBtn {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color, rgba(255, 255, 255, 0.1));
+    border-radius: 10px;
+    padding: 9px 12px;
+    margin-bottom: 14px;
+    color: var(--text-muted);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    width: 100%;
+    font-family: inherit;
+    box-shadow: var(--clay-shadow-active);
+  }
+
+  .mobileSidebarSearchBtn:hover {
+    color: var(--text-main);
+    border-color: var(--color-primary);
+    background: var(--bg-card-hover);
+  }
+
+  .mobileSidebarSearchKbd {
+    font-family: monospace;
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: var(--text-muted);
   }
 
   .headerRight {

@@ -236,6 +236,13 @@ export default function SearchBar() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isOpen]);
 
+  // Listen for external open triggers (e.g. mobile menu toggle)
+  useEffect(() => {
+    const handleOpen = () => setIsOpen(true);
+    window.addEventListener("hanbee:open-search", handleOpen);
+    return () => window.removeEventListener("hanbee:open-search", handleOpen);
+  }, []);
+
   // Reset selected index when filtered results change
   useEffect(() => {
     setSelectedIndex(0);
@@ -294,7 +301,7 @@ export default function SearchBar() {
       >
         <div className={styles.searchTriggerLeft}>
           <Search size={14} className={styles.searchIcon} />
-          <span className={styles.searchPlaceholder}>Quick Search...</span>
+          <span className={styles.searchPlaceholder}>Search...</span>
         </div>
         <kbd className={styles.kbdBadge} suppressHydrationWarning>{isMac ? "⌘K" : "Ctrl K"}</kbd>
       </div>

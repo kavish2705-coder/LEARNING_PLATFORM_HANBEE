@@ -7,7 +7,7 @@
   font-display: swap;
 }
 
-@import url('https://fonts.googleapis.com/css2?family=Afacad:wght@400;500;700&family=Inter:wght@300;400;500&family=Oranienbaum&family=Outfit:wght@300;400;500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Afacad:wght@400;500;600;700&family=Inter:wght@300;400;500;600&family=Oranienbaum&family=Outfit:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Syne:wght@400;500;600;700&display=swap');
 
 /* ===== CSS RESET ===== */
 *,
@@ -25,7 +25,7 @@ html {
 }
 
 body {
-  font-family: 'Afacad', sans-serif;
+  font-family: 'Plus Jakarta Sans', 'Afacad', sans-serif;
   background: #000000;
   color: #ffffff;
   overflow-x: hidden;
@@ -60,8 +60,8 @@ img {
 :root {
   /* Fonts */
   --font-logo: 'Deltha', 'Cormorant Garamond', serif;
-  --font-heading: 'Outfit', sans-serif;
-  --font-body: 'Afacad', sans-serif;
+  --font-heading: 'Syne', 'Outfit', sans-serif;
+  --font-body: 'Plus Jakarta Sans', 'Afacad', sans-serif;
   --font-accent: 'Inter', sans-serif;
 
   /* Colors */
