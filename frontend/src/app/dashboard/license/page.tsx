@@ -176,10 +176,13 @@ export default function DriverLicensePage() {
   }, []);
 
   useEffect(() => {
+    if (!tournament) {
+      setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+      return;
+    }
+    const startsAt = tournament.starts_at;
     function calculateTimeLeft() {
-      const targetTime = tournament?.starts_at 
-        ? new Date(tournament.starts_at).getTime()
-        : new Date("2026-10-24T10:00:00+05:30").getTime();
+      const targetTime = new Date(startsAt).getTime();
       const diff = Math.max(0, targetTime - Date.now());
       return {
         days: Math.floor(diff / (1000 * 60 * 60 * 24)),
@@ -443,42 +446,50 @@ export default function DriverLicensePage() {
           
           {/* Next Race Countdown Card */}
           <div className={styles.countdownCard}>
-            <div className={styles.countdownHeader}>
-              <div className={styles.countdownTitleWrap}>
-                <div className={styles.countdownIconWrap}>
-                  <Trophy size={16} />
-                </div>
-                <div>
-                  <h3 className={styles.countdownTitle}>{tournament?.title || "Hanbee RC Cup 2026"}</h3>
-                  <div className={styles.countdownLocationWrap}>
-                    <MapPin size={12} color="var(--text-muted)" />
-                    <span className={styles.countdownTrack}>Hanbee Track, Chennai</span>
+            {tournament ? (
+              <>
+                <div className={styles.countdownHeader}>
+                  <div className={styles.countdownTitleWrap}>
+                    <div className={styles.countdownIconWrap}>
+                      <Trophy size={16} />
+                    </div>
+                    <div>
+                      <h3 className={styles.countdownTitle}>{tournament.title}</h3>
+                      <div className={styles.countdownLocationWrap}>
+                        <MapPin size={12} color="var(--text-muted)" />
+                        <span className={styles.countdownTrack}>{tournament.venue || "Venue to be announced"}</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </div>
 
-            <div className={styles.timerGrid}>
-              <div className={styles.timerSegment}>
-                <span className={styles.timerNumber}>{String(timeLeft.days).padStart(2, "0")}</span>
-                <span className={styles.timerLabel}>DAYS</span>
-              </div>
-              <div className={styles.timerColon}>:</div>
-              <div className={styles.timerSegment}>
-                <span className={styles.timerNumber}>{String(timeLeft.hours).padStart(2, "0")}</span>
-                <span className={styles.timerLabel}>HOURS</span>
-              </div>
-              <div className={styles.timerColon}>:</div>
-              <div className={styles.timerSegment}>
-                <span className={styles.timerNumber}>{String(timeLeft.minutes).padStart(2, "0")}</span>
-                <span className={styles.timerLabel}>MINUTES</span>
-              </div>
-              <div className={styles.timerColon}>:</div>
-              <div className={styles.timerSegment}>
-                <span className={styles.timerNumber}>{String(timeLeft.seconds).padStart(2, "0")}</span>
-                <span className={styles.timerLabel}>SECONDS</span>
-              </div>
-            </div>
+                <div className={styles.timerGrid}>
+                  <div className={styles.timerSegment}>
+                    <span className={styles.timerNumber}>{String(timeLeft.days).padStart(2, "0")}</span>
+                    <span className={styles.timerLabel}>DAYS</span>
+                  </div>
+                  <div className={styles.timerColon}>:</div>
+                  <div className={styles.timerSegment}>
+                    <span className={styles.timerNumber}>{String(timeLeft.hours).padStart(2, "0")}</span>
+                    <span className={styles.timerLabel}>HOURS</span>
+                  </div>
+                  <div className={styles.timerColon}>:</div>
+                  <div className={styles.timerSegment}>
+                    <span className={styles.timerNumber}>{String(timeLeft.minutes).padStart(2, "0")}</span>
+                    <span className={styles.timerLabel}>MINUTES</span>
+                  </div>
+                  <div className={styles.timerColon}>:</div>
+                  <div className={styles.timerSegment}>
+                    <span className={styles.timerNumber}>{String(timeLeft.seconds).padStart(2, "0")}</span>
+                    <span className={styles.timerLabel}>SECONDS</span>
+                  </div>
+                </div>
+              </>
+            ) : (
+              <p style={{ color: "var(--text-muted)", textAlign: "center", padding: "12px 0" }}>
+                No upcoming races scheduled. Check back later.
+              </p>
+            )}
           </div>
 
           {/* Racer Badges & Trophies */}

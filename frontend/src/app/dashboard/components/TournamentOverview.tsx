@@ -102,17 +102,20 @@ export default function TournamentOverview() {
 
   // Dynamic Countdown to Next Tournament
   const [timeLeft, setTimeLeft] = useState({
-    days: 3,
-    hours: 14,
-    minutes: 28,
-    seconds: 45,
+    days: 0,
+    hours: 0,
+    minutes: 0,
+    seconds: 0,
   });
 
   useEffect(() => {
+    if (!tournament) {
+      setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+      return;
+    }
+    const startsAt = tournament.starts_at;
     function calculateTimeLeft() {
-      const targetTime = tournament?.starts_at 
-        ? new Date(tournament.starts_at).getTime()
-        : new Date("2026-10-24T10:00:00+05:30").getTime();
+      const targetTime = new Date(startsAt).getTime();
       const diff = Math.max(0, targetTime - Date.now());
       return {
         days: Math.floor(diff / (1000 * 60 * 60 * 24)),
@@ -744,71 +747,77 @@ export default function TournamentOverview() {
       </div>
 
       <div className={styles.grandPrixCard}>
-        <div>
-          <div className={styles.eventMeta}>
+        {tournament ? (
+          <>
             <div>
-              <h2 className={styles.eventTitle}>
-                {tournament?.title || "Hanbee RC Cup 2026"}
-              </h2>
-              <div className={styles.eventCircuit}>
-                <Compass size={14} color="#7dd3e8" />
-                <span>{tournament?.venue || "Hanbee Track, Chennai"}</span>
+              <div className={styles.eventMeta}>
+                <div>
+                  <h2 className={styles.eventTitle}>{tournament.title}</h2>
+                  <div className={styles.eventCircuit}>
+                    <Compass size={14} color="#7dd3e8" />
+                    <span>{tournament.venue || "Venue to be announced"}</span>
+                  </div>
+                </div>
+
+                <div style={{ fontFamily: "var(--font-mono)", fontSize: "12px", color: "var(--text-muted)" }}>
+                  <div><CalendarDays size={13} style={{ display: "inline", marginRight: 4 }} /> {new Date(tournament.starts_at).toLocaleDateString([], { month: "short", day: "numeric", year: "numeric" })}</div>
+                  <div>{new Date(tournament.starts_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</div>
+                </div>
+              </div>
+
+              {/* F1 5-Light Start Gantry */}
+              <div className={styles.f1Gantry}>
+                {[1, 2, 3, 4, 5].map((light) => (
+                  <div key={light} className={styles.f1LightHousing}>
+                    <div
+                      className={styles.f1LightRed}
+                      style={{ animationDelay: `${light * 0.18}s` }}
+                    />
+                  </div>
+                ))}
+              </div>
+
+              {/* Live Countdown Display */}
+              <div className={styles.countdownGrid}>
+                <div className={styles.countdownBox}>
+                  <span className={styles.countdownDigit}>{String(timeLeft.days).padStart(2, "0")}</span>
+                  <span className={styles.countdownUnit}>Days</span>
+                </div>
+                <div className={styles.countdownBox}>
+                  <span className={styles.countdownDigit}>{String(timeLeft.hours).padStart(2, "0")}</span>
+                  <span className={styles.countdownUnit}>Hours</span>
+                </div>
+                <div className={styles.countdownBox}>
+                  <span className={styles.countdownDigit}>{String(timeLeft.minutes).padStart(2, "0")}</span>
+                  <span className={styles.countdownUnit}>Minutes</span>
+                </div>
+                <div className={styles.countdownBox}>
+                  <span className={styles.countdownDigit} style={{ color: "var(--accent-subtle-text)" }}>{String(timeLeft.seconds).padStart(2, "0")}</span>
+                  <span className={styles.countdownUnit}>Seconds</span>
+                </div>
               </div>
             </div>
 
-            <div style={{ fontFamily: "var(--font-mono)", fontSize: "12px", color: "var(--text-muted)" }}>
-              <div><CalendarDays size={13} style={{ display: "inline", marginRight: 4 }} /> {tournament?.starts_at ? new Date(tournament.starts_at).toLocaleDateString([], { month: "short", day: "numeric", year: "numeric" }) : "Oct 24, 2026"}</div>
-              <div>{tournament?.starts_at ? new Date(tournament.starts_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "10:00 AM IST"}</div>
+            <div className={styles.countdownActions}>
+              <Link href="/dashboard/license" className={styles.licenseActionBtn}>
+                <IdCard size={15} />
+                <span>Driver License</span>
+              </Link>
+              <Link href={teamHref} className={styles.paddockBtn}>
+                <Users size={15} />
+                <span>{team ? "Manage Race Team" : "Register Race Team"}</span>
+              </Link>
+              <Link href="/dashboard/leaderboard" className={styles.gridBtn}>
+                <Flag size={15} />
+                <span>Live Grid Standings</span>
+              </Link>
             </div>
-          </div>
-
-          {/* F1 5-Light Start Gantry */}
-          <div className={styles.f1Gantry}>
-            {[1, 2, 3, 4, 5].map((light) => (
-              <div key={light} className={styles.f1LightHousing}>
-                <div 
-                  className={styles.f1LightRed} 
-                  style={{ animationDelay: `${light * 0.18}s` }} 
-                />
-              </div>
-            ))}
-          </div>
-
-          {/* Live Countdown Display */}
-          <div className={styles.countdownGrid}>
-            <div className={styles.countdownBox}>
-              <span className={styles.countdownDigit}>{String(timeLeft.days).padStart(2, "0")}</span>
-              <span className={styles.countdownUnit}>Days</span>
-            </div>
-            <div className={styles.countdownBox}>
-              <span className={styles.countdownDigit}>{String(timeLeft.hours).padStart(2, "0")}</span>
-              <span className={styles.countdownUnit}>Hours</span>
-            </div>
-            <div className={styles.countdownBox}>
-              <span className={styles.countdownDigit}>{String(timeLeft.minutes).padStart(2, "0")}</span>
-              <span className={styles.countdownUnit}>Minutes</span>
-            </div>
-            <div className={styles.countdownBox}>
-              <span className={styles.countdownDigit} style={{ color: "var(--accent-subtle-text)" }}>{String(timeLeft.seconds).padStart(2, "0")}</span>
-              <span className={styles.countdownUnit}>Seconds</span>
-            </div>
-          </div>
-        </div>
-
-        <div className={styles.countdownActions}>
-          <Link href="/dashboard/license" className={styles.licenseActionBtn}>
-            <IdCard size={15} />
-            <span>Driver License</span>
-          </Link>
-          <Link href={teamHref} className={styles.paddockBtn}>
-            <Users size={15} />
-            <span>{team ? "Manage Race Team" : "Register Race Team"}</span>
-          </Link>
-          <Link href="/dashboard/leaderboard" className={styles.gridBtn}>
-            <Flag size={15} />
-            <span>Live Grid Standings</span>
-          </Link>
-        </div>
+          </>
+        ) : (
+          <p style={{ color: "var(--text-muted)", textAlign: "center", padding: "24px 0" }}>
+            No upcoming races scheduled. Check back later.
+          </p>
+        )}
       </div>
 
     </div>

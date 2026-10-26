@@ -99,6 +99,7 @@ export async function fetchUpcomingTournament(): Promise<UpcomingTournament | nu
   const params = new URLSearchParams({
     select: "id,title,starts_at,venue,team_size",
     status: "eq.upcoming",
+    starts_at: `gte.${new Date().toISOString()}`,
     order: "starts_at.asc",
     limit: "1",
   });
