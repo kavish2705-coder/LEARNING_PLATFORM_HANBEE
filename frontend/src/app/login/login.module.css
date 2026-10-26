@@ -163,6 +163,10 @@
   align-items: center;
   justify-content: center;
   transition: color 0.2s ease;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font: inherit;
 }
 
 .inputIcon:hover {
@@ -218,6 +222,62 @@
   background: #fff;
   transform: translateY(-1px);
   box-shadow: 0 8px 24px rgba(255, 255, 255, 0.15);
+}
+
+.submitBtn:disabled {
+  opacity: 0.56;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.centeredNotice {
+  margin-top: 16px;
+  text-align: center;
+  line-height: 1.55;
+}
+
+.centeredFinePrint {
+  margin-top: 16px;
+  text-align: center;
+  font-size: 13px;
+}
+
+.formError {
+  margin-bottom: 10px;
+  color: var(--color-danger);
+  font-size: 13px;
+}
+
+.inlineTextButton {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.6);
+  font: inherit;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.inlineTextButton:hover,
+.inlineTextButton:focus-visible {
+  color: #fff;
+}
+
+.homeLinkRow {
+  margin-top: 24px;
+  color: rgba(255, 255, 255, 0.5);
+  text-align: center;
+  font-size: 13px;
+}
+
+.homeLink {
+  color: rgba(255, 255, 255, 0.8);
+  text-decoration: none;
+}
+
+.homeLink:hover {
+  color: #fff;
 }
 
 .divider {

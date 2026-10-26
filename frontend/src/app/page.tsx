@@ -337,6 +337,10 @@ export default function Home() {
             Start learning
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14" /><path d="M12 5l7 7-7 7" /></svg>
           </motion.a>
+          <p style={{ fontFamily: "var(--font-body)", fontSize: "13.5px", color: "rgba(255,255,255,0.4)", marginTop: "18px" }}>
+            Not ready to create an account?{" "}
+            <a href="/apply" style={{ color: "#7dd3e8", textDecoration: "underline" }}>Just ask us a question</a>
+          </p>
         </motion.div>
       </section>
 

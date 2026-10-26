@@ -46,6 +46,14 @@ r = await one("select on_time from staff_time_entries where staff_id=$1 and work
 
 // ---- attendance rows
 await asOwner();
+// info@hanbee.in is created fresh by seed-ci.mjs at the start of every CI
+// run, so its real created_at is always "today" -- migration 0035 correctly
+// treats any day before an account's created_at as 'off', not 'absent',
+// which would make day(4) 'off' here and break this section's assumption
+// of a multi-day history. Backdate for this section only, same idiom the
+// "days before the account existed" section below already uses.
+const attendanceCreated = (await one("select created_at::date d from profiles where id=$1",[info])).d;
+await c.query("update profiles set created_at = (current_date - 30)::timestamp where id=$1",[info]);
 await c.query("update staff_work_settings set start_time='09:30', grace_minutes=15, work_days='{1,2,3,4,5,6,7}'");
 await c.query("delete from staff_time_entries where staff_id=$1",[info]);
 await c.query("insert into staff_time_entries (staff_id, work_date, clock_in, clock_out, on_time) values ($1, current_date-3, now()-interval '3 days', now()-interval '3 days' + interval '8 hours', true), ($1, current_date-2, now()-interval '2 days', now()-interval '2 days' + interval '6 hours', false)",[info]);
@@ -67,6 +75,7 @@ await asUser(ava); r = await tryq("select * from staff_attendance()"); check("a 
 await asUser(morgan); const ov = (await c.query("select * from hanbee_staff_overview()")).rows.find(x=>x.staff_id===info);
 check("manager overview counts late and absent days", ov && ov.late_days_last_30===1 && ov.absent_days_last_30>=1 && ov.days_worked_last_30===2, JSON.stringify(ov && {late:ov.late_days_last_30, absent:ov.absent_days_last_30, worked:ov.days_worked_last_30}));
 await asUser(jamie); r = await tryq("select * from hanbee_staff_overview()"); check("Hanbee staff cannot read the performance overview", !!r.e);
+await asOwner(); await c.query("update profiles set created_at=$2 where id=$1",[info, attendanceCreated]);
 
 // ---- clocking in on a holiday or a day off is never late (migration 0034)
 await asOwner();

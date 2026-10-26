@@ -67,7 +67,7 @@ export default function HanbeeOverview() {
       max_members: 5,
       status: "verified",
       drivers: [
-        { name: "Kavish Sharma", role: "Lead Driver / Captain", bestLap: "11.42s", isCaptain: true },
+        { name: "Aryan Sharma", role: "Lead Driver / Captain", bestLap: "11.42s", isCaptain: true },
         { name: "Rohan Varma", role: "Telemetry & Pit Strategist", bestLap: "11.76s" },
         { name: "Aarav Patel", role: "Hardware & Motor Specialist", bestLap: "12.05s" },
         { name: "Priya Sharma", role: "Aerodynamics & Trim Engineer", bestLap: "12.32s" },
@@ -374,7 +374,7 @@ export default function HanbeeOverview() {
                   <Sparkles size={18} />
                 </div>
                 <div className={styles.metricMeta}>
-                  <span className={styles.metricCategory} style={{ color: "#a855f7" }}>PACE BENCHMARK</span>
+                  <span className={styles.metricCategory} style={{ color: "#a855f7" }}>CIRCUIT PACE</span>
                   <span className={styles.metricTitle}>Session Fast Lap</span>
                   <span className={styles.metricValue} style={{ color: "#a855f7" }}>{bestSessionLap}</span>
                 </div>
@@ -417,8 +417,8 @@ export default function HanbeeOverview() {
                 <thead>
                   <tr>
                     <th>Rank</th>
-                    <th>Team & School</th>
-                    <th>Car Model</th>
+                    <th>Team</th>
+                    <th>School</th>
                     <th>Roster Size</th>
                     <th>Best Lap</th>
                     <th>Points</th>
@@ -440,12 +440,11 @@ export default function HanbeeOverview() {
                             </span>
                           </td>
                           <td>
-                            <div className={styles.teamNameCell}>
-                              <span className={styles.teamNameText}>{team.team_name}</span>
-                              <span className={styles.schoolText}>{team.school_name}</span>
-                            </div>
+                            <span className={styles.teamNameText}>{team.team_name}</span>
                           </td>
-                          <td>{team.car}</td>
+                          <td>
+                            <span className={styles.schoolText}>{team.school_name}</span>
+                          </td>
                           <td>
                             <span className={styles.capacityPill}>
                               <Users size={12} />

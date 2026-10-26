@@ -1,11 +1,96 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import styles from "../../dashboard.module.css";
+import { BookOpen } from "lucide-react";
+import styles from "./SchoolOverview.module.css";
+import EmptyState from "../../../../components/ui/EmptyState";
 import { fetchMyOrganizationId } from "../../../../lib/teamFormationApi";
 import { fetchSchoolCourseParticipation, type SchoolCourseRow } from "../../../../lib/schoolAdminApi";
+
 export default function SchoolCourses() {
-  const [courses,setCourses]=useState<SchoolCourseRow[]>([]); const [loading,setLoading]=useState(true); const [error,setError]=useState("");
-  useEffect(()=>{let active=true;fetchMyOrganizationId().then((id)=>{if(!id)throw new Error("Your account is not linked to an active school.");return fetchSchoolCourseParticipation(id);}).then(rows=>{if(active)setCourses(rows);}).catch((reason:unknown)=>{if(active)setError(reason instanceof Error?reason.message:"We couldn't load course participation.");}).finally(()=>{if(active)setLoading(false);});return()=>{active=false;};},[]);
-  return <div><div className={styles.pageHeader}><h1 className={styles.pageTitle}>School Courses</h1><p className={styles.pageSubtitle}>Read-only course enrollment and progress for your students</p></div>{error&&<p role="alert">{error}</p>}{loading?<p role="status">Loading course progress…</p>:<div className={styles.sectionCard}><div className={styles.tableContainer}><table className={styles.dataTable}><thead><tr><th>Course</th><th>Students</th><th>Average progress</th></tr></thead><tbody>{courses.map(course=><tr key={course.course_id}><td className={styles.cellHighlight}>{course.title}</td><td>{course.students}</td><td>{course.avg_completion_pct}%</td></tr>)}{courses.length===0&&<tr><td colSpan={3}>No student course participation yet.</td></tr>}</tbody></table></div></div>}</div>;
-}
+  const [courses, setCourses] = useState<SchoolCourseRow[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    let active = true;
+    fetchMyOrganizationId()
+      .then((id) => {
+        if (!id) throw new Error("Your account is not linked to an active school.");
+        return fetchSchoolCourseParticipation(id);
+      })
+      .then((rows) => {
+        if (active) setCourses(rows ?? []);
+      })
+      .catch((reason: unknown) => {
+        if (active) setError(reason instanceof Error ? reason.message : "We couldn't load course participation.");
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  return (
+    <div className={styles.hubContainer}>
+      <header className={styles.hubHeader}>
+        <div className={styles.hubHeaderLeft}>
+          <h1 className={styles.hubTitle}>School Courses</h1>
+          <p className={styles.hubSubtitle}>Course enrollment, progress tracking, and student performance</p>
+        </div>
+      </header>
+
+      {error && <p role="alert" className={styles.sectionCard} style={{ color: "#ef4444" }}>{error}</p>}
+
+      {loading ? (
+        <div className={styles.sectionCard} style={{ textAlign: "center", padding: "40px" }}>
+          <p role="status" style={{ color: "var(--text-muted)", margin: 0 }}>Loading course progress…</p>
+        </div>
+      ) : courses.length === 0 ? (
+        <EmptyState
+          icon={<BookOpen size={32} />}
+          title="No Course Enrollments Yet"
+          description="Your school currently has 0 active course enrollments. As soon as students begin their engineering coursework, real-time progress and completion rates will appear here."
+        />
+      ) : (
+        <div className={styles.sectionCard}>
+          <div className={styles.sectionHeader}>
+            <h2 className={styles.sectionTitle}>Enrolled Courses</h2>
+          </div>
+          <div className={styles.tableContainer}>
+            <table className={styles.dataTable}>
+              <thead>
+                <tr>
+                  <th>Course</th>
+                  <th>Students</th>
+                  <th>Average progress</th>
+                </tr>
+              </thead>
+              <tbody>
+                {courses.map((course) => (
+                  <tr key={course.course_id}>
+                    <td className={styles.cellHighlight}>{course.title}</td>
+                    <td>{course.students}</td>
+                    <td>
+                      <div className={styles.progressWrap}>
+                        <div className={styles.progressBarTrack}>
+                          <div 
+                            className={styles.progressBarFill} 
+                            style={{ width: `${Math.max(0, Math.min(100, course.avg_completion_pct))}%` }} 
+                          />
+                        </div>
+                        <span>{course.avg_completion_pct}%</span>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

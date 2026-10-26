@@ -1,8 +1,9 @@
 "use client";
 
+import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Menu, Zap, ChevronRight } from "lucide-react";
+import { Menu, Zap, ChevronRight, Settings, LogOut, Award, ShieldCheck } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import styles from "../layout.module.css";
 import NotificationBell from "./NotificationBell";
@@ -10,6 +11,7 @@ import SearchBar from "./SearchBar";
 import { useSessionProfile } from "../../../lib/hooks/useSessionProfile";
 import { useUserXp } from "../../../lib/hooks/useUserXp";
 import { useMode } from "../ModeContext";
+import { readStoredSession, signOut } from "../../../lib/supabaseAuth";
 
 const ROLE_LABEL: Record<string, string> = {
   student: "Student",
@@ -66,6 +68,35 @@ export default function Header({ toggleMobileMenu }: { toggleMobileMenu?: () => 
   const name = profile?.full_name ?? "";
   const initial = name.charAt(0).toUpperCase() || (profile?.role ? profile.role.charAt(0).toUpperCase() : "H");
   const today = new Date().toLocaleDateString([], { weekday: "short", month: "short", day: "numeric" });
+
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+  const profileMenuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!profileMenuOpen) return;
+    const onPointer = (event: MouseEvent) => {
+      if (profileMenuRef.current && !profileMenuRef.current.contains(event.target as Node)) {
+        setProfileMenuOpen(false);
+      }
+    };
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setProfileMenuOpen(false);
+    };
+    document.addEventListener("mousedown", onPointer);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onPointer);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [profileMenuOpen]);
+
+  async function handleSignOut() {
+    try {
+      await signOut(readStoredSession());
+    } finally {
+      window.location.href = "/login";
+    }
+  }
 
   const getPageTitle = () => {
     if (pathname === "/dashboard") {
@@ -151,16 +182,77 @@ export default function Header({ toggleMobileMenu }: { toggleMobileMenu?: () => 
         <div className={styles.date} suppressHydrationWarning>{today}</div>
         <NotificationBell />
 
-        {/* Profile Avatar Button */}
-        <div className={styles.headerUser}>
-          <Link 
-            href="/dashboard/settings" 
+        {/* Profile Avatar Button with Touching Small Dropdown Box */}
+        <div className={styles.headerUser} ref={profileMenuRef}>
+          <button 
+            type="button"
+            onClick={() => setProfileMenuOpen((prev) => !prev)}
             className={styles.headerUserBtn} 
-            title={name ? `${name} • View Profile & Settings` : "View Profile & Settings"}
-            aria-label="View Profile and Settings"
+            title={name ? `${name} • Account Menu` : "Account Menu"}
+            aria-label="Toggle user profile menu"
+            aria-expanded={profileMenuOpen}
           >
-            <div className={styles.avatar}>{initial}</div>
-          </Link>
+            <div className={`${styles.avatar} ${profileMenuOpen ? styles.avatarOpen : ""}`}>
+              {initial}
+            </div>
+          </button>
+
+          <AnimatePresence>
+            {profileMenuOpen && (
+              <motion.div 
+                className={styles.profileMenuDropdown}
+                initial={{ opacity: 0, scale: 0.94, y: -6 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.94, y: -6 }}
+                transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
+              >
+                <div className={styles.profileMenuHeader}>
+                  <div className={styles.profileMenuName}>{name || "Account"}</div>
+                  <div className={styles.profileMenuRole}>
+                    <ShieldCheck size={12} color="var(--accent-subtle-text)" />
+                    <span>{ROLE_LABEL[profile?.role ?? "student"] || "Member"}</span>
+                  </div>
+                </div>
+
+                <Link 
+                  href="/dashboard/settings" 
+                  className={styles.profileMenuItem}
+                  onClick={() => setProfileMenuOpen(false)}
+                >
+                  <span className={styles.profileMenuItemIcon}>
+                    <Settings size={15} />
+                  </span>
+                  <span>Settings & Profile</span>
+                </Link>
+
+                {profile?.role === "student" && (
+                  <Link 
+                    href="/dashboard/license" 
+                    className={styles.profileMenuItem}
+                    onClick={() => setProfileMenuOpen(false)}
+                  >
+                    <span className={styles.profileMenuItemIcon}>
+                      <Award size={15} />
+                    </span>
+                    <span>Driver License</span>
+                  </Link>
+                )}
+
+                <div className={styles.profileMenuDivider} />
+
+                <button 
+                  type="button" 
+                  className={`${styles.profileMenuItem} ${styles.profileMenuLogout}`}
+                  onClick={() => void handleSignOut()}
+                >
+                  <span className={styles.profileMenuItemIcon}>
+                    <LogOut size={15} />
+                  </span>
+                  <span>Log Out</span>
+                </button>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </div>
     </header>

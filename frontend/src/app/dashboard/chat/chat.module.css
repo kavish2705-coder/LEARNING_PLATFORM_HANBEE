@@ -40,6 +40,73 @@
   outline: none;
 }
 
+.chatTabBar {
+  display: flex;
+  gap: 8px;
+  padding: 10px 16px;
+  background: var(--bg-card);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.chatTabBtn {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 7px 12px;
+  border-radius: 10px;
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--text-muted);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.chatTabBtn:hover {
+  background: var(--bg-card-hover);
+  color: var(--text-main);
+}
+
+.chatTabBtnActive {
+  background: rgba(8, 145, 178, 0.12);
+  color: var(--color-primary);
+  border-color: rgba(8, 145, 178, 0.25);
+}
+
+.chatTabCount {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  background: var(--color-primary);
+  color: #ffffff;
+}
+
+.chatEmptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 24px;
+  text-align: center;
+  color: var(--text-muted);
+  gap: 12px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.chatEmptyState svg {
+  opacity: 0.5;
+}
+
 .contactsList {
   flex: 1;
   overflow-y: auto;

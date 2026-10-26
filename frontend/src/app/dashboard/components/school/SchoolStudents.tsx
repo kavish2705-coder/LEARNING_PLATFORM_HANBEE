@@ -2,8 +2,8 @@
 
 import { FormEvent, useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Search } from "lucide-react";
-import styles from "../../dashboard.module.css";
+import { Search, UserPlus, Copy, RefreshCw, CheckCircle2, Clock, XCircle, Users, BookOpen, Mail, ExternalLink } from "lucide-react";
+import styles from "./SchoolOverview.module.css";
 import { Input, Textarea } from "../ui/FormField";
 import Shimmer from "../ui/Shimmer";
 import { authenticatedSupabaseFetch } from "../../../../lib/supabaseAuth";
@@ -123,68 +123,304 @@ export default function SchoolStudents() {
   const busy = invite.isPending || revoke.isPending || rotateLink.isPending;
 
   return (
-    <div>
-      <div className={styles.pageHeader}>
-        <h1 className={styles.pageTitle}>Students</h1>
-        <p className={styles.pageSubtitle}>School roster, course progress, and secure student invitations</p>
-      </div>
+    <div className={styles.hubContainer}>
+      <header className={styles.hubHeader}>
+        <div className={styles.hubHeaderLeft}>
+          <h1 className={styles.hubTitle}>Students</h1>
+          <p className={styles.hubSubtitle}>School roster, course progress, and secure student invitations</p>
+        </div>
+      </header>
+
       {(studentsError || invite.isError || revoke.isError || rotateLink.isError) && (
-        <p role="alert">{[studentsError, invite.error, revoke.error, rotateLink.error].find(Boolean) instanceof Error
+        <p role="alert" className={styles.sectionCard} style={{ color: "#ef4444" }}>{[studentsError, invite.error, revoke.error, rotateLink.error].find(Boolean) instanceof Error
           ? ([studentsError, invite.error, revoke.error, rotateLink.error].find(Boolean) as Error).message
           : "Something went wrong."}</p>
       )}
-      {invite.isSuccess && <p role="status">{invite.data.map((row) => `${row.email}: ${row.result.replaceAll("_", " ")}`).join(" · ")}</p>}
-      {rotateLink.isSuccess && <p role="status">School join link replaced. The previous link no longer works.</p>}
-      <form className={styles.sectionCard} onSubmit={handleInvite} style={{ marginBottom: 24 }}>
-        <h2 className={styles.sectionTitle}>Invite students</h2>
-        <p style={{ marginTop: 8, color: "var(--text-muted)" }}>Enter one or more email addresses separated by commas, spaces, or new lines. Students with an existing Hanbee account can sign in and join using the school link below.</p>
-        <Textarea value={emails} onChange={(event) => setEmails(event.target.value)} rows={3} maxLength={20000} style={{ width: "100%", marginTop: 12 }} placeholder="student@example.com" />
-        <button className={styles.actionBtn} type="submit" disabled={busy || studentsLoading} style={{ marginTop: 12 }}>{invite.isPending ? "Sending…" : "Send invitations"}</button>
-        {mailBatches.length > 0 && schoolSignupUrl && <div style={{ marginTop: 18, padding: 16, border: "1px solid var(--border-subtle)", borderRadius: 12 }}>
-          <h3 style={{ fontSize: 15 }}>Email invitations</h3>
-          <p style={{ margin: "7px 0 12px", color: "var(--text-muted)" }}>Open a draft for each group of up to 40 students, add your own address to To or Cc, then send it from your mail app.</p>
-          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>{mailBatches.map((batch, index) => <span key={index} style={{ display: "inline-flex", gap: 8, alignItems: "center" }}><span>Batch {index + 1} ({batch.length})</span><a href={emailAppUrl("mailto", batch)}>Mail app</a><a href={emailAppUrl("outlook", batch)} target="_blank" rel="noreferrer">Outlook</a><a href={emailAppUrl("gmail", batch)} target="_blank" rel="noreferrer">Gmail</a></span>)}</div>
-          <button type="button" className={styles.actionBtn} style={{ marginTop: 12 }} onClick={() => void copyInvitationMessage()}>Copy invitation message</button>
-          {mailStatus && <p role="status" style={{ marginTop: 8 }}>{mailStatus}</p>}
-        </div>}
-        {joinToken && <div style={{ marginTop: 16, padding: 14, border: "1px solid var(--border-subtle)", borderRadius: 12 }}>
-          <h3 style={{ fontSize: 15, marginBottom: 8 }}>Your school's join link</h3>
-          <a href={schoolSignupUrl}>Open student sign-up link</a> · <a href={schoolJoinUrl}>Existing account join page</a>
-          <p style={{ marginTop: 8, overflowWrap: "anywhere", color: "var(--text-muted)" }}>{schoolJoinUrl}</p>
-          <button className={styles.actionBtn} type="button" disabled={busy} onClick={() => rotateLink.mutate()}>Replace school link</button>
-          <p style={{ marginTop: 6, color: "var(--text-muted)" }}>Replacing this link immediately invalidates copies of the previous link.</p>
-        </div>}
+      {invite.isSuccess && <p role="status" className={styles.sectionCard} style={{ color: "#10b981" }}>{invite.data.map((row) => `${row.email}: ${row.result.replaceAll("_", " ")}`).join(" · ")}</p>}
+      {rotateLink.isSuccess && <p role="status" className={styles.sectionCard} style={{ color: "#10b981" }}>School join link replaced. The previous link no longer works.</p>}
+
+      <form className={styles.sectionCard} onSubmit={handleInvite}>
+        <div className={styles.sectionHeader}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <div style={{ width: 38, height: 38, borderRadius: 10, background: "rgba(2, 132, 199, 0.15)", color: "#0284c7", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <UserPlus size={18} />
+            </div>
+            <div>
+              <h2 className={styles.sectionTitle} style={{ margin: 0 }}>Invite Students</h2>
+              <p style={{ margin: "2px 0 0", color: "var(--text-muted)", fontSize: "13px" }}>
+                Send direct email invites or share your school's secure registration link
+              </p>
+            </div>
+          </div>
+          <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+            <span style={{ fontSize: "11px", fontFamily: "monospace", background: "var(--bg-surface-elevated)", border: "1px solid var(--border-elevated)", padding: "4px 8px", borderRadius: 6, color: "var(--text-muted)" }}>
+              Max 200 emails / batch
+            </span>
+          </div>
+        </div>
+        <p style={{ margin: "10px 0 0", color: "var(--text-muted)", fontSize: "13.5px" }}>
+          Enter student email addresses separated by commas, spaces, or line breaks. Students with an existing account can sign in and join using the school link below.
+        </p>
+        <Textarea 
+          value={emails} 
+          onChange={(event) => setEmails(event.target.value)} 
+          rows={3} 
+          maxLength={20000} 
+          style={{ width: "100%", marginTop: 14 }} 
+          placeholder="student@example.com, classmate@example.com" 
+        />
+        <div style={{ marginTop: 14 }}>
+          <button 
+            className={styles.submitInviteBtn} 
+            type="submit" 
+            disabled={busy}
+          >
+            <UserPlus size={17} />
+            {invite.isPending ? "Sending invitations…" : "Send Student Invitations"}
+          </button>
+        </div>
+
+        {mailBatches.length > 0 && schoolSignupUrl && (
+          <div style={{ marginTop: 20, padding: 18, border: "1px solid var(--border-elevated)", borderRadius: 14, background: "var(--bg-surface-elevated)" }}>
+            <h3 style={{ fontSize: 15, margin: 0, fontWeight: 600 }}>Email invitations</h3>
+            <p style={{ margin: "6px 0 12px", color: "var(--text-muted)", fontSize: "13px" }}>Open a draft for each group of up to 40 students, add your own address to To or Cc, then send it from your mail app.</p>
+            <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
+              {mailBatches.map((batch, index) => (
+                <span key={index} style={{ display: "inline-flex", gap: 8, alignItems: "center", fontSize: "13px" }}>
+                  <strong>Batch {index + 1} ({batch.length}):</strong>
+                  <a href={emailAppUrl("mailto", batch)} className={styles.textLink}>Mail app</a> · 
+                  <a href={emailAppUrl("outlook", batch)} target="_blank" rel="noreferrer" className={styles.textLink}>Outlook</a> · 
+                  <a href={emailAppUrl("gmail", batch)} target="_blank" rel="noreferrer" className={styles.textLink}>Gmail</a>
+                </span>
+              ))}
+            </div>
+            <div style={{ marginTop: 14 }}>
+              <button type="button" className={styles.actionBtnSecondary} onClick={() => void copyInvitationMessage()}>
+                <Copy size={14} /> Copy invitation message
+              </button>
+            </div>
+            {mailStatus && <p role="status" style={{ marginTop: 8, color: "#10b981", fontSize: "13px" }}>{mailStatus}</p>}
+          </div>
+        )}
+
+        {joinToken && (
+          <div style={{ marginTop: 18, padding: 18, border: "1px solid var(--border-elevated)", borderRadius: 14, background: "var(--bg-surface-elevated)" }}>
+            <h3 style={{ fontSize: 15, margin: "0 0 8px", fontWeight: 600 }}>Your school's join link</h3>
+            <div style={{ display: "flex", gap: 14, flexWrap: "wrap", fontSize: "13.5px" }}>
+              <a href={schoolSignupUrl} className={styles.textLink}>Open student sign-up link</a>
+              <span style={{ color: "var(--text-muted)" }}>·</span>
+              <a href={schoolJoinUrl} className={styles.textLink}>Existing account join page</a>
+            </div>
+            <p style={{ margin: "10px 0", overflowWrap: "anywhere", color: "var(--text-muted)", fontSize: "12.5px", fontFamily: "monospace" }}>{schoolJoinUrl}</p>
+            <button className={styles.actionBtnSecondary} type="button" disabled={busy} onClick={() => rotateLink.mutate()}>
+              <RefreshCw size={14} /> Replace school link
+            </button>
+            <p style={{ margin: "8px 0 0", color: "var(--text-muted)", fontSize: "12px" }}>Replacing this link immediately invalidates copies of the previous link.</p>
+          </div>
+        )}
       </form>
+
       <section className={styles.sectionCard}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12 }}>
+        <div className={styles.sectionHeader}>
           <h2 className={styles.sectionTitle}>Active students ({(students ?? []).length})</h2>
           <div style={{ position: "relative", maxWidth: 260, flex: "1 1 220px" }}>
             <Search size={15} style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", color: "var(--text-muted)", pointerEvents: "none" }} />
             <Input value={studentSearch} onChange={(event) => setStudentSearch(event.target.value)} placeholder="Search students…" aria-label="Search students" style={{ paddingLeft: 32 }} />
           </div>
         </div>
-        {studentsLoading ? <Shimmer rows={3} /> : <div className={styles.tableContainer} style={{ marginTop: 14 }}>
-          <table className={styles.dataTable}><thead><tr><th>Student</th><th>Team</th><th>Courses</th><th>Lessons</th><th>Progress</th><th>Last active</th></tr></thead>
-            <tbody>{filteredStudents.map((student: SchoolStudentRow) => <tr key={student.student_id}><td>{student.full_name}<br /><small>{student.email}</small></td><td>{student.team_name ?? "—"}</td><td>{student.courses_enrolled}</td><td>{student.lessons_completed}/{student.lessons_total}</td><td>{student.completion_pct}%</td><td>{student.last_active ? new Date(student.last_active).toLocaleDateString() : "—"}</td></tr>)}
-              {filteredStudents.length === 0 && <tr><td colSpan={6}>{studentSearch ? "No students match your search." : "No active students yet."}</td></tr>}</tbody>
-          </table>
-        </div>}
+        {studentsLoading ? <Shimmer rows={3} /> : (
+          <div className={styles.tableContainer} style={{ marginTop: 14 }}>
+            <table className={styles.dataTable}>
+              <thead>
+                <tr>
+                  <th>Student</th>
+                  <th>Team</th>
+                  <th>Courses</th>
+                  <th>Lessons</th>
+                  <th>Progress</th>
+                  <th>Last active</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredStudents.map((student: SchoolStudentRow) => {
+                  const initials = student.full_name.split(/\s+/).slice(0, 2).map((n) => n[0]).join("").toUpperCase() || "ST";
+                  return (
+                    <tr key={student.student_id}>
+                      <td>
+                        <div className={styles.studentCell}>
+                          <div className={styles.studentAvatarCircle}>
+                            {initials}
+                          </div>
+                          <div>
+                            <div className={styles.cellHighlight}>{student.full_name}</div>
+                            <div style={{ color: "var(--text-muted)", fontSize: "12px", display: "flex", alignItems: "center", gap: 4 }}>
+                              <Mail size={11} />
+                              {student.email}
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+                      <td>
+                        {student.team_name ? (
+                          <span className={styles.teamPill}>
+                            <Users size={12} />
+                            {student.team_name}
+                          </span>
+                        ) : (
+                          <span style={{ color: "var(--text-muted)", fontSize: "12px" }}>— Unassigned</span>
+                        )}
+                      </td>
+                      <td>
+                        <span className={styles.courseCountBadge}>
+                          <BookOpen size={11} />
+                          {student.courses_enrolled} {student.courses_enrolled === 1 ? "Course" : "Courses"}
+                        </span>
+                      </td>
+                      <td>
+                        <span className={styles.lessonCountText}>
+                          {student.lessons_completed} / {student.lessons_total}
+                        </span>
+                      </td>
+                      <td>
+                        <div className={styles.progressWrap}>
+                          <div className={styles.progressBarTrack}>
+                            <div 
+                              className={styles.progressBarFill} 
+                              style={{ 
+                                width: `${Math.min(100, student.completion_pct)}%`,
+                                background: student.completion_pct >= 80 
+                                  ? "linear-gradient(90deg, #10b981, #34d399)" 
+                                  : student.completion_pct >= 40 
+                                  ? "linear-gradient(90deg, #0284c7, #38bdf8)" 
+                                  : "linear-gradient(90deg, #f59e0b, #fbbf24)"
+                              }} 
+                            />
+                          </div>
+                          <span style={{ 
+                            fontSize: "12px", 
+                            fontFamily: "monospace", 
+                            fontWeight: 700,
+                            color: student.completion_pct >= 80 ? "#10b981" : "var(--text-main)",
+                            minWidth: "36px"
+                          }}>
+                            {student.completion_pct}%
+                          </span>
+                        </div>
+                      </td>
+                      <td>
+                        <span style={{ fontSize: "12px", color: "var(--text-muted)", fontFamily: "monospace" }}>
+                          {student.last_active ? new Date(student.last_active).toLocaleDateString() : "—"}
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })}
+                {filteredStudents.length === 0 && (
+                  <tr>
+                    <td colSpan={6} style={{ textAlign: "center", color: "var(--text-muted)", padding: "28px" }}>
+                      {studentSearch ? "No students match your search query." : "No active students enrolled yet."}
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
       </section>
-      <section className={styles.sectionCard} style={{ marginTop: 24 }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12 }}>
+
+      <section className={styles.sectionCard}>
+        <div className={styles.sectionHeader}>
           <h2 className={styles.sectionTitle}>Student invitations</h2>
           <div style={{ position: "relative", maxWidth: 260, flex: "1 1 220px" }}>
             <Search size={15} style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", color: "var(--text-muted)", pointerEvents: "none" }} />
             <Input value={inviteSearch} onChange={(event) => setInviteSearch(event.target.value)} placeholder="Search invitations…" aria-label="Search invitations" style={{ paddingLeft: 32 }} />
           </div>
         </div>
-        {invitesLoading ? <Shimmer rows={3} /> : <div className={styles.tableContainer} style={{ marginTop: 14 }}>
-          <table className={styles.dataTable}><thead><tr><th>Email</th><th>Status</th><th>Expires</th><th>Invite link</th><th>Action</th></tr></thead>
-            <tbody>{filteredInvitations.map((invitation) => <tr key={invitation.id}><td>{invitation.email}</td><td>{invitation.accepted ? "Accepted" : invitation.revoked_at ? "Revoked" : "Pending"}</td><td>{new Date(invitation.expires_at).toLocaleDateString()}</td><td>{!invitation.accepted && !invitation.revoked_at && <a href={inviteUrl(invitation)}>Open signup link</a>}</td><td>{!invitation.accepted && !invitation.revoked_at && <button type="button" className={styles.actionBtn} disabled={busy} onClick={() => revoke.mutate(invitation)}>Revoke</button>}</td></tr>)}
-              {filteredInvitations.length === 0 && <tr><td colSpan={5}>{inviteSearch ? "No invitations match your search." : "No invitations found."}</td></tr>}</tbody>
-          </table>
-        </div>}
+        {invitesLoading ? <Shimmer rows={3} /> : (
+          <div className={styles.tableContainer} style={{ marginTop: 14 }}>
+            <table className={styles.dataTable}>
+              <thead>
+                <tr>
+                  <th>Email</th>
+                  <th>Status</th>
+                  <th>Expires</th>
+                  <th>Invite link</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredInvitations.map((invitation) => (
+                  <tr key={invitation.id}>
+                    <td>
+                      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                        <Mail size={14} style={{ color: "var(--accent)" }} />
+                        <span className={styles.cellHighlight}>{invitation.email}</span>
+                      </div>
+                    </td>
+                    <td>
+                      {invitation.accepted ? (
+                        <span className={styles.statusBadgeAccepted}>
+                          <CheckCircle2 size={12} /> Accepted
+                        </span>
+                      ) : invitation.revoked_at ? (
+                        <span className={styles.statusBadgeRevoked}>
+                          <XCircle size={12} /> Revoked
+                        </span>
+                      ) : (
+                        <span className={styles.statusBadgePending}>
+                          <Clock size={12} /> Pending
+                        </span>
+                      )}
+                    </td>
+                    <td>
+                      <span style={{ fontFamily: "monospace", fontSize: "12px", color: "var(--text-muted)" }}>
+                        {new Date(invitation.expires_at).toLocaleDateString()}
+                      </span>
+                    </td>
+                    <td>
+                      {!invitation.accepted && !invitation.revoked_at ? (
+                        <a 
+                          href={inviteUrl(invitation)} 
+                          className={styles.textLink}
+                          style={{ display: "inline-flex", alignItems: "center", gap: 5 }}
+                        >
+                          <ExternalLink size={12} />
+                          <span>Open signup link</span>
+                        </a>
+                      ) : (
+                        <span style={{ color: "var(--text-muted)" }}>—</span>
+                      )}
+                    </td>
+                    <td>
+                      {!invitation.accepted && !invitation.revoked_at ? (
+                        <button 
+                          type="button" 
+                          className={styles.dangerBtn} 
+                          disabled={busy} 
+                          onClick={() => revoke.mutate(invitation)}
+                          style={{ padding: "5px 12px", fontSize: "12px", borderRadius: "6px" }}
+                        >
+                          Revoke
+                        </button>
+                      ) : (
+                        <span style={{ color: "var(--text-muted)" }}>—</span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+                {filteredInvitations.length === 0 && (
+                  <tr>
+                    <td colSpan={5} style={{ textAlign: "center", color: "var(--text-muted)", padding: "28px" }}>
+                      {inviteSearch ? "No invitations match your search query." : "No invitations found."}
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
       </section>
     </div>
   );
 }
+

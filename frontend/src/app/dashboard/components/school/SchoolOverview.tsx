@@ -1,12 +1,21 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { BookOpen, CalendarDays, ChevronRight, GraduationCap, Trophy, Users } from "lucide-react";
-import styles from "../../dashboard.module.css";
+import { 
+  BookOpen, CalendarDays, ChevronRight, GraduationCap, 
+  Trophy, Users, MapPin, Bell 
+} from "lucide-react";
+import styles from "./SchoolOverview.module.css";
 import { fetchMyOrganizationId } from "../../../../lib/teamFormationApi";
-import { fetchSchoolCourseParticipation, fetchSchoolOverview, type SchoolCourseRow, type SchoolOverview } from "../../../../lib/schoolAdminApi";
+import { 
+  fetchSchoolCourseParticipation, 
+  fetchSchoolOverview, 
+  type SchoolCourseRow, 
+  type SchoolOverview 
+} from "../../../../lib/schoolAdminApi";
+import { useSessionProfile } from "../../../../lib/hooks/useSessionProfile";
 
 type OverviewTab = "tournament" | "learning";
 
@@ -16,77 +25,326 @@ export default function SchoolOverviewPage() {
   const [tab, setTab] = useState<OverviewTab>("tournament");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const { data: profile } = useSessionProfile();
 
   useEffect(() => {
     let active = true;
     async function load() {
-      const orgId = await fetchMyOrganizationId();
-      if (!orgId) throw new Error("Your account is not linked to an active school.");
-      const [summary, participation] = await Promise.all([fetchSchoolOverview(orgId), fetchSchoolCourseParticipation(orgId)]);
-      if (!active) return;
-      setOverview(summary);
-      setCourses(participation);
+      try {
+        const orgId = await fetchMyOrganizationId();
+        if (!orgId) {
+          if (!active) return;
+          setError("Your account is not linked to an active school.");
+          return;
+        }
+        const [summary, participation] = await Promise.all([
+          fetchSchoolOverview(orgId), 
+          fetchSchoolCourseParticipation(orgId)
+        ]);
+        if (!active) return;
+        setOverview(summary);
+        setCourses(participation ?? []);
+      } catch (reason: unknown) {
+        if (!active) return;
+        setError(reason instanceof Error ? reason.message : "We couldn't load your school overview.");
+      } finally {
+        if (active) setLoading(false);
+      }
     }
-    load().catch((reason: unknown) => { if (active) setError(reason instanceof Error ? reason.message : "We couldn't load your school overview."); })
-      .finally(() => { if (active) setLoading(false); });
+    void load();
     return () => { active = false; };
   }, []);
 
+  const currentHour = new Date().getHours();
+  const timeGreeting = currentHour < 12 ? "Good morning" : currentHour < 17 ? "Good afternoon" : "Good evening";
+  const staffName = profile?.full_name ? profile.full_name.split(" ")[0] : "Staff";
+
   return (
-    <div>
-      <header className={styles.pageHeader}>
-        <div className={styles.metricLabel}>SCHOOL PORTAL</div>
-        <h1 className={styles.pageTitle}>{overview?.school.name ?? "School Overview"}</h1>
-        <p className={styles.pageSubtitle}>Your school's tournament activity and learning progress in one place.</p>
-      </header>
-      {error && <p role="alert" className={styles.sectionCard}>{error}</p>}
-      {loading ? <p role="status">Loading school data…</p> : overview && <>
-        <div className={styles.filterGroup} role="tablist" aria-label="School dashboard view" style={{ marginBottom: 22 }}>
-          <button type="button" role="tab" aria-selected={tab === "tournament"} className={`${styles.filterBtn} ${tab === "tournament" ? styles.filterBtnActive : ""}`} onClick={() => setTab("tournament")}><Trophy size={16} /> Tournament</button>
-          <button type="button" role="tab" aria-selected={tab === "learning"} className={`${styles.filterBtn} ${tab === "learning" ? styles.filterBtnActive : ""}`} onClick={() => setTab("learning")}><BookOpen size={16} /> Learning</button>
+    <div className={styles.hubContainer}>
+      {/* ===== Hub Header (Aligned with Student Dashboard) ===== */}
+      <header className={styles.hubHeader}>
+        <div className={styles.hubHeaderLeft}>
+          <h1 className={styles.hubTitle} suppressHydrationWarning>
+            {timeGreeting}, {staffName}!
+          </h1>
+          <p className={styles.hubSubtitle}>
+            Track tournament activity, team formations, and student learning progress.
+          </p>
         </div>
-        {tab === "tournament" ? <>
-          <div className={styles.metricsGrid}>
-            <Metric icon={<Users size={18} />} title="Active students" value={overview.people.students} detail={`${overview.people.staff + overview.people.owners} school staff`} />
-            <Metric icon={<Trophy size={18} />} title="Teams" value={overview.tournament.teams_total} detail={`${overview.tournament.participants} student participants`} />
-            <Metric icon={<GraduationCap size={18} />} title="Pending invitations" value={overview.people.pending_invites} detail="Student invitations still open" />
-            <Metric icon={<CalendarDays size={18} />} title="Best tournament rank" value={overview.tournament.best_rank ?? "—"} detail="Across your school's results" />
+        {overview?.school.name && (
+          <div className={styles.schoolBadge}>
+            <GraduationCap size={14} />
+            <span>{overview.school.name}</span>
           </div>
-          <section className={styles.sectionCard} style={{ marginBottom: 22 }}>
-            <div className={styles.sectionHeader}>
-              <div style={{ minWidth: 0 }}><span className={styles.metricLabel}>NEXT EVENT</span><h2 className={styles.sectionTitle} style={{ marginTop: 7 }}>{overview.tournament.next_tournament?.title ?? "No upcoming tournament"}</h2></div>
-              <Link href="/dashboard/school/teams" className={styles.actionBtn} style={{ textDecoration: "none", flex: "0 0 auto", whiteSpace: "nowrap" }}>Manage teams <ChevronRight size={16} /></Link>
+        )}
+      </header>
+
+      {error && <p role="alert" className={styles.sectionCard} style={{ color: "#ef4444" }}>{error}</p>}
+
+      {loading ? (
+        <div className={styles.sectionCard} style={{ textAlign: "center", padding: "40px" }}>
+          <p role="status" style={{ color: "var(--text-muted)", margin: 0 }}>Loading school data…</p>
+        </div>
+      ) : overview && (
+        <>
+          {/* ===== Glider Mode Switcher (Aligned with Student Dashboard) ===== */}
+          <div className={styles.tabSwitcherWrap}>
+            <div className={styles.modeSwitcherContainer} role="tablist" aria-label="School dashboard view">
+              <div 
+                className={styles.modeSwitcherGlider} 
+                style={{ transform: tab === "tournament" ? "translateX(0%)" : "translateX(100%)" }} 
+              />
+              <button 
+                type="button" 
+                role="tab" 
+                aria-selected={tab === "tournament"} 
+                className={`${styles.modeOption} ${tab === "tournament" ? styles.modeOptionActive : ""}`} 
+                onClick={() => setTab("tournament")}
+              >
+                <Trophy size={16} /> Tournament
+              </button>
+              <button 
+                type="button" 
+                role="tab" 
+                aria-selected={tab === "learning"} 
+                className={`${styles.modeOption} ${tab === "learning" ? styles.modeOptionActive : ""}`} 
+                onClick={() => setTab("learning")}
+              >
+                <BookOpen size={16} /> Learning
+              </button>
             </div>
-            {overview.tournament.next_tournament ? <div style={{ display: "flex", gap: 20, flexWrap: "wrap", color: "var(--text-muted)" }}><span><CalendarDays size={15} /> {new Date(overview.tournament.next_tournament.starts_at).toLocaleString()}</span>{overview.tournament.next_tournament.venue && <span>{overview.tournament.next_tournament.venue}</span>}</div> : <p style={{ color: "var(--text-muted)" }}>Tournament dates and team rules will show here when an event is announced.</p>}
-          </section>
-          <section className={styles.sectionCard}>
-            <div className={styles.sectionHeader}><div><span className={styles.metricLabel}>TEAM PROGRESS</span><h2 className={styles.sectionTitle} style={{ marginTop: 7 }}>Team applications</h2></div><Link href="/dashboard/school/teams" className={styles.tableTitle}>Open team page →</Link></div>
-            <div className={styles.metricsGrid}>{Object.entries(overview.tournament.teams_by_status ?? {}).map(([status, count]) => <Metric key={status} title={status.replaceAll("_", " ")} value={count} detail="teams" />)}{Object.keys(overview.tournament.teams_by_status ?? {}).length === 0 && <p>No teams have been formed yet.</p>}</div>
-          </section>
-        </> : <>
-          <div className={styles.metricsGrid}>
-            <Metric icon={<GraduationCap size={18} />} title="Students enrolled" value={overview.lms.students_enrolled} detail="Participating in courses" />
-            <Metric icon={<BookOpen size={18} />} title="Active enrollments" value={overview.lms.enrollments} detail="Across all school courses" />
-            <Metric icon={<Trophy size={18} />} title="Lessons completed" value={overview.lms.lessons_completed} detail="Combined school progress" />
-            <Metric icon={<Users size={18} />} title="Average completion" value={`${overview.lms.avg_completion_pct}%`} detail="For active enrollments" />
           </div>
-          <section className={styles.sectionCard}>
-            <div className={styles.sectionHeader}><div><span className={styles.metricLabel}>LEARNING ACTIVITY</span><h2 className={styles.sectionTitle} style={{ marginTop: 7 }}>Course participation</h2></div><Link href="/dashboard/school/courses" className={styles.tableTitle}>View courses →</Link></div>
-            <div className={styles.tableContainer}><table className={styles.dataTable}><thead><tr><th>Course</th><th>Students</th><th>Average progress</th></tr></thead><tbody>{courses.map((course) => <tr key={course.course_id}><td className={styles.cellHighlight}>{course.title}</td><td>{course.students}</td><td><Progress value={course.avg_completion_pct} /></td></tr>)}{courses.length === 0 && <tr><td colSpan={3}>No school students are enrolled in a course yet.</td></tr>}</tbody></table></div>
-          </section>
-        </>}
-        <nav className={styles.quickActions} aria-label="School quick links" style={{ marginTop: 22 }}>
-          <QuickLink href="/dashboard/school/students" title="Student roster" detail="Invite and manage students" />
-          <QuickLink href="/dashboard/school/schedule" title="School schedule" detail="View upcoming events" />
-          <QuickLink href="/dashboard/school/announcements" title="Announcements" detail="Post a school update" />
-        </nav>
-      </>}
+
+          {tab === "tournament" ? (
+            <>
+              {/* ===== Tournament Metrics Grid ===== */}
+              <div className={styles.metricsGrid}>
+                <MetricCard 
+                  icon={<Users size={18} />} 
+                  title="Active students" 
+                  value={overview.people.students} 
+                  detail={`${overview.people.staff + overview.people.owners} school staff`} 
+                />
+                <MetricCard 
+                  icon={<Trophy size={18} />} 
+                  title="Teams" 
+                  value={overview.tournament.teams_total} 
+                  detail={`${overview.tournament.participants} student participants`} 
+                />
+                <MetricCard 
+                  icon={<GraduationCap size={18} />} 
+                  title="Pending invitations" 
+                  value={overview.people.pending_invites} 
+                  detail="Student invitations still open" 
+                />
+                <MetricCard 
+                  icon={<CalendarDays size={18} />} 
+                  title="Best tournament rank" 
+                  value={overview.tournament.best_rank ?? "—"} 
+                  detail="Across your school's results" 
+                />
+              </div>
+
+              {/* ===== Next Event Section (Clean Title, No Bubbles) ===== */}
+              <section className={styles.sectionCard}>
+                <div className={styles.sectionHeader}>
+                  <div style={{ minWidth: 0 }}>
+                    <h2 className={styles.sectionTitle}>
+                      {overview.tournament.next_tournament?.title ?? "No upcoming tournament"}
+                    </h2>
+                  </div>
+                  <Link href="/dashboard/school/teams" className={styles.actionBtn}>
+                    Manage teams <ChevronRight size={16} />
+                  </Link>
+                </div>
+                {overview.tournament.next_tournament ? (
+                  <div className={styles.eventCardInner}>
+                    <div className={styles.eventMetaList}>
+                      <span className={styles.eventMetaItem}>
+                        <CalendarDays size={15} color="#7dd3e8" /> 
+                        {new Date(overview.tournament.next_tournament.starts_at).toLocaleDateString([], {
+                          weekday: "short",
+                          month: "short",
+                          day: "numeric",
+                          hour: "2-digit",
+                          minute: "2-digit"
+                        })}
+                      </span>
+                      {overview.tournament.next_tournament.venue && (
+                        <span className={styles.eventMetaItem}>
+                          <MapPin size={15} color="#7dd3e8" />
+                          {overview.tournament.next_tournament.venue}
+                        </span>
+                      )}
+                      <span className={styles.eventMetaItem}>
+                        <Users size={15} color="#7dd3e8" />
+                        {overview.tournament.participants} participants registered
+                      </span>
+                    </div>
+                  </div>
+                ) : (
+                  <p style={{ color: "var(--text-muted)", margin: 0 }}>
+                    Tournament dates and team rules will show here when an event is announced.
+                  </p>
+                )}
+              </section>
+
+              {/* ===== Team Progress Section ===== */}
+              <section className={styles.sectionCard}>
+                <div className={styles.sectionHeader}>
+                  <h2 className={styles.sectionTitle}>Team applications</h2>
+                  <Link href="/dashboard/school/teams" className={styles.textLink}>
+                    Open team page <ChevronRight size={15} />
+                  </Link>
+                </div>
+                <div className={styles.teamsStatusGrid}>
+                  {Object.entries(overview.tournament.teams_by_status ?? {}).map(([status, count]) => (
+                    <div key={status} className={styles.teamStatusCard}>
+                      <span className={styles.teamStatusName}>{status.replaceAll("_", " ")}</span>
+                      <span className={styles.teamStatusCount}>{count}</span>
+                    </div>
+                  ))}
+                  {Object.keys(overview.tournament.teams_by_status ?? {}).length === 0 && (
+                    <p style={{ color: "var(--text-muted)", margin: 0 }}>No teams have been formed yet.</p>
+                  )}
+                </div>
+              </section>
+            </>
+          ) : (
+            <>
+              {/* ===== Learning Metrics Grid ===== */}
+              <div className={styles.metricsGrid}>
+                <MetricCard 
+                  icon={<GraduationCap size={18} />} 
+                  title="Students enrolled" 
+                  value={overview.lms.students_enrolled} 
+                  detail="Participating in courses" 
+                />
+                <MetricCard 
+                  icon={<BookOpen size={18} />} 
+                  title="Active enrollments" 
+                  value={overview.lms.enrollments} 
+                  detail="Across all school courses" 
+                />
+                <MetricCard 
+                  icon={<Trophy size={18} />} 
+                  title="Lessons completed" 
+                  value={overview.lms.lessons_completed} 
+                  detail="Combined school progress" 
+                />
+                <MetricCard 
+                  icon={<Users size={18} />} 
+                  title="Average completion" 
+                  value={`${overview.lms.avg_completion_pct}%`} 
+                  detail="For active enrollments" 
+                />
+              </div>
+
+              {/* ===== Course Participation Section ===== */}
+              <section className={styles.sectionCard}>
+                <div className={styles.sectionHeader}>
+                  <h2 className={styles.sectionTitle}>Course participation</h2>
+                  <Link href="/dashboard/school/courses" className={styles.textLink}>
+                    View courses <ChevronRight size={15} />
+                  </Link>
+                </div>
+                {courses.length > 0 ? (
+                  <div className={styles.tableContainer}>
+                    <table className={styles.dataTable}>
+                      <thead>
+                        <tr>
+                          <th>Course</th>
+                          <th>Students</th>
+                          <th>Average progress</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {courses.map((course) => (
+                          <tr key={course.course_id}>
+                            <td className={styles.cellHighlight}>{course.title}</td>
+                            <td>{course.students}</td>
+                            <td>
+                              <div className={styles.progressWrap}>
+                                <div className={styles.progressBarTrack}>
+                                  <div 
+                                    className={styles.progressBarFill} 
+                                    style={{ width: `${Math.max(0, Math.min(100, course.avg_completion_pct))}%` }} 
+                                  />
+                                </div>
+                                <span>{course.avg_completion_pct}%</span>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  <div style={{ textAlign: "center", padding: "36px 16px", color: "var(--text-muted)" }}>
+                    <p style={{ margin: 0, fontSize: "14px" }}>No school students are enrolled in a course yet.</p>
+                  </div>
+                )}
+              </section>
+            </>
+          )}
+
+          {/* ===== Quick Actions Grid ===== */}
+          <nav className={styles.quickActionsGrid} aria-label="School quick links">
+            <Link href="/dashboard/school/students" className={styles.quickActionCard}>
+              <div className={styles.quickActionLeft}>
+                <div className={styles.quickActionIconWrap}>
+                  <Users size={20} />
+                </div>
+                <div className={styles.quickActionMeta}>
+                  <h3 className={styles.quickActionTitle}>Student roster</h3>
+                  <p className={styles.quickActionDetail}>Invite and manage students</p>
+                </div>
+              </div>
+              <ChevronRight size={18} className={styles.quickActionArrow} />
+            </Link>
+
+            <Link href="/dashboard/school/schedule" className={styles.quickActionCard}>
+              <div className={styles.quickActionLeft}>
+                <div className={styles.quickActionIconWrap}>
+                  <CalendarDays size={20} />
+                </div>
+                <div className={styles.quickActionMeta}>
+                  <h3 className={styles.quickActionTitle}>School schedule</h3>
+                  <p className={styles.quickActionDetail}>View upcoming events & races</p>
+                </div>
+              </div>
+              <ChevronRight size={18} className={styles.quickActionArrow} />
+            </Link>
+
+            <Link href="/dashboard/school/announcements" className={styles.quickActionCard}>
+              <div className={styles.quickActionLeft}>
+                <div className={styles.quickActionIconWrap}>
+                  <Bell size={20} />
+                </div>
+                <div className={styles.quickActionMeta}>
+                  <h3 className={styles.quickActionTitle}>Announcements</h3>
+                  <p className={styles.quickActionDetail}>Post school updates & notices</p>
+                </div>
+              </div>
+              <ChevronRight size={18} className={styles.quickActionArrow} />
+            </Link>
+          </nav>
+        </>
+      )}
     </div>
   );
 }
 
-function Metric({ icon, title, value, detail }: { icon?: ReactNode; title: string; value: string | number; detail: string }) {
-  return <article className={styles.metricCard}><div className={styles.metricCardHeader}><span className={styles.metricLabel}>{title}</span>{icon}</div><div className={styles.metricValue}>{value}</div><p className={styles.metricSubtext}>{detail}</p></article>;
+function MetricCard({ icon, title, value, detail }: { icon?: ReactNode; title: string; value: string | number; detail: string }) {
+  return (
+    <article className={styles.metricCard}>
+      <div className={styles.metricCardHeader}>
+        <span className={styles.metricTitle}>{title}</span>
+        {icon && <div className={styles.metricIconWrap}>{icon}</div>}
+      </div>
+      <div className={styles.metricValue}>{value}</div>
+      <p className={styles.metricDetail}>{detail}</p>
+    </article>
+  );
 }
-function Progress({ value }: { value: number }) { return <div style={{ display: "flex", alignItems: "center", gap: 10 }}><div style={{ flex: 1, height: 7, background: "var(--bg-card-hover)", borderRadius: 8, overflow: "hidden" }}><div style={{ width: `${Math.max(0, Math.min(100, value))}%`, height: "100%", background: "var(--accent)" }} /></div><span>{value}%</span></div>; }
-function QuickLink({ href, title, detail }: { href: string; title: string; detail: string }) { return <Link href={href} className={styles.actionBtn} style={{ textDecoration: "none" }}><span className={styles.actionText}><strong>{title}</strong><span>{detail}</span></span><ChevronRight size={16} /></Link>; }
+

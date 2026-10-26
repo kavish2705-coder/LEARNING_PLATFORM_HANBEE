@@ -12,6 +12,12 @@ interface ModeContextType {
 
 const ModeContext = createContext<ModeContextType | undefined>(undefined);
 
+// Routes that only exist under one mode's sidebar menu force that mode to
+// match, regardless of how the page was reached (a bookmark, browser back,
+// a link from elsewhere) — the toggle used to only change when someone
+// clicked it directly, so navigating any other way left it showing the
+// wrong section. Shared pages (Overview, Announcements, Chat, Settings)
+// don't force either way; they keep whatever was last selected.
 const LEARNING_ONLY_PREFIXES = ["/dashboard/courses", "/dashboard/certificate", "/dashboard/ai-assistant", "/dashboard/attendance"];
 const TOURNAMENT_ONLY_PREFIXES = ["/dashboard/license", "/dashboard/leaderboard", "/dashboard/team"];
 

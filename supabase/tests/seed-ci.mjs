@@ -61,6 +61,16 @@ try {
       throw new Error(`Expected exactly one profile row for CI identity ${user.email}; updated ${result.rowCount}.`);
     }
   }
+  // seed.mjs creates jamie@hanbeelms.edu as a real "staff" signup, which
+  // starts unapproved (manager approval required). The RLS suites
+  // (0023_organizations.mjs and others) use jamie as the approved Hanbee
+  // staff test identity, so approve them here the same way a manager would.
+  const jamieResult = await db.query(
+    `update public.profiles set approved = true where lower(email) = 'jamie@hanbeelms.edu'`,
+  );
+  if (jamieResult.rowCount !== 1) {
+    throw new Error(`Expected exactly one profile row for jamie@hanbeelms.edu; updated ${jamieResult.rowCount}.`);
+  }
 
   // Helper functions for test suites (0016-0021, 0024, 0026-0029, 0036-0039)
   // that need to create users and test bans directly

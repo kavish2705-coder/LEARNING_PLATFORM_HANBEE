@@ -234,7 +234,9 @@ export async function signUpWithPassword(input: {
   const signupPath = confirmationRedirect
     ? `/auth/v1/signup?redirect_to=${encodeURIComponent(confirmationRedirect)}`
     : "/auth/v1/signup";
-  return supabaseFetch<{ user?: { id: string; email?: string }; access_token?: string }>(signupPath, {
+  // Migration 0045 auto-confirms new email addresses, so this returns a
+  // full session (same shape as login) immediately, not just a user stub.
+  return supabaseFetch<AuthSessionResponse>(signupPath, {
     method: "POST",
     body: JSON.stringify({
       email: input.email.trim(),
@@ -257,7 +259,9 @@ export async function requestPasswordReset(email: string) {
 }
 
 export async function updatePassword(accessToken: string, password: string) {
-  if (accessToken === "dummy-token") {
+  // Dev-only bypass, same pattern/reasoning as login/page.tsx's: gated on
+  // NODE_ENV so Next.js dead-code-eliminates this branch from prod bundles.
+  if (process.env.NODE_ENV === "development" && accessToken === "dummy-token") {
     return { id: "dummy-student", email: "student@hanbee.in" };
   }
   return supabaseFetch<{ id: string; email?: string }>("/auth/v1/user", {

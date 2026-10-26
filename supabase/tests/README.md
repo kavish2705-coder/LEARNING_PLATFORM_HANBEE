@@ -2,6 +2,39 @@
 
 Each file in `rls/` logs in as real roles (student, school staff, Hanbee staff, manager, anonymous) using `set local role authenticated` and JWT claims, tries things each role must and must not be able to do, and prints PASS or FAIL. Everything runs inside a transaction that is **rolled back**, so no data is left behind.
 
+## Run against a fresh local Supabase stack
+
+The GitHub Actions workflow starts a fresh local Supabase stack, applies every
+checked-in migration, seeds the demo course and the identities required by the
+RLS suites, then runs each suite. To reproduce that workflow locally, install
+Docker and the Supabase CLI, then from the repository root run:
+
+```powershell
+npm ci --prefix supabase/tests
+npm install --prefix supabase --no-save --package-lock=false
+supabase start
+supabase db reset --local
+```
+
+Set `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, and
+`SUPABASE_DB_URL=postgresql://postgres:postgres@127.0.0.1:54322/postgres`
+from `supabase status --output env`, then seed and test:
+
+```powershell
+npm --prefix supabase run seed
+node supabase/tests/seed-ci.mjs
+node supabase/tests/rls/schema_coverage.mjs
+```
+
+Run the RLS suites from PowerShell:
+
+```powershell
+Get-ChildItem supabase/tests/rls/0*.mjs | ForEach-Object { node $_.FullName; if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE } }
+```
+
+The workflow uses this disposable local stack and does not need GitHub Actions
+secrets or access to the shared staging/production databases.
+
 One-time setup (from this folder, once: `npm install`), then create the restricted test login so the owner password is not needed for tests:
 
 ```

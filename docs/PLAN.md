@@ -1,5 +1,7 @@
 # HanbeeLms — Complete LMS for Staff & Students
 
+> **Historical proposal, not a current architecture or status report.** It describes the original React/Vite + FastAPI plan. The current app is Next.js and uses Supabase directly for backend/auth/data; the disconnected Express placeholder has been removed. For current database and security status, use `docs/MULTI_SCHOOL_PLATFORM.md` and `docs/SECURITY_PLAN.md`. Historical implementation entries below are retained as a project log, not proof that a file or test still exists.
+
 ## Context
 
 `HanbeeLms` is currently an empty project directory — this is a from-scratch build. The goal is a complete Learning Management System serving two user types, Staff (instructors/admins) and Students, covering the full loop of course delivery, enrollment/rosters, and attendance/scheduling/communication. The user confirmed the stack (React+Vite frontend, Supabase for auth/DB/storage, FastAPI for server-side-only logic) and scope (assignments/quizzes/grading and live video are explicitly excluded from this MVP — async content delivery only). This plan lays out the data model, auth model, frontend architecture, FastAPI responsibilities, repo layout, phased build order, deployment, and verification approach so implementation can proceed phase-by-phase with each phase independently demoable.
