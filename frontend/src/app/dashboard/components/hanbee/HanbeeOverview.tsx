@@ -374,7 +374,7 @@ export default function HanbeeOverview() {
                   <Sparkles size={18} />
                 </div>
                 <div className={styles.metricMeta}>
-                  <span className={styles.metricCategory} style={{ color: "#a855f7" }}>PACE BENCHMARK</span>
+                  <span className={styles.metricCategory} style={{ color: "#a855f7" }}>CIRCUIT PACE</span>
                   <span className={styles.metricTitle}>Session Fast Lap</span>
                   <span className={styles.metricValue} style={{ color: "#a855f7" }}>{bestSessionLap}</span>
                 </div>

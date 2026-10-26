@@ -24,7 +24,7 @@
   background-color: var(--bg-page);
   background-image: var(--bg-page-image);
   color: var(--text-main);
-  font-family: var(--font-body);
+  font-family: 'Afacad', sans-serif;
   overflow: hidden;
   transition: background-color 0.5s ease, color 0.5s ease;
 }
