@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="en" data-track="java">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Java & JEE Notes — Hanbee LMS</title>
+<meta name="description" content="Core Java, OOP, collections, streams, concurrency, JDBC, JEE, JPA and Spring Boot.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500..700;1,9..144,500&amp;family=Inter:wght@400..700&amp;family=JetBrains+Mono:wght@400..600&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/notes.css">
+<script src="../assets/notes.js" defer></script>
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="../index.html"><b>H</b>Hanbee · Notes</a>
+  <nav><a class="keep" href="../index.html">All tracks</a><button id="theme-toggle" type="button" aria-label="Toggle light and dark theme">Theme</button></nav>
+</header>
+<section class="index-hero">
+  <p class="kicker"><span class="pill">Learning track</span><span>Java &amp; JEE</span></p>
+  <h1>Java, from <em>first line</em> to enterprise.</h1>
+  <p class="lede">Topic-wise notes covering core Java, OOP, collections, streams, concurrency, JDBC and the JEE stack. Each topic lists every concept it covers.</p>
+  <div class="stats"><div><b>25</b>Topics</div><div><b>275</b>Concept groups</div><div><b>2h</b>Reading time</div><div><b>5</b>Parts</div></div>
+</section>
+<div class="parts">
+<section class="part"><header><span>PART A</span><h2>Foundations</h2></header><div class="topics">
+      <a class="topic" href="01-introduction.html">
+        <div class="meta"><b>01</b><span>Beginner · 7 min</span></div>
+        <h3>Introduction to Java</h3>
+        <p>What Java is, why it is everywhere, how a program travels from source code to a running application, and how to write and run your first program.</p>
+        <ul><li>What is Java?</li><li>History and Versions</li><li>Features of Java</li><li>JDK, JRE and JVM</li><li>How a Java Program Runs</li><li>Installing and Setting Up</li><li>Your First Program</li><li>Comments and Naming Conventions</li><li>Java Editions</li><li>Common Beginner Errors</li><li>Quick Recap</li></ul>
+      </a>
+      <a class="topic" href="02-language-basics.html">
+        <div class="meta"><b>02</b><span>Beginner · 7 min</span></div>
+        <h3>Language Basics</h3>
+        <p>Variables, data types, literals, operators, type casting and reading input. The building blocks every Java program is made from.</p>
+        <ul><li>Program Structure and Tokens</li><li>Variables</li><li>Data Types</li><li>Literals</li><li>Type Inference with var</li><li>Operators</li><li>Type Conversion and Casting</li><li>Input and Output</li><li>Integer Overflow and Special Values</li><li>Quick Recap</li></ul>
+      </a>
+      <a class="topic" href="03-control-flow.html">
+        <div class="meta"><b>03</b><span>Beginner · 5 min</span></div>
+        <h3>Control Flow Statements</h3>
+        <p>Decision making and loops. Control the order in which statements run using if, switch, for, while and the jump statements.</p>
+        <ul><li>Decision Making</li><li>Loops</li><li>Jump Statements</li><li>Nested Loops and Patterns</li><li>Common Programs</li><li>Common Mistakes</li><li>Quick Recap</li></ul>
+      </a>
+      <a class="topic" href="04-arrays-strings.html">
+        <div class="meta"><b>04</b><span>Beginner · 6 min</span></div>
+        <h3>Arrays and Strings</h3>
+        <p>Store collections of values in arrays, then master Java's most used class, String, along with StringBuilder, the string pool and regular expressions.</p>
+        <ul><li>Arrays</li><li>Multi-dimensional Arrays</li><li>The Arrays Utility Class</li><li>Strings</li><li>Common String Methods</li><li>StringBuilder and StringBuffer</li><li>Regular Expressions</li><li>Common String Programs</li><li>Quick Recap</li></ul>
+      </a>
+      <a class="topic" href="05-methods.html">
+        <div class="meta"><b>05</b><span>Beginner · 5 min</span></div>
+        <h3>Methods</h3>
+        <p>Package reusable logic into methods. Parameters, return values, overloading, varargs, recursion and how Java passes arguments.</p>
+        <ul><li>What is a Method?</li><li>Static vs Instance Methods</li><li>Pass by Value</li><li>Method Overloading</li><li>Varargs</li><li>Returning Values</li><li>Recursion</li><li>Method Best Practices</li><li>The main Method</li><li>Quick Recap</li></ul>
+      </a></div></section>
+<section class="part"><header><span>PART B</span><h2>Object-Oriented Programming</h2></header><div class="topics">
+      <a class="topic" href="06-classes-objects.html">
+        <div class="meta"><b>06</b><span>Beginner · 5 min</span></div>
+        <h3>Classes and Objects</h3>
+        <p>The core of Java. Classes, objects, constructors, this, static members, initialisation blocks, packages, access modifiers and encapsulation.</p>
+        <ul><li>Object-Oriented Programming Concepts</li><li>Classes and Objects</li><li>Constructors</li><li>The this Keyword</li><li>Static Members</li><li>Initialisation Blocks</li><li>Packages and Imports</li><li>Access Modifiers</li><li>Encapsulation</li><li>Immutable Classes</li><li>Object Lifecycle and Garbage Collection</li><li>The Object Class Basics</li><li>Quick Recap</li></ul>
+      </a>
+      <a class="topic" href="07-inheritance-polymorphism.html">
+        <div class="meta"><b>07</b><span>Intermediate · 6 min</span></div>
+        <h3>Inheritance, Polymorphism and Abstraction</h3>
+        <p>Reuse code with inheritance, change behaviour with overriding, and design with abstract classes and interfaces.</p>
+        <ul><li>Inheritance</li><li>The super Keyword</li><li>Method Overriding</li><li>Polymorphism</li><li>The final Keyword</li><li>Abstraction</li><li>The Object Class: equals, hashCode, toString</li><li>Composition over Inheritance</li><li>Quick Recap</li></ul>
+      </a>
+      <a class="topic" href="08-interfaces-enums-records.html">
+        <div class="meta"><b>08</b><span>Intermediate · 5 min</span></div>
+        <h3>Interfaces, Enums, Records and Nested Classes</h3>
+        <p>Define contracts with interfaces, model fixed sets with enums, write data classes with records, and use inner, local and anonymous classes.</p>
+        <ul><li>Interfaces</li><li>Default, Static and Private Methods</li><li>Functional, Marker and Sealed Interfaces</li><li>Enums</li><li>Records (Java 16+)</li><li>Sealed Classes (Java 17+)</li><li>Nested and Inner Classes</li><li>Quick Recap</li></ul>
+      </a>
+      <a class="topic" href="09-exception-handling.html">
+        <div class="meta"><b>09</b><span>Intermediate · 5 min</span></div>
+        <h3>Exception Handling</h3>
+        <p>Handle runtime problems gracefully with try, catch, finally, throw and throws. Checked versus unchecked exceptions, custom exceptions and best practices.</p>
+        <ul><li>What is an Exception?</li><li>Exception Hierarchy</li><li>try, catch and finally</li><li>try-with-resources (Java 7)</li><li>throw and throws</li><li>Custom Exceptions</li><li>How Exceptions Propagate</li><li>finally Subtleties</li><li>Best Practices</li><li>Common Runtime Exceptions at a Glance</li><li>Quick Recap</li></ul>
+      </a></div></section>
+<section class="part"><header><span>PART C</span><h2>Core APIs</h2></header><div class="topics">
+      <a class="topic" href="10-generics-wrappers-utilities.html">
+        <div class="meta"><b>10</b><span>Intermediate · 5 min</span></div>
+        <h3>Generics, Wrapper Classes and Utility APIs</h3>
+        <p>Type-safe code with generics, boxing and unboxing of primitives, plus the everyday utility classes Math, Objects, Random and the java.time date-time API.</p>
+        <ul><li>Wrapper Classes</li><li>Generics</li><li>Math and Number Utilities</li><li>Objects and Random</li><li>java.time: Date and Time API (Java 8)</li><li>Other Handy Classes</li><li>Quick Recap</li></ul>
+      </a>
+      <a class="topic" href="11-collections-framework.html">
+        <div class="meta"><b>11</b><span>Intermediate · 6 min</span></div>
+        <h3>Collections Framework</h3>
+        <p>The standard data-structure library. List, Set, Map and Queue families, how HashMap works, sorting with Comparable and Comparator, and choosing the right collection.</p>
+        <ul><li>Collections Overview</li><li>The Collection Interface</li><li>List</li><li>Set</li><li>Map</li><li>Queue and Deque</li><li>Iterating Collections</li><li>Sorting: Comparable and Comparator</li><li>The Collections Utility Class</li><li>Choosing the Right Collection</li><li>Quick Recap</li></ul>
+      </a>
+      <a class="topic" href="12-lambda-streams.html">
+        <div class="meta"><b>12</b><span>Intermediate · 6 min</span></div>
+        <h3>Lambdas, Functional Interfaces and Streams</h3>
+        <p>Functional-style Java. Lambda expressions, method references, the built-in functional interfaces, Optional and the Stream API with collectors.</p>
+        <ul><li>Functional Programming in Java</li><li>Lambda Expressions</li><li>Functional Interfaces</li><li>Method References</li><li>Optional</li><li>Stream API</li><li>Collectors</li><li>Parallel Streams</li><li>Stream Rules and Pitfalls</li><li>Common Stream Interview Programs</li><li>Quick Recap</li></ul>
+      </a>
+      <a class="topic" href="13-file-io.html">
+        <div class="meta"><b>13</b><span>Intermediate · 4 min</span></div>
+        <h3>File I/O, NIO and Serialization</h3>
+        <p>Read and write files with the java.io streams, the modern java.nio.file API, and persist objects with serialization.</p>
+        <ul><li>I/O Basics</li><li>The File Class</li><li>Reading and Writing Text (java.io)</li><li>NIO.2: java.nio.file (Java 7+)</li><li>Scanner and Console</li><li>Serialization</li><li>Working with JSON (brief)</li><li>Common Exceptions</li><li>Quick Recap</li></ul>
+      </a>
+      <a class="topic" href="14-multithreading.html">
+        <div class="meta"><b>14</b><span>Advanced · 6 min</span></div>
+        <h3>Multithreading and Concurrency</h3>
+        <p>Run work in parallel safely. Threads, lifecycle, synchronisation, locks, executors, concurrent collections, CompletableFuture and virtual threads.</p>
+        <ul><li>Concepts</li><li>Creating Threads</li><li>Thread Lifecycle</li><li>Thread Methods</li><li>The Problem: Race Conditions</li><li>synchronized</li><li>volatile and Atomic Classes</li><li>Inter-thread Communication</li><li>java.util.concurrent</li><li>CompletableFuture</li><li>Virtual Threads (Java 21)</li><li>ThreadLocal</li><li>Best Practices</li><li>Quick Recap</li></ul>
+      </a>
+      <a class="topic" href="15-modern-java.html">
+        <div class="meta"><b>15</b><span>Intermediate · 4 min</span></div>
+        <h3>Modern Java (Java 9 to 25)</h3>
+        <p>A tour of the language and library features added since Java 8, including var, text blocks, records, sealed types, pattern matching and virtual threads.</p>
+        <ul><li>Why Keep Up?</li><li>Java 9 to 11</li><li>var (Java 10)</li><li>Java 12 to 17</li><li>Java 18 to 21</li><li>Java 22 to 25</li><li>Feature Timeline Cheat Sheet</li><li>Migrating and Best Practices</li><li>Quick Recap</li></ul>
+      </a></div></section>
+<section class="part"><header><span>PART D</span><h2>Advanced Java</h2></header><div class="topics">
+      <a class="topic" href="16-jvm-reflection-annotations.html">
+        <div class="meta"><b>16</b><span>Advanced · 6 min</span></div>
+        <h3>JVM Internals, Reflection and Annotations</h3>
+        <p>What happens inside the JVM. Memory areas, class loading, garbage collection and tuning, then reflection, annotations and common memory problems.</p>
+        <ul><li>JVM Architecture</li><li>Class Loading</li><li>Runtime Memory Areas</li><li>Garbage Collection</li><li>JIT Compilation</li><li>Memory Problems</li><li>Reflection</li><li>Annotations</li><li>Proxies and Class Loading Tricks</li><li>Cloning and Weak/Soft Caches (brief)</li><li>Quick Recap</li></ul>
+      </a>
+      <a class="topic" href="17-jdbc.html">
+        <div class="meta"><b>17</b><span>Intermediate · 7 min</span></div>
+        <h3>JDBC: Java Database Connectivity</h3>
+        <p>Talk to relational databases from Java. Drivers, connections, Statement vs PreparedStatement, ResultSet, transactions, batch updates, connection pools and the DAO pattern.</p>
+        <ul><li>What is JDBC?</li><li>JDBC Architecture</li><li>Steps to Connect</li><li>A Complete Query Example</li><li>Statement vs PreparedStatement vs CallableStatement</li><li>Executing Statements</li><li>ResultSet</li><li>SQL to Java Type Mapping</li><li>Transactions</li><li>Batch Processing</li><li>Stored Procedures</li><li>Connection Pooling</li><li>DAO Pattern</li><li>Common Problems</li><li>Best Practices</li><li>Quick Recap</li></ul>
+      </a>
+      <a class="topic" href="18-build-testing-logging.html">
+        <div class="meta"><b>18</b><span>Intermediate · 5 min</span></div>
+        <h3>Build Tools, Testing and Logging</h3>
+        <p>Professional project tooling. Maven and Gradle, project structure, JUnit 5 and Mockito for testing, SLF4J logging and Git basics.</p>
+        <ul><li>Why Build Tools?</li><li>Standard Project Layout</li><li>Maven</li><li>Testing with JUnit 5</li><li>Mocking with Mockito</li><li>Logging</li><li>Git Essentials</li><li>Quick Recap</li></ul>
+      </a>
+      <a class="topic" href="19-design-patterns-solid.html">
+        <div class="meta"><b>19</b><span>Advanced · 7 min</span></div>
+        <h3>SOLID Principles and Design Patterns</h3>
+        <p>Write maintainable object-oriented code. The five SOLID principles and the most useful creational, structural and behavioural design patterns, with Java examples.</p>
+        <ul><li>Why Design Principles?</li><li>SOLID Principles</li><li>Other Guiding Rules</li><li>Design Patterns Overview</li><li>Creational Patterns</li><li>Structural Patterns</li><li>Behavioural Patterns</li><li>Architectural Patterns</li><li>Choosing Patterns Wisely</li><li>Quick Recap</li></ul>
+      </a></div></section>
+<section class="part"><header><span>PART E</span><h2>Enterprise Java (JEE)</h2></header><div class="topics">
+      <a class="topic" href="20-jee-overview.html">
+        <div class="meta"><b>20</b><span>Intermediate · 6 min</span></div>
+        <h3>Jakarta EE (JEE) Overview and Architecture</h3>
+        <p>What enterprise Java is. Jakarta EE specifications, containers, multi-tier architecture, web servers versus application servers, WAR/EAR packaging and how the Spring ecosystem relates.</p>
+        <ul><li>What is JEE?</li><li>Specification vs Implementation</li><li>Jakarta EE Technology Map</li><li>Multi-tier Architecture</li><li>Containers</li><li>Web Server vs Application Server</li><li>Packaging and Deployment</li><li>Core Technologies in One Look</li><li>JEE vs Spring</li><li>Typical Request Flow</li><li>Setting Up a Development Environment</li><li>Quick Recap</li></ul>
+      </a>
+      <a class="topic" href="21-servlets.html">
+        <div class="meta"><b>21</b><span>Intermediate · 7 min</span></div>
+        <h3>Servlets</h3>
+        <p>The foundation of Java web development. How HTTP works, the servlet lifecycle, handling requests and responses, forms, redirect versus forward, and servlet configuration.</p>
+        <ul><li>HTTP Fundamentals</li><li>What is a Servlet?</li><li>Your First Servlet</li><li>Servlet Lifecycle</li><li>HttpServletRequest</li><li>HttpServletResponse</li><li>Handling Forms (GET vs POST)</li><li>Forward vs Redirect</li><li>include</li><li>ServletConfig and ServletContext</li><li>URL Patterns</li><li>File Upload</li><li>Async Servlets and Concurrency</li><li>Error Handling</li><li>Servlet Pitfalls</li><li>Quick Recap</li></ul>
+      </a>
+      <a class="topic" href="22-jsp-jstl-el.html">
+        <div class="meta"><b>22</b><span>Intermediate · 6 min</span></div>
+        <h3>JSP, Expression Language and JSTL</h3>
+        <p>Build the view layer with JavaServer Pages. JSP lifecycle, directives, implicit objects, Expression Language, JSTL tags and custom tags.</p>
+        <ul><li>What is JSP?</li><li>JSP Lifecycle</li><li>JSP Elements</li><li>Directives</li><li>Standard Actions</li><li>Implicit Objects</li><li>Expression Language (EL)</li><li>JSTL (JSP Standard Tag Library)</li><li>MVC with Servlet + JSP</li><li>JavaBeans</li><li>Custom Tags (brief)</li><li>Error Pages and Session Control</li><li>JSP vs Modern Template Engines</li><li>Quick Recap</li></ul>
+      </a>
+      <a class="topic" href="23-sessions-filters-security.html">
+        <div class="meta"><b>23</b><span>Intermediate · 5 min</span></div>
+        <h3>Sessions, Cookies, Filters, Listeners and Web Security</h3>
+        <p>Keep users logged in with sessions and cookies, intercept requests with filters, react to lifecycle events with listeners, and secure a Java web application.</p>
+        <ul><li>State Management in a Stateless Protocol</li><li>Cookies</li><li>HttpSession</li><li>Filters</li><li>Listeners</li><li>Web Security Essentials</li><li>Declarative Container Security</li><li>MVC Pattern (Recap)</li><li>Quick Recap</li></ul>
+      </a>
+      <a class="topic" href="24-jpa-hibernate.html">
+        <div class="meta"><b>24</b><span>Advanced · 7 min</span></div>
+        <h3>JPA and Hibernate (ORM)</h3>
+        <p>Map Java objects to database tables. Entities, relationships, EntityManager, JPQL, fetching, the N+1 problem, caching, transactions and Spring Data JPA.</p>
+        <ul><li>Why ORM?</li><li>Entities</li><li>Relationships</li><li>Fetch Types</li><li>EntityManager and the Persistence Context</li><li>Transactions</li><li>JPQL and Criteria</li><li>persistence.xml (plain JPA)</li><li>Caching</li><li>Inheritance Mapping</li><li>Spring Data JPA</li><li>Common Pitfalls</li><li>Quick Recap</li></ul>
+      </a>
+      <a class="topic" href="25-rest-spring-boot.html">
+        <div class="meta"><b>25</b><span>Advanced · 7 min</span></div>
+        <h3>REST APIs and Spring Boot</h3>
+        <p>Build modern web services in Java. REST principles, JAX-RS, then Spring Boot with controllers, dependency injection, validation, exception handling, security and deployment.</p>
+        <ul><li>REST Fundamentals</li><li>JAX-RS (Jakarta REST)</li><li>Spring Boot</li><li>Stereotype Annotations and Dependency Injection</li><li>Building a REST Controller</li><li>DTOs and Validation</li><li>Global Exception Handling</li><li>Configuration</li><li>Spring Security (overview)</li><li>Testing</li><li>Calling Other APIs</li><li>Spring MVC Request Flow</li><li>Packaging and Deployment</li><li>API Documentation</li><li>Microservices (brief)</li><li>Learning Path After This</li><li>Quick Recap</li></ul>
+      </a></div></section>
+</div>
+</body>
+</html>

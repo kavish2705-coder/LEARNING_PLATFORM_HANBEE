@@ -1,0 +1,253 @@
+<!doctype html>
+<html lang="en" data-track="java">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>REST APIs and Spring Boot — Java Notes · Hanbee</title>
+<meta name="description" content="Build modern web services in Java. REST principles, JAX-RS, then Spring Boot with controllers, dependency injection, validation, exception handling, security and deployment.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500..700;1,9..144,500&amp;family=Inter:wght@400..700&amp;family=JetBrains+Mono:wght@400..600&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/notes.css">
+<script src="../assets/notes.js" defer></script>
+</head>
+<body>
+<div class="progress" aria-hidden="true"><i></i></div>
+<header class="top">
+  <a class="brand" href="../index.html"><b>H</b>Hanbee · Java Notes</a>
+  <nav><a class="keep" href="index.html">All topics</a><button id="theme-toggle" type="button" aria-label="Toggle light and dark theme">Theme</button></nav>
+</header>
+<div class="shell">
+  <details class="toc"><summary>On this page</summary><nav aria-label="On this page"><ol><li><a href="#rest-fundamentals"><span>01</span>REST Fundamentals</a></li><li><a href="#jax-rs-jakarta-rest"><span>02</span>JAX-RS (Jakarta REST)</a></li><li><a href="#spring-boot"><span>03</span>Spring Boot</a></li><li><a href="#stereotype-annotations-and-dependency-injection"><span>04</span>Stereotype Annotations and Dependency Injection</a></li><li><a href="#building-a-rest-controller"><span>05</span>Building a REST Controller</a></li><li><a href="#dtos-and-validation"><span>06</span>DTOs and Validation</a></li><li><a href="#global-exception-handling"><span>07</span>Global Exception Handling</a></li><li><a href="#configuration"><span>08</span>Configuration</a></li><li><a href="#spring-security-overview"><span>09</span>Spring Security (overview)</a></li><li><a href="#testing"><span>10</span>Testing</a></li><li><a href="#calling-other-apis"><span>11</span>Calling Other APIs</a></li><li><a href="#spring-mvc-request-flow"><span>12</span>Spring MVC Request Flow</a></li><li><a href="#packaging-and-deployment"><span>13</span>Packaging and Deployment</a></li><li><a href="#api-documentation"><span>14</span>API Documentation</a></li><li><a href="#microservices-brief"><span>15</span>Microservices (brief)</a></li><li><a href="#learning-path-after-this"><span>16</span>Learning Path After This</a></li><li><a href="#quick-recap"><span>17</span>Quick Recap</a></li></ol></nav></details>
+  <main>
+    <header class="hero">
+      <p class="kicker"><span class="pill">Enterprise Java (JEE)</span><span>Topic 25</span><span>Advanced</span><span>7 min read</span></p>
+      <h1>REST APIs and Spring Boot</h1>
+      <p class="lede">Build modern web services in Java. REST principles, JAX-RS, then Spring Boot with controllers, dependency injection, validation, exception handling, security and deployment.</p>
+    </header>
+    <article>
+<h2 id="rest-fundamentals"><span class="num">01</span>REST Fundamentals</h2>
+<p><strong>REST</strong> (Representational State Transfer) is an architectural style for web APIs. Resources are identified by URLs and manipulated through standard HTTP methods; data is usually exchanged as <strong>JSON</strong>.</p>
+<h3 id="principles">Principles</h3>
+<ul><li><strong>Client-server</strong> separation</li><li><strong>Stateless</strong>: every request carries all needed information</li><li><strong>Uniform interface</strong>: standard methods, URLs, status codes, representations</li><li><strong>Resource-based</strong>: nouns in URLs, not verbs</li><li><strong>Cacheable</strong> and layered</li></ul>
+<h3 id="designing-urls">Designing URLs</h3>
+<div class="table-wrap"><table><thead><tr><th>Action</th><th>Method + URL</th><th>Success status</th></tr></thead><tbody><tr><td>List</td><td><code>GET /api/students</code></td><td>200</td></tr><tr><td>Read one</td><td><code>GET /api/students/5</code></td><td>200 / 404</td></tr><tr><td>Create</td><td><code>POST /api/students</code></td><td>201 + <code>Location</code> header</td></tr><tr><td>Replace</td><td><code>PUT /api/students/5</code></td><td>200 / 204</td></tr><tr><td>Partial update</td><td><code>PATCH /api/students/5</code></td><td>200</td></tr><tr><td>Delete</td><td><code>DELETE /api/students/5</code></td><td>204</td></tr><tr><td>Nested</td><td><code>GET /api/courses/3/lessons</code></td><td>200</td></tr><tr><td>Filter / page / sort</td><td><code>GET /api/students?status=ACTIVE&amp;page=0&amp;size=20&amp;sort=name,asc</code></td><td>200</td></tr></tbody></table></div>
+<p>Use plural nouns, lowercase, no verbs (<code>/students</code>, not <code>/getStudents</code>). Version with <code>/api/v1/...</code>.</p>
+<h3 id="error-responses">Error responses</h3>
+<pre><code class="language-json">{
+  "timestamp": "2026-10-06T09:30:00Z",
+  "status": 400,
+  "error": "Bad Request",
+  "message": "email must be a valid email address",
+  "path": "/api/students"
+}</code></pre>
+<p>Prefer a consistent format; the standard <strong>Problem Details (RFC 9457)</strong> is supported by Spring.</p>
+<h2 id="jax-rs-jakarta-rest"><span class="num">02</span>JAX-RS (Jakarta REST)</h2>
+<p>The Jakarta EE standard for REST. Implementations: Jersey, RESTEasy.</p>
+<pre><code class="language-java">@ApplicationPath("/api")
+public class RestApp extends Application { }
+
+@Path("/students")
+@Produces(MediaType.APPLICATION_JSON)
+@Consumes(MediaType.APPLICATION_JSON)
+public class StudentResource {
+
+    @Inject StudentService service;
+
+    @GET
+    public List&lt;Student&gt; list(@QueryParam("status") String status) { return service.find(status); }
+
+    @GET @Path("/{id}")
+    public Response get(@PathParam("id") long id) {
+        return service.find(id)
+                .map(s -&gt; Response.ok(s).build())
+                .orElse(Response.status(Response.Status.NOT_FOUND).build());
+    }
+
+    @POST
+    public Response create(@Valid StudentDto dto, @Context UriInfo uri) {
+        Student s = service.create(dto);
+        return Response.created(uri.getAbsolutePathBuilder().path(String.valueOf(s.getId())).build()).entity(s).build();
+    }
+
+    @DELETE @Path("/{id}")
+    public Response delete(@PathParam("id") long id) { service.delete(id); return Response.noContent().build(); }
+}</code></pre>
+<h2 id="spring-boot"><span class="num">03</span>Spring Boot</h2>
+<p><strong>Spring Boot</strong> is the most widely used Java framework for building web services. It provides <strong>auto-configuration</strong>, an <strong>embedded server</strong> (Tomcat) and <strong>starter</strong> dependencies, so an app runs from a single jar with <code>java -jar</code>.</p>
+<h3 id="core-ideas">Core ideas</h3>
+<div class="table-wrap"><table><thead><tr><th>Concept</th><th>Meaning</th></tr></thead><tbody><tr><td><strong>IoC container</strong></td><td>Spring creates and wires objects ("beans")</td></tr><tr><td><strong>Dependency Injection</strong></td><td>Beans receive their collaborators instead of creating them</td></tr><tr><td><strong>Auto-configuration</strong></td><td>Reasonable defaults based on what is on the classpath</td></tr><tr><td><strong>Starters</strong></td><td>One dependency pulls in a consistent set (<code>spring-boot-starter-web</code>)</td></tr><tr><td><strong>Actuator</strong></td><td>Health, metrics, info endpoints</td></tr></tbody></table></div>
+<h3 id="create-a-project">Create a project</h3>
+<p>Use <strong>start.spring.io</strong> (Spring Initializr): Maven, Java 21, dependencies <em>Spring Web, Spring Data JPA, Validation, PostgreSQL Driver, Spring Security, Actuator</em>.</p>
+<pre data-file="LmsApplication.java"><code class="language-java">@SpringBootApplication      // = @Configuration + @EnableAutoConfiguration + @ComponentScan
+public class LmsApplication {
+    public static void main(String[] args) {
+        SpringApplication.run(LmsApplication.class, args);
+    }
+}</code></pre>
+<h3 id="project-layout">Project layout</h3>
+<pre><code class="language-text">com.hanbee.lms
+├── LmsApplication.java
+├── controller/   StudentController
+├── service/      StudentService
+├── repository/   StudentRepository
+├── model/        Student (entity)
+├── dto/          StudentRequest, StudentResponse
+└── config/       SecurityConfig
+resources/application.yml</code></pre>
+<h2 id="stereotype-annotations-and-dependency-injection"><span class="num">04</span>Stereotype Annotations and Dependency Injection</h2>
+<div class="table-wrap"><table><thead><tr><th>Annotation</th><th>Layer</th></tr></thead><tbody><tr><td><code>@Component</code></td><td>Generic bean</td></tr><tr><td><code>@Service</code></td><td>Business logic</td></tr><tr><td><code>@Repository</code></td><td>Data access (adds exception translation)</td></tr><tr><td><code>@RestController</code></td><td>Web layer returning JSON</td></tr><tr><td><code>@Configuration</code> + <code>@Bean</code></td><td>Manual bean definitions</td></tr></tbody></table></div>
+<pre><code class="language-java">@Service
+public class StudentService {
+    private final StudentRepository repo;                  // constructor injection: preferred
+    public StudentService(StudentRepository repo) { this.repo = repo; }
+}</code></pre>
+<aside class="callout tip"><span class="label">Tip</span><p>Prefer <strong>constructor injection</strong>. It makes dependencies explicit, supports <code>final</code> fields and makes testing trivial. Avoid field injection (<code>@Autowired</code> on fields).</p></aside>
+<h3 id="bean-scopes">Bean scopes</h3>
+<p><code>singleton</code> (default), <code>prototype</code>, <code>request</code>, <code>session</code>, <code>application</code>.</p>
+<h2 id="building-a-rest-controller"><span class="num">05</span>Building a REST Controller</h2>
+<pre><code class="language-java">@RestController
+@RequestMapping("/api/v1/students")
+public class StudentController {
+
+    private final StudentService service;
+    public StudentController(StudentService service) { this.service = service; }
+
+    @GetMapping
+    public Page&lt;StudentResponse&gt; list(@RequestParam(defaultValue = "") String q,
+                                      @PageableDefault(size = 20, sort = "name") Pageable pageable) {
+        return service.search(q, pageable);
+    }
+
+    @GetMapping("/{id}")
+    public StudentResponse get(@PathVariable Long id) { return service.get(id); }
+
+    @PostMapping
+    public ResponseEntity&lt;StudentResponse&gt; create(@Valid @RequestBody StudentRequest req) {
+        StudentResponse created = service.create(req);
+        URI location = URI.create("/api/v1/students/" + created.id());
+        return ResponseEntity.created(location).body(created);
+    }
+
+    @PutMapping("/{id}")
+    public StudentResponse update(@PathVariable Long id, @Valid @RequestBody StudentRequest req) {
+        return service.update(id, req);
+    }
+
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void delete(@PathVariable Long id) { service.delete(id); }
+}</code></pre>
+<h3 id="request-mapping-annotations">Request mapping annotations</h3>
+<div class="table-wrap"><table><thead><tr><th>Annotation</th><th>Reads from</th></tr></thead><tbody><tr><td><code>@PathVariable</code></td><td><code>/students/{id}</code></td></tr><tr><td><code>@RequestParam</code></td><td><code>?q=java</code></td></tr><tr><td><code>@RequestBody</code></td><td>JSON body → object</td></tr><tr><td><code>@RequestHeader</code></td><td>Header</td></tr><tr><td><code>@CookieValue</code></td><td>Cookie</td></tr><tr><td><code>@ModelAttribute</code></td><td>Form fields</td></tr></tbody></table></div>
+<h2 id="dtos-and-validation"><span class="num">06</span>DTOs and Validation</h2>
+<p>Never expose JPA entities directly. Use <strong>DTOs</strong> (records are ideal).</p>
+<pre><code class="language-java">public record StudentRequest(
+        @NotBlank @Size(max = 100) String name,
+        @NotBlank @Email String email,
+        @Min(5) @Max(100) Integer age) { }
+
+public record StudentResponse(Long id, String name, String email) {
+    static StudentResponse from(Student s) { return new StudentResponse(s.getId(), s.getName(), s.getEmail()); }
+}</code></pre>
+<p>Common constraints: <code>@NotNull</code>, <code>@NotBlank</code>, <code>@NotEmpty</code>, <code>@Size</code>, <code>@Min</code>, <code>@Max</code>, <code>@Pattern</code>, <code>@Email</code>, <code>@Past</code>, <code>@Positive</code>.</p>
+<h2 id="global-exception-handling"><span class="num">07</span>Global Exception Handling</h2>
+<pre><code class="language-java">@RestControllerAdvice
+public class ApiExceptionHandler {
+
+    @ExceptionHandler(StudentNotFoundException.class)
+    public ProblemDetail notFound(StudentNotFoundException ex) {
+        return ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ProblemDetail invalid(MethodArgumentNotValidException ex) {
+        ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, "Validation failed");
+        pd.setProperty("errors", ex.getBindingResult().getFieldErrors().stream()
+                .collect(Collectors.toMap(FieldError::getField, FieldError::getDefaultMessage, (a, b) -&gt; a)));
+        return pd;
+    }
+}</code></pre>
+<h2 id="configuration"><span class="num">08</span>Configuration</h2>
+<pre data-file="application.yml"><code class="language-yaml">server:
+  port: 8080
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/lms
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
+  jpa:
+    hibernate.ddl-auto: validate
+    open-in-view: false
+logging:
+  level:
+    com.hanbee: DEBUG
+management:
+  endpoints.web.exposure.include: health,info</code></pre>
+<ul><li><strong>Profiles</strong>: <code>application-dev.yml</code>, <code>application-prod.yml</code>, activated by <code>SPRING_PROFILES_ACTIVE=prod</code></li><li>Read values with <code>@Value("${app.name}")</code> or type-safe <code>@ConfigurationProperties(prefix = "app")</code></li><li><strong>Never commit secrets</strong>: use environment variables or a secrets manager</li></ul>
+<h2 id="spring-security-overview"><span class="num">09</span>Spring Security (overview)</h2>
+<pre><code class="language-java">@Configuration
+@EnableWebSecurity
+public class SecurityConfig {
+    @Bean
+    SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        http.csrf(csrf -&gt; csrf.disable())                     // OK for stateless token APIs only
+            .sessionManagement(s -&gt; s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .authorizeHttpRequests(a -&gt; a
+                .requestMatchers("/api/v1/auth/**", "/actuator/health").permitAll()
+                .requestMatchers(HttpMethod.DELETE, "/api/**").hasRole("ADMIN")
+                .anyRequest().authenticated())
+            .oauth2ResourceServer(o -&gt; o.jwt(Customizer.withDefaults()));
+        return http.build();
+    }
+
+    @Bean PasswordEncoder passwordEncoder() { return new BCryptPasswordEncoder(); }
+}</code></pre>
+<p>Concepts: <strong>authentication</strong> (who are you?), <strong>authorization</strong> (what may you do?), roles/authorities, JWT bearer tokens, OAuth 2.0 / OIDC, method security (<code>@PreAuthorize("hasRole('ADMIN')")</code>), CORS configuration.</p>
+<h2 id="testing"><span class="num">10</span>Testing</h2>
+<pre><code class="language-java">@WebMvcTest(StudentController.class)
+class StudentControllerTest {
+    @Autowired MockMvc mvc;
+    @MockBean StudentService service;
+
+    @Test
+    void getReturnsStudent() throws Exception {
+        when(service.get(1L)).thenReturn(new StudentResponse(1L, "Asha", "a@x.com"));
+        mvc.perform(get("/api/v1/students/1"))
+           .andExpect(status().isOk())
+           .andExpect(jsonPath("$.name").value("Asha"));
+    }
+}</code></pre>
+<div class="table-wrap"><table><thead><tr><th>Annotation</th><th>Tests</th></tr></thead><tbody><tr><td><code>@SpringBootTest</code></td><td>Whole application context</td></tr><tr><td><code>@WebMvcTest</code></td><td>Controller layer only</td></tr><tr><td><code>@DataJpaTest</code></td><td>Repositories with an embedded DB</td></tr><tr><td><code>@MockBean</code> / <code>@MockitoBean</code></td><td>Replace a bean with a mock</td></tr></tbody></table></div>
+<p>Use <strong>Testcontainers</strong> to test against a real PostgreSQL.</p>
+<h2 id="calling-other-apis"><span class="num">11</span>Calling Other APIs</h2>
+<pre><code class="language-java">RestClient client = RestClient.create("https://api.example.com");
+Weather w = client.get().uri("/weather?city={c}", "Chennai").retrieve().body(Weather.class);</code></pre>
+<p><code>WebClient</code> (reactive) and Spring Cloud OpenFeign are alternatives.</p>
+<h2 id="spring-mvc-request-flow"><span class="num">12</span>Spring MVC Request Flow</h2>
+<pre><code class="language-text">Request → DispatcherServlet → HandlerMapping → Filters/Interceptors → Controller
+        → Service → Repository → DB → Controller returns object
+        → HttpMessageConverter (Jackson) → JSON response</code></pre>
+<h2 id="packaging-and-deployment"><span class="num">13</span>Packaging and Deployment</h2>
+<pre><code class="language-bash">./mvnw clean package          # builds target/lms-0.0.1.jar (fat jar with embedded Tomcat)
+java -jar target/lms-0.0.1.jar --spring.profiles.active=prod</code></pre>
+<pre data-file="Dockerfile"><code class="language-dockerfile">FROM eclipse-temurin:21-jre
+COPY target/lms-0.0.1.jar app.jar
+EXPOSE 8080
+ENTRYPOINT ["java", "-jar", "/app.jar"]</code></pre>
+<p>Production checklist: externalised config, health checks (<code>/actuator/health</code>), structured logging, HTTPS at the proxy, connection pool sizing, database migrations with Flyway.</p>
+<h2 id="api-documentation"><span class="num">14</span>API Documentation</h2>
+<p>Add <strong>springdoc-openapi</strong> to generate OpenAPI/Swagger UI at <code>/swagger-ui.html</code> automatically from your controllers.</p>
+<h2 id="microservices-brief"><span class="num">15</span>Microservices (brief)</h2>
+<p>Splitting an application into small services that communicate over HTTP or messaging (Kafka, RabbitMQ). Supporting tools: API gateway, service discovery, config server, circuit breakers (Resilience4j), distributed tracing (OpenTelemetry). Start with a <strong>well-structured monolith</strong> and split only when the team and scale need it.</p>
+<h2 id="learning-path-after-this"><span class="num">16</span>Learning Path After This</h2>
+<ol><li>Spring Boot REST + JPA + PostgreSQL project (e.g. a mini LMS API)</li><li>Spring Security with JWT</li><li>Testing with JUnit, Mockito, Testcontainers</li><li>Docker, CI/CD (GitHub Actions)</li><li>Messaging (Kafka/RabbitMQ), caching (Redis)</li><li>Cloud deployment and observability</li></ol>
+<h2 id="quick-recap"><span class="num">17</span>Quick Recap</h2>
+<ul><li>REST uses nouns, HTTP methods and status codes; keep it stateless</li><li>Spring Boot = auto-configuration + embedded server + starters</li><li><code>@RestController</code> → <code>@Service</code> → <code>@Repository</code> layering with constructor injection</li><li>Validate input with Bean Validation; return DTOs, not entities</li><li>Handle errors in one <code>@RestControllerAdvice</code>; secure with Spring Security</li><li>Package as a jar, configure through environment variables</li></ul>
+    </article>
+    <nav class="pager" aria-label="Topic navigation">
+      <a class="prev" href="24-jpa-hibernate.html"><small>← Previous</small><strong>JPA and Hibernate (ORM)</strong></a>
+      
+    </nav>
+  </main>
+</div>
+</body>
+</html>

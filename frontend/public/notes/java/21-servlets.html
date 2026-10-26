@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="en" data-track="java">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Servlets — Java Notes · Hanbee</title>
+<meta name="description" content="The foundation of Java web development. How HTTP works, the servlet lifecycle, handling requests and responses, forms, redirect versus forward, and servlet configuration.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500..700;1,9..144,500&amp;family=Inter:wght@400..700&amp;family=JetBrains+Mono:wght@400..600&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/notes.css">
+<script src="../assets/notes.js" defer></script>
+</head>
+<body>
+<div class="progress" aria-hidden="true"><i></i></div>
+<header class="top">
+  <a class="brand" href="../index.html"><b>H</b>Hanbee · Java Notes</a>
+  <nav><a class="keep" href="index.html">All topics</a><button id="theme-toggle" type="button" aria-label="Toggle light and dark theme">Theme</button></nav>
+</header>
+<div class="shell">
+  <details class="toc"><summary>On this page</summary><nav aria-label="On this page"><ol><li><a href="#http-fundamentals"><span>01</span>HTTP Fundamentals</a></li><li><a href="#what-is-a-servlet"><span>02</span>What is a Servlet?</a></li><li><a href="#your-first-servlet"><span>03</span>Your First Servlet</a></li><li><a href="#servlet-lifecycle"><span>04</span>Servlet Lifecycle</a></li><li><a href="#httpservletrequest"><span>05</span>HttpServletRequest</a></li><li><a href="#httpservletresponse"><span>06</span>HttpServletResponse</a></li><li><a href="#handling-forms-get-vs-post"><span>07</span>Handling Forms (GET vs POST)</a></li><li><a href="#forward-vs-redirect"><span>08</span>Forward vs Redirect</a></li><li><a href="#include"><span>09</span>include</a></li><li><a href="#servletconfig-and-servletcontext"><span>10</span>ServletConfig and ServletContext</a></li><li><a href="#url-patterns"><span>11</span>URL Patterns</a></li><li><a href="#file-upload"><span>12</span>File Upload</a></li><li><a href="#async-servlets-and-concurrency"><span>13</span>Async Servlets and Concurrency</a></li><li><a href="#error-handling"><span>14</span>Error Handling</a></li><li><a href="#servlet-pitfalls"><span>15</span>Servlet Pitfalls</a></li><li><a href="#quick-recap"><span>16</span>Quick Recap</a></li></ol></nav></details>
+  <main>
+    <header class="hero">
+      <p class="kicker"><span class="pill">Enterprise Java (JEE)</span><span>Topic 21</span><span>Intermediate</span><span>7 min read</span></p>
+      <h1>Servlets</h1>
+      <p class="lede">The foundation of Java web development. How HTTP works, the servlet lifecycle, handling requests and responses, forms, redirect versus forward, and servlet configuration.</p>
+    </header>
+    <article>
+<h2 id="http-fundamentals"><span class="num">01</span>HTTP Fundamentals</h2>
+<p>HTTP is a <strong>stateless request/response</strong> protocol. The browser sends a request; the server returns a response.</p>
+<pre><code class="language-text">GET /students?id=5 HTTP/1.1          HTTP/1.1 200 OK
+Host: lms.hanbee.com                 Content-Type: text/html; charset=UTF-8
+Cookie: JSESSIONID=ABC123            Content-Length: 512
+
+                                     &lt;html&gt;...&lt;/html&gt;</code></pre>
+<h3 id="request-methods">Request methods</h3>
+<div class="table-wrap"><table><thead><tr><th>Method</th><th>Purpose</th><th>Has body</th><th>Safe / Idempotent</th></tr></thead><tbody><tr><td><code>GET</code></td><td>Read a resource</td><td>No</td><td>Yes / Yes</td></tr><tr><td><code>POST</code></td><td>Create / submit</td><td>Yes</td><td>No / No</td></tr><tr><td><code>PUT</code></td><td>Replace</td><td>Yes</td><td>No / Yes</td></tr><tr><td><code>PATCH</code></td><td>Partial update</td><td>Yes</td><td>No / No</td></tr><tr><td><code>DELETE</code></td><td>Remove</td><td>Optional</td><td>No / Yes</td></tr><tr><td><code>HEAD</code>, <code>OPTIONS</code></td><td>Metadata, capabilities</td><td>No</td><td>Yes / Yes</td></tr></tbody></table></div>
+<h3 id="status-codes">Status codes</h3>
+<div class="table-wrap"><table><thead><tr><th>Range</th><th>Meaning</th><th>Common</th></tr></thead><tbody><tr><td>1xx</td><td>Informational</td><td>101 Switching Protocols</td></tr><tr><td>2xx</td><td>Success</td><td>200 OK, 201 Created, 204 No Content</td></tr><tr><td>3xx</td><td>Redirect</td><td>301 Moved, 302 Found, 304 Not Modified</td></tr><tr><td>4xx</td><td>Client error</td><td>400 Bad Request, 401 Unauthorized, 403 Forbidden, 404 Not Found</td></tr><tr><td>5xx</td><td>Server error</td><td>500 Internal Error, 502, 503 Unavailable</td></tr></tbody></table></div>
+<h2 id="what-is-a-servlet"><span class="num">02</span>What is a Servlet?</h2>
+<p>A <strong>servlet</strong> is a Java class, managed by a servlet container, that <strong>receives HTTP requests and produces responses</strong>. It is the base on which JSP, Spring MVC and JSF all sit.</p>
+<pre><code class="language-text">Browser → Container (Tomcat) → Servlet.service() → doGet() / doPost() → Response</code></pre>
+<h3 id="servlet-api-hierarchy">Servlet API hierarchy</h3>
+<pre><code class="language-text">interface Servlet
+   └── abstract class GenericServlet
+          └── abstract class HttpServlet     ← you extend this</code></pre>
+<h2 id="your-first-servlet"><span class="num">03</span>Your First Servlet</h2>
+<pre data-file="HelloServlet.java"><code class="language-java">import jakarta.servlet.annotation.WebServlet;
+import jakarta.servlet.http.*;
+import java.io.IOException;
+import java.io.PrintWriter;
+
+@WebServlet("/hello")
+public class HelloServlet extends HttpServlet {
+
+    @Override
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        String name = req.getParameter("name");
+        if (name == null || name.isBlank()) name = "Guest";
+
+        resp.setContentType("text/html;charset=UTF-8");
+        try (PrintWriter out = resp.getWriter()) {
+            out.println("&lt;h1&gt;Hello, " + escape(name) + "!&lt;/h1&gt;");
+        }
+    }
+
+    private static String escape(String s) {
+        return s.replace("&amp;", "&amp;amp;").replace("&lt;", "&amp;lt;").replace("&gt;", "&amp;gt;");
+    }
+}</code></pre>
+<p>Run, then open <code>http://localhost:8080/myapp/hello?name=Asha</code>.</p>
+<aside class="callout warning"><span class="label">Warning</span><p>Always <strong>escape user input</strong> before writing it into HTML, otherwise you create a <strong>Cross-Site Scripting (XSS)</strong> hole. JSTL's <code>&lt;c:out&gt;</code> does it for you.</p></aside>
+<h2 id="servlet-lifecycle"><span class="num">04</span>Servlet Lifecycle</h2>
+<p>The <strong>container</strong> controls the lifecycle.</p>
+<div class="table-wrap"><table><thead><tr><th>Phase</th><th>Method</th><th>Called</th><th>Typical use</th></tr></thead><tbody><tr><td>Load + instantiate</td><td>constructor</td><td>Once (first request or at startup)</td><td>None</td></tr><tr><td>Initialise</td><td><code>init(ServletConfig)</code></td><td><strong>Once</strong></td><td>Open resources, read init params</td></tr><tr><td>Serve</td><td><code>service(req, resp)</code> → <code>doGet</code>/<code>doPost</code>...</td><td><strong>Every request</strong></td><td>Business work</td></tr><tr><td>Destroy</td><td><code>destroy()</code></td><td><strong>Once</strong> at undeploy/shutdown</td><td>Release resources</td></tr></tbody></table></div>
+<pre><code class="language-java">@Override public void init() throws ServletException { /* runs once */ }
+@Override public void destroy() { /* cleanup */ }</code></pre>
+<ul><li>The container creates <strong>one servlet instance</strong> and serves all requests by <strong>multiple threads</strong></li><li>Therefore servlets must be <strong>thread-safe</strong>: don't store per-request data in instance fields</li><li><code>loadOnStartup = 1</code> in <code>@WebServlet</code> loads it at startup instead of lazily</li></ul>
+<h2 id="httpservletrequest"><span class="num">05</span>HttpServletRequest</h2>
+<div class="table-wrap"><table><thead><tr><th>Method</th><th>Returns</th></tr></thead><tbody><tr><td><code>getParameter("name")</code></td><td>One form/query value (String or null)</td></tr><tr><td><code>getParameterValues("hobby")</code></td><td>All values (checkboxes)</td></tr><tr><td><code>getParameterMap()</code></td><td>All parameters</td></tr><tr><td><code>getHeader("User-Agent")</code></td><td>A header value</td></tr><tr><td><code>getMethod()</code></td><td><code>GET</code>, <code>POST</code>...</td></tr><tr><td><code>getRequestURI()</code> / <code>getContextPath()</code> / <code>getServletPath()</code></td><td>Path parts</td></tr><tr><td><code>getQueryString()</code></td><td>Raw query string</td></tr><tr><td><code>getCookies()</code></td><td>Array of cookies</td></tr><tr><td><code>getSession()</code></td><td>The user's session</td></tr><tr><td><code>getRemoteAddr()</code></td><td>Client IP</td></tr><tr><td><code>getReader()</code> / <code>getInputStream()</code></td><td>Raw body (JSON, files)</td></tr><tr><td><code>setAttribute(k, v)</code> / <code>getAttribute(k)</code></td><td>Request-scoped data</td></tr><tr><td><code>getRequestDispatcher(path)</code></td><td>Forward / include</td></tr><tr><td><code>setCharacterEncoding("UTF-8")</code></td><td>Decode body correctly (call <strong>before</strong> reading)</td></tr></tbody></table></div>
+<h2 id="httpservletresponse"><span class="num">06</span>HttpServletResponse</h2>
+<div class="table-wrap"><table><thead><tr><th>Method</th><th>Purpose</th></tr></thead><tbody><tr><td><code>setContentType("text/html;charset=UTF-8")</code></td><td>Response MIME type</td></tr><tr><td><code>getWriter()</code></td><td>Text output</td></tr><tr><td><code>getOutputStream()</code></td><td>Binary output (images, PDFs)</td></tr><tr><td><code>setStatus(201)</code> / <code>sendError(404, "msg")</code></td><td>Status code</td></tr><tr><td><code>setHeader("Cache-Control", "no-store")</code></td><td>Headers</td></tr><tr><td><code>addCookie(cookie)</code></td><td>Send a cookie</td></tr><tr><td><code>sendRedirect(url)</code></td><td>Tell browser to request another URL</td></tr></tbody></table></div>
+<h2 id="handling-forms-get-vs-post"><span class="num">07</span>Handling Forms (GET vs POST)</h2>
+<pre><code class="language-html">&lt;form action="register" method="post"&gt;
+  &lt;input name="name" required&gt;
+  &lt;input name="email" type="email" required&gt;
+  &lt;button&gt;Register&lt;/button&gt;
+&lt;/form&gt;</code></pre>
+<pre><code class="language-java">@WebServlet("/register")
+public class RegisterServlet extends HttpServlet {
+    @Override
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp)
+            throws ServletException, IOException {
+        req.setCharacterEncoding("UTF-8");
+        String name = req.getParameter("name");
+        String email = req.getParameter("email");
+
+        if (name == null || name.isBlank()) {
+            req.setAttribute("error", "Name is required");
+            req.getRequestDispatcher("/WEB-INF/views/register.jsp").forward(req, resp);
+            return;
+        }
+        studentService.register(name, email);
+        resp.sendRedirect(req.getContextPath() + "/students");     // Post/Redirect/Get
+    }
+}</code></pre>
+<div class="table-wrap"><table><thead><tr><th></th><th>GET</th><th>POST</th></tr></thead><tbody><tr><td>Data location</td><td>URL query string</td><td>Request body</td></tr><tr><td>Bookmarkable</td><td>Yes</td><td>No</td></tr><tr><td>Size limit</td><td>Limited</td><td>Large</td></tr><tr><td>Sensitive data</td><td><strong>Never</strong> (visible in URL, logs)</td><td>Better</td></tr><tr><td>Use for</td><td>Reading / searching</td><td>Changing data</td></tr></tbody></table></div>
+<h2 id="forward-vs-redirect"><span class="num">08</span>Forward vs Redirect</h2>
+<div class="table-wrap"><table><thead><tr><th></th><th><code>forward()</code></th><th><code>sendRedirect()</code></th></tr></thead><tbody><tr><td>Where</td><td><strong>Server side</strong>, inside the container</td><td><strong>Client side</strong>, new browser request</td></tr><tr><td>URL in browser</td><td>Unchanged</td><td>Changes</td></tr><tr><td>Requests</td><td>1 (request attributes preserved)</td><td>2</td></tr><tr><td>Target</td><td>Same application only</td><td>Any URL</td></tr><tr><td>Speed</td><td>Faster</td><td>Slower</td></tr><tr><td>Use for</td><td>Passing data to a JSP view</td><td>After POST (<strong>PRG pattern</strong>), going to another site</td></tr></tbody></table></div>
+<pre><code class="language-java">req.setAttribute("students", list);
+req.getRequestDispatcher("/WEB-INF/views/students.jsp").forward(req, resp);   // forward
+resp.sendRedirect("login");                                                    // redirect</code></pre>
+<aside class="callout tip"><span class="label">Tip</span><p><strong>Post/Redirect/Get (PRG)</strong>: after a successful POST always redirect to a GET page. It prevents duplicate submissions when the user refreshes.</p></aside>
+<h2 id="include"><span class="num">09</span>include</h2>
+<p><code>RequestDispatcher.include()</code> inserts another resource's output into the current response (headers/footers).</p>
+<h2 id="servletconfig-and-servletcontext"><span class="num">10</span>ServletConfig and ServletContext</h2>
+<div class="table-wrap"><table><thead><tr><th></th><th><code>ServletConfig</code></th><th><code>ServletContext</code></th></tr></thead><tbody><tr><td>Scope</td><td>One servlet</td><td>Whole web application</td></tr><tr><td>Instances</td><td>One per servlet</td><td>One per app</td></tr><tr><td>Init parameters</td><td><code>&lt;init-param&gt;</code> / <code>@WebInitParam</code></td><td><code>&lt;context-param&gt;</code></td></tr><tr><td>Use</td><td>Per-servlet settings</td><td>Shared attributes, app-wide config, logging, resource paths</td></tr></tbody></table></div>
+<pre><code class="language-java">@WebServlet(urlPatterns = "/report", initParams = @WebInitParam(name = "pageSize", value = "20"))
+public class ReportServlet extends HttpServlet {
+    public void init() {
+        String size = getServletConfig().getInitParameter("pageSize");
+        getServletContext().setAttribute("startedAt", Instant.now());
+    }
+}</code></pre>
+<h3 id="the-four-scopes">The four scopes</h3>
+<div class="table-wrap"><table><thead><tr><th>Scope</th><th>Object</th><th>Lifetime</th><th>Typical content</th></tr></thead><tbody><tr><td>Page</td><td><code>PageContext</code> (JSP)</td><td>One page</td><td>Temporary</td></tr><tr><td><strong>Request</strong></td><td><code>HttpServletRequest</code></td><td>One request</td><td>Data for the view</td></tr><tr><td><strong>Session</strong></td><td><code>HttpSession</code></td><td>One user's visit</td><td>Logged-in user, cart</td></tr><tr><td><strong>Application</strong></td><td><code>ServletContext</code></td><td>Whole app</td><td>Config, shared caches</td></tr></tbody></table></div>
+<h2 id="url-patterns"><span class="num">11</span>URL Patterns</h2>
+<div class="table-wrap"><table><thead><tr><th>Pattern</th><th>Matches</th></tr></thead><tbody><tr><td><code>/students</code></td><td>Exactly <code>/students</code></td></tr><tr><td><code>/students/*</code></td><td>Anything under <code>/students/</code></td></tr><tr><td><code>*.do</code></td><td>Any URL ending <code>.do</code></td></tr><tr><td><code>/</code></td><td>Default servlet</td></tr></tbody></table></div>
+<pre><code class="language-java">@WebServlet(urlPatterns = {"/students", "/students/*"})</code></pre>
+<h2 id="file-upload"><span class="num">12</span>File Upload</h2>
+<pre><code class="language-java">@WebServlet("/upload")
+@MultipartConfig(maxFileSize = 5 * 1024 * 1024)
+public class UploadServlet extends HttpServlet {
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException, ServletException {
+        Part file = req.getPart("photo");
+        String name = Path.of(file.getSubmittedFileName()).getFileName().toString();   // strip any path
+        file.write(uploadDir + File.separator + name);
+    }
+}</code></pre>
+<p>Validate type and size, never trust the submitted file name, and store uploads outside the web root.</p>
+<h2 id="async-servlets-and-concurrency"><span class="num">13</span>Async Servlets and Concurrency</h2>
+<pre><code class="language-java">@WebServlet(urlPatterns = "/slow", asyncSupported = true)</code></pre>
+<p><code>req.startAsync()</code> frees the container thread while a long task runs. For most apps, a thread-per-request model (plus virtual threads on Java 21) is sufficient.</p>
+<h2 id="error-handling"><span class="num">14</span>Error Handling</h2>
+<pre><code class="language-xml">&lt;error-page&gt;&lt;error-code&gt;404&lt;/error-code&gt;&lt;location&gt;/WEB-INF/views/404.jsp&lt;/location&gt;&lt;/error-page&gt;
+&lt;error-page&gt;&lt;exception-type&gt;java.lang.Exception&lt;/exception-type&gt;&lt;location&gt;/WEB-INF/views/error.jsp&lt;/location&gt;&lt;/error-page&gt;</code></pre>
+<h2 id="servlet-pitfalls"><span class="num">15</span>Servlet Pitfalls</h2>
+<ul><li>Instance fields shared across requests → race conditions</li><li>Forgetting <code>setCharacterEncoding</code> → garbled non-English text</li><li>Printing HTML inside servlets: use <strong>JSP/templates</strong> for views</li><li>Using <code>GET</code> for actions that change data</li><li>Not escaping output (XSS) or concatenating SQL (injection)</li></ul>
+<aside class="callout interview"><span class="label">Interview question</span><p>Is a servlet thread-safe? How many instances exist?</p><p>By default there is a single instance serving many threads concurrently, so a servlet is <strong>not</strong> automatically thread-safe. Avoid mutable instance state, or synchronise access to it.</p></aside>
+<h2 id="quick-recap"><span class="num">16</span>Quick Recap</h2>
+<ul><li>A servlet extends <code>HttpServlet</code> and overrides <code>doGet</code>/<code>doPost</code></li><li>Lifecycle: <code>init()</code> once → <code>service()</code> per request → <code>destroy()</code> once</li><li>One instance, many threads: keep servlets stateless</li><li>Use <code>forward</code> to render a view, <code>redirect</code> after POST (PRG)</li><li>Scopes: request, session, application</li></ul>
+    </article>
+    <nav class="pager" aria-label="Topic navigation">
+      <a class="prev" href="20-jee-overview.html"><small>← Previous</small><strong>Jakarta EE (JEE) Overview and Architecture</strong></a>
+      <a class="next" href="22-jsp-jstl-el.html"><small>Next →</small><strong>JSP, Expression Language and JSTL</strong></a>
+    </nav>
+  </main>
+</div>
+</body>
+</html>

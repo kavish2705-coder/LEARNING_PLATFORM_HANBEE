@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="en" data-track="react">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Styling, UI Libraries and Animation — React Notes · Hanbee</title>
+<meta name="description" content="Style React apps with plain CSS, CSS Modules, Tailwind CSS and component libraries like shadcn/ui, then add motion with CSS and the Motion library. Includes dark mode and responsive design.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500..700;1,9..144,500&amp;family=Inter:wght@400..700&amp;family=JetBrains+Mono:wght@400..600&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/notes.css">
+<script src="../assets/notes.js" defer></script>
+</head>
+<body>
+<div class="progress" aria-hidden="true"><i></i></div>
+<header class="top">
+  <a class="brand" href="../index.html"><b>H</b>Hanbee · React Notes</a>
+  <nav><a class="keep" href="index.html">All topics</a><button id="theme-toggle" type="button" aria-label="Toggle light and dark theme">Theme</button></nav>
+</header>
+<div class="shell">
+  <details class="toc"><summary>On this page</summary><nav aria-label="On this page"><ol><li><a href="#styling-options-at-a-glance"><span>01</span>Styling Options at a Glance</a></li><li><a href="#plain-css"><span>02</span>Plain CSS</a></li><li><a href="#css-modules"><span>03</span>CSS Modules</a></li><li><a href="#modern-css-you-should-use"><span>04</span>Modern CSS You Should Use</a></li><li><a href="#tailwind-css"><span>05</span>Tailwind CSS</a></li><li><a href="#css-in-js-styled-components-emotion"><span>06</span>CSS-in-JS (styled-components / Emotion)</a></li><li><a href="#component-libraries"><span>07</span>Component Libraries</a></li><li><a href="#dark-mode"><span>08</span>Dark Mode</a></li><li><a href="#responsive-design"><span>09</span>Responsive Design</a></li><li><a href="#icons-and-fonts"><span>10</span>Icons and Fonts</a></li><li><a href="#animation"><span>11</span>Animation</a></li><li><a href="#accessibility-in-styling"><span>12</span>Accessibility in Styling</a></li><li><a href="#quick-recap"><span>13</span>Quick Recap</a></li></ol></nav></details>
+  <main>
+    <header class="hero">
+      <p class="kicker"><span class="pill">Ecosystem</span><span>Topic 14</span><span>Beginner</span><span>7 min read</span></p>
+      <h1>Styling, UI Libraries and Animation</h1>
+      <p class="lede">Style React apps with plain CSS, CSS Modules, Tailwind CSS and component libraries like shadcn/ui, then add motion with CSS and the Motion library. Includes dark mode and responsive design.</p>
+    </header>
+    <article>
+<h2 id="styling-options-at-a-glance"><span class="num">01</span>Styling Options at a Glance</h2>
+<div class="table-wrap"><table><thead><tr><th>Approach</th><th>Scoping</th><th>Runtime cost</th><th>Notes</th></tr></thead><tbody><tr><td><strong>Plain CSS</strong></td><td>Global</td><td>None</td><td>Simple; watch for name clashes</td></tr><tr><td><strong>CSS Modules</strong></td><td>Per file (auto-generated class names)</td><td>None</td><td>Built into Vite/Next.js</td></tr><tr><td><strong>Tailwind CSS</strong></td><td>Utility classes in markup</td><td>None (build-time)</td><td>Most popular today</td></tr><tr><td><strong>Inline styles</strong></td><td>Per element</td><td>Small</td><td>No pseudo-classes or media queries</td></tr><tr><td><strong>CSS-in-JS</strong> (styled-components, Emotion)</td><td>Per component</td><td>Runtime cost</td><td>Less favoured with Server Components</td></tr><tr><td><strong>Zero-runtime CSS-in-JS</strong> (Vanilla Extract, Panda CSS, StyleX)</td><td>Per component</td><td>None</td><td>Typed, build-time</td></tr></tbody></table></div>
+<h2 id="plain-css"><span class="num">02</span>Plain CSS</h2>
+<pre><code class="language-jsx">import "./Card.css";
+
+function Card({ active, children }) {
+  return &lt;div className={`card ${active ? "card--active" : ""}`}&gt;{children}&lt;/div&gt;;
+}</code></pre>
+<p>Use a naming convention like <strong>BEM</strong> (<code>card__title--large</code>) to avoid clashes.</p>
+<h3 id="conditional-class-names-with-clsx">Conditional class names with clsx</h3>
+<pre><code class="language-bash">npm install clsx</code></pre>
+<pre><code class="language-jsx">import clsx from "clsx";
+&lt;button className={clsx("btn", variant === "primary" &amp;&amp; "btn--primary", { "btn--disabled": disabled })} /&gt;</code></pre>
+<h2 id="css-modules"><span class="num">03</span>CSS Modules</h2>
+<p>File name ends with <code>.module.css</code>. Class names are <strong>locally scoped</strong>.</p>
+<pre data-file="Card.module.css"><code class="language-css">.card { padding: 1rem; border-radius: 12px; background: var(--surface); }
+.title { font-size: 1.25rem; }
+.active { outline: 2px solid var(--accent); }</code></pre>
+<pre><code class="language-jsx">import styles from "./Card.module.css";
+import clsx from "clsx";
+
+&lt;div className={clsx(styles.card, isActive &amp;&amp; styles.active)}&gt;
+  &lt;h3 className={styles.title}&gt;{title}&lt;/h3&gt;
+&lt;/div&gt;</code></pre>
+<h2 id="modern-css-you-should-use"><span class="num">04</span>Modern CSS You Should Use</h2>
+<pre><code class="language-css">:root {
+  --bg: oklch(0.98 0.01 90);
+  --ink: oklch(0.22 0.02 60);
+  --accent: oklch(0.6 0.18 250);
+  --radius: 12px;
+}
+@media (prefers-color-scheme: dark) { :root { --bg: oklch(0.2 0.01 60); --ink: oklch(0.95 0.01 90); } }
+
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr)); gap: 1rem; }
+.card { container-type: inline-size; }                             /* container queries */
+@container (min-width: 30rem) { .card__body { display: flex; } }
+.title { font-size: clamp(1.5rem, 2vw + 1rem, 3rem); text-wrap: balance; }   /* fluid type */
+button:has(+ .error) { outline-color: red; }                       /* :has() parent selector */
+.btn { transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1); }
+@media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }</code></pre>
+<ul><li><strong>CSS variables</strong> make theming simple</li><li><strong>Flexbox</strong> for 1-D layout, <strong>Grid</strong> for 2-D layout</li><li>Mobile-first: write base styles for small screens, add <code>min-width</code> media queries</li></ul>
+<h2 id="tailwind-css"><span class="num">05</span>Tailwind CSS</h2>
+<p>A <strong>utility-first</strong> framework: compose designs with small classes directly in JSX. Unused classes are removed at build time, so output CSS is tiny.</p>
+<pre><code class="language-bash">npm install tailwindcss @tailwindcss/vite</code></pre>
+<pre data-file="vite.config.js"><code class="language-js">import tailwindcss from "@tailwindcss/vite";
+export default defineConfig({ plugins: [react(), tailwindcss()] });</code></pre>
+<pre data-file="src/index.css"><code class="language-css">@import "tailwindcss";
+
+@theme {
+  --color-brand: oklch(0.6 0.18 250);
+  --font-display: "Fraunces", serif;
+}</code></pre>
+<pre><code class="language-jsx">function CourseCard({ course }) {
+  return (
+    &lt;article className="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md dark:border-neutral-800 dark:bg-neutral-900"&gt;
+      &lt;h3 className="text-lg font-semibold tracking-tight"&gt;{course.title}&lt;/h3&gt;
+      &lt;p className="mt-1 line-clamp-2 text-sm text-neutral-600 dark:text-neutral-400"&gt;{course.summary}&lt;/p&gt;
+      &lt;button className="mt-4 rounded-lg bg-brand px-4 py-2 text-sm font-medium text-white hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 disabled:opacity-50"&gt;
+        Enroll
+      &lt;/button&gt;
+    &lt;/article&gt;
+  );
+}</code></pre>
+<h3 id="useful-tailwind-ideas">Useful Tailwind ideas</h3>
+<div class="table-wrap"><table><thead><tr><th>Feature</th><th>Example</th></tr></thead><tbody><tr><td>Responsive (mobile-first)</td><td><code>grid-cols-1 md:grid-cols-2 lg:grid-cols-3</code></td></tr><tr><td>States</td><td><code>hover:</code>, <code>focus-visible:</code>, <code>disabled:</code>, <code>group-hover:</code></td></tr><tr><td>Dark mode</td><td><code>dark:bg-neutral-900</code></td></tr><tr><td>Spacing scale</td><td><code>p-4</code>, <code>mt-6</code>, <code>gap-3</code>, <code>space-y-2</code></td></tr><tr><td>Arbitrary values</td><td><code>w-[calc(100%-2rem)]</code>, <code>bg-[#0a0a0a]</code></td></tr><tr><td>Extract repetition</td><td>Make a <strong>React component</strong>, not <code>@apply</code> everywhere</td></tr></tbody></table></div>
+<h3 id="variants-with-class-variance-authority-tailwind-merge">Variants with class-variance-authority + tailwind-merge</h3>
+<pre><code class="language-jsx">import { cva } from "class-variance-authority";
+import { twMerge } from "tailwind-merge";
+
+const button = cva("inline-flex items-center rounded-lg font-medium transition", {
+  variants: {
+    variant: { primary: "bg-brand text-white", ghost: "bg-transparent hover:bg-neutral-100" },
+    size: { sm: "px-3 py-1.5 text-sm", md: "px-4 py-2" },
+  },
+  defaultVariants: { variant: "primary", size: "md" },
+});
+
+function Button({ variant, size, className, ...props }) {
+  return &lt;button className={twMerge(button({ variant, size }), className)} {...props} /&gt;;
+}</code></pre>
+<h2 id="css-in-js-styled-components-emotion"><span class="num">06</span>CSS-in-JS (styled-components / Emotion)</h2>
+<pre><code class="language-jsx">const Button = styled.button`
+  padding: 0.5rem 1rem;
+  background: ${p =&gt; (p.$primary ? "navy" : "white")};
+`;</code></pre>
+<p>Works, but runtime styling adds cost and is awkward with React Server Components. For new projects prefer CSS Modules, Tailwind or a zero-runtime solution.</p>
+<h2 id="component-libraries"><span class="num">07</span>Component Libraries</h2>
+<div class="table-wrap"><table><thead><tr><th>Library</th><th>Style</th><th>Notes</th></tr></thead><tbody><tr><td><strong>shadcn/ui</strong></td><td>Copy components into your project (Radix + Tailwind)</td><td>Full ownership, very popular</td></tr><tr><td><strong>Radix UI / Base UI / React Aria</strong></td><td><strong>Headless</strong>: behaviour + accessibility, you style</td><td>Best for custom design systems</td></tr><tr><td><strong>Material UI (MUI)</strong></td><td>Complete Material Design kit</td><td>Large, themeable</td></tr><tr><td><strong>Chakra UI</strong>, <strong>Mantine</strong></td><td>Batteries-included, themed</td><td>Fast to build with</td></tr><tr><td><strong>Ant Design</strong></td><td>Enterprise dashboards</td><td>Rich data components</td></tr><tr><td><strong>Headless UI</strong></td><td>Unstyled accessible components (Tailwind Labs)</td><td>Pairs with Tailwind</td></tr></tbody></table></div>
+<aside class="callout tip"><span class="label">Tip</span><p>Don't build modals, dropdowns, comboboxes and tooltips from scratch. They have difficult accessibility requirements (focus trapping, keyboard navigation, ARIA). Use headless libraries.</p></aside>
+<h2 id="dark-mode"><span class="num">08</span>Dark Mode</h2>
+<pre><code class="language-jsx">function useTheme() {
+  const [theme, setTheme] = useState(() =&gt;
+    localStorage.getItem("theme") ?? (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light")
+  );
+  useEffect(() =&gt; {
+    document.documentElement.dataset.theme = theme;       // CSS: :root[data-theme="dark"] { ... }
+    localStorage.setItem("theme", theme);
+  }, [theme]);
+  return [theme, setTheme];
+}</code></pre>
+<p>Set the theme <strong>before first paint</strong> (small inline script in <code>index.html</code>) to avoid a flash of the wrong theme. In Tailwind v4 define the dark variant with <code>@custom-variant dark (&amp;:where([data-theme=dark], [data-theme=dark] *));</code>.</p>
+<h2 id="responsive-design"><span class="num">09</span>Responsive Design</h2>
+<ul><li><strong>Mobile-first</strong> CSS with <code>min-width</code> breakpoints</li><li>Use <code>rem</code>, <code>clamp()</code> and <code>%/fr</code> units rather than fixed pixels</li><li>Test touch targets (about 44px), thumb reach and landscape</li><li><code>&lt;meta name="viewport" content="width=device-width, initial-scale=1"&gt;</code> is required</li><li>Images: <code>width</code>/<code>height</code> attributes, <code>loading="lazy"</code>, <code>srcset</code>/<code>sizes</code>, modern formats</li></ul>
+<h2 id="icons-and-fonts"><span class="num">10</span>Icons and Fonts</h2>
+<pre><code class="language-jsx">import { Search, Bell } from "lucide-react";
+&lt;Search size={18} aria-hidden="true" /&gt;</code></pre>
+<ul><li><strong>lucide-react</strong>, <strong>react-icons</strong>, <strong>Heroicons</strong> for icons (SVG, tree-shakable)</li><li>Self-host fonts or use <code>@fontsource/*</code> packages; use <code>font-display: swap</code> and limit weights</li></ul>
+<h2 id="animation"><span class="num">11</span>Animation</h2>
+<h3 id="css-transitions-and-keyframes-preferred-for-simple-effects">CSS transitions and keyframes (preferred for simple effects)</h3>
+<pre><code class="language-css">.card { transition: transform .25s ease, box-shadow .25s ease; }
+.card:hover { transform: translateY(-3px); }
+
+@keyframes fade-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+.enter { animation: fade-in .4s cubic-bezier(0.16, 1, 0.3, 1) both; }</code></pre>
+<p>Animate <strong><code>transform</code> and <code>opacity</code></strong> (GPU-friendly); avoid animating <code>width</code>, <code>height</code>, <code>top</code>, <code>left</code>.</p>
+<h3 id="motion-formerly-framer-motion">Motion (formerly Framer Motion)</h3>
+<pre><code class="language-bash">npm install motion</code></pre>
+<pre><code class="language-jsx">import { motion, AnimatePresence } from "motion/react";
+
+&lt;motion.div
+  initial={{ opacity: 0, y: 16 }}
+  animate={{ opacity: 1, y: 0 }}
+  transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+  whileHover={{ scale: 1.03 }}
+/&gt;
+
+&lt;AnimatePresence&gt;
+  {open &amp;&amp; &lt;motion.div key="panel" initial={{ height: 0 }} animate={{ height: "auto" }} exit={{ height: 0 }} /&gt;}
+&lt;/AnimatePresence&gt;
+
+&lt;motion.li layout /&gt;                         {/* animates reordering automatically */}</code></pre>
+<h3 id="animation-guidelines">Animation guidelines</h3>
+<ul><li>Motion should answer <em>what changed, what matters, where to look</em></li><li>Keep durations <strong>150 to 400 ms</strong>; use easing like <code>cubic-bezier(0.16, 1, 0.3, 1)</code></li><li>Respect <code>prefers-reduced-motion</code> (Motion: <code>useReducedMotion()</code>)</li><li>Don't animate on every scroll event; use CSS scroll-driven animations or IntersectionObserver</li><li>View Transitions API (<code>document.startViewTransition</code>) gives native page/state transitions</li></ul>
+<h2 id="accessibility-in-styling"><span class="num">12</span>Accessibility in Styling</h2>
+<ul><li>Colour contrast ratio at least <strong>4.5:1</strong> for body text, <strong>3:1</strong> for large text/UI parts</li><li>Visible <strong>focus styles</strong> (<code>:focus-visible</code>), never <code>outline: none</code> without a replacement</li><li>Don't convey meaning by colour alone</li><li>Support zoom to 200% and text resizing</li><li>Check with Lighthouse, axe DevTools and keyboard-only navigation</li></ul>
+<h2 id="quick-recap"><span class="num">13</span>Quick Recap</h2>
+<ul><li>Pick one primary approach: <strong>CSS Modules</strong> or <strong>Tailwind</strong> for most projects</li><li>Use CSS variables, Grid/Flexbox, <code>clamp()</code> and container queries</li><li>Use <strong>headless</strong> libraries (Radix, React Aria) or <strong>shadcn/ui</strong> for accessible components</li><li>Animate <code>transform</code>/<code>opacity</code>; use <strong>Motion</strong> for complex sequences; honour reduced motion</li><li>Design mobile-first, keep contrast and focus styles accessible</li></ul>
+    </article>
+    <nav class="pager" aria-label="Topic navigation">
+      <a class="prev" href="13-state-management.html"><small>← Previous</small><strong>Global State Management</strong></a>
+      <a class="next" href="15-typescript-react.html"><small>Next →</small><strong>TypeScript with React</strong></a>
+    </nav>
+  </main>
+</div>
+</body>
+</html>

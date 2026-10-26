@@ -1,0 +1,105 @@
+# HanbeeLms Security Plan
+
+Rule for everything below: **the server decides, never the browser.** Anything the browser enforces (hidden buttons, URL redirects, disabled inputs) can be bypassed by calling the database directly, so every rule must also exist as a database policy, trigger or function. IDs in URLs are identifiers, not secrets, and are not a security boundary.
+
+Status: `[ ]` todo, `[~]` in progress, `[x]` done and proven live. Each fix is proven by an exploit attempt (impersonated user, rolled back) before and after.
+
+## A. Fix list (solve in this order)
+
+### P0: stop people faking progress
+- [x] **S1. Server-checked lesson completion.** DONE 2026-09-24, proven live (10 checks) and through the real browser flow. Confirmed exploit: a student marked all 3 lessons complete by a direct insert with no video, quiz or unlock. Replace the client INSERT on `lesson_completions` with a `complete_lesson(lesson_id)` function that requires: active enrollment in the course, every earlier lesson already complete, and an unlocked submission if the lesson has a quiz. Migration 0019. Update `coursesApi.markLessonComplete` to call it.
+- [x] **S2. Enrollment-gated lesson content.** DONE 2026-09-24 (migration 0020). Proven live: anonymous visitors could read all lessons with no login, and non-enrolled students could read lessons and modules; both now see nothing. Enrolled students and staff unaffected; 12 browser tests pass. Today any logged-in user can read every published lesson. Restrict modules, lessons and materials to enrolled students (staff and managers unchanged). The public course catalog stays open.
+- [x] **S3. Certificates rest on S1.** DONE: completions can no longer be inserted directly (S1) and `issue_certificate` checks them (0018), so a certificate now requires genuine, server-checked progress. The browser test 'completing a course issues a real, verifiable certificate' passes.
+
+### P1: confidentiality
+- [x] **S4. Profiles.** DONE 2026-09-24 (migration 0021), proven live (10 checks): students now read only their own row, approved staff and managers, people they share a conversation with, and classmates who posted in their course. Other students and unapproved staff accounts are hidden. Full browser suite run after the change. Note: 21 unapproved staff accounts exist from test signups and should be cleaned up. Every logged-in user can read every email. Students should see only their own row plus staff names.
+- [ ] **S5. Seeded test accounts.** Audit found hardcoded seed credentials for `jamie@hanbeelms.edu` (`staff123`), `ava@student.edu` (`student123`) and `morgan@hanbeelms.edu` (`manager123`). `supabase/seed.mjs` creates each missing Auth user; it skips an existing email without changing its password. `supabase/tests/seed-demo.mjs` and `seed-demo-full.mjs` log in as Jamie (and Morgan in the full seed) and print/rely on these credentials; other `supabase/tests/rls/*.mjs` scripts rely on the seeded identities. `supabase/tests/cleanup-demo.mjs` names the accounts for optional deletion, and the Supabase READMEs document them. `supabase/migrations/0016_rls_audit_fixes.sql` and `0059_java_course.sql` also reference Ava. These are known seed passwords, not confirmation of current live passwords or live account existence. Check `auth.users` in the Supabase SQL Editor as `postgres` before deployment; do not remove local seed support as part of this finding:
+
+  ```sql
+  select wanted.email,
+         (u.id is not null) as exists_in_auth_users,
+         u.id,
+         u.created_at,
+         u.email_confirmed_at
+  from (values
+    ('ava@student.edu'),
+    ('jamie@hanbeelms.edu'),
+    ('morgan@hanbeelms.edu')
+  ) as wanted(email)
+  left join auth.users u on lower(u.email) = lower(wanted.email)
+  order by wanted.email;
+  ```
+- [~] **S6. Rotate secrets** that were pasted into chat. GitHub OAuth client secret and `JWT_SECRET` rotated 2026-10-13. Database password and Gemini API key still use the values pasted into chat; Gemini key rotation deferred to deploy time, database password not yet rotated.
+- [ ] **S7. Public application form.** Add rate limit and CAPTCHA to `course_applications`.
+- [~] **S8. AI function origin and quota.** The Edge Function now uses an exact `ALLOWED_ORIGINS` allow-list; migration 0040 adds an atomic shared daily cap (`GEMINI_DAILY_REQUEST_LIMIT`, default 100), alongside the per-user hourly limit. Still configure the production origins and quota as Supabase secrets, apply migration 0040, and deploy the function.
+- **Unused function secret:** `JWT_SECRET` is not referenced by the checked-in Edge Function or any migration/SQL function. Supabase Auth manages signing and verification of its own session JWTs; this function validates callers through `auth.getUser()` and does not need a custom signing secret. The dashboard secret is likely removable after confirming it is not used by anything outside this repository; remove it there manually.
+- [ ] **S9. Private file storage.** Migration 0072 creates the private `lesson-attachments` bucket and 0073 reconciles it with `lesson_materials`; both applied and verified live. Only approved staff/manager accounts can upload objects at `<lesson_id>/<file_name>`; staff/managers and enrolled students can request a signed, time-limited read link for the matching lesson. **Confirmed 2026-10-15: the frontend never wires any of this up.** `coursesApi.ts`'s lesson query only selects `external_url`/`youtube_id`/`body_text` — there is no upload UI for staff and no download/view UI for students anywhere in `frontend/src`, and nothing calls `storage.from('lesson-attachments').createSignedUrl(...)`. The backend half is done; the frontend half is unbuilt, not just unverified.
+
+### P2: hardening
+- [ ] **S10. Auth settings.** Migration 0045 auto-confirms new email addresses; the frontend supports optional TOTP enrollment/sign-in, but no backend policy requires it for staff or managers. Password strength, CAPTCHA, auth throttling, and session lifetime are not configured in this repo and must be checked in Supabase Auth settings.
+- [x] **S11. Audit log.** DONE 2026-10-13, proven live. Migration 0024 creates the append-only `audit_log`; 0037 makes it immutable to clients and adds triggers for profile role/approval/account-status/solo changes, school status changes, and membership additions/ends. `log_audit()` calls also cover invitations, school verification/rejection and join-link rotation, plus account/school lifecycle, team/tournament, application and enrollment actions in later migrations. Migration 0075 adds `lesson_completed` and derived `course_completed` events from `lesson_completions` inserts, plus `certificate_issued` on certificate inserts. Applied to the live project; `trg_audit_lesson_completion` and `trg_audit_certificate_issued` confirmed present via `pg_trigger`.
+- [x] **S12. Security tests in CI.** DONE 2026-10-15, proven live: `.github/workflows/supabase-rls.yml` starts a disposable local Supabase stack, applies all migrations (currently through 0081), seeds the RLS test identities/course, and runs every `supabase/tests/rls/*.mjs` suite on pushes and pull requests. Every suite passes (0 failed across all ~15 files, ~650+ checks) as of the 2026-10-15 run — this was not true before that date; several real test-infrastructure gaps (missing `test_support_*` helper functions, an unapproved Hanbee-staff test identity, stale two-manager assertions after the single-manager migration, and a real `handle_new_user()` regression from migration 0067 that silently broke solo-student flagging and section auto-enrollment) were found and fixed to get here. No GitHub secrets are needed. A separate staging project (`hanbee-staging`) now exists with all migrations applied, schema-only, no seed data; see [docs/SUPABASE_STAGING.md](./SUPABASE_STAGING.md).
+- [~] **S13. Web security headers and clean-up.** DONE 2026-10-13 for headers, updated 2026-10-15: `frontend/next.config.ts` has a `headers()` function setting HSTS, `X-Frame-Options: SAMEORIGIN` (relaxed from `DENY` to fix a real same-origin lesson-notes embedding break), `X-Content-Type-Options: nosniff`, `Referrer-Policy`, `Permissions-Policy`, and a `Content-Security-Policy-Report-Only` (not yet enforced — lesson "notes" iframes load staff-chosen URLs, same-origin or external, so `frame-src`/`frame-ancestors` can't be fully locked down without risking breakage). Verified live: `npm run build` succeeds and `npm run start` actually sends all six headers. Before promoting CSP from report-only to enforced, watch browser console `csp-report` violations across real usage. The presumed dead `frontend/lib/api.ts` and `VITE_API_BASE_URL` are absent from `frontend/`; no deletion needed.
+
+## B. Types of security checking for this site
+
+| Check | What it finds | Tool or method here | When | State |
+|---|---|---|---|---|
+| Authorization / access-control testing (IDOR, broken object level auth) | A user reading or changing another user's data, or skipping rules | Impersonated-user queries on the live database (`set local role` + JWT claims), rolled back. Playwright tests that hit URLs and API calls as the wrong role | Every schema change | Done by hand this session; automate in S12 |
+| Row Level Security audit | Missing, recursive or over-broad policies | Read every policy, exploit each write path. Supabase dashboard Security Advisor | Every migration | Done once (found 9 issues); repeat after each change |
+| Business-logic testing | Cheating the workflow: skipping lessons, forging attendance, certificates | Scripted attempts against each rule (completion, attendance, time entries, certificates, invites) | Every new feature | Ongoing |
+| Authentication and session testing | Weak passwords, no lockout, session reuse, role self-promotion | Supabase Auth settings review, manual login abuse tests | Before launch | S10 |
+| Input validation and injection testing | SQL/XSS/oversize input | Malformed and oversize payload tests. Check `dangerouslySetInnerHTML` use (announcements render markdown) | Before launch | Todo |
+| Static code analysis (SAST) | Insecure code patterns | Semgrep (free) on frontend and Edge Function; ESLint security rules | Every pull request | Todo, S12 |
+| Dependency scanning (SCA) | Known-vulnerable packages | `npm audit`, GitHub Dependabot | Weekly and per PR | Todo, S12 |
+| Secret scanning | Keys or passwords in code or history | gitleaks, GitHub secret scanning, pre-commit hook | Every commit | Todo, S12 |
+| Dynamic scanning (DAST) | Live-site weaknesses | OWASP ZAP baseline scan against staging | Before release | Todo, needs staging |
+| Web security headers and TLS | Missing CSP/HSTS, weak TLS | securityheaders.com, Mozilla Observatory, SSL Labs | After deploy | S13 |
+| Rate-limit and abuse testing | Spam, quota exhaustion, brute force | Scripted bursts on login, apply form, AI function | Before launch | S7, S8 |
+| Privacy and PII review | Who can read emails, phones, ages | Table-by-table data map; check each read policy | Before real users | S4 |
+| Configuration review | Wrong CORS, open buckets, weak keys | Checklist of Supabase, Edge Function, hosting settings | Before launch | S8, S9 |
+| Penetration test | Chained attacks a checklist misses | Independent tester or bug-bounty style review | Before public launch | Later |
+| Threat modeling | Design-level risks | STRIDE walk-through per role (student, staff, manager, anonymous) | Each major feature | Summary in section C |
+| Logging, monitoring and backup drills | Attacks going unnoticed; data loss | Audit log (S11), Supabase logs, test a restore | Before launch | S11 |
+
+Reference standards to measure against: OWASP Top 10 and OWASP ASVS for web apps; for privacy, India's DPDP Act (students may be minors, so guardian consent and data minimisation matter).
+
+## C. Threat summary by role
+
+- **Anonymous:** can submit the application form and tournament registration, verify a certificate. Risk: spam, scraping. Controls: S7.
+- **Student:** wants to finish courses without doing them, see others' data, mint certificates. Controls: S1, S2, S3, S4.
+- **Staff:** wants to inflate hours, invite privileged accounts. Controls: 0017 and 0018 (done), S11.
+- **Manager:** highest privilege; account takeover is the worst case. Controls: S10 two-step login, S5.
+- **Outsider:** targets secrets and the AI quota. Controls: S6, S8, S12.
+
+## D. Already fixed (proven live)
+Payment field trust (0010), messaging recursion (0015), role self-promotion, attendance forgery, certificate forgery (0016), time-entry forgery (0017), thread pin/lock, locked-thread posting, invite forgery and invite role escalation, certificate completion check (0018).
+
+
+## E. Multi-school enforcement (added 2026-09-24)
+
+Proven by `supabase/tests/rls/` (121 checks across 0023, 0024, 0028):
+- [x] **Signup is invite-only in the database.** A stranger, or someone claiming the student role, is refused. Five allowed paths only (see `docs/MULTI_SCHOOL_PLATFORM.md` section 4).
+- [x] **Cross-school isolation** for announcements, calendar, enrollments, discussions and profiles.
+- [x] **Instant revocation:** suspended or revoked accounts lose staff powers, course content, announcements and lesson completion.
+- [x] **Audit log** for privileged actions; clients cannot write it or call `log_audit`.
+- [x] **First-verifier-wins** school verification (row locked); a second verifier is told who decided.
+- [x] Junk accounts removed (33), including 10 approved staff with test passwords (this closes most of S5; the seeded `ava`, `jamie`, `morgan` accounts remain and must be replaced before launch).
+- [ ] Known limit: without email confirmation, an invited email could be claimed by someone who holds the school link and knows that email. Mitigations in place: school sees who joined and can revoke. Real fix: SMTP and email confirmation.
+- [ ] One manager only (unique index and recovery procedure) at final production.
+
+
+## F. Backend hardening round (added 2026-09-25, migration 0037 and tooling)
+
+Email verification is intentionally skipped for now (it would only protect staff and manager accounts, and needs an email service). Everything below is proven by `supabase/tests/rls/0037_backend_hardening.mjs` (34 checks) unless noted.
+- [x] **Join link rotation:** `rotate_school_join_link()`; the school owner, Hanbee staff or manager replaces the link, the old one stops working at once, students already in are unaffected, the action is audited. Screen: "Your school's join link" card on the school Students page.
+- [x] **Append-only audit log:** clients and even the database owner cannot edit, delete or truncate it (the owner only with an explicit maintenance flag, used by the demo clean-up script). New events: profile role/approval/status/solo changes, school status changes, membership added or ended, join link rotation. Failed logins and password resets are not stored in the database (Supabase keeps them in its own Auth logs, dashboard, Logs).
+- [x] **Public certificate check** shows first name and last initial only.
+- [x] **Chat:** a member who joins a group later cannot read earlier messages; group-mates can no longer read each other's profile rows (names still come through the chat functions); the typing and online-status room is private (members only). Manual step left for you: in the Supabase dashboard, Realtime settings, switch off "Allow public access".
+- [x] **Flood caps:** at most 400 invitations per inviter per hour, 20 staff invitations per school per day, 25 schools and 25 staff applications waiting for verification. Statement time limits (3 s anonymous, 8 s signed in) were already set by Supabase. A row cap per request is a dashboard setting (API, Max rows).
+- [x] **Restricted test login** (`hanbee_test`) replaces the owner password for the security tests and backups: it cannot change tables, policies or roles and cannot read `auth.users`. All ten suites (520 checks) pass with it. Create or reset with `node create-test-role.mjs`.
+- [x] **Backups:** `node backup.mjs export` and `verify` (41 tables, proves the files are intact and match the live data). The full restore drill in a scratch project has NOT been done: see `docs/RECOVERY.md`. Automatic backups and point-in-time recovery depend on the Supabase plan (unchecked).
+- [x] **Build pipeline:** the type check now uses `tsc -b --noEmit` (plain `tsc --noEmit` checks nothing in this project; every earlier "TSC OK" was an empty check, and the one real error it hid is fixed); secret scanning (gitleaks), a dependency audit that fails on high or critical (production dependencies currently have 0 vulnerabilities), and weekly dependency update pull requests.
+- [x] **Browser security headers** in `frontend/public/_headers` (Netlify, Cloudflare Pages) and `frontend/vercel.json`. The Content-Security-Policy is report-only first so nothing can break; watch the browser console on the live site, then rename it to `Content-Security-Policy`.
+- [ ] Still open from the earlier list: rotate the database password and Gemini key, replace the known test accounts, CAPTCHA and rate limits on signup, lock the AI function's allowed origin, two-step login for staff, session length and password rules, deletion of a student's data (export is done, see S9-adjacent `export_my_data()` in migration 0081).
+- [x] Done since this note was written: the ~40 anonymous-callable database functions are locked down (migration 0080 — confirmed every genuinely-anon-needed function is one referenced inside a real RLS policy clause, not a gap); a staging copy of the database (`hanbee-staging`) exists with all migrations applied; one manager only (migration 0048).

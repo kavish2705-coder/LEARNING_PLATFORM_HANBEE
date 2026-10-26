@@ -1,0 +1,104 @@
+/* @import must be the first rule in the stylesheet (only @charset/@layer
+   may precede it) -- it was previously placed after @font-face, which
+   silently made the browser ignore it entirely. */
+@import url('https://fonts.googleapis.com/css2?family=Afacad:wght@400;500;700&family=Inter:wght@300;400;500&family=Oranienbaum&family=Rajdhani:wght@500;600;700&family=JetBrains+Mono:wght@400;600&family=Manrope:wght@500;600;700;800&display=swap');
+
+@font-face {
+  font-family: 'Deltha';
+  src: url('/fonts/Deltha.otf') format('opentype'),
+    url('/fonts/Deltha.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* ===== CSS RESET ===== */
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: 'Afacad', sans-serif;
+  background: #000000;
+  color: #ffffff;
+  overflow-x: hidden;
+  min-height: 100vh;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+}
+
+button {
+  border: none;
+  outline: none;
+  cursor: pointer;
+  background: transparent;
+  font-family: inherit;
+}
+
+ul,
+ol {
+  list-style: none;
+}
+
+img {
+  max-width: 100%;
+  display: block;
+}
+
+/* ===== CSS CUSTOM PROPERTIES ===== */
+:root {
+  /* Fonts */
+  --font-logo: 'Deltha', 'Cormorant Garamond', serif;
+  /* Rajdhani: a technical, slightly condensed grotesk built for
+     dashboard/HUD contexts -- fits the paddock/grid/telemetry
+     vocabulary used throughout this app. Deliberately not Outfit,
+     which is the most common heading face in generated SaaS
+     dashboards and was making every page read as templated. */
+  --font-heading: 'Rajdhani', 'Outfit', sans-serif;
+  --font-body: 'Afacad', sans-serif;
+  --font-accent: 'Inter', sans-serif;
+  /* Telemetry numbers (lap times, XP, serials) previously used the
+     bare `monospace` keyword, which renders as whatever generic
+     monospace font each OS ships -- inconsistent and unstyled-looking.
+     JetBrains Mono gives those numbers the same deliberate, technical
+     character as the rest of the UI. */
+  --font-mono: 'JetBrains Mono', 'SFMono-Regular', Consolas, monospace;
+  /* Large hero moments only (the "Good morning" greeting, etc.) -- clean
+     and modern without being a generic SaaS default, and without
+     Rajdhani's technical-label character stretched too large. */
+  --font-display: 'Manrope', var(--font-heading);
+
+  /* Colors */
+  --color-bg: #0a0a0a;
+  --color-text-white: #ffffff;
+  --color-text-dark: rgba(0, 0, 0, 0.8);
+  --color-text-heading: rgba(0, 0, 0, 0.55); /* More semi-transparent */
+  --color-tagline: rgb(53, 45, 39);
+  --color-subtitle: rgb(30, 18, 8);
+  --color-cta-text: rgb(63, 58, 58);
+  --color-signin: #d9d9d9;
+  --color-icon-muted: rgb(161, 155, 155);
+
+  /* Glass */
+  --glass-bg: rgba(30, 28, 28, 0.51);
+  --glass-border: rgba(255, 255, 255, 0.12);
+  --glass-radius: 23px;
+
+  /* Spacing */
+  --nav-height: 80px;
+  --section-padding: 60px;
+}

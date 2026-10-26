@@ -1,0 +1,248 @@
+<!doctype html>
+<html lang="en" data-track="dsa">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Recursion and Backtracking — DSA Notes · Hanbee</title>
+<meta name="description" content="Learn to think recursively. Base and recursive cases, the call stack, memoisation, divide and conquer, and the backtracking template for subsets, permutations, combinations and N-Queens.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500..700;1,9..144,500&amp;family=Inter:wght@400..700&amp;family=JetBrains+Mono:wght@400..600&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/notes.css">
+<script src="../assets/notes.js" defer></script>
+</head>
+<body>
+<div class="progress" aria-hidden="true"><i></i></div>
+<header class="top">
+  <a class="brand" href="../index.html"><b>H</b>Hanbee · DSA Notes</a>
+  <nav><a class="keep" href="index.html">All topics</a><button id="theme-toggle" type="button" aria-label="Toggle light and dark theme">Theme</button></nav>
+</header>
+<div class="shell">
+  <details class="toc"><summary>On this page</summary><nav aria-label="On this page"><ol><li><a href="#what-is-recursion"><span>01</span>What is Recursion?</a></li><li><a href="#the-call-stack"><span>02</span>The Call Stack</a></li><li><a href="#thinking-recursively"><span>03</span>Thinking Recursively</a></li><li><a href="#recursion-tree-and-complexity"><span>04</span>Recursion Tree and Complexity</a></li><li><a href="#memoisation-remove-repeated-work"><span>05</span>Memoisation: Remove Repeated Work</a></li><li><a href="#divide-and-conquer"><span>06</span>Divide and Conquer</a></li><li><a href="#classic-recursive-problems"><span>07</span>Classic Recursive Problems</a></li><li><a href="#backtracking"><span>08</span>Backtracking</a></li><li><a href="#backtracking-problem-types"><span>09</span>Backtracking Problem Types</a></li><li><a href="#pruning-techniques"><span>10</span>Pruning Techniques</a></li><li><a href="#recursion-vs-iteration-vs-dp"><span>11</span>Recursion vs Iteration vs DP</a></li><li><a href="#common-mistakes"><span>12</span>Common Mistakes</a></li><li><a href="#quick-recap"><span>13</span>Quick Recap</a></li></ol></nav></details>
+  <main>
+    <header class="hero">
+      <p class="kicker"><span class="pill">Foundations</span><span>Topic 03</span><span>Intermediate</span><span>11 min read</span></p>
+      <h1>Recursion and Backtracking</h1>
+      <p class="lede">Learn to think recursively. Base and recursive cases, the call stack, memoisation, divide and conquer, and the backtracking template for subsets, permutations, combinations and N-Queens.</p>
+    </header>
+    <article>
+<h2 id="what-is-recursion"><span class="num">01</span>What is Recursion?</h2>
+<p>A function that <strong>calls itself</strong> on a smaller version of the same problem. Every recursive solution has:</p>
+<ol><li><strong>Base case</strong>: the smallest problem you can answer directly (stops the recursion)</li><li><strong>Recursive case</strong>: reduce the problem and call yourself</li><li><strong>Progress</strong>: each call must move <strong>toward</strong> the base case</li></ol>
+<pre><code class="language-java">static long factorial(int n) {
+    if (n &lt;= 1) return 1;                 // base case
+    return n * factorial(n - 1);          // recursive case
+}</code></pre>
+<aside class="callout warning"><span class="label">Warning</span><p>A missing base case, or a recursive call that never gets closer to it, ends in <code>StackOverflowError</code>.</p></aside>
+<h2 id="the-call-stack"><span class="num">02</span>The Call Stack</h2>
+<p>Each call gets its own <strong>stack frame</strong> holding its parameters and local variables. Frames are pushed as calls go deeper and popped as they return.</p>
+<pre><code class="language-text">factorial(4)
+ └─ 4 * factorial(3)
+        └─ 3 * factorial(2)
+               └─ 2 * factorial(1)
+                      └─ returns 1
+               ← returns 2
+        ← returns 6
+ ← returns 24</code></pre>
+<ul><li><strong>Time</strong>: number of calls × work per call</li><li><strong>Space</strong>: maximum recursion depth (call-stack frames)</li><li>Java's default stack allows roughly 10,000 to 20,000 frames; deeper recursion needs iteration or an explicit stack</li><li>Java does <strong>not</strong> do tail-call optimisation</li></ul>
+<h2 id="thinking-recursively"><span class="num">03</span>Thinking Recursively</h2>
+<p>Ask three questions:</p>
+<ol><li><strong>What is the smallest input and its answer?</strong> → base case</li><li><strong>If I could solve a smaller input, how would I use that answer?</strong> → recursive step (trust the recursion)</li><li><strong>Does every call get smaller?</strong> → termination</li></ol>
+<h3 id="examples">Examples</h3>
+<pre><code class="language-java">// Sum of digits
+static int sumDigits(int n) { return n == 0 ? 0 : n % 10 + sumDigits(n / 10); }
+
+// Power: O(n)
+static long power(long x, int n) { return n == 0 ? 1 : x * power(x, n - 1); }
+
+// Fast power (exponentiation by squaring): O(log n)
+static long fastPower(long x, int n) {
+    if (n == 0) return 1;
+    long half = fastPower(x, n / 2);
+    return n % 2 == 0 ? half * half : half * half * x;
+}
+
+// Reverse a string
+static String reverse(String s) { return s.isEmpty() ? "" : reverse(s.substring(1)) + s.charAt(0); }
+
+// Palindrome check
+static boolean isPal(String s, int l, int r) {
+    if (l &gt;= r) return true;
+    return s.charAt(l) == s.charAt(r) &amp;&amp; isPal(s, l + 1, r - 1);
+}
+
+// GCD (Euclid)
+static int gcd(int a, int b) { return b == 0 ? a : gcd(b, a % b); }
+
+// Sum of an array
+static int sum(int[] a, int i) { return i == a.length ? 0 : a[i] + sum(a, i + 1); }</code></pre>
+<h2 id="recursion-tree-and-complexity"><span class="num">04</span>Recursion Tree and Complexity</h2>
+<p>Draw the calls as a tree: total work = the sum of the work at every node.</p>
+<pre><code class="language-text">fib(4)
+├── fib(3)
+│    ├── fib(2)
+│    │    ├── fib(1)
+│    │    └── fib(0)
+│    └── fib(1)
+└── fib(2)
+     ├── fib(1)
+     └── fib(0)         fib(2) is computed twice: overlapping subproblems</code></pre>
+<div class="table-wrap"><table><thead><tr><th>Pattern</th><th>Time</th><th>Example</th></tr></thead><tbody><tr><td>One call, size <code>n-1</code></td><td><code>O(n)</code></td><td>factorial</td></tr><tr><td>One call, size <code>n/2</code></td><td><code>O(log n)</code></td><td>fast power, binary search</td></tr><tr><td>Two calls, size <code>n-1</code></td><td><code>O(2ⁿ)</code></td><td>naive Fibonacci</td></tr><tr><td>Two calls, size <code>n/2</code> + linear work</td><td><code>O(n log n)</code></td><td>merge sort</td></tr><tr><td><code>n</code> branches, depth <code>n</code></td><td><code>O(n!)</code></td><td>permutations</td></tr></tbody></table></div>
+<h2 id="memoisation-remove-repeated-work"><span class="num">05</span>Memoisation: Remove Repeated Work</h2>
+<p>Cache results of calls so each distinct input is computed <strong>once</strong>. This is <strong>top-down dynamic programming</strong>.</p>
+<pre><code class="language-java">static long fib(int n, long[] memo) {
+    if (n &lt; 2) return n;
+    if (memo[n] != 0) return memo[n];
+    return memo[n] = fib(n - 1, memo) + fib(n - 2, memo);        // O(n) time, O(n) space
+}
+// call: fib(50, new long[51])</code></pre>
+<pre><code class="language-java">Map&lt;Integer, Long&gt; cache = new HashMap&lt;&gt;();
+long f(int n) {
+    if (n &lt; 2) return n;
+    Long cached = cache.get(n);
+    if (cached != null) return cached;
+    long result = f(n - 1) + f(n - 2);
+    cache.put(n, result);
+    return result;
+}</code></pre>
+<aside class="callout warning"><span class="label">Warning</span><p>Don't call a recursive function from inside <code>HashMap.computeIfAbsent</code>. It modifies the map while computing and can throw <code>ConcurrentModificationException</code>. Use <code>get</code> then <code>put</code>, as above.</p></aside>
+<p>Dynamic programming is covered in depth in its own topic.</p>
+<h2 id="divide-and-conquer"><span class="num">06</span>Divide and Conquer</h2>
+<p><strong>Divide</strong> the problem into smaller independent parts, <strong>conquer</strong> each recursively, <strong>combine</strong> the answers.</p>
+<div class="table-wrap"><table><thead><tr><th>Algorithm</th><th>Divide</th><th>Combine</th><th>Time</th></tr></thead><tbody><tr><td>Merge sort</td><td>Split array in half</td><td>Merge two sorted halves</td><td><code>O(n log n)</code></td></tr><tr><td>Quick sort</td><td>Partition around a pivot</td><td>Nothing needed</td><td><code>O(n log n)</code> avg</td></tr><tr><td>Binary search</td><td>Discard half</td><td>Nothing</td><td><code>O(log n)</code></td></tr><tr><td>Max subarray (D&amp;C)</td><td>Left / right / crossing</td><td>Best of three</td><td><code>O(n log n)</code></td></tr><tr><td>Fast exponentiation</td><td>Halve the exponent</td><td>Square</td><td><code>O(log n)</code></td></tr></tbody></table></div>
+<pre><code class="language-java">// Maximum element by divide and conquer
+static int max(int[] a, int lo, int hi) {
+    if (lo == hi) return a[lo];
+    int mid = lo + (hi - lo) / 2;
+    return Math.max(max(a, lo, mid), max(a, mid + 1, hi));
+}</code></pre>
+<h2 id="classic-recursive-problems"><span class="num">07</span>Classic Recursive Problems</h2>
+<h3 id="tower-of-hanoi">Tower of Hanoi</h3>
+<pre><code class="language-java">static void hanoi(int n, char from, char to, char via) {
+    if (n == 0) return;
+    hanoi(n - 1, from, via, to);
+    System.out.println("Move disk " + n + " from " + from + " to " + to);
+    hanoi(n - 1, via, to, from);                  // 2ⁿ - 1 moves
+}</code></pre>
+<h3 id="print-all-binary-strings-of-length-n">Print all binary strings of length n</h3>
+<pre><code class="language-java">static void gen(int n, String cur) {
+    if (cur.length() == n) { System.out.println(cur); return; }
+    gen(n, cur + "0");
+    gen(n, cur + "1");
+}</code></pre>
+<h3 id="convert-recursion-to-iteration">Convert recursion to iteration</h3>
+<p>Any recursion can use an explicit <code>Deque</code> as a stack. Do this when depth could overflow the call stack (for example DFS on a 10⁵-node path graph).</p>
+<h2 id="backtracking"><span class="num">08</span>Backtracking</h2>
+<p><strong>Backtracking</strong> builds a solution <strong>step by step</strong>, and when a choice leads to a dead end it <strong>undoes</strong> it (backtracks) and tries the next option. It is a systematic search of the <strong>decision tree</strong> with <strong>pruning</strong>.</p>
+<h3 id="the-template">The template</h3>
+<pre><code class="language-text">solve(state):
+    if state is a complete solution:
+        record it; return
+    for each choice available from state:
+        if choice is valid (prune early):
+            make the choice            // choose
+            solve(new state)           // explore
+            undo the choice            // un-choose (backtrack)</code></pre>
+<h3 id="subsets-the-power-set">Subsets (the power set)</h3>
+<pre><code class="language-java">static List&lt;List&lt;Integer&gt;&gt; subsets(int[] nums) {
+    List&lt;List&lt;Integer&gt;&gt; res = new ArrayList&lt;&gt;();
+    backtrack(nums, 0, new ArrayList&lt;&gt;(), res);
+    return res;
+}
+static void backtrack(int[] nums, int start, List&lt;Integer&gt; cur, List&lt;List&lt;Integer&gt;&gt; res) {
+    res.add(new ArrayList&lt;&gt;(cur));                       // every partial path is a valid subset
+    for (int i = start; i &lt; nums.length; i++) {
+        cur.add(nums[i]);                                 // choose
+        backtrack(nums, i + 1, cur, res);                 // explore
+        cur.remove(cur.size() - 1);                       // un-choose
+    }
+}                                                         // O(n · 2ⁿ)</code></pre>
+<aside class="callout warning"><span class="label">Warning</span><p>Always <strong>copy</strong> the current list (<code>new ArrayList&lt;&gt;(cur)</code>) before saving it; otherwise every saved entry points at the same list that you keep modifying.</p></aside>
+<h3 id="subsets-with-duplicates">Subsets with duplicates</h3>
+<pre><code class="language-java">Arrays.sort(nums);
+// inside the loop:
+if (i &gt; start &amp;&amp; nums[i] == nums[i - 1]) continue;       // skip duplicate choices at the same level</code></pre>
+<h3 id="permutations">Permutations</h3>
+<pre><code class="language-java">static List&lt;List&lt;Integer&gt;&gt; permute(int[] nums) {
+    List&lt;List&lt;Integer&gt;&gt; res = new ArrayList&lt;&gt;();
+    permute(nums, new boolean[nums.length], new ArrayList&lt;&gt;(), res);
+    return res;
+}
+static void permute(int[] nums, boolean[] used, List&lt;Integer&gt; cur, List&lt;List&lt;Integer&gt;&gt; res) {
+    if (cur.size() == nums.length) { res.add(new ArrayList&lt;&gt;(cur)); return; }
+    for (int i = 0; i &lt; nums.length; i++) {
+        if (used[i]) continue;
+        used[i] = true; cur.add(nums[i]);
+        permute(nums, used, cur, res);
+        cur.remove(cur.size() - 1); used[i] = false;
+    }
+}                                                         // O(n · n!)</code></pre>
+<h3 id="combination-sum-reuse-allowed">Combination sum (reuse allowed)</h3>
+<pre><code class="language-java">static void combSum(int[] c, int start, int remain, List&lt;Integer&gt; cur, List&lt;List&lt;Integer&gt;&gt; res) {
+    if (remain == 0) { res.add(new ArrayList&lt;&gt;(cur)); return; }
+    for (int i = start; i &lt; c.length; i++) {
+        if (c[i] &gt; remain) continue;                      // prune (sort first and `break` for more speed)
+        cur.add(c[i]);
+        combSum(c, i, remain - c[i], cur, res);           // pass i, not i+1: same number can be reused
+        cur.remove(cur.size() - 1);
+    }
+}</code></pre>
+<h3 id="generate-valid-parentheses">Generate valid parentheses</h3>
+<pre><code class="language-java">static void gen(int open, int close, int n, StringBuilder sb, List&lt;String&gt; res) {
+    if (sb.length() == 2 * n) { res.add(sb.toString()); return; }
+    if (open &lt; n)      { sb.append('('); gen(open + 1, close, n, sb, res); sb.setLength(sb.length() - 1); }
+    if (close &lt; open)  { sb.append(')'); gen(open, close + 1, n, sb, res); sb.setLength(sb.length() - 1); }
+}                                                         // Catalan(n) results</code></pre>
+<h3 id="n-queens">N-Queens</h3>
+<p>Place <code>n</code> queens so none attack each other. Track used columns and diagonals for <code>O(1)</code> validity checks.</p>
+<pre><code class="language-java">static int solveNQueens(int n) {
+    return place(0, n, new boolean[n], new boolean[2 * n], new boolean[2 * n]);
+}
+static int place(int row, int n, boolean[] cols, boolean[] diag1, boolean[] diag2) {
+    if (row == n) return 1;
+    int count = 0;
+    for (int c = 0; c &lt; n; c++) {
+        int d1 = row - c + n, d2 = row + c;               // "\" and "/" diagonals
+        if (cols[c] || diag1[d1] || diag2[d2]) continue;  // prune
+        cols[c] = diag1[d1] = diag2[d2] = true;
+        count += place(row + 1, n, cols, diag1, diag2);
+        cols[c] = diag1[d1] = diag2[d2] = false;
+    }
+    return count;
+}</code></pre>
+<h3 id="word-search-in-a-grid">Word search in a grid</h3>
+<pre><code class="language-java">static boolean exist(char[][] b, String w) {
+    for (int i = 0; i &lt; b.length; i++)
+        for (int j = 0; j &lt; b[0].length; j++)
+            if (dfs(b, w, i, j, 0)) return true;
+    return false;
+}
+static boolean dfs(char[][] b, String w, int i, int j, int k) {
+    if (k == w.length()) return true;
+    if (i &lt; 0 || j &lt; 0 || i &gt;= b.length || j &gt;= b[0].length || b[i][j] != w.charAt(k)) return false;
+    char tmp = b[i][j];
+    b[i][j] = '#';                                        // mark visited
+    boolean found = dfs(b, w, i + 1, j, k + 1) || dfs(b, w, i - 1, j, k + 1)
+                 || dfs(b, w, i, j + 1, k + 1) || dfs(b, w, i, j - 1, k + 1);
+    b[i][j] = tmp;                                        // backtrack
+    return found;
+}</code></pre>
+<h3 id="sudoku-solver-idea">Sudoku solver (idea)</h3>
+<p>For each empty cell try digits 1 to 9, check row/column/box validity, recurse; if no digit works, reset the cell and backtrack.</p>
+<h2 id="backtracking-problem-types"><span class="num">09</span>Backtracking Problem Types</h2>
+<div class="table-wrap"><table><thead><tr><th>Type</th><th>Key point</th><th>Complexity</th></tr></thead><tbody><tr><td>Subsets</td><td>Include/exclude each element</td><td><code>O(2ⁿ)</code></td></tr><tr><td>Permutations</td><td>Choose any unused element</td><td><code>O(n!)</code></td></tr><tr><td>Combinations</td><td>Choose from <code>start</code> onward to avoid repeats</td><td><code>O(C(n,k))</code></td></tr><tr><td>Constraint puzzles (N-Queens, Sudoku)</td><td>Prune invalid choices early</td><td>Exponential but practical</td></tr><tr><td>Grid paths (word search)</td><td>Mark visited, then unmark</td><td><code>O(m·n·4^L)</code></td></tr><tr><td>Partitioning (palindrome partition)</td><td>Cut positions</td><td><code>O(n · 2ⁿ)</code></td></tr></tbody></table></div>
+<h2 id="pruning-techniques"><span class="num">10</span>Pruning Techniques</h2>
+<ul><li><strong>Sort first</strong> so you can <code>break</code> once a choice is too large</li><li><strong>Skip duplicates</strong> at the same recursion level</li><li>Keep running totals/sets so validity checks are <code>O(1)</code></li><li>Stop as soon as a <strong>bound</strong> proves no better solution exists (branch and bound)</li></ul>
+<h2 id="recursion-vs-iteration-vs-dp"><span class="num">11</span>Recursion vs Iteration vs DP</h2>
+<div class="table-wrap"><table><thead><tr><th></th><th>Use when</th></tr></thead><tbody><tr><td>Plain recursion</td><td>Problem is naturally self-similar (trees, divide and conquer)</td></tr><tr><td>Memoisation / DP</td><td>Same subproblems repeat</td></tr><tr><td>Backtracking</td><td>You must enumerate all/any valid configurations</td></tr><tr><td>Iteration</td><td>Depth could be huge, or a simple loop is clearer</td></tr></tbody></table></div>
+<h2 id="common-mistakes"><span class="num">12</span>Common Mistakes</h2>
+<ul><li>Forgetting the base case or making a call that doesn't shrink the problem</li><li>Modifying shared state and forgetting to <strong>undo</strong> it</li><li>Adding a reference to the working list instead of a <strong>copy</strong></li><li>Exponential blow-up without memoisation</li><li>Using <code>substring</code> repeatedly (<code>O(n)</code> each) inside deep recursion; pass indices instead</li></ul>
+<h2 id="quick-recap"><span class="num">13</span>Quick Recap</h2>
+<ul><li>Recursion = base case + smaller recursive case; cost = calls × work per call; space = depth</li><li>Memoise when subproblems overlap (turns <code>O(2ⁿ)</code> into <code>O(n)</code> for Fibonacci)</li><li>Divide and conquer splits, solves and combines (merge sort, binary search)</li><li><strong>Backtracking template</strong>: choose → explore → un-choose, with early pruning</li><li>Copy results before storing them; sort and skip duplicates to avoid repeated answers</li></ul>
+    </article>
+    <nav class="pager" aria-label="Topic navigation">
+      <a class="prev" href="02-arrays-strings.html"><small>← Previous</small><strong>Arrays and Strings: Core Techniques</strong></a>
+      <a class="next" href="04-linked-lists.html"><small>Next →</small><strong>Linked Lists</strong></a>
+    </nav>
+  </main>
+</div>
+</body>
+</html>

@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="en" data-track="react">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>JSX, Components and Props — React Notes · Hanbee</title>
+<meta name="description" content="Write UI with JSX, build and compose function components, pass data with props and children, render conditionally and render lists with keys.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500..700;1,9..144,500&amp;family=Inter:wght@400..700&amp;family=JetBrains+Mono:wght@400..600&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/notes.css">
+<script src="../assets/notes.js" defer></script>
+</head>
+<body>
+<div class="progress" aria-hidden="true"><i></i></div>
+<header class="top">
+  <a class="brand" href="../index.html"><b>H</b>Hanbee · React Notes</a>
+  <nav><a class="keep" href="index.html">All topics</a><button id="theme-toggle" type="button" aria-label="Toggle light and dark theme">Theme</button></nav>
+</header>
+<div class="shell">
+  <details class="toc"><summary>On this page</summary><nav aria-label="On this page"><ol><li><a href="#what-is-jsx"><span>01</span>What is JSX?</a></li><li><a href="#jsx-rules"><span>02</span>JSX Rules</a></li><li><a href="#components"><span>03</span>Components</a></li><li><a href="#props"><span>04</span>Props</a></li><li><a href="#the-children-prop"><span>05</span>The children Prop</a></li><li><a href="#ref-is-a-prop-in-react-19"><span>06</span>ref is a Prop in React 19</a></li><li><a href="#default-props-and-prop-types"><span>07</span>Default Props and Prop Types</a></li><li><a href="#conditional-rendering"><span>08</span>Conditional Rendering</a></li><li><a href="#rendering-lists-and-keys"><span>09</span>Rendering Lists and Keys</a></li><li><a href="#handling-events-basics"><span>10</span>Handling Events (Basics)</a></li><li><a href="#component-composition"><span>11</span>Component Composition</a></li><li><a href="#styling-basics"><span>12</span>Styling Basics</a></li><li><a href="#document-metadata-in-react-19"><span>13</span>Document Metadata in React 19</a></li><li><a href="#common-mistakes"><span>14</span>Common Mistakes</a></li><li><a href="#quick-recap"><span>15</span>Quick Recap</a></li></ol></nav></details>
+  <main>
+    <header class="hero">
+      <p class="kicker"><span class="pill">Foundations</span><span>Topic 03</span><span>Beginner</span><span>8 min read</span></p>
+      <h1>JSX, Components and Props</h1>
+      <p class="lede">Write UI with JSX, build and compose function components, pass data with props and children, render conditionally and render lists with keys.</p>
+    </header>
+    <article>
+<h2 id="what-is-jsx"><span class="num">01</span>What is JSX?</h2>
+<p><strong>JSX</strong> is a syntax extension that lets you write HTML-like markup inside JavaScript. A build tool (Vite/Babel/SWC) converts it to plain JavaScript function calls.</p>
+<pre><code class="language-jsx">const element = &lt;h1 className="title"&gt;Hello, React!&lt;/h1&gt;;
+// is compiled to roughly:
+const element2 = jsx("h1", { className: "title", children: "Hello, React!" });</code></pre>
+<p>JSX is not required, but it is how almost everyone writes React.</p>
+<h2 id="jsx-rules"><span class="num">02</span>JSX Rules</h2>
+<h3 id="1-return-a-single-root-element">1. Return a single root element</h3>
+<pre><code class="language-jsx">// Wrong: two siblings
+// return &lt;h1&gt;Title&lt;/h1&gt;&lt;p&gt;Text&lt;/p&gt;;
+
+// Right: wrap in a parent, or a Fragment
+return (
+  &lt;&gt;
+    &lt;h1&gt;Title&lt;/h1&gt;
+    &lt;p&gt;Text&lt;/p&gt;
+  &lt;/&gt;
+);</code></pre>
+<p><code>&lt;&gt;...&lt;/&gt;</code> is a <strong>Fragment</strong>: it groups elements without adding a DOM node. Use <code>&lt;Fragment key={id}&gt;</code> when you need a key.</p>
+<h3 id="2-close-every-tag">2. Close every tag</h3>
+<pre><code class="language-jsx">&lt;img src="logo.png" alt="Logo" /&gt;
+&lt;input type="text" /&gt;
+&lt;br /&gt;</code></pre>
+<h3 id="3-use-camelcase-for-attributes">3. Use camelCase for attributes</h3>
+<div class="table-wrap"><table><thead><tr><th>HTML</th><th>JSX</th></tr></thead><tbody><tr><td><code>class</code></td><td><code>className</code></td></tr><tr><td><code>for</code></td><td><code>htmlFor</code></td></tr><tr><td><code>onclick</code></td><td><code>onClick</code></td></tr><tr><td><code>tabindex</code></td><td><code>tabIndex</code></td></tr><tr><td><code>maxlength</code></td><td><code>maxLength</code></td></tr><tr><td><code>stroke-width</code></td><td><code>strokeWidth</code></td></tr><tr><td><code>style="color:red"</code></td><td><code>style={{ color: "red" }}</code></td></tr></tbody></table></div>
+<p><code>aria-*</code> and <code>data-*</code> attributes keep their hyphenated names.</p>
+<h3 id="4-javascript-goes-inside-curly-braces">4. JavaScript goes inside curly braces</h3>
+<pre><code class="language-jsx">const user = { name: "Asha", score: 92 };
+return (
+  &lt;section&gt;
+    &lt;h2&gt;{user.name}&lt;/h2&gt;
+    &lt;p&gt;Score: {user.score}&lt;/p&gt;
+    &lt;p&gt;Grade: {user.score &gt;= 90 ? "A" : "B"}&lt;/p&gt;
+    &lt;p&gt;{new Date().getFullYear()}&lt;/p&gt;
+    &lt;img src={user.avatar} alt={`${user.name}'s avatar`} /&gt;
+  &lt;/section&gt;
+);</code></pre>
+<p>Curly braces accept <strong>expressions</strong> (values), not statements like <code>if</code> or <code>for</code>.</p>
+<h3 id="5-comments-in-jsx">5. Comments in JSX</h3>
+<pre><code class="language-jsx">{/* a JSX comment */}</code></pre>
+<h3 id="6-inline-styles-take-an-object">6. Inline styles take an object</h3>
+<pre><code class="language-jsx">&lt;div style={{ backgroundColor: "navy", padding: 16 }}&gt;Box&lt;/div&gt;</code></pre>
+<p>Numbers become <code>px</code>. Prefer CSS classes for anything beyond simple dynamic values.</p>
+<h3 id="7-jsx-escapes-content-automatically">7. JSX escapes content automatically</h3>
+<p>Text inside <code>{}</code> is escaped, which protects against XSS. Only <code>dangerouslySetInnerHTML</code> bypasses this (avoid it, or sanitise first).</p>
+<h2 id="components"><span class="num">03</span>Components</h2>
+<p>A <strong>component</strong> is a JavaScript function that returns JSX. The name <strong>must start with a capital letter</strong>.</p>
+<pre data-file="Welcome.jsx"><code class="language-jsx">function Welcome() {
+  return &lt;h1&gt;Welcome to Hanbee LMS&lt;/h1&gt;;
+}
+
+export default Welcome;</code></pre>
+<pre><code class="language-jsx">import Welcome from "./Welcome";
+
+function App() {
+  return (
+    &lt;div&gt;
+      &lt;Welcome /&gt;
+      &lt;Welcome /&gt;
+    &lt;/div&gt;
+  );
+}</code></pre>
+<h3 id="rules-of-components">Rules of components</h3>
+<ul><li>Capitalised name (<code>&lt;Card /&gt;</code> is a component; <code>&lt;card&gt;</code> is an HTML tag)</li><li><strong>Pure</strong>: same props + state = same output, no changing outside variables during render</li><li>Define components at the <strong>top level</strong> of a file, never inside another component</li><li>Each component can return JSX, <code>null</code> (nothing), a string, a number or an array</li></ul>
+<h2 id="props"><span class="num">04</span>Props</h2>
+<p><strong>Props</strong> (properties) are the inputs to a component. They flow <strong>down</strong> from parent to child and are <strong>read-only</strong>.</p>
+<pre><code class="language-jsx">function Greeting({ name, role = "Student" }) {   // destructured, with a default
+  return &lt;p&gt;Hello {name}, you are a {role}.&lt;/p&gt;;
+}
+
+&lt;Greeting name="Asha" /&gt;
+&lt;Greeting name="Ravi" role="Mentor" /&gt;</code></pre>
+<h3 id="passing-different-types">Passing different types</h3>
+<pre><code class="language-jsx">&lt;Course
+  title="React 19"            // string
+  lessons={24}                // number
+  free                        // boolean true (shorthand for free={true})
+  tags={["ui", "js"]}         // array
+  author={{ name: "Hanbee" }} // object
+  onEnroll={() =&gt; alert("Enrolled")}   // function
+/&gt;</code></pre>
+<h3 id="spreading-props">Spreading props</h3>
+<pre><code class="language-jsx">const props = { title: "React", level: "Beginner" };
+&lt;Course {...props} /&gt;</code></pre>
+<h3 id="props-are-read-only">Props are read-only</h3>
+<pre><code class="language-jsx">function Bad({ count }) {
+  count = count + 1;     // never reassign or mutate props
+}</code></pre>
+<p>If a component needs to change a value, it should keep it in <strong>state</strong> or ask the parent to change it through a callback.</p>
+<h2 id="the-children-prop"><span class="num">05</span>The children Prop</h2>
+<p>Anything between a component's tags is available as <code>children</code>.</p>
+<pre><code class="language-jsx">function Card({ title, children }) {
+  return (
+    &lt;div className="card"&gt;
+      &lt;h3&gt;{title}&lt;/h3&gt;
+      &lt;div className="card-body"&gt;{children}&lt;/div&gt;
+    &lt;/div&gt;
+  );
+}
+
+&lt;Card title="Reminder"&gt;
+  &lt;p&gt;Assignment due Friday.&lt;/p&gt;
+  &lt;button&gt;Open&lt;/button&gt;
+&lt;/Card&gt;</code></pre>
+<p>This <strong>composition</strong> pattern (layouts, modals, wrappers) is preferred over inheritance in React.</p>
+<h2 id="ref-is-a-prop-in-react-19"><span class="num">06</span>ref is a Prop in React 19</h2>
+<p>In React 19, function components receive <code>ref</code> like any other prop. <code>forwardRef</code> is no longer needed.</p>
+<pre><code class="language-jsx">function TextInput({ ref, ...props }) {          // React 19
+  return &lt;input ref={ref} {...props} /&gt;;
+}</code></pre>
+<h2 id="default-props-and-prop-types"><span class="num">07</span>Default Props and Prop Types</h2>
+<ul><li>Use <strong>default parameter values</strong>: <code>function Button({ size = "md" })</code>. The old <code>defaultProps</code> for function components was removed in React 19.</li><li><code>propTypes</code> runtime checks were also removed in React 19. Use <strong>TypeScript</strong> (or a schema library) for prop validation.</li></ul>
+<h2 id="conditional-rendering"><span class="num">08</span>Conditional Rendering</h2>
+<pre><code class="language-jsx">function Status({ isLoggedIn, unread }) {
+  if (!isLoggedIn) return &lt;p&gt;Please log in.&lt;/p&gt;;          // early return
+
+  return (
+    &lt;div&gt;
+      {isLoggedIn ? &lt;Dashboard /&gt; : &lt;Login /&gt;}            {/* ternary: either/or */}
+      {unread &gt; 0 &amp;&amp; &lt;Badge count={unread} /&gt;}            {/* &amp;&amp; : show or nothing */}
+      {error &amp;&amp; &lt;p role="alert"&gt;{error}&lt;/p&gt;}
+      {items.length === 0 ? &lt;Empty /&gt; : &lt;List items={items} /&gt;}
+    &lt;/div&gt;
+  );
+}</code></pre>
+<div class="table-wrap"><table><thead><tr><th>Pattern</th><th>Use for</th></tr></thead><tbody><tr><td>Early <code>return</code></td><td>Guard cases (loading, error, no user)</td></tr><tr><td><code>cond ? A : B</code></td><td>Two alternatives</td></tr><tr><td><code>cond &amp;&amp; &lt;A /&gt;</code></td><td>Show or hide (make sure <code>cond</code> is a boolean)</td></tr><tr><td>Variable holding JSX</td><td>Complex branching</td></tr><tr><td><code>switch</code> / lookup object</td><td>Many variants</td></tr></tbody></table></div>
+<pre><code class="language-jsx">const views = { loading: &lt;Spinner /&gt;, error: &lt;ErrorBox /&gt;, ready: &lt;Courses /&gt; };
+return views[status];</code></pre>
+<h2 id="rendering-lists-and-keys"><span class="num">09</span>Rendering Lists and Keys</h2>
+<pre><code class="language-jsx">const courses = [
+  { id: 1, title: "Java" },
+  { id: 2, title: "React" },
+  { id: 3, title: "SQL" },
+];
+
+function CourseList() {
+  return (
+    &lt;ul&gt;
+      {courses.map(course =&gt; (
+        &lt;li key={course.id}&gt;{course.title}&lt;/li&gt;
+      ))}
+    &lt;/ul&gt;
+  );
+}</code></pre>
+<h3 id="why-keys">Why keys?</h3>
+<p>A <strong>key</strong> lets React match each item between renders so it can add, remove and reorder items correctly without losing their state.</p>
+<h3 id="key-rules">Key rules</h3>
+<ul><li>Must be <strong>unique among siblings</strong> (not globally)</li><li>Must be <strong>stable</strong>: use the data's id, not a random value each render</li><li><strong>Avoid array index</strong> as key when the list can be reordered, filtered or edited (it breaks state and causes bugs); acceptable only for static lists</li><li>Never use <code>Math.random()</code> or <code>crypto.randomUUID()</code> during render</li><li>Put <code>key</code> on the element returned by <code>map</code>, not on an inner child</li></ul>
+<pre><code class="language-jsx">{rows.map(r =&gt; (
+  &lt;Fragment key={r.id}&gt;
+    &lt;dt&gt;{r.term}&lt;/dt&gt;
+    &lt;dd&gt;{r.meaning}&lt;/dd&gt;
+  &lt;/Fragment&gt;
+))}</code></pre>
+<h3 id="filtering-and-sorting-lists">Filtering and sorting lists</h3>
+<pre><code class="language-jsx">const visible = courses
+  .filter(c =&gt; c.title.toLowerCase().includes(query.toLowerCase()))
+  .toSorted((a, b) =&gt; a.title.localeCompare(b.title));</code></pre>
+<h2 id="handling-events-basics"><span class="num">10</span>Handling Events (Basics)</h2>
+<pre><code class="language-jsx">function Button() {
+  function handleClick(event) {
+    console.log("clicked", event.type);
+  }
+  return &lt;button onClick={handleClick}&gt;Click me&lt;/button&gt;;     // pass the function, don't call it
+}</code></pre>
+<div class="table-wrap"><table><thead><tr><th>Common events</th><th></th></tr></thead><tbody><tr><td>Mouse</td><td><code>onClick</code>, <code>onDoubleClick</code>, <code>onMouseEnter</code>, <code>onMouseLeave</code></td></tr><tr><td>Form</td><td><code>onChange</code>, <code>onSubmit</code>, <code>onFocus</code>, <code>onBlur</code>, <code>onInput</code></td></tr><tr><td>Keyboard</td><td><code>onKeyDown</code>, <code>onKeyUp</code></td></tr><tr><td>Pointer / touch</td><td><code>onPointerDown</code>, <code>onTouchStart</code></td></tr></tbody></table></div>
+<aside class="callout warning"><span class="label">Warning</span><p><code>onClick={handleClick()}</code> <strong>calls</strong> the function during render. Write <code>onClick={handleClick}</code> or <code>onClick={() =&gt; handleClick(id)}</code>.</p></aside>
+<pre><code class="language-jsx">function Form() {
+  function handleSubmit(e) {
+    e.preventDefault();                       // stop the browser's page reload
+    console.log("submitted");
+  }
+  return &lt;form onSubmit={handleSubmit}&gt;…&lt;/form&gt;;
+}</code></pre>
+<p>React events are <strong>synthetic</strong>: a cross-browser wrapper with the same interface as native events. <code>e.stopPropagation()</code> stops bubbling.</p>
+<h2 id="component-composition"><span class="num">11</span>Component Composition</h2>
+<p>Build big UIs by nesting small components.</p>
+<pre><code class="language-jsx">function CourseCard({ course }) {
+  return (
+    &lt;article className="card"&gt;
+      &lt;CourseImage src={course.image} alt={course.title} /&gt;
+      &lt;CourseInfo title={course.title} level={course.level} /&gt;
+      &lt;EnrollButton courseId={course.id} /&gt;
+    &lt;/article&gt;
+  );
+}</code></pre>
+<h3 id="when-to-split-a-component">When to split a component</h3>
+<ul><li>It is reused in more than one place</li><li>It does one clear job and can have a clear name</li><li>The file is getting long or hard to read</li><li>Part of it needs its own state</li></ul>
+<h2 id="styling-basics"><span class="num">12</span>Styling Basics</h2>
+<pre><code class="language-jsx">import "./Card.css";
+
+&lt;div className="card card--active"&gt;…&lt;/div&gt;
+&lt;div className={`card ${isActive ? "card--active" : ""}`}&gt;…&lt;/div&gt;</code></pre>
+<p>More options (CSS Modules, Tailwind) are in the Styling topic.</p>
+<h2 id="document-metadata-in-react-19"><span class="num">13</span>Document Metadata in React 19</h2>
+<p>You can render <code>&lt;title&gt;</code>, <code>&lt;meta&gt;</code> and <code>&lt;link&gt;</code> <strong>inside any component</strong>; React hoists them into <code>&lt;head&gt;</code>.</p>
+<pre><code class="language-jsx">function CoursePage({ course }) {
+  return (
+    &lt;article&gt;
+      &lt;title&gt;{course.title} | Hanbee LMS&lt;/title&gt;
+      &lt;meta name="description" content={course.summary} /&gt;
+      &lt;h1&gt;{course.title}&lt;/h1&gt;
+    &lt;/article&gt;
+  );
+}</code></pre>
+<h2 id="common-mistakes"><span class="num">14</span>Common Mistakes</h2>
+<div class="table-wrap"><table><thead><tr><th>Mistake</th><th>Fix</th></tr></thead><tbody><tr><td>Lowercase component name</td><td><code>&lt;Card /&gt;</code>, not <code>&lt;card /&gt;</code></td></tr><tr><td>Returning two roots</td><td>Wrap in <code>&lt;&gt;…&lt;/&gt;</code></td></tr><tr><td>Missing / index keys</td><td>Use a stable id</td></tr><tr><td><code>class=</code> instead of <code>className=</code></td><td>Use <code>className</code></td></tr><tr><td>Mutating props</td><td>Treat props as read-only</td></tr><tr><td>Defining a component inside another</td><td>Move it out; it resets state every render</td></tr><tr><td><code>{count &amp;&amp; &lt;X/&gt;}</code> showing <code>0</code></td><td>Use <code>count &gt; 0 &amp;&amp;</code></td></tr></tbody></table></div>
+<h2 id="quick-recap"><span class="num">15</span>Quick Recap</h2>
+<ul><li>JSX = HTML-like syntax compiled to JS; one root, closed tags, camelCase attributes, <code>{}</code> for expressions</li><li>Components are capitalised <strong>pure functions</strong>; props flow down and are read-only</li><li><code>children</code> enables composition; in React 19 <code>ref</code> is just a prop</li><li>Render conditionally with <code>if</code>, ternary and <code>&amp;&amp;</code>; render lists with <code>map</code> and stable <code>key</code>s</li><li>Pass handlers as <code>onClick={fn}</code>, never <code>onClick={fn()}</code></li></ul>
+    </article>
+    <nav class="pager" aria-label="Topic navigation">
+      <a class="prev" href="02-javascript-for-react.html"><small>← Previous</small><strong>Modern JavaScript You Need for React</strong></a>
+      <a class="next" href="04-state-events.html"><small>Next →</small><strong>State, Events and Controlled Inputs</strong></a>
+    </nav>
+  </main>
+</div>
+</body>
+</html>

@@ -1,0 +1,963 @@
+/* Driver License Dedicated Page Styling */
+
+.licensePage {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  max-width: 1280px;
+  width: 100%;
+  margin: 0 auto;
+  animation: fadeIn 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Header */
+.pageHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  background: var(--bg-card);
+  padding: 20px 28px;
+  border-radius: var(--clay-radius-md, 20px);
+  box-shadow: var(--clay-shadow-outer);
+  border: var(--border-subtle);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+.headerLeft {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.pageTitle {
+  font-family: var(--font-heading);
+  font-size: clamp(22px, 2.2vw, 28px);
+  font-weight: 700;
+  color: var(--text-main);
+  letter-spacing: -0.02em;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.pageSubtitle {
+  font-size: 13.5px;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.actionBtnSecondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--btn-secondary-bg);
+  border: 1px solid var(--btn-secondary-border);
+  color: var(--btn-secondary-text);
+  font-weight: 500;
+  font-size: 13px;
+  padding: 9px 18px;
+  border-radius: 999px;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.actionBtnSecondary:hover {
+  background: var(--btn-secondary-hover);
+  border-color: var(--accent-subtle-border);
+  color: var(--btn-secondary-text);
+  transform: translateY(-1px);
+}
+
+.actionBtnPrimary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--color-primary);
+  color: var(--color-primary-text);
+  border: 1px solid var(--accent-subtle-border);
+  font-weight: 600;
+  font-size: 13px;
+  padding: 9px 20px;
+  border-radius: 999px;
+  cursor: pointer;
+  box-shadow: var(--clay-shadow-button), var(--accent-glow);
+  transition: all 0.2s ease;
+  text-decoration: none;
+}
+
+.actionBtnPrimary:hover {
+  background: var(--color-primary-hover);
+  color: var(--color-primary-text);
+  transform: translateY(-1px);
+  box-shadow: var(--clay-shadow-elevated), var(--accent-glow);
+}
+
+/* Main Layout Grid - Balanced 2 Columns */
+.licenseGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+  gap: 24px;
+  align-items: start;
+}
+
+.leftCol,
+.rightCol {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+@media (max-width: 950px) {
+  .licenseGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ===== 3D License Card Container ===== */
+.licensePerspectiveWrapper {
+  perspective: 1200px;
+}
+
+.licenseCard {
+  position: relative;
+  border-radius: 24px;
+  background: linear-gradient(135deg, rgba(24, 25, 32, 0.98) 0%, rgba(12, 13, 18, 0.99) 100%);
+  border: 1px solid rgba(125, 211, 232, 0.28);
+  box-shadow: 
+    0 24px 60px -12px rgba(0, 0, 0, 0.85),
+    0 0 35px rgba(8, 145, 178, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  padding: 24px 26px;
+  overflow: hidden;
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  transform-style: preserve-3d;
+  will-change: transform;
+  transition: box-shadow 0.4s ease;
+}
+
+.licenseCard:hover {
+  box-shadow: 
+    0 34px 75px -14px rgba(0, 0, 0, 0.95),
+    0 0 45px rgba(125, 211, 232, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.35);
+}
+
+/* Dynamic Interactive Specular Glare Spot */
+.cardSpecularGlare {
+  position: absolute;
+  inset: 0;
+  border-radius: 24px;
+  pointer-events: none;
+  mix-blend-mode: screen;
+  z-index: 2;
+  transition: opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Holographic Sheen */
+.licenseCard::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(
+    45deg,
+    transparent 35%,
+    rgba(255, 255, 255, 0.04) 45%,
+    rgba(125, 211, 232, 0.08) 50%,
+    rgba(236, 72, 153, 0.05) 55%,
+    transparent 65%
+  );
+  transform: rotate(-25deg);
+  pointer-events: none;
+  animation: holoSheen 9s ease-in-out infinite alternate;
+}
+
+@keyframes holoSheen {
+  0% { transform: translateY(-20%) rotate(-25deg); opacity: 0.3; }
+  50% { transform: translateY(15%) rotate(-20deg); opacity: 0.7; }
+  100% { transform: translateY(-20%) rotate(-25deg); opacity: 0.3; }
+}
+
+/* Card Header */
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding-bottom: 14px;
+  margin-bottom: 18px;
+}
+
+.cardFederationTitle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  color: #7dd3e8;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.licenseSuperBadge {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.2) 0%, rgba(239, 68, 68, 0.2) 100%);
+  border: 1px solid rgba(245, 158, 11, 0.4);
+  color: #fbbf24;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 1.2px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  text-transform: uppercase;
+}
+
+/* Driver Profile Info */
+.driverRow {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.avatarContainer {
+  position: relative;
+  width: 66px;
+  height: 66px;
+  border-radius: 18px;
+  background: var(--color-primary);
+  border: 2px solid var(--accent-subtle-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-heading);
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--color-primary-text);
+  box-shadow: var(--clay-shadow-button), var(--accent-glow);
+  flex-shrink: 0;
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.avatarContainer:hover {
+  transform: scale(1.05) rotate(2deg);
+}
+
+.driverInfoMeta {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.driverNameWrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.driverName {
+  font-family: var(--font-heading);
+  font-size: 22px;
+  font-weight: 700;
+  color: #fff;
+  margin: 0;
+  letter-spacing: -0.02em;
+}
+
+.driverCallsign {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: #7dd3e8;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Smart Chip & Class Badge Row */
+.chipRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  gap: 12px;
+}
+
+.smartChip {
+  width: 44px;
+  height: 32px;
+  border-radius: 6px;
+  background: linear-gradient(135deg, #ffd700 0%, #b8860b 50%, #e6ca65 100%);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.6), 0 2px 8px rgba(0, 0, 0, 0.4);
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.smartChipInner {
+  width: 32px;
+  height: 22px;
+  border: 1px solid rgba(0, 0, 0, 0.35);
+  border-radius: 3px;
+  position: relative;
+}
+
+.smartChipLineH {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: rgba(0, 0, 0, 0.35);
+  transform: translateY(-50%);
+}
+
+.smartChipLineV {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: rgba(0, 0, 0, 0.35);
+  transform: translateX(-50%);
+}
+
+.licenseClassBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  color: #7dd3e8;
+  background: rgba(8, 145, 178, 0.12);
+  border: 1px solid rgba(125, 211, 232, 0.3);
+  padding: 5px 11px;
+  border-radius: 8px;
+}
+
+/* 4-Stat Telemetry Matrix */
+.statsMatrix {
+  display: grid;
+  /* Best Lap + Race Points are the only two tiles with real data behind
+     them -- Top Speed/Launch Reflex were removed (see license/page.tsx)
+     since nothing in the schema tracks those per student. */
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  background: rgba(0, 0, 0, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  padding: 12px 14px;
+  margin-bottom: 16px;
+}
+
+.statItem {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.statLabel {
+  font-size: 9px;
+  font-family: var(--font-mono);
+  letter-spacing: 0.8px;
+  /* Not var(--text-muted): .licenseCard's background is a fixed near-black
+     gradient in every theme (the holographic ID-card look doesn't follow
+     light/dark/personalized), but --text-muted DOES change per theme --
+     in Light theme it's a dark slate gray meant for a light card, which
+     is nearly unreadable against this always-dark surface. */
+  color: rgba(255, 255, 255, 0.55);
+  text-transform: uppercase;
+}
+
+.statValue {
+  font-size: 15.5px;
+  font-weight: 700;
+  color: #fff;
+  font-family: var(--font-mono);
+  line-height: 1.2;
+}
+
+.statValueAccent {
+  color: #7dd3e8;
+  text-shadow: 0 0 10px rgba(125, 211, 232, 0.4);
+}
+
+.statSubBadge {
+  font-size: 8px;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  color: #10b981;
+}
+
+.statSubPurple {
+  color: #c084fc;
+}
+
+/* Interactive RC Throttle & RPM Console (Replaces Loading Bar!) */
+.throttleConsole {
+  background: linear-gradient(135deg, rgba(8, 145, 178, 0.08) 0%, rgba(0, 0, 0, 0.4) 100%);
+  border: 1px solid rgba(125, 211, 232, 0.22);
+  border-radius: 14px;
+  padding: 12px 16px;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.25s ease;
+}
+
+.throttleConsoleRevving {
+  border-color: #38bdf8;
+  box-shadow: 0 0 25px rgba(56, 189, 248, 0.35), inset 0 0 15px rgba(56, 189, 248, 0.15);
+  background: linear-gradient(135deg, rgba(8, 145, 178, 0.2) 0%, rgba(14, 165, 233, 0.1) 100%);
+}
+
+.throttleLeft {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  flex: 1;
+  min-width: 0;
+}
+
+.throttleMetaRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+
+.throttleLabel {
+  /* See .statLabel above: this sits on .licenseCard's always-dark surface. */
+  color: rgba(255, 255, 255, 0.55);
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  font-size: 9.5px;
+}
+
+.throttleRpmVal {
+  font-weight: 700;
+  font-size: 13.5px;
+  color: #38bdf8;
+  font-family: var(--font-mono);
+  letter-spacing: 0.5px;
+  transition: color 0.15s ease;
+}
+
+.throttleRpmValActive {
+  color: #f59e0b;
+  text-shadow: 0 0 12px rgba(245, 158, 11, 0.6);
+}
+
+.tachometerTrack {
+  width: 100%;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 999px;
+  overflow: hidden;
+  margin-top: 4px;
+}
+
+.tachometerFill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #10b981 0%, #38bdf8 65%, #f59e0b 85%, #ef4444 100%);
+  transition: width 0.12s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.revThrottleBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  background: linear-gradient(135deg, rgba(8, 145, 178, 0.25) 0%, rgba(56, 189, 248, 0.15) 100%);
+  border: 1px solid rgba(125, 211, 232, 0.4);
+  color: #fff;
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  padding: 8px 14px;
+  border-radius: 9px;
+  cursor: pointer;
+  white-space: nowrap;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  flex-shrink: 0;
+  user-select: none;
+}
+
+.revThrottleBtn:hover:not(:disabled) {
+  background: linear-gradient(135deg, rgba(8, 145, 178, 0.4) 0%, rgba(56, 189, 248, 0.3) 100%);
+  border-color: #7dd3e8;
+  transform: translateY(-1px) scale(1.02);
+  box-shadow: 0 0 16px rgba(8, 145, 178, 0.4);
+}
+
+.revThrottleBtn:active:not(:disabled),
+.revThrottleBtnActive {
+  transform: scale(0.96);
+  background: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%) !important;
+  border-color: #fbbf24 !important;
+  color: #000 !important;
+  box-shadow: 0 0 22px rgba(245, 158, 11, 0.6) !important;
+}
+
+/* Digital Signature Row */
+.signatureRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+  padding: 0 4px;
+  font-size: 11px;
+}
+
+.signatureLabel {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  /* See .statLabel above: this sits on .licenseCard's always-dark surface. */
+  color: rgba(255, 255, 255, 0.55);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.signatureText {
+  font-family: 'Brush Script MT', 'Dancing Script', cursive, sans-serif;
+  font-size: 17px;
+  color: #7dd3e8;
+  letter-spacing: 1px;
+  opacity: 0.9;
+}
+
+/* Barcode Footer */
+.cardFooter {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  padding-top: 16px;
+}
+
+.barcodeArea {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  height: 28px;
+}
+
+.barcodeBar {
+  background: rgba(255, 255, 255, 0.7);
+  height: 100%;
+  border-radius: 1px;
+}
+
+.licenseSerial {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  /* See .statLabel above: this sits on .licenseCard's always-dark surface. */
+  color: rgba(255, 255, 255, 0.55);
+  letter-spacing: 1.5px;
+  margin-left: 10px;
+}
+
+.statusVerifiedBadge {
+  font-size: 10px;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  color: #10b981;
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  padding: 2px 7px;
+  border-radius: 4px;
+  text-transform: uppercase;
+}
+
+.officialBadge {
+  font-size: 10px;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  color: var(--accent-subtle-text);
+  background: var(--accent-subtle-bg);
+  border: 1px solid var(--accent-subtle-border);
+  padding: 4px 10px;
+  border-radius: 6px;
+  text-transform: uppercase;
+}
+
+/* ===== Info Cards ===== */
+.infoCard {
+  background: var(--bg-card);
+  border: var(--border-subtle);
+  border-radius: var(--clay-radius-md, 20px);
+  box-shadow: var(--clay-shadow-outer);
+  padding: 20px 24px;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.cardHeaderWithAction {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.cardTitle {
+  font-family: var(--font-heading);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-main);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Registry List */
+.registryList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.registryRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12.5px;
+  padding: 9px 12px;
+  border-radius: 10px;
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--border-elevated);
+}
+
+.registryLabel {
+  /* See .statLabel above: this sits on .licenseCard's always-dark surface. */
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.registryVal {
+  color: var(--text-main);
+  font-weight: 500;
+}
+
+.registryStatusOk {
+  color: #10b981;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.returnPaddockLink {
+  margin-top: 2px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: var(--accent-subtle-bg);
+  border: 1px solid var(--accent-subtle-border);
+  color: var(--accent-subtle-text);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 10px 16px;
+  border-radius: 12px;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.returnPaddockLink:hover {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: var(--color-primary-text);
+  transform: translateY(-1px);
+}
+
+/* ===== Countdown Card ===== */
+.countdownCard {
+  background: var(--bg-card);
+  border: var(--border-subtle);
+  border-radius: var(--clay-radius-md, 20px);
+  box-shadow: var(--clay-shadow-outer);
+  padding: 20px 24px;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.countdownHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.countdownTitleWrap {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.countdownIconWrap {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: var(--accent-subtle-bg);
+  color: var(--accent-subtle-text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.countdownTitle {
+  font-family: var(--font-heading);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-main);
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+.countdownLocationWrap {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 2px;
+}
+
+.countdownTrack {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.timerGrid {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--border-elevated);
+  border-radius: 14px;
+  padding: 14px 18px;
+}
+
+.timerSegment {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  flex: 1;
+}
+
+.timerNumber {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--text-main);
+  font-family: var(--font-mono);
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+
+.timerLabel {
+  font-size: 9px;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  letter-spacing: 1.2px;
+  color: var(--text-muted);
+}
+
+.timerColon {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--accent-subtle-text);
+  line-height: 1;
+  margin-top: -8px;
+}
+
+/* ===== Accolades Badges Grid ===== */
+.badgesCountBadge {
+  font-size: 10.5px;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  color: #fbbf24;
+  background: rgba(251, 191, 36, 0.12);
+  border: 1px solid rgba(251, 191, 36, 0.3);
+  padding: 3px 8px;
+  border-radius: 999px;
+}
+
+.badgesGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.badgeCard {
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--border-elevated);
+  border-radius: 14px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  cursor: default;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.badgeCard:hover {
+  border-color: var(--accent-subtle-border);
+  background: var(--bg-card-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 24px -6px rgba(0, 0, 0, 0.25), var(--accent-glow);
+}
+
+.badgeTop {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.badgeIconWrap {
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.badgeName {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--text-main);
+  margin: 0;
+}
+
+.badgeDesc {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin: 0;
+  line-height: 1.4;
+}
+
+.badgeFooter {
+  display: flex;
+  align-items: center;
+  margin-top: auto;
+}
+
+.badgeUnlockedTag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: #10b981;
+  background: rgba(16, 185, 129, 0.08);
+  border: 1px solid rgba(16, 185, 129, 0.2);
+  padding: 2px 7px;
+  border-radius: 4px;
+}
+
+/* Toast Notification */
+.toastNotification {
+  position: fixed;
+  top: 24px;
+  right: 24px;
+  z-index: 9999;
+  background: linear-gradient(135deg, rgba(8, 145, 178, 0.95), rgba(6, 78, 59, 0.95));
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(125, 211, 232, 0.4);
+  color: #fff;
+  padding: 14px 24px;
+  border-radius: 14px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5), 0 0 20px rgba(125, 211, 232, 0.4);
+  font-weight: 500;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Responsive */
+@media (max-width: 950px) {
+  .licenseGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .pageHeader {
+    padding: 16px 14px;
+    gap: 12px;
+  }
+
+  .headerActions {
+    width: 100%;
+    gap: 8px;
+  }
+
+  .actionBtnSecondary,
+  .actionBtnPrimary {
+    flex: 1;
+    justify-content: center;
+    padding: 8px 12px;
+    font-size: 12px;
+  }
+
+  .licenseCard {
+    padding: 18px 14px;
+  }
+
+  .badgesGrid {
+    grid-template-columns: 1fr;
+  }
+}

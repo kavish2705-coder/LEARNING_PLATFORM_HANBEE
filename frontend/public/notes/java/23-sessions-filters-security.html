@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="en" data-track="java">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sessions, Cookies, Filters, Listeners and Web Security — Java Notes · Hanbee</title>
+<meta name="description" content="Keep users logged in with sessions and cookies, intercept requests with filters, react to lifecycle events with listeners, and secure a Java web application.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500..700;1,9..144,500&amp;family=Inter:wght@400..700&amp;family=JetBrains+Mono:wght@400..600&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/notes.css">
+<script src="../assets/notes.js" defer></script>
+</head>
+<body>
+<div class="progress" aria-hidden="true"><i></i></div>
+<header class="top">
+  <a class="brand" href="../index.html"><b>H</b>Hanbee · Java Notes</a>
+  <nav><a class="keep" href="index.html">All topics</a><button id="theme-toggle" type="button" aria-label="Toggle light and dark theme">Theme</button></nav>
+</header>
+<div class="shell">
+  <details class="toc"><summary>On this page</summary><nav aria-label="On this page"><ol><li><a href="#state-management-in-a-stateless-protocol"><span>01</span>State Management in a Stateless Protocol</a></li><li><a href="#cookies"><span>02</span>Cookies</a></li><li><a href="#httpsession"><span>03</span>HttpSession</a></li><li><a href="#filters"><span>04</span>Filters</a></li><li><a href="#listeners"><span>05</span>Listeners</a></li><li><a href="#web-security-essentials"><span>06</span>Web Security Essentials</a></li><li><a href="#declarative-container-security"><span>07</span>Declarative Container Security</a></li><li><a href="#mvc-pattern-recap"><span>08</span>MVC Pattern (Recap)</a></li><li><a href="#quick-recap"><span>09</span>Quick Recap</a></li></ol></nav></details>
+  <main>
+    <header class="hero">
+      <p class="kicker"><span class="pill">Enterprise Java (JEE)</span><span>Topic 23</span><span>Intermediate</span><span>5 min read</span></p>
+      <h1>Sessions, Cookies, Filters, Listeners and Web Security</h1>
+      <p class="lede">Keep users logged in with sessions and cookies, intercept requests with filters, react to lifecycle events with listeners, and secure a Java web application.</p>
+    </header>
+    <article>
+<h2 id="state-management-in-a-stateless-protocol"><span class="num">01</span>State Management in a Stateless Protocol</h2>
+<p>HTTP forgets every request. To remember a user (login, shopping cart) you need <strong>state management</strong>.</p>
+<div class="table-wrap"><table><thead><tr><th>Technique</th><th>Stored</th><th>Notes</th></tr></thead><tbody><tr><td><strong>Cookies</strong></td><td>Browser</td><td>Small, sent with every request</td></tr><tr><td><strong>HttpSession</strong></td><td>Server (ID in a cookie)</td><td>Most common for login state</td></tr><tr><td>URL rewriting</td><td>In the URL</td><td>Fallback when cookies are blocked</td></tr><tr><td>Hidden form fields</td><td>In the page</td><td>Multi-step forms</td></tr><tr><td>Tokens (JWT)</td><td>Client</td><td>Stateless APIs</td></tr></tbody></table></div>
+<h2 id="cookies"><span class="num">02</span>Cookies</h2>
+<pre><code class="language-java">// create
+Cookie c = new Cookie("theme", "dark");
+c.setMaxAge(60 * 60 * 24 * 30);      // 30 days; -1 = until browser closes; 0 = delete
+c.setPath("/");
+c.setHttpOnly(true);                 // not readable by JavaScript (blocks XSS theft)
+c.setSecure(true);                   // only sent over HTTPS
+resp.addCookie(c);
+
+// read
+Cookie[] cookies = req.getCookies();           // may be null
+if (cookies != null)
+    for (Cookie k : cookies)
+        if ("theme".equals(k.getName())) System.out.println(k.getValue());</code></pre>
+<aside class="callout warning"><span class="label">Warning</span><p>Never put passwords or sensitive data in cookies. Always use <code>HttpOnly</code>, <code>Secure</code> and <code>SameSite</code> for session cookies.</p></aside>
+<h2 id="httpsession"><span class="num">03</span>HttpSession</h2>
+<p>The container creates a <strong>session ID</strong> (cookie <code>JSESSIONID</code>) and keeps the data on the server.</p>
+<pre><code class="language-java">HttpSession session = req.getSession();            // create if absent
+HttpSession existing = req.getSession(false);      // null if none
+
+session.setAttribute("user", user);
+User u = (User) session.getAttribute("user");
+session.removeAttribute("user");
+session.setMaxInactiveInterval(30 * 60);           // seconds
+session.getId();   session.isNew();
+session.invalidate();                              // logout</code></pre>
+<h3 id="login-and-logout-example">Login and logout example</h3>
+<pre><code class="language-java">@WebServlet("/login")
+public class LoginServlet extends HttpServlet {
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        User user = auth.authenticate(req.getParameter("email"), req.getParameter("password"));
+        if (user == null) { resp.sendRedirect("login?error=1"); return; }
+
+        req.changeSessionId();                                 // prevents session fixation
+        req.getSession().setAttribute("user", user);
+        resp.sendRedirect(req.getContextPath() + "/dashboard");
+    }
+}
+
+@WebServlet("/logout")
+public class LogoutServlet extends HttpServlet {
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        HttpSession s = req.getSession(false);
+        if (s != null) s.invalidate();
+        resp.sendRedirect("login");
+    }
+}</code></pre>
+<h3 id="cookie-vs-session">Cookie vs Session</h3>
+<div class="table-wrap"><table><thead><tr><th></th><th>Cookie</th><th>Session</th></tr></thead><tbody><tr><td>Stored on</td><td>Client</td><td>Server</td></tr><tr><td>Size</td><td>~4 KB</td><td>Limited by memory</td></tr><tr><td>Security</td><td>Weaker</td><td>Stronger</td></tr><tr><td>Lifetime</td><td>Can be long (days)</td><td>Short (timeout)</td></tr><tr><td>Scaling</td><td>Easy</td><td>Needs sticky sessions or shared store (Redis)</td></tr></tbody></table></div>
+<h2 id="filters"><span class="num">04</span>Filters</h2>
+<p>A <strong>filter</strong> intercepts requests <strong>before</strong> they reach a servlet (and responses on the way back). Use them for cross-cutting concerns: authentication, logging, encoding, compression, CORS.</p>
+<pre><code class="language-text">Request ─► Filter 1 ─► Filter 2 ─► Servlet ─► Filter 2 ─► Filter 1 ─► Response</code></pre>
+<pre><code class="language-java">@WebFilter("/*")
+public class EncodingFilter implements Filter {
+    @Override
+    public void doFilter(ServletRequest req, ServletResponse res, FilterChain chain)
+            throws IOException, ServletException {
+        req.setCharacterEncoding("UTF-8");
+        res.setCharacterEncoding("UTF-8");
+        chain.doFilter(req, res);                 // continue; skip this call to block the request
+    }
+}</code></pre>
+<h3 id="authentication-filter">Authentication filter</h3>
+<pre><code class="language-java">@WebFilter(urlPatterns = {"/dashboard/*", "/admin/*"})
+public class AuthFilter implements Filter {
+    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
+            throws IOException, ServletException {
+        HttpServletRequest req = (HttpServletRequest) request;
+        HttpServletResponse resp = (HttpServletResponse) response;
+
+        HttpSession session = req.getSession(false);
+        boolean loggedIn = session != null &amp;&amp; session.getAttribute("user") != null;
+        if (loggedIn) chain.doFilter(request, response);
+        else resp.sendRedirect(req.getContextPath() + "/login");
+    }
+}</code></pre>
+<ul><li>Order of multiple filters is set in <code>web.xml</code> (annotation order is undefined)</li><li>Filter methods: <code>init</code>, <code>doFilter</code>, <code>destroy</code></li><li>A filter can <strong>wrap</strong> the request/response (<code>HttpServletRequestWrapper</code>) to modify them</li></ul>
+<h2 id="listeners"><span class="num">05</span>Listeners</h2>
+<p>Listeners react to <strong>events</strong> in the web application's lifecycle.</p>
+<div class="table-wrap"><table><thead><tr><th>Listener interface</th><th>Event</th></tr></thead><tbody><tr><td><code>ServletContextListener</code></td><td>App starts / stops</td></tr><tr><td><code>HttpSessionListener</code></td><td>Session created / destroyed</td></tr><tr><td><code>HttpSessionAttributeListener</code></td><td>Session attribute added/changed</td></tr><tr><td><code>ServletRequestListener</code></td><td>Request begins / ends</td></tr><tr><td><code>ServletContextAttributeListener</code></td><td>App attribute changes</td></tr></tbody></table></div>
+<pre><code class="language-java">@WebListener
+public class AppStartup implements ServletContextListener {
+    @Override
+    public void contextInitialized(ServletContextEvent e) {
+        DataSource ds = createPool();
+        e.getServletContext().setAttribute("dataSource", ds);     // shared across the app
+    }
+    @Override
+    public void contextDestroyed(ServletContextEvent e) {
+        ((HikariDataSource) e.getServletContext().getAttribute("dataSource")).close();
+    }
+}</code></pre>
+<p>Typical uses: create connection pools at startup, count active users with <code>HttpSessionListener</code>, schedule background jobs.</p>
+<h2 id="web-security-essentials"><span class="num">06</span>Web Security Essentials</h2>
+<div class="table-wrap"><table><thead><tr><th>Threat</th><th>What it is</th><th>Defence</th></tr></thead><tbody><tr><td><strong>SQL Injection</strong></td><td>Malicious SQL in input</td><td><code>PreparedStatement</code>, ORM parameters</td></tr><tr><td><strong>XSS</strong> (Cross-Site Scripting)</td><td>Script injected into your page</td><td>Escape output (<code>&lt;c:out&gt;</code>), Content-Security-Policy, <code>HttpOnly</code> cookies</td></tr><tr><td><strong>CSRF</strong></td><td>A malicious site makes the browser send a request as the logged-in user</td><td>CSRF tokens, <code>SameSite</code> cookies</td></tr><tr><td><strong>Session fixation / hijacking</strong></td><td>Attacker reuses a session ID</td><td><code>changeSessionId()</code> after login, HTTPS, <code>HttpOnly</code>, short timeouts</td></tr><tr><td><strong>Broken authentication</strong></td><td>Weak passwords, no lockout</td><td>Hash passwords, rate-limit, MFA</td></tr><tr><td><strong>Insecure file upload</strong></td><td>Uploading scripts or huge files</td><td>Validate type/size, store outside web root</td></tr><tr><td><strong>Sensitive data exposure</strong></td><td>Plain-text secrets/HTTP</td><td>HTTPS everywhere, encrypt, no secrets in code</td></tr></tbody></table></div>
+<h3 id="password-storage">Password storage</h3>
+<pre><code class="language-java">// Never store plain text or fast hashes (MD5/SHA-1/SHA-256 alone). Use a slow, salted algorithm:
+// BCrypt, Argon2 or PBKDF2.
+String hash = BCrypt.hashpw(password, BCrypt.gensalt(12));
+boolean ok = BCrypt.checkpw(input, hash);</code></pre>
+<p>(Spring Security's <code>BCryptPasswordEncoder</code> or the <code>at.favre.lib:bcrypt</code> library provide this.)</p>
+<h3 id="security-response-headers-set-in-a-filter">Security response headers (set in a filter)</h3>
+<pre><code class="language-java">resp.setHeader("X-Content-Type-Options", "nosniff");
+resp.setHeader("X-Frame-Options", "DENY");
+resp.setHeader("Content-Security-Policy", "default-src 'self'");
+resp.setHeader("Strict-Transport-Security", "max-age=31536000; includeSubDomains");</code></pre>
+<h2 id="declarative-container-security"><span class="num">07</span>Declarative Container Security</h2>
+<pre data-file="web.xml"><code class="language-xml">&lt;security-constraint&gt;
+  &lt;web-resource-collection&gt;
+    &lt;web-resource-name&gt;Admin&lt;/web-resource-name&gt;
+    &lt;url-pattern&gt;/admin/*&lt;/url-pattern&gt;
+  &lt;/web-resource-collection&gt;
+  &lt;auth-constraint&gt;&lt;role-name&gt;ADMIN&lt;/role-name&gt;&lt;/auth-constraint&gt;
+  &lt;user-data-constraint&gt;&lt;transport-guarantee&gt;CONFIDENTIAL&lt;/transport-guarantee&gt;&lt;/user-data-constraint&gt;
+&lt;/security-constraint&gt;
+&lt;login-config&gt;&lt;auth-method&gt;FORM&lt;/auth-method&gt;&lt;/login-config&gt;</code></pre>
+<p>Authentication methods: <code>BASIC</code>, <code>DIGEST</code>, <code>FORM</code>, <code>CLIENT-CERT</code>. In servlet code: <code>req.isUserInRole("ADMIN")</code>, <code>req.getUserPrincipal()</code>. Modern apps often use <strong>Spring Security</strong>, <strong>OAuth 2.0 / OpenID Connect</strong> and <strong>JWT</strong> instead.</p>
+<h2 id="mvc-pattern-recap"><span class="num">08</span>MVC Pattern (Recap)</h2>
+<ul><li><strong>Model</strong>: data and business rules (beans, services)</li><li><strong>View</strong>: output rendering (JSP, templates)</li><li><strong>Controller</strong>: handles input, calls model, picks view (servlets)</li></ul>
+<p>Front-controller frameworks (Spring MVC's <code>DispatcherServlet</code>, Struts, JSF's <code>FacesServlet</code>) route all requests through one servlet.</p>
+<h2 id="quick-recap"><span class="num">09</span>Quick Recap</h2>
+<ul><li>Sessions keep state on the server using the <code>JSESSIONID</code> cookie; call <code>invalidate()</code> on logout and <code>changeSessionId()</code> on login</li><li>Cookies live in the browser: set <code>HttpOnly</code>, <code>Secure</code>, <code>SameSite</code></li><li>Filters intercept requests for auth, logging, encoding</li><li>Listeners react to app/session/request lifecycle events</li><li>Defend against SQL injection, XSS, CSRF; hash passwords with BCrypt/Argon2</li></ul>
+    </article>
+    <nav class="pager" aria-label="Topic navigation">
+      <a class="prev" href="22-jsp-jstl-el.html"><small>← Previous</small><strong>JSP, Expression Language and JSTL</strong></a>
+      <a class="next" href="24-jpa-hibernate.html"><small>Next →</small><strong>JPA and Hibernate (ORM)</strong></a>
+    </nav>
+  </main>
+</div>
+</body>
+</html>

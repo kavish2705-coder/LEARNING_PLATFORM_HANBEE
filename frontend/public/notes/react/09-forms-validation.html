@@ -1,0 +1,257 @@
+<!doctype html>
+<html lang="en" data-track="react">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Forms and Validation — React Notes · Hanbee</title>
+<meta name="description" content="Build robust forms. Controlled versus uncontrolled inputs, React 19 form actions with FormData, client-side validation, React Hook Form with Zod, file uploads and accessible error messages.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500..700;1,9..144,500&amp;family=Inter:wght@400..700&amp;family=JetBrains+Mono:wght@400..600&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/notes.css">
+<script src="../assets/notes.js" defer></script>
+</head>
+<body>
+<div class="progress" aria-hidden="true"><i></i></div>
+<header class="top">
+  <a class="brand" href="../index.html"><b>H</b>Hanbee · React Notes</a>
+  <nav><a class="keep" href="index.html">All topics</a><button id="theme-toggle" type="button" aria-label="Toggle light and dark theme">Theme</button></nav>
+</header>
+<div class="shell">
+  <details class="toc"><summary>On this page</summary><nav aria-label="On this page"><ol><li><a href="#three-ways-to-build-forms-in-react"><span>01</span>Three Ways to Build Forms in React</a></li><li><a href="#controlled-form"><span>02</span>Controlled Form</a></li><li><a href="#uncontrolled-form-with-formdata-and-form-actions-react-19"><span>03</span>Uncontrolled Form with FormData and Form Actions (React 19)</a></li><li><a href="#built-in-html-validation"><span>04</span>Built-in HTML Validation</a></li><li><a href="#input-types-and-attributes"><span>05</span>Input Types and Attributes</a></li><li><a href="#common-form-patterns"><span>06</span>Common Form Patterns</a></li><li><a href="#file-uploads"><span>07</span>File Uploads</a></li><li><a href="#react-hook-form-zod"><span>08</span>React Hook Form + Zod</a></li><li><a href="#accessible-forms-checklist"><span>09</span>Accessible Forms Checklist</a></li><li><a href="#security-notes"><span>10</span>Security Notes</a></li><li><a href="#quick-recap"><span>11</span>Quick Recap</a></li></ol></nav></details>
+  <main>
+    <header class="hero">
+      <p class="kicker"><span class="pill">React 19 and Patterns</span><span>Topic 09</span><span>Intermediate</span><span>8 min read</span></p>
+      <h1>Forms and Validation</h1>
+      <p class="lede">Build robust forms. Controlled versus uncontrolled inputs, React 19 form actions with FormData, client-side validation, React Hook Form with Zod, file uploads and accessible error messages.</p>
+    </header>
+    <article>
+<h2 id="three-ways-to-build-forms-in-react"><span class="num">01</span>Three Ways to Build Forms in React</h2>
+<div class="table-wrap"><table><thead><tr><th>Approach</th><th>How it works</th><th>Best for</th></tr></thead><tbody><tr><td><strong>Controlled</strong></td><td>Every input's value is in state</td><td>Live validation, dependent fields, input masks</td></tr><tr><td><strong>Uncontrolled + FormData</strong></td><td>DOM holds the values; read on submit</td><td>Simple forms, <strong>React 19 form actions</strong></td></tr><tr><td><strong>Form library</strong> (React Hook Form)</td><td>Library manages values, errors, touched state</td><td>Large/complex forms</td></tr></tbody></table></div>
+<h2 id="controlled-form"><span class="num">02</span>Controlled Form</h2>
+<pre><code class="language-jsx">function ContactForm() {
+  const [values, setValues] = useState({ name: "", email: "", message: "" });
+  const [errors, setErrors] = useState({});
+  const [status, setStatus] = useState("idle");
+
+  const handleChange = (e) =&gt; {
+    const { name, value } = e.target;
+    setValues(v =&gt; ({ ...v, [name]: value }));
+  };
+
+  const validate = (v) =&gt; {
+    const e = {};
+    if (!v.name.trim()) e.name = "Name is required";
+    if (!/^\S+@\S+\.\S+$/.test(v.email)) e.email = "Enter a valid email";
+    if (v.message.length &lt; 10) e.message = "Message must be at least 10 characters";
+    return e;
+  };
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+    const found = validate(values);
+    setErrors(found);
+    if (Object.keys(found).length) return;
+
+    setStatus("submitting");
+    try {
+      await sendMessage(values);
+      setStatus("success");
+      setValues({ name: "", email: "", message: "" });
+    } catch {
+      setStatus("error");
+    }
+  }
+
+  return (
+    &lt;form onSubmit={handleSubmit} noValidate&gt;
+      &lt;label htmlFor="name"&gt;Name&lt;/label&gt;
+      &lt;input id="name" name="name" value={values.name} onChange={handleChange}
+             aria-invalid={!!errors.name} aria-describedby={errors.name ? "name-err" : undefined} /&gt;
+      {errors.name &amp;&amp; &lt;p id="name-err" role="alert"&gt;{errors.name}&lt;/p&gt;}
+      {/* email and message fields follow the same pattern */}
+      &lt;button disabled={status === "submitting"}&gt;{status === "submitting" ? "Sending…" : "Send"}&lt;/button&gt;
+      {status === "success" &amp;&amp; &lt;p&gt;Thanks! We'll reply soon.&lt;/p&gt;}
+      {status === "error" &amp;&amp; &lt;p role="alert"&gt;Something went wrong. Try again.&lt;/p&gt;}
+    &lt;/form&gt;
+  );
+}</code></pre>
+<h2 id="uncontrolled-form-with-formdata-and-form-actions-react-19"><span class="num">03</span>Uncontrolled Form with FormData and Form Actions (React 19)</h2>
+<p>The simplest approach: no state per field.</p>
+<pre><code class="language-jsx">async function createCourse(formData) {
+  const course = Object.fromEntries(formData);          // { title: "...", level: "..." }
+  await api.createCourse(course);
+}
+
+&lt;form action={createCourse}&gt;
+  &lt;input name="title" required minLength={3} /&gt;
+  &lt;select name="level" defaultValue="beginner"&gt;
+    &lt;option value="beginner"&gt;Beginner&lt;/option&gt;
+    &lt;option value="advanced"&gt;Advanced&lt;/option&gt;
+  &lt;/select&gt;
+  &lt;input type="checkbox" name="published" /&gt;
+  &lt;button&gt;Create&lt;/button&gt;
+&lt;/form&gt;</code></pre>
+<h3 id="formdata-essentials">FormData essentials</h3>
+<pre><code class="language-js">formData.get("title");                 // string | File | null
+formData.getAll("tags");               // all values for a repeated field (checkbox group, multi-select)
+formData.has("published");             // checkboxes are only present when checked
+Object.fromEntries(formData);          // simple object (repeated names keep the last value)
+new FormData(formElement);             // build one from a &lt;form&gt;</code></pre>
+<h3 id="validation-with-useactionstate">Validation with useActionState</h3>
+<pre><code class="language-jsx">async function register(prev, formData) {
+  const email = formData.get("email");
+  const password = formData.get("password");
+
+  const errors = {};
+  if (!/^\S+@\S+\.\S+$/.test(email)) errors.email = "Invalid email";
+  if (password.length &lt; 8) errors.password = "At least 8 characters";
+  if (Object.keys(errors).length) return { errors, values: { email } };   // keep what the user typed
+
+  const res = await api.register(email, password);
+  return res.ok ? { success: true } : { errors: { form: res.message }, values: { email } };
+}
+
+function Register() {
+  const [state, action, pending] = useActionState(register, {});
+  return (
+    &lt;form action={action}&gt;
+      &lt;input name="email" type="email" defaultValue={state.values?.email} /&gt;
+      {state.errors?.email &amp;&amp; &lt;p role="alert"&gt;{state.errors.email}&lt;/p&gt;}
+      &lt;input name="password" type="password" /&gt;
+      {state.errors?.password &amp;&amp; &lt;p role="alert"&gt;{state.errors.password}&lt;/p&gt;}
+      {state.errors?.form &amp;&amp; &lt;p role="alert"&gt;{state.errors.form}&lt;/p&gt;}
+      &lt;button disabled={pending}&gt;Create account&lt;/button&gt;
+    &lt;/form&gt;
+  );
+}</code></pre>
+<aside class="callout note"><span class="label">Note</span><p>React resets uncontrolled fields after a successful action. To keep entered values after a <strong>failed</strong> validation, return them in state and use <code>defaultValue</code>.</p></aside>
+<h2 id="built-in-html-validation"><span class="num">04</span>Built-in HTML Validation</h2>
+<p>Use the browser first: it is accessible and free.</p>
+<pre><code class="language-jsx">&lt;input type="email" required /&gt;
+&lt;input type="password" required minLength={8} maxLength={64} /&gt;
+&lt;input type="number" min={1} max={100} step={1} /&gt;
+&lt;input pattern="[0-9]{10}" title="10-digit mobile number" /&gt;</code></pre>
+<ul><li><code>required</code>, <code>minLength</code>, <code>maxLength</code>, <code>min</code>, <code>max</code>, <code>pattern</code>, <code>type="email|url|tel|number|date"</code></li><li><code>noValidate</code> on <code>&lt;form&gt;</code> turns off the browser's bubbles when you render your own messages</li><li><code>e.target.checkValidity()</code> and <code>reportValidity()</code> for custom flows</li></ul>
+<h2 id="input-types-and-attributes"><span class="num">05</span>Input Types and Attributes</h2>
+<div class="table-wrap"><table><thead><tr><th>Type</th><th>Notes</th></tr></thead><tbody><tr><td><code>text</code>, <code>email</code>, <code>password</code>, <code>search</code>, <code>tel</code>, <code>url</code></td><td>Mobile keyboards adapt to the type</td></tr><tr><td><code>number</code></td><td>Value is a string; convert with <code>Number()</code></td></tr><tr><td><code>checkbox</code></td><td><code>checked</code> / <code>defaultChecked</code></td></tr><tr><td><code>radio</code></td><td>Same <code>name</code>, different <code>value</code></td></tr><tr><td><code>date</code>, <code>time</code>, <code>datetime-local</code></td><td>Native pickers, string values</td></tr><tr><td><code>file</code></td><td>Always uncontrolled</td></tr><tr><td><code>range</code>, <code>color</code></td><td>Native widgets</td></tr></tbody></table></div>
+<p>Useful attributes: <code>autoComplete</code>, <code>inputMode</code>, <code>autoFocus</code>, <code>disabled</code>, <code>readOnly</code>, <code>placeholder</code> (not a replacement for labels).</p>
+<h2 id="common-form-patterns"><span class="num">06</span>Common Form Patterns</h2>
+<h3 id="checkbox-group">Checkbox group</h3>
+<pre><code class="language-jsx">const [tags, setTags] = useState([]);
+const toggle = (tag) =&gt; setTags(t =&gt; t.includes(tag) ? t.filter(x =&gt; x !== tag) : [...t, tag]);
+
+{["java", "react", "sql"].map(tag =&gt; (
+  &lt;label key={tag}&gt;&lt;input type="checkbox" checked={tags.includes(tag)} onChange={() =&gt; toggle(tag)} /&gt; {tag}&lt;/label&gt;
+))}</code></pre>
+<h3 id="debounced-search">Debounced search</h3>
+<pre><code class="language-jsx">const [q, setQ] = useState("");
+const debounced = useDebounce(q, 300);              // custom hook (see Custom Hooks topic)
+useEffect(() =&gt; { search(debounced); }, [debounced]);</code></pre>
+<h3 id="dependent-fields">Dependent fields</h3>
+<pre><code class="language-jsx">const [country, setCountry] = useState("");
+const states = useMemo(() =&gt; getStates(country), [country]);
+&lt;select value={country} onChange={e =&gt; { setCountry(e.target.value); setState(""); }}&gt;…&lt;/select&gt;</code></pre>
+<h3 id="multi-step-form">Multi-step form</h3>
+<p>Keep a <code>step</code> index and a single <code>data</code> object in the parent; each step component receives <code>data</code> and <code>onNext(partial)</code>.</p>
+<h3 id="preventing-double-submit">Preventing double submit</h3>
+<p>Disable the button with <code>isPending</code>/<code>status</code>; for actions <code>useFormStatus().pending</code> does it automatically.</p>
+<h2 id="file-uploads"><span class="num">07</span>File Uploads</h2>
+<pre><code class="language-jsx">function Avatar() {
+  const [preview, setPreview] = useState(null);
+
+  function handleFile(e) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith("image/")) return alert("Images only");
+    if (file.size &gt; 2 * 1024 * 1024) return alert("Max 2 MB");
+    setPreview(URL.createObjectURL(file));          // revoke later with URL.revokeObjectURL
+  }
+
+  async function upload(formData) {
+    await fetch("/api/avatar", { method: "POST", body: formData });   // browser sets multipart headers
+  }
+
+  return (
+    &lt;form action={upload}&gt;
+      &lt;input type="file" name="avatar" accept="image/*" onChange={handleFile} /&gt;
+      {preview &amp;&amp; &lt;img src={preview} alt="Preview" width={96} /&gt;}
+      &lt;button&gt;Upload&lt;/button&gt;
+    &lt;/form&gt;
+  );
+}</code></pre>
+<p>Never set <code>Content-Type</code> manually for <code>FormData</code>, and always <strong>re-validate on the server</strong>: client validation is for usability, not security.</p>
+<h2 id="react-hook-form-zod"><span class="num">08</span>React Hook Form + Zod</h2>
+<p>For big forms use <strong>React Hook Form</strong> (uncontrolled inputs → very few re-renders) with <strong>Zod</strong> schemas.</p>
+<pre><code class="language-bash">npm install react-hook-form zod @hookform/resolvers</code></pre>
+<pre data-file="SignupForm.jsx"><code class="language-jsx">import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+
+const schema = z.object({
+  name: z.string().min(2, "Name is too short"),
+  email: z.string().email("Invalid email"),
+  age: z.coerce.number().int().min(13, "Must be 13+"),
+  password: z.string().min(8, "At least 8 characters"),
+  confirm: z.string(),
+}).refine(d =&gt; d.password === d.confirm, { message: "Passwords don't match", path: ["confirm"] });
+
+export default function SignupForm() {
+  const { register, handleSubmit, reset, setError, formState: { errors, isSubmitting } } = useForm({
+    resolver: zodResolver(schema),
+    defaultValues: { name: "", email: "", age: "", password: "", confirm: "" },
+  });
+
+  const onSubmit = async (data) =&gt; {
+    try {
+      await api.signup(data);
+      reset();
+    } catch (e) {
+      setError("root", { message: e.message });
+    }
+  };
+
+  return (
+    &lt;form onSubmit={handleSubmit(onSubmit)} noValidate&gt;
+      &lt;input {...register("name")} placeholder="Name" /&gt;
+      {errors.name &amp;&amp; &lt;p role="alert"&gt;{errors.name.message}&lt;/p&gt;}
+
+      &lt;input {...register("email")} type="email" placeholder="Email" /&gt;
+      {errors.email &amp;&amp; &lt;p role="alert"&gt;{errors.email.message}&lt;/p&gt;}
+
+      &lt;input {...register("age")} type="number" placeholder="Age" /&gt;
+      {errors.age &amp;&amp; &lt;p role="alert"&gt;{errors.age.message}&lt;/p&gt;}
+
+      &lt;input {...register("password")} type="password" /&gt;
+      &lt;input {...register("confirm")} type="password" /&gt;
+      {errors.confirm &amp;&amp; &lt;p role="alert"&gt;{errors.confirm.message}&lt;/p&gt;}
+
+      {errors.root &amp;&amp; &lt;p role="alert"&gt;{errors.root.message}&lt;/p&gt;}
+      &lt;button disabled={isSubmitting}&gt;Sign up&lt;/button&gt;
+    &lt;/form&gt;
+  );
+}</code></pre>
+<h3 id="react-hook-form-api">React Hook Form API</h3>
+<div class="table-wrap"><table><thead><tr><th>API</th><th>Purpose</th></tr></thead><tbody><tr><td><code>register("field", rules)</code></td><td>Connect an input</td></tr><tr><td><code>handleSubmit(fn)</code></td><td>Validate, then call <code>fn(data)</code></td></tr><tr><td><code>formState.errors / isSubmitting / isDirty / isValid</code></td><td>Status</td></tr><tr><td><code>watch("field")</code></td><td>Subscribe to a value (re-renders)</td></tr><tr><td><code>setValue</code>, <code>getValues</code>, <code>reset</code>, <code>trigger</code></td><td>Imperative control</td></tr><tr><td><code>Controller</code> / <code>useController</code></td><td>Wrap controlled UI components (selects, date pickers)</td></tr><tr><td><code>useFieldArray</code></td><td>Dynamic lists of fields</td></tr></tbody></table></div>
+<h3 id="zod-essentials">Zod essentials</h3>
+<pre><code class="language-js">z.string().min(1).max(50).trim().regex(/^[a-z]+$/);
+z.number().int().positive();
+z.boolean();   z.date();   z.enum(["admin", "student"]);
+z.array(z.string()).min(1);
+z.object({ ... }).optional();
+z.infer;   // type Schema = z.infer&lt;typeof schema&gt; in TypeScript
+schema.safeParse(data);     // { success, data } | { success: false, error }</code></pre>
+<p>Share the <strong>same Zod schema</strong> between client and server so rules never drift.</p>
+<h2 id="accessible-forms-checklist"><span class="num">09</span>Accessible Forms Checklist</h2>
+<ul><li>Every input has a real <code>&lt;label htmlFor&gt;</code> (or wraps the input)</li><li>Group radios/checkboxes with <code>&lt;fieldset&gt;</code> and <code>&lt;legend&gt;</code></li><li>Mark invalid inputs with <code>aria-invalid="true"</code> and link the message with <code>aria-describedby</code></li><li>Announce errors (<code>role="alert"</code> or <code>aria-live="polite"</code>)</li><li>Don't rely on colour alone; keep visible focus styles</li><li>Move focus to the first invalid field after a failed submit</li><li>Use the correct <code>type</code>, <code>autoComplete</code> and <code>inputMode</code></li><li>Buttons: <code>type="button"</code> for non-submit actions inside forms</li></ul>
+<h2 id="security-notes"><span class="num">10</span>Security Notes</h2>
+<ul><li><strong>Validate on the server</strong> too; the client can be bypassed</li><li>Never trust hidden fields or client-side price/role values</li><li>Protect against <strong>CSRF</strong> (SameSite cookies, tokens) when using cookie auth</li><li>Don't log or store passwords; send over HTTPS only</li><li>Sanitise rich text before rendering as HTML</li></ul>
+<h2 id="quick-recap"><span class="num">11</span>Quick Recap</h2>
+<ul><li>Controlled = value in state; uncontrolled = read with <strong>FormData</strong> or refs</li><li>React 19: <code>&lt;form action={fn}&gt;</code> + <code>useActionState</code> + <code>useFormStatus</code> removes most boilerplate</li><li>Use HTML validation attributes first; show accessible, linked error messages</li><li>For large forms, <strong>React Hook Form + Zod</strong> gives performance and shared schemas</li><li>Always re-validate on the server</li></ul>
+    </article>
+    <nav class="pager" aria-label="Topic navigation">
+      <a class="prev" href="08-react19-new-features.html"><small>← Previous</small><strong>React 19 New Features</strong></a>
+      <a class="next" href="10-custom-hooks-patterns.html"><small>Next →</small><strong>Custom Hooks, Patterns and Error Boundaries</strong></a>
+    </nav>
+  </main>
+</div>
+</body>
+</html>

@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en" data-track="java">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>JVM Internals, Reflection and Annotations — Java Notes · Hanbee</title>
+<meta name="description" content="What happens inside the JVM. Memory areas, class loading, garbage collection and tuning, then reflection, annotations and common memory problems.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500..700;1,9..144,500&amp;family=Inter:wght@400..700&amp;family=JetBrains+Mono:wght@400..600&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/notes.css">
+<script src="../assets/notes.js" defer></script>
+</head>
+<body>
+<div class="progress" aria-hidden="true"><i></i></div>
+<header class="top">
+  <a class="brand" href="../index.html"><b>H</b>Hanbee · Java Notes</a>
+  <nav><a class="keep" href="index.html">All topics</a><button id="theme-toggle" type="button" aria-label="Toggle light and dark theme">Theme</button></nav>
+</header>
+<div class="shell">
+  <details class="toc"><summary>On this page</summary><nav aria-label="On this page"><ol><li><a href="#jvm-architecture"><span>01</span>JVM Architecture</a></li><li><a href="#class-loading"><span>02</span>Class Loading</a></li><li><a href="#runtime-memory-areas"><span>03</span>Runtime Memory Areas</a></li><li><a href="#garbage-collection"><span>04</span>Garbage Collection</a></li><li><a href="#jit-compilation"><span>05</span>JIT Compilation</a></li><li><a href="#memory-problems"><span>06</span>Memory Problems</a></li><li><a href="#reflection"><span>07</span>Reflection</a></li><li><a href="#annotations"><span>08</span>Annotations</a></li><li><a href="#proxies-and-class-loading-tricks"><span>09</span>Proxies and Class Loading Tricks</a></li><li><a href="#cloning-and-weak-soft-caches-brief"><span>10</span>Cloning and Weak/Soft Caches (brief)</a></li><li><a href="#quick-recap"><span>11</span>Quick Recap</a></li></ol></nav></details>
+  <main>
+    <header class="hero">
+      <p class="kicker"><span class="pill">Advanced Java</span><span>Topic 16</span><span>Advanced</span><span>6 min read</span></p>
+      <h1>JVM Internals, Reflection and Annotations</h1>
+      <p class="lede">What happens inside the JVM. Memory areas, class loading, garbage collection and tuning, then reflection, annotations and common memory problems.</p>
+    </header>
+    <article>
+<h2 id="jvm-architecture"><span class="num">01</span>JVM Architecture</h2>
+<pre><code class="language-text">              ┌──────────────── JVM ────────────────┐
+ .class ───►  │ Class Loader Subsystem               │
+              │ Runtime Data Areas                   │
+              │   Heap · Metaspace · Stacks · PC · Native stacks
+              │ Execution Engine                     │
+              │   Interpreter · JIT compiler · GC    │
+              │ Native Method Interface (JNI)        │
+              └──────────────────────────────────────┘</code></pre>
+<h2 id="class-loading"><span class="num">02</span>Class Loading</h2>
+<p>Classes are loaded <strong>lazily</strong>, the first time they are needed.</p>
+<div class="table-wrap"><table><thead><tr><th>Phase</th><th>What happens</th></tr></thead><tbody><tr><td><strong>Loading</strong></td><td>Class loader reads the <code>.class</code> file</td></tr><tr><td><strong>Linking</strong></td><td>Verify bytecode → Prepare static fields (defaults) → Resolve references</td></tr><tr><td><strong>Initialisation</strong></td><td>Static variables get values, static blocks run</td></tr></tbody></table></div>
+<h3 id="built-in-class-loaders">Built-in class loaders</h3>
+<div class="table-wrap"><table><thead><tr><th>Loader</th><th>Loads</th></tr></thead><tbody><tr><td><strong>Bootstrap</strong></td><td>Core JDK classes (<code>java.base</code>)</td></tr><tr><td><strong>Platform</strong> (was Extension)</td><td>Other JDK modules</td></tr><tr><td><strong>Application</strong> (System)</td><td>Your classpath / modulepath</td></tr></tbody></table></div>
+<p>The <strong>parent delegation model</strong>: a loader first asks its parent; only if the parent cannot find the class does it try itself. This stops anyone replacing <code>java.lang.String</code>.</p>
+<h2 id="runtime-memory-areas"><span class="num">03</span>Runtime Memory Areas</h2>
+<div class="table-wrap"><table><thead><tr><th>Area</th><th>Shared?</th><th>Holds</th></tr></thead><tbody><tr><td><strong>Heap</strong></td><td>All threads</td><td>All objects and arrays. Garbage collected.</td></tr><tr><td><strong>Metaspace</strong></td><td>All threads</td><td>Class metadata (native memory since Java 8, replaced PermGen)</td></tr><tr><td><strong>Thread stack</strong></td><td>Per thread</td><td>Stack frames: local variables, parameters, return addresses</td></tr><tr><td><strong>PC register</strong></td><td>Per thread</td><td>Address of the current instruction</td></tr><tr><td><strong>Native stack</strong></td><td>Per thread</td><td>Frames for native methods</td></tr></tbody></table></div>
+<pre><code class="language-java">void demo() {
+    int x = 10;                       // x lives in the stack frame
+    Student s = new Student("Asha");  // reference s on the stack; the object on the heap
+}</code></pre>
+<h3 id="heap-generations">Heap generations</h3>
+<pre><code class="language-text">Young Generation                       Old (Tenured) Generation
+┌────────┬──────────┬──────────┐      ┌─────────────────────┐
+│  Eden  │ Survivor0│ Survivor1│ ───► │  long-lived objects │
+└────────┴──────────┴──────────┘      └─────────────────────┘
+ new objects        survive minor GCs      survive many GCs</code></pre>
+<ul><li>New objects start in <strong>Eden</strong></li><li>A <strong>minor GC</strong> copies survivors between survivor spaces and ages them</li><li>Objects reaching an age threshold are <strong>promoted</strong> to the old generation</li><li>A <strong>major/full GC</strong> cleans the old generation (more expensive)</li></ul>
+<h2 id="garbage-collection"><span class="num">04</span>Garbage Collection</h2>
+<p>The GC finds objects <strong>no longer reachable</strong> from <strong>GC roots</strong> (stack variables, static fields, active threads) and reclaims their memory.</p>
+<h3 id="reachability">Reachability</h3>
+<p>Strong reference (normal) → Soft (cache, cleared when memory is low) → Weak (<code>WeakHashMap</code>, cleared at next GC) → Phantom (cleanup hooks).</p>
+<pre><code class="language-java">WeakReference&lt;byte[]&gt; ref = new WeakReference&lt;&gt;(new byte[1024]);</code></pre>
+<h3 id="collectors">Collectors</h3>
+<div class="table-wrap"><table><thead><tr><th>GC</th><th>Characteristics</th><th>Good for</th></tr></thead><tbody><tr><td><strong>Serial</strong></td><td>Single thread</td><td>Tiny apps</td></tr><tr><td><strong>Parallel</strong></td><td>Multi-thread, throughput focus</td><td>Batch jobs</td></tr><tr><td><strong>G1</strong> (default since Java 9)</td><td>Region-based, predictable pauses</td><td>General servers</td></tr><tr><td><strong>ZGC</strong></td><td>Pauses typically under a millisecond, huge heaps</td><td>Low latency</td></tr><tr><td><strong>Shenandoah</strong></td><td>Concurrent compaction, low pauses</td><td>Low latency</td></tr></tbody></table></div>
+<h3 id="common-jvm-options">Common JVM options</h3>
+<pre><code class="language-bash">java -Xms512m -Xmx2g -XX:+UseG1GC -jar app.jar
+-Xms  initial heap          -Xmx  maximum heap          -Xss  thread stack size
+-XX:+UseZGC                  -XX:MaxMetaspaceSize=256m
+-XX:+HeapDumpOnOutOfMemoryError
+-Xlog:gc*                     # GC logging</code></pre>
+<h2 id="jit-compilation"><span class="num">05</span>JIT Compilation</h2>
+<p>The JVM starts by <strong>interpreting</strong> bytecode and profiles which methods are hot. The <strong>JIT compiler</strong> (C1 and C2) compiles them to optimised machine code, using techniques like inlining and escape analysis. This is why Java programs get faster after a <strong>warm-up</strong> period.</p>
+<h2 id="memory-problems"><span class="num">06</span>Memory Problems</h2>
+<div class="table-wrap"><table><thead><tr><th>Problem</th><th>Cause</th><th>Fix</th></tr></thead><tbody><tr><td><code>OutOfMemoryError: Java heap space</code></td><td>Too many live objects / leak</td><td>Heap dump, fix leak, raise <code>-Xmx</code></td></tr><tr><td><code>OutOfMemoryError: Metaspace</code></td><td>Too many classes (leaky class loaders)</td><td>Fix redeploy leaks</td></tr><tr><td><code>StackOverflowError</code></td><td>Infinite or very deep recursion</td><td>Add base case, use iteration</td></tr><tr><td>Memory leak</td><td>Objects kept reachable by mistake</td><td>Static collections, unclosed resources, listeners, <code>ThreadLocal</code>s</td></tr></tbody></table></div>
+<h3 id="typical-leak-sources">Typical leak sources</h3>
+<ul><li>Static <code>Map</code> or <code>List</code> that only grows</li><li>Listeners or callbacks never deregistered</li><li>Unclosed streams, connections and statements</li><li><code>ThreadLocal</code> values left in pooled threads</li></ul>
+<h3 id="diagnostic-tools">Diagnostic tools</h3>
+<p><code>jps</code>, <code>jstack</code> (thread dumps), <code>jmap</code> (heap dump), <code>jcmd</code>, <code>jstat</code>, <strong>VisualVM</strong>, <strong>JConsole</strong>, <strong>JDK Flight Recorder</strong>, Eclipse <strong>MAT</strong>.</p>
+<h2 id="reflection"><span class="num">07</span>Reflection</h2>
+<p>Reflection lets code <strong>inspect and manipulate classes, methods and fields at runtime</strong>. Frameworks (Spring, Hibernate, JUnit, Jackson) depend on it.</p>
+<pre><code class="language-java">Class&lt;?&gt; c = Class.forName("com.hanbee.lms.Student");   // also: Student.class, obj.getClass()
+
+c.getName();  c.getSimpleName();  c.getSuperclass();  c.getInterfaces();
+Field[] fields = c.getDeclaredFields();
+Method[] methods = c.getDeclaredMethods();
+Constructor&lt;?&gt;[] ctors = c.getDeclaredConstructors();
+
+Object obj = c.getDeclaredConstructor(String.class).newInstance("Asha");
+
+Method m = c.getMethod("introduce");
+m.invoke(obj);
+
+Field f = c.getDeclaredField("name");
+f.setAccessible(true);                // bypasses private (restricted by modules)
+f.set(obj, "Ravi");</code></pre>
+<h3 id="uses-and-costs">Uses and costs</h3>
+<div class="table-wrap"><table><thead><tr><th>Uses</th><th>Costs</th></tr></thead><tbody><tr><td>Dependency injection, ORM mapping, serialisation, testing frameworks, plugins</td><td>Slower than direct calls, no compile-time checks, breaks encapsulation, strongly limited by modules</td></tr></tbody></table></div>
+<h2 id="annotations"><span class="num">08</span>Annotations</h2>
+<p>Annotations attach <strong>metadata</strong> to code. They do nothing by themselves; a tool, compiler or framework reads them.</p>
+<h3 id="built-in-annotations">Built-in annotations</h3>
+<div class="table-wrap"><table><thead><tr><th>Annotation</th><th>Purpose</th></tr></thead><tbody><tr><td><code>@Override</code></td><td>Compile-time check of overriding</td></tr><tr><td><code>@Deprecated</code></td><td>Marks API as obsolete</td></tr><tr><td><code>@SuppressWarnings("unchecked")</code></td><td>Silence a warning</td></tr><tr><td><code>@FunctionalInterface</code></td><td>Enforce one abstract method</td></tr><tr><td><code>@SafeVarargs</code></td><td>Suppress heap-pollution warnings</td></tr></tbody></table></div>
+<h3 id="custom-annotation">Custom annotation</h3>
+<pre><code class="language-java">@Retention(RetentionPolicy.RUNTIME)     // visible at runtime
+@Target(ElementType.METHOD)             // allowed on methods
+public @interface Audit {
+    String action() default "";
+    int level() default 1;
+}
+
+class Service {
+    @Audit(action = "delete-user", level = 3)
+    void deleteUser(long id) { }
+}</code></pre>
+<h3 id="reading-annotations-with-reflection">Reading annotations with reflection</h3>
+<pre><code class="language-java">for (Method m : Service.class.getDeclaredMethods()) {
+    Audit a = m.getAnnotation(Audit.class);
+    if (a != null) System.out.println(m.getName() + " → " + a.action());
+}</code></pre>
+<div class="table-wrap"><table><thead><tr><th>Meta-annotation</th><th>Controls</th></tr></thead><tbody><tr><td><code>@Retention</code></td><td><code>SOURCE</code>, <code>CLASS</code>, or <code>RUNTIME</code></td></tr><tr><td><code>@Target</code></td><td>Where it can be placed</td></tr><tr><td><code>@Inherited</code></td><td>Subclasses inherit it</td></tr><tr><td><code>@Documented</code>, <code>@Repeatable</code></td><td>Javadoc inclusion / multiple uses</td></tr></tbody></table></div>
+<h2 id="proxies-and-class-loading-tricks"><span class="num">09</span>Proxies and Class Loading Tricks</h2>
+<ul><li><strong>Dynamic proxy</strong> (<code>java.lang.reflect.Proxy</code>): create an implementation of an interface at runtime. Spring AOP uses proxies for <code>@Transactional</code>.</li><li><strong>ServiceLoader</strong>: discover implementations of an interface through <code>META-INF/services</code> (plug-in pattern).</li></ul>
+<h2 id="cloning-and-weak-soft-caches-brief"><span class="num">10</span>Cloning and Weak/Soft Caches (brief)</h2>
+<ul><li><code>Cloneable</code> + <code>clone()</code> is error-prone; prefer copy constructors or factory methods</li><li><code>WeakHashMap</code> and <code>SoftReference</code> suit memory-sensitive caches</li></ul>
+<h2 id="quick-recap"><span class="num">11</span>Quick Recap</h2>
+<ul><li>Objects live on the <strong>heap</strong>, method frames on <strong>thread stacks</strong>, class data in <strong>Metaspace</strong></li><li>GC reclaims unreachable objects; G1 is default, ZGC for low latency</li><li>Parent delegation protects core classes</li><li>Reflection inspects code at runtime; annotations add metadata that frameworks read</li><li>Most memory leaks are objects held reachable by long-lived references</li></ul>
+    </article>
+    <nav class="pager" aria-label="Topic navigation">
+      <a class="prev" href="15-modern-java.html"><small>← Previous</small><strong>Modern Java (Java 9 to 25)</strong></a>
+      <a class="next" href="17-jdbc.html"><small>Next →</small><strong>JDBC: Java Database Connectivity</strong></a>
+    </nav>
+  </main>
+</div>
+</body>
+</html>

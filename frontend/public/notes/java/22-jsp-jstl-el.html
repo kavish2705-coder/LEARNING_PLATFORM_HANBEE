@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="en" data-track="java">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>JSP, Expression Language and JSTL — Java Notes · Hanbee</title>
+<meta name="description" content="Build the view layer with JavaServer Pages. JSP lifecycle, directives, implicit objects, Expression Language, JSTL tags and custom tags.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500..700;1,9..144,500&amp;family=Inter:wght@400..700&amp;family=JetBrains+Mono:wght@400..600&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/notes.css">
+<script src="../assets/notes.js" defer></script>
+</head>
+<body>
+<div class="progress" aria-hidden="true"><i></i></div>
+<header class="top">
+  <a class="brand" href="../index.html"><b>H</b>Hanbee · Java Notes</a>
+  <nav><a class="keep" href="index.html">All topics</a><button id="theme-toggle" type="button" aria-label="Toggle light and dark theme">Theme</button></nav>
+</header>
+<div class="shell">
+  <details class="toc"><summary>On this page</summary><nav aria-label="On this page"><ol><li><a href="#what-is-jsp"><span>01</span>What is JSP?</a></li><li><a href="#jsp-lifecycle"><span>02</span>JSP Lifecycle</a></li><li><a href="#jsp-elements"><span>03</span>JSP Elements</a></li><li><a href="#directives"><span>04</span>Directives</a></li><li><a href="#standard-actions"><span>05</span>Standard Actions</a></li><li><a href="#implicit-objects"><span>06</span>Implicit Objects</a></li><li><a href="#expression-language-el"><span>07</span>Expression Language (EL)</a></li><li><a href="#jstl-jsp-standard-tag-library"><span>08</span>JSTL (JSP Standard Tag Library)</a></li><li><a href="#mvc-with-servlet-jsp"><span>09</span>MVC with Servlet + JSP</a></li><li><a href="#javabeans"><span>10</span>JavaBeans</a></li><li><a href="#custom-tags-brief"><span>11</span>Custom Tags (brief)</a></li><li><a href="#error-pages-and-session-control"><span>12</span>Error Pages and Session Control</a></li><li><a href="#jsp-vs-modern-template-engines"><span>13</span>JSP vs Modern Template Engines</a></li><li><a href="#quick-recap"><span>14</span>Quick Recap</a></li></ol></nav></details>
+  <main>
+    <header class="hero">
+      <p class="kicker"><span class="pill">Enterprise Java (JEE)</span><span>Topic 22</span><span>Intermediate</span><span>6 min read</span></p>
+      <h1>JSP, Expression Language and JSTL</h1>
+      <p class="lede">Build the view layer with JavaServer Pages. JSP lifecycle, directives, implicit objects, Expression Language, JSTL tags and custom tags.</p>
+    </header>
+    <article>
+<h2 id="what-is-jsp"><span class="num">01</span>What is JSP?</h2>
+<p><strong>JavaServer Pages</strong> let you write HTML with embedded dynamic content. The container <strong>translates each JSP into a servlet</strong> the first time it is requested, compiles it and runs it. Servlets are great for logic; JSP is better for <strong>presentation</strong>.</p>
+<pre><code class="language-text">index.jsp ──translate──► index_jsp.java (a servlet) ──compile──► .class ──► response</code></pre>
+<h3 id="servlet-vs-jsp">Servlet vs JSP</h3>
+<div class="table-wrap"><table><thead><tr><th></th><th>Servlet</th><th>JSP</th></tr></thead><tbody><tr><td>Looks like</td><td>Java with HTML in strings</td><td>HTML with Java/tags inside</td></tr><tr><td>Best for</td><td>Controllers, logic</td><td>Views</td></tr><tr><td>Edit &amp; reload</td><td>Recompile needed</td><td>Auto-recompiled by container</td></tr></tbody></table></div>
+<h2 id="jsp-lifecycle"><span class="num">02</span>JSP Lifecycle</h2>
+<ol><li><strong>Translation</strong>: JSP → servlet source</li><li><strong>Compilation</strong>: servlet source → class</li><li><strong>Loading and instantiation</strong></li><li><code>jspInit()</code>: once</li><li><code>_jspService()</code>: every request</li><li><code>jspDestroy()</code>: once</li></ol>
+<h2 id="jsp-elements"><span class="num">03</span>JSP Elements</h2>
+<div class="table-wrap"><table><thead><tr><th>Element</th><th>Syntax</th><th>Purpose</th></tr></thead><tbody><tr><td>Directive</td><td><code>&lt;%@ ... %&gt;</code></td><td>Page-level instructions</td></tr><tr><td>Scriptlet</td><td><code>&lt;% ... %&gt;</code></td><td>Java code (<strong>avoid</strong>)</td></tr><tr><td>Expression</td><td><code>&lt;%= expr %&gt;</code></td><td>Print a value (<strong>avoid</strong>, use EL)</td></tr><tr><td>Declaration</td><td><code>&lt;%! ... %&gt;</code></td><td>Fields/methods (<strong>avoid</strong>)</td></tr><tr><td>Comment</td><td><code>&lt;%-- hidden --%&gt;</code></td><td>Not sent to the browser</td></tr><tr><td>Action</td><td><code>&lt;jsp:include .../&gt;</code></td><td>Built-in tags</td></tr><tr><td>EL</td><td><code>${...}</code></td><td><strong>Preferred</strong> way to output data</td></tr><tr><td>JSTL</td><td><code>&lt;c:forEach&gt;</code></td><td><strong>Preferred</strong> logic tags</td></tr></tbody></table></div>
+<aside class="callout warning"><span class="label">Warning</span><p>Scriptlets (<code>&lt;% %&gt;</code>) mix logic into the view and make pages hard to test and maintain. <strong>Modern JSP uses only EL + JSTL.</strong> Do business logic in servlets/services.</p></aside>
+<h2 id="directives"><span class="num">04</span>Directives</h2>
+<pre><code class="language-jsp">&lt;%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"
+         import="java.util.*" errorPage="error.jsp" isErrorPage="false" session="true" %&gt;
+
+&lt;%@ include file="header.jspf" %&gt;                         &lt;%-- static include at translation time --%&gt;
+
+&lt;%@ taglib prefix="c" uri="jakarta.tags.core" %&gt;          &lt;%-- JSTL core --%&gt;
+&lt;%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %&gt;</code></pre>
+<p>(Older JSTL 1.x used <code>http://java.sun.com/jsp/jstl/core</code>.)</p>
+<h2 id="standard-actions"><span class="num">05</span>Standard Actions</h2>
+<pre><code class="language-jsp">&lt;jsp:include page="menu.jsp" /&gt;                     &lt;%-- dynamic include at request time --%&gt;
+&lt;jsp:forward page="login.jsp" /&gt;
+&lt;jsp:param name="title" value="Home" /&gt;
+&lt;jsp:useBean id="s" class="com.hanbee.Student" scope="request" /&gt;
+&lt;jsp:setProperty name="s" property="name" value="Asha" /&gt;
+&lt;jsp:getProperty name="s" property="name" /&gt;</code></pre>
+<div class="table-wrap"><table><thead><tr><th>Include type</th><th>When</th><th>Use</th></tr></thead><tbody><tr><td><code>&lt;%@ include %&gt;</code> (static)</td><td>Translation time, merged source</td><td>Fixed fragments (header)</td></tr><tr><td><code>&lt;jsp:include&gt;</code> (dynamic)</td><td>Each request</td><td>Content that can change</td></tr></tbody></table></div>
+<h2 id="implicit-objects"><span class="num">06</span>Implicit Objects</h2>
+<p>Available in every JSP with no declaration.</p>
+<div class="table-wrap"><table><thead><tr><th>Object</th><th>Type</th><th>Scope / purpose</th></tr></thead><tbody><tr><td><code>request</code></td><td><code>HttpServletRequest</code></td><td>Request data</td></tr><tr><td><code>response</code></td><td><code>HttpServletResponse</code></td><td>Response</td></tr><tr><td><code>session</code></td><td><code>HttpSession</code></td><td>User session</td></tr><tr><td><code>application</code></td><td><code>ServletContext</code></td><td>App-wide</td></tr><tr><td><code>out</code></td><td><code>JspWriter</code></td><td>Output</td></tr><tr><td><code>config</code></td><td><code>ServletConfig</code></td><td>Servlet config</td></tr><tr><td><code>pageContext</code></td><td><code>PageContext</code></td><td>Access all scopes</td></tr><tr><td><code>page</code></td><td><code>Object</code></td><td><code>this</code></td></tr><tr><td><code>exception</code></td><td><code>Throwable</code></td><td>Only in error pages</td></tr></tbody></table></div>
+<h2 id="expression-language-el"><span class="num">07</span>Expression Language (EL)</h2>
+<p><code>${expression}</code> reads data from scopes and prints it <strong>HTML-safe when used with <code>&lt;c:out&gt;</code></strong> (EL alone does not escape).</p>
+<pre><code class="language-jsp">${student.name}                    &lt;%-- property → getName() --%&gt;
+${students[0].email}               &lt;%-- list index --%&gt;
+${marks['math']}                   &lt;%-- map key --%&gt;
+${param.q}                         &lt;%-- request parameter --%&gt;
+${header['User-Agent']}
+${cookie.theme.value}
+${sessionScope.user.name}
+${requestScope.error}
+${applicationScope.appName}
+${pageContext.request.contextPath}
+${empty students}                  &lt;%-- true if null, empty string, empty collection --%&gt;
+${age &gt;= 18 ? 'Adult' : 'Minor'}
+${price * qty}      ${a and b}      ${not done}      ${x eq y}   ${x ne y}</code></pre>
+<ul><li>EL searches scopes in order: <strong>page → request → session → application</strong></li><li>Missing values print as empty, not errors</li><li>Operators: arithmetic, <code>==</code>/<code>eq</code>, <code>!=</code>/<code>ne</code>, <code>&lt;</code>/<code>lt</code>, <code>&amp;&amp;</code>/<code>and</code>, <code>||</code>/<code>or</code>, <code>!</code>/<code>not</code>, <code>empty</code>, <code>?:</code></li></ul>
+<h2 id="jstl-jsp-standard-tag-library"><span class="num">08</span>JSTL (JSP Standard Tag Library)</h2>
+<p>Add the dependency (<code>jakarta.servlet.jsp.jstl</code>) and declare the taglib.</p>
+<h3 id="core-tags-c">Core tags (<code>c:</code>)</h3>
+<pre><code class="language-jsp">&lt;c:out value="${comment}" /&gt;                                  &lt;%-- HTML-escapes: prevents XSS --%&gt;
+
+&lt;c:set var="total" value="${price * qty}" scope="request" /&gt;
+&lt;c:remove var="temp" /&gt;
+
+&lt;c:if test="${not empty error}"&gt;
+  &lt;p class="error"&gt;&lt;c:out value="${error}" /&gt;&lt;/p&gt;
+&lt;/c:if&gt;
+
+&lt;c:choose&gt;
+  &lt;c:when test="${score &gt;= 90}"&gt;A&lt;/c:when&gt;
+  &lt;c:when test="${score &gt;= 60}"&gt;B&lt;/c:when&gt;
+  &lt;c:otherwise&gt;Fail&lt;/c:otherwise&gt;
+&lt;/c:choose&gt;
+
+&lt;c:forEach var="s" items="${students}" varStatus="st"&gt;
+  &lt;tr class="${st.index % 2 == 0 ? 'even' : 'odd'}"&gt;
+    &lt;td&gt;${st.count}&lt;/td&gt;
+    &lt;td&gt;&lt;c:out value="${s.name}" /&gt;&lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/c:forEach&gt;
+
+&lt;c:forEach begin="1" end="5" var="i"&gt;${i} &lt;/c:forEach&gt;
+&lt;c:forTokens items="a,b,c" delims="," var="t"&gt;${t}&lt;/c:forTokens&gt;
+
+&lt;c:url value="/students" var="listUrl"&gt;&lt;c:param name="page" value="2" /&gt;&lt;/c:url&gt;
+&lt;a href="${listUrl}"&gt;Next&lt;/a&gt;
+&lt;c:redirect url="/login" /&gt;
+&lt;c:import url="/fragments/footer.jsp" /&gt;
+&lt;c:catch var="ex"&gt; ... &lt;/c:catch&gt;</code></pre>
+<h3 id="formatting-tags-fmt">Formatting tags (<code>fmt:</code>)</h3>
+<pre><code class="language-jsp">&lt;fmt:formatNumber value="${price}" type="currency" currencyCode="INR" /&gt;
+&lt;fmt:formatNumber value="${ratio}" type="percent" /&gt;
+&lt;fmt:formatDate value="${date}" pattern="dd MMM yyyy" /&gt;
+&lt;fmt:message key="welcome.title" /&gt;            &lt;%-- i18n from a resource bundle --%&gt;
+&lt;fmt:setLocale value="en_IN" /&gt;</code></pre>
+<h3 id="functions-fn">Functions (<code>fn:</code>)</h3>
+<pre><code class="language-jsp">&lt;%@ taglib prefix="fn" uri="jakarta.tags.functions" %&gt;
+${fn:length(students)}   ${fn:toUpperCase(name)}   ${fn:contains(email, '@')}   ${fn:substring(text, 0, 20)}</code></pre>
+<h3 id="sql-tags">SQL tags</h3>
+<p><code>&lt;sql:query&gt;</code> exist but <strong>should not be used</strong>: keep SQL out of the view.</p>
+<h2 id="mvc-with-servlet-jsp"><span class="num">09</span>MVC with Servlet + JSP</h2>
+<pre><code class="language-text">Browser ─► Controller (Servlet) ─► Service/DAO ─► Model (JavaBeans)
+              │                                        │
+              └────────── forward ──► View (JSP) ◄─────┘</code></pre>
+<pre><code class="language-java">// Controller
+@WebServlet("/students")
+public class StudentListServlet extends HttpServlet {
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        req.setAttribute("students", studentService.findAll());
+        req.getRequestDispatcher("/WEB-INF/views/students.jsp").forward(req, resp);
+    }
+}</code></pre>
+<pre><code class="language-jsp">&lt;%-- /WEB-INF/views/students.jsp --%&gt;
+&lt;%@ page contentType="text/html;charset=UTF-8" %&gt;
+&lt;%@ taglib prefix="c" uri="jakarta.tags.core" %&gt;
+&lt;html&gt;
+&lt;body&gt;
+  &lt;h1&gt;Students (${students.size()})&lt;/h1&gt;
+  &lt;c:choose&gt;
+    &lt;c:when test="${empty students}"&gt;&lt;p&gt;No students yet.&lt;/p&gt;&lt;/c:when&gt;
+    &lt;c:otherwise&gt;
+      &lt;table&gt;
+        &lt;c:forEach var="s" items="${students}"&gt;
+          &lt;tr&gt;&lt;td&gt;&lt;c:out value="${s.name}" /&gt;&lt;/td&gt;&lt;td&gt;&lt;c:out value="${s.email}" /&gt;&lt;/td&gt;&lt;/tr&gt;
+        &lt;/c:forEach&gt;
+      &lt;/table&gt;
+    &lt;/c:otherwise&gt;
+  &lt;/c:choose&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+<p>Put JSPs under <code>WEB-INF/views</code> so users cannot open them directly; only the controller forwards to them.</p>
+<h2 id="javabeans"><span class="num">10</span>JavaBeans</h2>
+<p>A JavaBean is a plain class with a <strong>no-arg constructor</strong>, <strong>private properties</strong> and <strong>getters/setters</strong> (<code>getName</code>/<code>setName</code>, <code>isActive</code> for booleans). EL and frameworks rely on this convention.</p>
+<h2 id="custom-tags-brief"><span class="num">11</span>Custom Tags (brief)</h2>
+<h3 id="tag-files-simplest">Tag files (simplest)</h3>
+<pre><code class="language-jsp">&lt;%-- /WEB-INF/tags/card.tag --%&gt;
+&lt;%@ attribute name="title" required="true" %&gt;
+&lt;div class="card"&gt;&lt;h3&gt;${title}&lt;/h3&gt;&lt;jsp:doBody/&gt;&lt;/div&gt;</code></pre>
+<pre><code class="language-jsp">&lt;%@ taglib prefix="ui" tagdir="/WEB-INF/tags" %&gt;
+&lt;ui:card title="Java"&gt;Core to advanced&lt;/ui:card&gt;</code></pre>
+<p>Larger libraries use <code>SimpleTagSupport</code> classes with a <code>.tld</code> descriptor.</p>
+<h2 id="error-pages-and-session-control"><span class="num">12</span>Error Pages and Session Control</h2>
+<pre><code class="language-jsp">&lt;%@ page errorPage="error.jsp" %&gt;
+&lt;%@ page isErrorPage="true" %&gt;  ...  ${pageContext.exception.message}
+&lt;%@ page session="false" %&gt;      &lt;%-- don't create a session just for viewing this page --%&gt;</code></pre>
+<h2 id="jsp-vs-modern-template-engines"><span class="num">13</span>JSP vs Modern Template Engines</h2>
+<div class="table-wrap"><table><thead><tr><th></th><th>JSP</th><th>Thymeleaf / FreeMarker</th><th>SPA (React) + JSON API</th></tr></thead><tbody><tr><td>Natural templates</td><td>No</td><td>Thymeleaf yes</td><td>n/a</td></tr><tr><td>Spring Boot default</td><td>No (needs extra setup)</td><td>Yes</td><td>n/a</td></tr><tr><td>Where used</td><td>Legacy and enterprise</td><td>New server-rendered apps</td><td>Most new products</td></tr></tbody></table></div>
+<p>JSP is still common in existing enterprise code, so it is important to understand; new projects often choose Thymeleaf or a separate front-end.</p>
+<h2 id="quick-recap"><span class="num">14</span>Quick Recap</h2>
+<ul><li>JSP is translated into a servlet; use it only for <strong>views</strong></li><li>Use <strong>EL + JSTL</strong>, not scriptlets</li><li><code>&lt;c:out&gt;</code> escapes HTML and protects against XSS</li><li>Controller servlet sets request attributes, then <strong>forwards</strong> to a JSP under <code>WEB-INF</code></li><li>Know the implicit objects and the four scopes</li></ul>
+    </article>
+    <nav class="pager" aria-label="Topic navigation">
+      <a class="prev" href="21-servlets.html"><small>← Previous</small><strong>Servlets</strong></a>
+      <a class="next" href="23-sessions-filters-security.html"><small>Next →</small><strong>Sessions, Cookies, Filters, Listeners and Web Security</strong></a>
+    </nav>
+  </main>
+</div>
+</body>
+</html>

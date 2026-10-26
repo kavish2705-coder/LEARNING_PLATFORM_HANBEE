@@ -1,0 +1,702 @@
+/* ===== My Team & Squad Telemetry Styling ===== */
+
+.teamPage {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  animation: fadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Hero Team Banner */
+.heroBanner {
+  position: relative;
+  overflow: hidden;
+  background: var(--bg-card);
+  border-radius: var(--clay-radius-md);
+  box-shadow: var(--clay-shadow-outer);
+  border: var(--border-subtle);
+  padding: 32px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 24px;
+}
+
+.heroBanner::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 320px;
+  height: 100%;
+  background: radial-gradient(circle at right center, rgba(125, 211, 232, 0.08), transparent 70%);
+  pointer-events: none;
+}
+
+.heroLeft {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  z-index: 1;
+}
+
+/* Referenced in page.tsx but never defined here -- the status and roster
+   badges had no layout rule at all, so they ran together with zero
+   spacing between them. */
+.metaRow {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.teamName {
+  font-family: var(--font-heading);
+  font-size: clamp(24px, 2.5vw, 32px);
+  font-weight: 700;
+  color: var(--text-main);
+  letter-spacing: -0.02em;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.teamSubtitle {
+  font-size: 14px;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.heroRight {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  z-index: 1;
+  flex-wrap: wrap;
+}
+
+/* Team Points Pill */
+.pointsPill {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  background: var(--bg-surface-elevated);
+  box-shadow: var(--clay-shadow-button);
+  border: 1px solid var(--border-elevated);
+  padding: 12px 20px;
+  border-radius: var(--clay-radius-sm);
+}
+
+.pointsLabel {
+  font-size: 11px;
+  font-family: var(--font-mono);
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: #475569;
+}
+
+.pointsValue {
+  font-family: var(--font-heading);
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--accent-subtle-text);
+  line-height: 1.1;
+}
+
+/* Quick Metrics Row */
+.metricsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 16px;
+}
+
+.metricCard {
+  background: var(--bg-card);
+  box-shadow: var(--clay-shadow-outer);
+  border: var(--border-subtle);
+  border-radius: var(--clay-radius-sm);
+  padding: 18px 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.metricCard:hover {
+  transform: translateY(-2px);
+  border-color: rgba(125, 211, 232, 0.3);
+}
+
+.metricIconBox {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--accent-subtle-bg);
+  border: 1px solid var(--accent-subtle-border);
+  color: var(--accent-subtle-text);
+  flex-shrink: 0;
+}
+
+.metricInfo {
+  display: flex;
+  flex-direction: column;
+}
+
+.metricLabel {
+  font-size: 11px;
+  font-family: var(--font-mono);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.metricVal {
+  font-family: var(--font-heading);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-top: 2px;
+}
+
+/* Tabs Navigation */
+.tabsBar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  padding-bottom: 12px;
+  overflow-x: auto;
+}
+
+.tabButton {
+  /* A fixed white-tint fill/border reads as a subtle light-on-dark pill in
+     Dark theme, but is nearly invisible against Light theme's own white
+     page background -- same shape, same text, no visible pill at all. */
+  background: var(--bg-card-hover);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-muted);
+  padding: 7px 18px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  white-space: nowrap;
+}
+
+.tabButton:hover {
+  background: var(--accent-subtle-bg);
+  color: var(--text-main);
+}
+
+.tabButtonActive {
+  background: var(--accent-subtle-bg);
+  color: var(--accent-subtle-text);
+  border-color: var(--accent-subtle-border);
+  box-shadow: 0 0 16px var(--accent-subtle-bg);
+}
+
+/* Drivers Roster Grid */
+.rosterGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 20px;
+}
+
+/* Capacity Tracker -- referenced in page.tsx but had no CSS at all, so
+   it rendered as unstyled browser-default text/divs: a bare "1" followed
+   by four unframed "+" characters instead of intentional empty slots. */
+.slotsBanner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 20px;
+  background: var(--bg-card);
+  box-shadow: var(--clay-shadow-outer);
+  border: var(--border-subtle);
+  border-radius: var(--clay-radius-md);
+  padding: 20px 24px;
+  margin-bottom: 20px;
+}
+
+.slotsInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.slotsTitle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  font-size: 14.5px;
+}
+
+.slotsDesc {
+  font-size: 13px;
+  color: var(--text-muted);
+  max-width: 480px;
+}
+
+.slotsVisual {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.slotPill {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 14px;
+  font-family: var(--font-mono);
+}
+
+.slotFilled {
+  background: var(--accent-subtle-bg);
+  border: 1px solid var(--accent-subtle-border);
+  color: var(--accent-subtle-text);
+}
+
+.slotEmpty {
+  background: transparent;
+  border: 1.5px dashed var(--border-elevated);
+  color: var(--text-muted);
+}
+
+.driverCard {
+  background: var(--bg-card);
+  box-shadow: var(--clay-shadow-outer);
+  border: var(--border-subtle);
+  border-radius: var(--clay-radius-md);
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  position: relative;
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.driverCard:hover {
+  transform: translateY(-2px);
+  border-color: rgba(125, 211, 232, 0.25);
+}
+
+.driverCardSelf {
+  border-color: rgba(125, 211, 232, 0.45);
+  box-shadow: 0 0 20px rgba(8, 145, 178, 0.12), var(--clay-shadow-outer);
+}
+
+.driverHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.driverProfile {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.driverAvatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--border-elevated);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 16px;
+  color: var(--text-main);
+}
+
+.driverAvatarSelf {
+  background: var(--accent-subtle-bg);
+  border-color: var(--accent-subtle-border);
+  color: var(--accent-subtle-text);
+}
+
+.driverNameRow {
+  display: flex;
+  flex-direction: column;
+}
+
+.driverName {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-main);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.driverRole {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+}
+
+.driverBadge {
+  font-size: 10px;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 6px;
+  text-transform: uppercase;
+}
+
+.badgeCaptain {
+  display: inline-flex;
+  align-items: center;
+  font-size: 11px;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  padding: 3px 9px;
+  border-radius: 6px;
+  background: rgba(245, 158, 11, 0.12);
+  color: #f59e0b;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  vertical-align: middle;
+}
+
+.badgeYou {
+  display: inline-flex;
+  align-items: center;
+  font-size: 10px;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  padding: 2px 7px;
+  border-radius: 5px;
+  background: rgba(56, 189, 248, 0.12);
+  color: #38bdf8;
+  border: 1px solid rgba(56, 189, 248, 0.3);
+}
+
+/* Telemetry Mini Board */
+.driverTelemetry {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  background: var(--bg-surface-elevated);
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--border-elevated);
+}
+
+.telemItem {
+  display: flex;
+  flex-direction: column;
+}
+
+.telemKey {
+  font-size: 10px;
+  font-family: var(--font-mono);
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+.telemVal {
+  font-size: 14px;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  color: var(--text-main);
+  margin-top: 2px;
+}
+
+.fastLapHighlight {
+  color: #a855f7; /* Purple F1 fast lap indicator */
+}
+
+
+/* Telemetry Simulator / Practice Logger */
+.loggerContainer {
+  background: var(--bg-card);
+  box-shadow: var(--clay-shadow-outer);
+  border: var(--border-subtle);
+  border-radius: var(--clay-radius-md);
+  padding: 26px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.loggerHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.loggerTitleGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.loggerTitle {
+  font-family: var(--font-heading);
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-main);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.loggerDesc {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.runSimBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--accent-subtle-bg);
+  border: 1px solid var(--accent-subtle-border);
+  color: var(--accent-subtle-text);
+  padding: 10px 20px;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.runSimBtn:hover:not(:disabled) {
+  background: rgba(125, 211, 232, 0.2);
+  transform: translateY(-1px);
+  box-shadow: 0 0 16px rgba(8, 145, 178, 0.25);
+}
+
+.runSimBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Laps Comparison Table */
+.timingTableWrapper {
+  overflow-x: auto;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: var(--bg-surface-elevated);
+}
+
+.timingTable {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 13px;
+}
+
+.timingTable th {
+  padding: 12px 16px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  background: rgba(0, 0, 0, 0.2);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.timingTable td {
+  padding: 12px 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  color: var(--text-main);
+  font-family: var(--font-mono);
+}
+
+.timingTable tr:last-child td {
+  border-bottom: none;
+}
+
+.timingTable tr:hover td {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.purpleText {
+  color: #c084fc;
+  font-weight: 700;
+}
+
+.greenText {
+  color: #34d399;
+  font-weight: 600;
+}
+
+/* Team Formation Form Cards */
+.formSection {
+  background: var(--bg-card);
+  box-shadow: var(--clay-shadow-outer);
+  border: var(--border-subtle);
+  border-radius: var(--clay-radius-md);
+  padding: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.formHeader {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.formTitle {
+  font-family: var(--font-heading);
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.formSubtitle {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.inlineForm {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.textInput {
+  flex: 1;
+  min-width: 240px;
+  background: var(--bg-input);
+  border: 1px solid var(--border-elevated);
+  box-shadow: var(--clay-shadow-active);
+  border-radius: 10px;
+  padding: 10px 16px;
+  color: var(--text-main);
+  font-size: 14px;
+  outline: none;
+}
+
+.textInput:focus {
+  border-color: var(--accent-subtle-border);
+  box-shadow: 0 0 0 2px rgba(8, 145, 178, 0.2);
+}
+
+.actionBtn {
+  background: var(--accent-subtle-bg);
+  border: 1px solid var(--accent-subtle-border);
+  color: var(--accent-subtle-text);
+  padding: 10px 22px;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.actionBtn:hover:not(:disabled) {
+  background: rgba(125, 211, 232, 0.25);
+  box-shadow: 0 0 16px rgba(8, 145, 178, 0.3);
+}
+
+.actionBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.secondaryBtn {
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--border-elevated);
+  color: var(--text-main);
+  padding: 10px 20px;
+  border-radius: 10px;
+  font-weight: 500;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.secondaryBtn:hover:not(:disabled) {
+  background: var(--bg-card-hover);
+  border-color: var(--text-muted);
+}
+
+.dangerBtn {
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #ef4444;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.dangerBtn:hover {
+  background: rgba(239, 68, 68, 0.2);
+}
+
+/* Notice & Alert */
+.noticeAlert {
+  padding: 14px 18px;
+  border-radius: 12px;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.noticeAlertSuccess {
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  color: #10b981;
+}
+
+.noticeAlertError {
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  color: #ef4444;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .heroBanner {
+    padding: 20px;
+  }
+  .pointsPill {
+    align-items: flex-start;
+    width: 100%;
+  }
+  .metricsGrid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .rosterGrid {
+    grid-template-columns: 1fr;
+  }
+}

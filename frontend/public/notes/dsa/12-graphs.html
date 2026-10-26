@@ -1,0 +1,279 @@
+<!doctype html>
+<html lang="en" data-track="dsa">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Graphs: Representation, BFS, DFS and Union-Find — DSA Notes · Hanbee</title>
+<meta name="description" content="Model relationships with graphs. Adjacency lists and matrices, BFS and DFS, grid problems, cycle detection, topological sort, bipartite checks and the disjoint-set (union-find) structure.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500..700;1,9..144,500&amp;family=Inter:wght@400..700&amp;family=JetBrains+Mono:wght@400..600&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/notes.css">
+<script src="../assets/notes.js" defer></script>
+</head>
+<body>
+<div class="progress" aria-hidden="true"><i></i></div>
+<header class="top">
+  <a class="brand" href="../index.html"><b>H</b>Hanbee · DSA Notes</a>
+  <nav><a class="keep" href="index.html">All topics</a><button id="theme-toggle" type="button" aria-label="Toggle light and dark theme">Theme</button></nav>
+</header>
+<div class="shell">
+  <details class="toc"><summary>On this page</summary><nav aria-label="On this page"><ol><li><a href="#what-is-a-graph"><span>01</span>What is a Graph?</a></li><li><a href="#terminology"><span>02</span>Terminology</a></li><li><a href="#representing-a-graph"><span>03</span>Representing a Graph</a></li><li><a href="#breadth-first-search-bfs"><span>04</span>Breadth-First Search (BFS)</a></li><li><a href="#depth-first-search-dfs"><span>05</span>Depth-First Search (DFS)</a></li><li><a href="#connected-components"><span>06</span>Connected Components</a></li><li><a href="#graphs-on-grids"><span>07</span>Graphs on Grids</a></li><li><a href="#cycle-detection"><span>08</span>Cycle Detection</a></li><li><a href="#topological-sort"><span>09</span>Topological Sort</a></li><li><a href="#bipartite-graph-check"><span>10</span>Bipartite Graph Check</a></li><li><a href="#union-find-disjoint-set-union"><span>11</span>Union-Find (Disjoint Set Union)</a></li><li><a href="#other-classic-graph-problems"><span>12</span>Other Classic Graph Problems</a></li><li><a href="#complexity-summary"><span>13</span>Complexity Summary</a></li><li><a href="#common-mistakes"><span>14</span>Common Mistakes</a></li><li><a href="#quick-recap"><span>15</span>Quick Recap</a></li></ol></nav></details>
+  <main>
+    <header class="hero">
+      <p class="kicker"><span class="pill">Trees and Graphs</span><span>Topic 12</span><span>Advanced</span><span>12 min read</span></p>
+      <h1>Graphs: Representation, BFS, DFS and Union-Find</h1>
+      <p class="lede">Model relationships with graphs. Adjacency lists and matrices, BFS and DFS, grid problems, cycle detection, topological sort, bipartite checks and the disjoint-set (union-find) structure.</p>
+    </header>
+    <article>
+<h2 id="what-is-a-graph"><span class="num">01</span>What is a Graph?</h2>
+<p>A graph <code>G = (V, E)</code> is a set of <strong>vertices</strong> (nodes) connected by <strong>edges</strong>. Trees are special graphs (connected, no cycles). Graphs model almost any set of relationships.</p>
+<div class="table-wrap"><table><thead><tr><th>Real-world</th><th>Vertices</th><th>Edges</th></tr></thead><tbody><tr><td>Social network</td><td>People</td><td>Friendships / follows</td></tr><tr><td>Maps and navigation</td><td>Intersections</td><td>Roads (weighted by distance)</td></tr><tr><td>The web</td><td>Pages</td><td>Hyperlinks (directed)</td></tr><tr><td>Course planning</td><td>Courses</td><td>Prerequisites (directed)</td></tr><tr><td>Networks</td><td>Routers</td><td>Links (weighted by latency)</td></tr><tr><td>Dependency management</td><td>Packages</td><td>"depends on"</td></tr></tbody></table></div>
+<h2 id="terminology"><span class="num">02</span>Terminology</h2>
+<div class="table-wrap"><table><thead><tr><th>Term</th><th>Meaning</th></tr></thead><tbody><tr><td><strong>Directed / undirected</strong></td><td>Edges have a direction / do not</td></tr><tr><td><strong>Weighted / unweighted</strong></td><td>Edges carry a cost / do not</td></tr><tr><td><strong>Degree</strong></td><td>Number of edges at a vertex (in-degree and out-degree if directed)</td></tr><tr><td><strong>Path</strong></td><td>Sequence of vertices connected by edges</td></tr><tr><td><strong>Cycle</strong></td><td>Path that starts and ends at the same vertex</td></tr><tr><td><strong>Connected</strong></td><td>Every vertex is reachable from every other (undirected)</td></tr><tr><td><strong>Component</strong></td><td>A maximal connected piece</td></tr><tr><td><strong>Strongly connected</strong></td><td>Every vertex reachable from every other <strong>following direction</strong></td></tr><tr><td><strong>DAG</strong></td><td>Directed Acyclic Graph (basis of topological sort and many DP problems)</td></tr><tr><td><strong>Dense / sparse</strong></td><td><code>E</code> close to <code>V²</code> / <code>E</code> close to <code>V</code></td></tr><tr><td><strong>Self-loop, multi-edge</strong></td><td>Edge from a vertex to itself; several edges between the same pair</td></tr></tbody></table></div>
+<p>A connected undirected graph with <code>V</code> vertices and <code>V - 1</code> edges is a tree.</p>
+<h2 id="representing-a-graph"><span class="num">03</span>Representing a Graph</h2>
+<h3 id="adjacency-list-the-default">Adjacency list (the default)</h3>
+<pre><code class="language-java">int n = 5;
+List&lt;List&lt;Integer&gt;&gt; graph = new ArrayList&lt;&gt;();
+for (int i = 0; i &lt; n; i++) graph.add(new ArrayList&lt;&gt;());
+
+void addEdge(int u, int v) {          // undirected
+    graph.get(u).add(v);
+    graph.get(v).add(u);
+}
+// directed: only graph.get(u).add(v)</code></pre>
+<p>Weighted graph:</p>
+<pre><code class="language-java">record Edge(int to, int weight) { }
+List&lt;List&lt;Edge&gt;&gt; g = new ArrayList&lt;&gt;();
+// g.get(u).add(new Edge(v, w));</code></pre>
+<p>When nodes are arbitrary labels:</p>
+<pre><code class="language-java">Map&lt;String, List&lt;String&gt;&gt; g = new HashMap&lt;&gt;();
+g.computeIfAbsent("A", k -&gt; new ArrayList&lt;&gt;()).add("B");</code></pre>
+<h3 id="adjacency-matrix">Adjacency matrix</h3>
+<pre><code class="language-java">boolean[][] adj = new boolean[n][n];     // or int[][] for weights
+adj[u][v] = adj[v][u] = true;</code></pre>
+<h3 id="edge-list">Edge list</h3>
+<p>A list of <code>(u, v, w)</code> triples: used by Kruskal's algorithm and Bellman-Ford.</p>
+<h3 id="comparison">Comparison</h3>
+<div class="table-wrap"><table><thead><tr><th></th><th>Adjacency list</th><th>Adjacency matrix</th></tr></thead><tbody><tr><td>Space</td><td><code>O(V + E)</code></td><td><code>O(V²)</code></td></tr><tr><td>Is there an edge <code>u → v</code>?</td><td><code>O(degree)</code></td><td><strong><code>O(1)</code></strong></td></tr><tr><td>List all neighbours</td><td><strong><code>O(degree)</code></strong></td><td><code>O(V)</code></td></tr><tr><td>Full traversal</td><td><code>O(V + E)</code></td><td><code>O(V²)</code></td></tr><tr><td>Best for</td><td><strong>Sparse graphs</strong> (most real problems)</td><td>Dense graphs, constant-time edge checks</td></tr></tbody></table></div>
+<h2 id="breadth-first-search-bfs"><span class="num">04</span>Breadth-First Search (BFS)</h2>
+<p>Explore <strong>level by level</strong> from a start vertex using a <strong>queue</strong>. Finds the <strong>shortest path in an unweighted graph</strong>.</p>
+<pre><code class="language-java">static void bfs(List&lt;List&lt;Integer&gt;&gt; g, int start) {
+    boolean[] visited = new boolean[g.size()];
+    Queue&lt;Integer&gt; q = new ArrayDeque&lt;&gt;();
+    q.offer(start);
+    visited[start] = true;                              // mark when ENQUEUED, not when dequeued
+    while (!q.isEmpty()) {
+        int u = q.poll();
+        System.out.println(u);
+        for (int v : g.get(u)) {
+            if (!visited[v]) { visited[v] = true; q.offer(v); }
+        }
+    }
+}                                                         // O(V + E) time, O(V) space</code></pre>
+<h3 id="shortest-distance-in-an-unweighted-graph">Shortest distance in an unweighted graph</h3>
+<pre><code class="language-java">static int[] bfsDistance(List&lt;List&lt;Integer&gt;&gt; g, int src) {
+    int[] dist = new int[g.size()];
+    Arrays.fill(dist, -1);
+    Queue&lt;Integer&gt; q = new ArrayDeque&lt;&gt;();
+    q.offer(src); dist[src] = 0;
+    while (!q.isEmpty()) {
+        int u = q.poll();
+        for (int v : g.get(u))
+            if (dist[v] == -1) { dist[v] = dist[u] + 1; q.offer(v); }
+    }
+    return dist;
+}</code></pre>
+<h2 id="depth-first-search-dfs"><span class="num">05</span>Depth-First Search (DFS)</h2>
+<p>Go as <strong>deep</strong> as possible, then backtrack, using recursion or a <strong>stack</strong>.</p>
+<pre><code class="language-java">static void dfs(List&lt;List&lt;Integer&gt;&gt; g, int u, boolean[] visited) {
+    visited[u] = true;
+    for (int v : g.get(u))
+        if (!visited[v]) dfs(g, v, visited);
+}                                                         // O(V + E) time, O(V) stack</code></pre>
+<h3 id="iterative-dfs">Iterative DFS</h3>
+<pre><code class="language-java">static void dfsIter(List&lt;List&lt;Integer&gt;&gt; g, int start) {
+    boolean[] visited = new boolean[g.size()];
+    Deque&lt;Integer&gt; st = new ArrayDeque&lt;&gt;();
+    st.push(start);
+    while (!st.isEmpty()) {
+        int u = st.pop();
+        if (visited[u]) continue;
+        visited[u] = true;
+        for (int v : g.get(u)) if (!visited[v]) st.push(v);
+    }
+}</code></pre>
+<h3 id="bfs-vs-dfs">BFS vs DFS</h3>
+<div class="table-wrap"><table><thead><tr><th></th><th>BFS</th><th>DFS</th></tr></thead><tbody><tr><td>Data structure</td><td>Queue</td><td>Stack / recursion</td></tr><tr><td>Explores</td><td>Level by level</td><td>Branch by branch</td></tr><tr><td>Shortest path (unweighted)</td><td><strong>Yes</strong></td><td>No</td></tr><tr><td>Memory</td><td>Width of the graph</td><td>Depth of the graph</td></tr><tr><td>Good for</td><td>Shortest paths, level problems, "minimum steps"</td><td>Cycle detection, topological sort, components, backtracking, path existence</td></tr></tbody></table></div>
+<h2 id="connected-components"><span class="num">06</span>Connected Components</h2>
+<pre><code class="language-java">static int countComponents(int n, List&lt;List&lt;Integer&gt;&gt; g) {
+    boolean[] visited = new boolean[n];
+    int count = 0;
+    for (int i = 0; i &lt; n; i++) {
+        if (!visited[i]) { dfs(g, i, visited); count++; }
+    }
+    return count;
+}</code></pre>
+<h2 id="graphs-on-grids"><span class="num">07</span>Graphs on Grids</h2>
+<p>A grid is an implicit graph: each cell is a vertex, neighbours are up/down/left/right (sometimes diagonals). No need to build adjacency lists.</p>
+<h3 id="number-of-islands">Number of islands</h3>
+<pre><code class="language-java">static int numIslands(char[][] grid) {
+    int count = 0;
+    for (int r = 0; r &lt; grid.length; r++)
+        for (int c = 0; c &lt; grid[0].length; c++)
+            if (grid[r][c] == '1') { sink(grid, r, c); count++; }
+    return count;
+}
+static void sink(char[][] g, int r, int c) {
+    if (r &lt; 0 || c &lt; 0 || r &gt;= g.length || c &gt;= g[0].length || g[r][c] != '1') return;
+    g[r][c] = '0';                                         // mark visited by modifying the grid
+    sink(g, r + 1, c); sink(g, r - 1, c); sink(g, r, c + 1); sink(g, r, c - 1);
+}</code></pre>
+<h3 id="shortest-path-in-a-binary-maze-bfs">Shortest path in a binary maze (BFS)</h3>
+<pre><code class="language-java">static int shortestPath(int[][] grid, int[] start, int[] end) {
+    int rows = grid.length, cols = grid[0].length;
+    int[] dr = {1, -1, 0, 0}, dc = {0, 0, 1, -1};
+    boolean[][] seen = new boolean[rows][cols];
+    Queue&lt;int[]&gt; q = new ArrayDeque&lt;&gt;();
+    q.offer(new int[]{start[0], start[1], 0});
+    seen[start[0]][start[1]] = true;
+    while (!q.isEmpty()) {
+        int[] cur = q.poll();
+        if (cur[0] == end[0] &amp;&amp; cur[1] == end[1]) return cur[2];
+        for (int d = 0; d &lt; 4; d++) {
+            int nr = cur[0] + dr[d], nc = cur[1] + dc[d];
+            if (nr &gt;= 0 &amp;&amp; nc &gt;= 0 &amp;&amp; nr &lt; rows &amp;&amp; nc &lt; cols &amp;&amp; grid[nr][nc] == 0 &amp;&amp; !seen[nr][nc]) {
+                seen[nr][nc] = true;
+                q.offer(new int[]{nr, nc, cur[2] + 1});
+            }
+        }
+    }
+    return -1;
+}</code></pre>
+<h3 id="multi-source-bfs-rotting-oranges-walls-and-gates-01-matrix">Multi-source BFS (rotting oranges, walls and gates, 01-matrix)</h3>
+<p>Put <strong>all</strong> sources in the queue at the start, then run BFS once: each cell gets its distance to the <strong>nearest</strong> source.</p>
+<h3 id="other-grid-problems">Other grid problems</h3>
+<p>Flood fill, surrounded regions, pacific-atlantic water flow, max area of island, word search (DFS + backtracking), minimum knight moves.</p>
+<h2 id="cycle-detection"><span class="num">08</span>Cycle Detection</h2>
+<h3 id="undirected-graph-dfs-with-the-parent">Undirected graph (DFS with the parent)</h3>
+<pre><code class="language-java">static boolean hasCycleUndirected(List&lt;List&lt;Integer&gt;&gt; g) {
+    boolean[] visited = new boolean[g.size()];
+    for (int i = 0; i &lt; g.size(); i++)
+        if (!visited[i] &amp;&amp; dfsCycle(g, i, -1, visited)) return true;
+    return false;
+}
+static boolean dfsCycle(List&lt;List&lt;Integer&gt;&gt; g, int u, int parent, boolean[] visited) {
+    visited[u] = true;
+    for (int v : g.get(u)) {
+        if (!visited[v]) { if (dfsCycle(g, v, u, visited)) return true; }
+        else if (v != parent) return true;                  // reached a visited non-parent: cycle
+    }
+    return false;
+}</code></pre>
+<h3 id="directed-graph-three-colours-recursion-stack">Directed graph (three colours / recursion stack)</h3>
+<pre><code class="language-java">static boolean hasCycleDirected(List&lt;List&lt;Integer&gt;&gt; g) {
+    int n = g.size();
+    int[] state = new int[n];                               // 0 = unvisited, 1 = in current path, 2 = finished
+    for (int i = 0; i &lt; n; i++)
+        if (state[i] == 0 &amp;&amp; dfs(g, i, state)) return true;
+    return false;
+}
+static boolean dfs(List&lt;List&lt;Integer&gt;&gt; g, int u, int[] state) {
+    state[u] = 1;
+    for (int v : g.get(u)) {
+        if (state[v] == 1) return true;                     // back edge → cycle
+        if (state[v] == 0 &amp;&amp; dfs(g, v, state)) return true;
+    }
+    state[u] = 2;
+    return false;
+}</code></pre>
+<h2 id="topological-sort"><span class="num">09</span>Topological Sort</h2>
+<p>For a <strong>DAG</strong>, an ordering of vertices so that every edge <code>u → v</code> has <code>u</code> before <code>v</code>. Used for build systems, course schedules and task dependencies.</p>
+<h3 id="kahn-s-algorithm-bfs-using-in-degrees">Kahn's algorithm (BFS using in-degrees)</h3>
+<pre><code class="language-java">static List&lt;Integer&gt; topoSort(int n, List&lt;List&lt;Integer&gt;&gt; g) {
+    int[] indeg = new int[n];
+    for (int u = 0; u &lt; n; u++) for (int v : g.get(u)) indeg[v]++;
+
+    Queue&lt;Integer&gt; q = new ArrayDeque&lt;&gt;();
+    for (int i = 0; i &lt; n; i++) if (indeg[i] == 0) q.offer(i);
+
+    List&lt;Integer&gt; order = new ArrayList&lt;&gt;();
+    while (!q.isEmpty()) {
+        int u = q.poll();
+        order.add(u);
+        for (int v : g.get(u)) if (--indeg[v] == 0) q.offer(v);
+    }
+    return order.size() == n ? order : List.of();           // shorter than n → there is a cycle
+}                                                             // O(V + E)</code></pre>
+<h3 id="dfs-based">DFS-based</h3>
+<p>Run DFS; push each vertex onto a stack <strong>after</strong> visiting all its neighbours; the reverse of finish order is a topological order.</p>
+<h3 id="course-schedule">Course schedule</h3>
+<p>"Can all courses be finished?" = "Does the prerequisite graph have no cycle?" → run Kahn's algorithm and check <code>order.size() == n</code>. "Course Schedule II" asks for the order itself.</p>
+<h2 id="bipartite-graph-check"><span class="num">10</span>Bipartite Graph Check</h2>
+<p>A graph is bipartite if its vertices can be coloured with <strong>two colours</strong> so that no edge joins the same colour (equivalent to having <strong>no odd cycle</strong>).</p>
+<pre><code class="language-java">static boolean isBipartite(List&lt;List&lt;Integer&gt;&gt; g) {
+    int n = g.size();
+    int[] color = new int[n];
+    Arrays.fill(color, -1);
+    for (int s = 0; s &lt; n; s++) {
+        if (color[s] != -1) continue;
+        Queue&lt;Integer&gt; q = new ArrayDeque&lt;&gt;();
+        q.offer(s); color[s] = 0;
+        while (!q.isEmpty()) {
+            int u = q.poll();
+            for (int v : g.get(u)) {
+                if (color[v] == -1) { color[v] = 1 - color[u]; q.offer(v); }
+                else if (color[v] == color[u]) return false;
+            }
+        }
+    }
+    return true;
+}</code></pre>
+<h2 id="union-find-disjoint-set-union"><span class="num">11</span>Union-Find (Disjoint Set Union)</h2>
+<p>Tracks a collection of disjoint sets with two operations:</p>
+<ul><li><code>find(x)</code>: which set (representative/root) does <code>x</code> belong to?</li><li><code>union(x, y)</code>: merge the sets of <code>x</code> and <code>y</code></li></ul>
+<p>With <strong>path compression</strong> and <strong>union by rank/size</strong>, each operation is almost <code>O(1)</code>: <code>O(α(n))</code>, where <code>α</code> is the inverse Ackermann function (&lt; 5 for any practical <code>n</code>).</p>
+<pre><code class="language-java">class DSU {
+    private final int[] parent, size;
+    int components;
+
+    DSU(int n) {
+        parent = new int[n]; size = new int[n]; components = n;
+        for (int i = 0; i &lt; n; i++) { parent[i] = i; size[i] = 1; }
+    }
+
+    int find(int x) {
+        if (parent[x] != x) parent[x] = find(parent[x]);       // path compression
+        return parent[x];
+    }
+
+    boolean union(int a, int b) {
+        int ra = find(a), rb = find(b);
+        if (ra == rb) return false;                              // already connected (a cycle if this is an edge)
+        if (size[ra] &lt; size[rb]) { int t = ra; ra = rb; rb = t; }
+        parent[rb] = ra;                                         // attach the smaller tree under the larger
+        size[ra] += size[rb];
+        components--;
+        return true;
+    }
+
+    boolean connected(int a, int b) { return find(a) == find(b); }
+}</code></pre>
+<h3 id="union-find-applications">Union-Find applications</h3>
+<div class="table-wrap"><table><thead><tr><th>Problem</th><th>How</th></tr></thead><tbody><tr><td>Connected components count</td><td><code>components</code> after unioning all edges</td></tr><tr><td><strong>Cycle detection in an undirected graph</strong></td><td>An edge whose endpoints are already connected</td></tr><tr><td><strong>Kruskal's MST</strong></td><td>Add the cheapest edge if it joins different components</td></tr><tr><td>Redundant connection</td><td>The edge whose <code>union</code> returns false</td></tr><tr><td>Accounts merge, similar strings groups</td><td>Union by shared email / similarity</td></tr><tr><td>Number of islands (dynamic, adding land)</td><td>Union neighbouring land cells</td></tr><tr><td>Satisfiability of equations (<code>a==b</code>, <code>a!=c</code>)</td><td>Union equalities, check inequalities</td></tr></tbody></table></div>
+<h2 id="other-classic-graph-problems"><span class="num">12</span>Other Classic Graph Problems</h2>
+<div class="table-wrap"><table><thead><tr><th>Problem</th><th>Technique</th></tr></thead><tbody><tr><td>Clone a graph</td><td>DFS/BFS with a <code>Map&lt;old, new&gt;</code></td></tr><tr><td>Word ladder (shortest transformation)</td><td>BFS over words differing by one letter</td></tr><tr><td>Alien dictionary</td><td>Build a graph from adjacent words, topological sort</td></tr><tr><td>Is the graph a valid tree?</td><td><code>E == V - 1</code> and connected (or no cycle)</td></tr><tr><td>Find the town judge / celebrity</td><td>In-degree and out-degree counting</td></tr><tr><td>All paths from source to target in a DAG</td><td>DFS with backtracking</td></tr><tr><td>Eulerian path, Hamiltonian path</td><td>Hierholzer's algorithm; NP-hard respectively</td></tr><tr><td>Strongly connected components</td><td>Kosaraju's or Tarjan's algorithm</td></tr><tr><td>Bridges and articulation points</td><td>Tarjan's low-link DFS</td></tr></tbody></table></div>
+<h2 id="complexity-summary"><span class="num">13</span>Complexity Summary</h2>
+<div class="table-wrap"><table><thead><tr><th>Algorithm</th><th>Time</th><th>Space</th></tr></thead><tbody><tr><td>BFS / DFS (adjacency list)</td><td><code>O(V + E)</code></td><td><code>O(V)</code></td></tr><tr><td>BFS / DFS (adjacency matrix)</td><td><code>O(V²)</code></td><td><code>O(V)</code></td></tr><tr><td>Topological sort</td><td><code>O(V + E)</code></td><td><code>O(V)</code></td></tr><tr><td>Union-Find (per operation)</td><td><code>O(α(n))</code></td><td><code>O(V)</code></td></tr></tbody></table></div>
+<h2 id="common-mistakes"><span class="num">14</span>Common Mistakes</h2>
+<ul><li>Marking visited <strong>after</strong> dequeuing in BFS (enqueues duplicates, can blow up)</li><li>Forgetting the <code>visited</code> check (infinite loop on cycles)</li><li>Using the parent check incorrectly in directed-graph cycle detection (use the three-state method)</li><li>Recursion depth overflow on large graphs: use iterative DFS or BFS</li><li>Not handling <strong>disconnected</strong> graphs: loop over all start vertices</li><li>Confusing 0-indexed and 1-indexed vertices; forgetting to add <strong>both</strong> directions for undirected edges</li></ul>
+<h2 id="quick-recap"><span class="num">15</span>Quick Recap</h2>
+<ul><li>Use an <strong>adjacency list</strong> for sparse graphs (<code>O(V + E)</code> space); a matrix for dense ones</li><li><strong>BFS</strong> (queue) = shortest path in unweighted graphs; <strong>DFS</strong> (stack/recursion) = components, cycles, topological order</li><li>Grids are implicit graphs; use direction arrays and multi-source BFS</li><li><strong>Topological sort</strong> (Kahn or DFS) works only on DAGs; failure to order everything means a cycle</li><li><strong>Union-Find</strong> with path compression and union by size gives near-constant-time connectivity queries</li></ul>
+    </article>
+    <nav class="pager" aria-label="Topic navigation">
+      <a class="prev" href="11-heaps-tries.html"><small>← Previous</small><strong>Heaps, Priority Queues and Tries</strong></a>
+      <a class="next" href="13-shortest-paths-mst.html"><small>Next →</small><strong>Shortest Paths and Minimum Spanning Trees</strong></a>
+    </nav>
+  </main>
+</div>
+</body>
+</html>

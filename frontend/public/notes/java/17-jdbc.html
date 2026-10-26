@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="en" data-track="java">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>JDBC: Java Database Connectivity — Java Notes · Hanbee</title>
+<meta name="description" content="Talk to relational databases from Java. Drivers, connections, Statement vs PreparedStatement, ResultSet, transactions, batch updates, connection pools and the DAO pattern.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500..700;1,9..144,500&amp;family=Inter:wght@400..700&amp;family=JetBrains+Mono:wght@400..600&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/notes.css">
+<script src="../assets/notes.js" defer></script>
+</head>
+<body>
+<div class="progress" aria-hidden="true"><i></i></div>
+<header class="top">
+  <a class="brand" href="../index.html"><b>H</b>Hanbee · Java Notes</a>
+  <nav><a class="keep" href="index.html">All topics</a><button id="theme-toggle" type="button" aria-label="Toggle light and dark theme">Theme</button></nav>
+</header>
+<div class="shell">
+  <details class="toc"><summary>On this page</summary><nav aria-label="On this page"><ol><li><a href="#what-is-jdbc"><span>01</span>What is JDBC?</a></li><li><a href="#jdbc-architecture"><span>02</span>JDBC Architecture</a></li><li><a href="#steps-to-connect"><span>03</span>Steps to Connect</a></li><li><a href="#a-complete-query-example"><span>04</span>A Complete Query Example</a></li><li><a href="#statement-vs-preparedstatement-vs-callablestatement"><span>05</span>Statement vs PreparedStatement vs CallableStatement</a></li><li><a href="#executing-statements"><span>06</span>Executing Statements</a></li><li><a href="#resultset"><span>07</span>ResultSet</a></li><li><a href="#sql-to-java-type-mapping"><span>08</span>SQL to Java Type Mapping</a></li><li><a href="#transactions"><span>09</span>Transactions</a></li><li><a href="#batch-processing"><span>10</span>Batch Processing</a></li><li><a href="#stored-procedures"><span>11</span>Stored Procedures</a></li><li><a href="#connection-pooling"><span>12</span>Connection Pooling</a></li><li><a href="#dao-pattern"><span>13</span>DAO Pattern</a></li><li><a href="#common-problems"><span>14</span>Common Problems</a></li><li><a href="#best-practices"><span>15</span>Best Practices</a></li><li><a href="#quick-recap"><span>16</span>Quick Recap</a></li></ol></nav></details>
+  <main>
+    <header class="hero">
+      <p class="kicker"><span class="pill">Advanced Java</span><span>Topic 17</span><span>Intermediate</span><span>7 min read</span></p>
+      <h1>JDBC: Java Database Connectivity</h1>
+      <p class="lede">Talk to relational databases from Java. Drivers, connections, Statement vs PreparedStatement, ResultSet, transactions, batch updates, connection pools and the DAO pattern.</p>
+    </header>
+    <article>
+<h2 id="what-is-jdbc"><span class="num">01</span>What is JDBC?</h2>
+<p><strong>JDBC</strong> (Java Database Connectivity) is the standard Java API (<code>java.sql</code> and <code>javax.sql</code>) for connecting to a relational database, running SQL and processing results. Your code talks to JDBC interfaces; a vendor-supplied <strong>driver</strong> translates the calls for MySQL, PostgreSQL, Oracle and others.</p>
+<pre><code class="language-text">Java App  →  JDBC API  →  JDBC Driver  →  Database</code></pre>
+<h2 id="jdbc-architecture"><span class="num">02</span>JDBC Architecture</h2>
+<div class="table-wrap"><table><thead><tr><th>Component</th><th>Role</th></tr></thead><tbody><tr><td><code>DriverManager</code> / <code>DataSource</code></td><td>Obtain connections</td></tr><tr><td><code>Connection</code></td><td>A session with the database</td></tr><tr><td><code>Statement</code> / <code>PreparedStatement</code> / <code>CallableStatement</code></td><td>Execute SQL / stored procedures</td></tr><tr><td><code>ResultSet</code></td><td>Rows returned by a query</td></tr><tr><td><code>SQLException</code></td><td>Database errors</td></tr></tbody></table></div>
+<h3 id="driver-types">Driver types</h3>
+<div class="table-wrap"><table><thead><tr><th>Type</th><th>Description</th></tr></thead><tbody><tr><td>1</td><td>JDBC-ODBC bridge (removed)</td></tr><tr><td>2</td><td>Native-API driver</td></tr><tr><td>3</td><td>Network protocol / middleware</td></tr><tr><td><strong>4</strong></td><td><strong>Pure Java thin driver. Standard today</strong> (e.g. <code>mysql-connector-j</code>, <code>postgresql</code>)</td></tr></tbody></table></div>
+<h2 id="steps-to-connect"><span class="num">03</span>Steps to Connect</h2>
+<ol><li>Add the driver dependency (Maven below)</li><li>Obtain a <code>Connection</code></li><li>Create a statement</li><li>Execute SQL</li><li>Process the <code>ResultSet</code></li><li>Close resources (use try-with-resources)</li></ol>
+<pre data-file="pom.xml"><code class="language-xml">&lt;dependency&gt;
+  &lt;groupId&gt;org.postgresql&lt;/groupId&gt;
+  &lt;artifactId&gt;postgresql&lt;/artifactId&gt;
+  &lt;version&gt;42.7.4&lt;/version&gt;
+&lt;/dependency&gt;</code></pre>
+<p>Since JDBC 4 the driver registers itself automatically; <code>Class.forName(...)</code> is no longer needed.</p>
+<h3 id="connection-urls">Connection URLs</h3>
+<div class="table-wrap"><table><thead><tr><th>Database</th><th>URL</th></tr></thead><tbody><tr><td>MySQL</td><td><code>jdbc:mysql://localhost:3306/lms</code></td></tr><tr><td>PostgreSQL</td><td><code>jdbc:postgresql://localhost:5432/lms</code></td></tr><tr><td>Oracle</td><td><code>jdbc:oracle:thin:@localhost:1521:xe</code></td></tr><tr><td>H2 (in-memory)</td><td><code>jdbc:h2:mem:testdb</code></td></tr></tbody></table></div>
+<h2 id="a-complete-query-example"><span class="num">04</span>A Complete Query Example</h2>
+<pre><code class="language-java">String url = "jdbc:postgresql://localhost:5432/lms";
+String sql = "SELECT id, name, email FROM students WHERE age &gt; ?";
+
+try (Connection con = DriverManager.getConnection(url, "user", "password");
+     PreparedStatement ps = con.prepareStatement(sql)) {
+
+    ps.setInt(1, 18);
+    try (ResultSet rs = ps.executeQuery()) {
+        while (rs.next()) {
+            int id = rs.getInt("id");
+            String name = rs.getString("name");
+            System.out.println(id + " " + name + " " + rs.getString("email"));
+        }
+    }
+} catch (SQLException e) {
+    e.printStackTrace();
+}</code></pre>
+<aside class="callout tip"><span class="label">Tip</span><p>Never hard-code credentials. Read them from environment variables or a secrets manager.</p></aside>
+<h2 id="statement-vs-preparedstatement-vs-callablestatement"><span class="num">05</span>Statement vs PreparedStatement vs CallableStatement</h2>
+<div class="table-wrap"><table><thead><tr><th></th><th><code>Statement</code></th><th><code>PreparedStatement</code></th><th><code>CallableStatement</code></th></tr></thead><tbody><tr><td>Use</td><td>Static SQL, DDL</td><td>Parameterised SQL</td><td>Stored procedures</td></tr><tr><td>Parameters</td><td>None</td><td><code>?</code> placeholders</td><td><code>{call proc(?, ?)}</code></td></tr><tr><td>Performance</td><td>Re-parsed each time</td><td>Precompiled, reusable</td><td>Runs in the DB</td></tr><tr><td><strong>SQL injection safe</strong></td><td><strong>No</strong></td><td><strong>Yes</strong></td><td>Yes (with params)</td></tr></tbody></table></div>
+<h3 id="sql-injection">SQL injection</h3>
+<pre><code class="language-java">// NEVER build SQL by concatenation
+String bad = "SELECT * FROM users WHERE name = '" + input + "'";
+// input = ' OR '1'='1   → returns every user
+
+// Always use placeholders
+PreparedStatement ps = con.prepareStatement("SELECT * FROM users WHERE name = ?");
+ps.setString(1, input);</code></pre>
+<aside class="callout warning"><span class="label">Warning</span><p>Placeholders work for <strong>values</strong> only, not for table or column names. Whitelist those instead.</p></aside>
+<h2 id="executing-statements"><span class="num">06</span>Executing Statements</h2>
+<div class="table-wrap"><table><thead><tr><th>Method</th><th>Returns</th><th>Use for</th></tr></thead><tbody><tr><td><code>executeQuery()</code></td><td><code>ResultSet</code></td><td><code>SELECT</code></td></tr><tr><td><code>executeUpdate()</code></td><td><code>int</code> rows affected</td><td><code>INSERT</code>, <code>UPDATE</code>, <code>DELETE</code>, DDL</td></tr><tr><td><code>execute()</code></td><td><code>boolean</code></td><td>Unknown or multiple results</td></tr></tbody></table></div>
+<h3 id="crud">CRUD</h3>
+<pre><code class="language-java">// INSERT
+try (PreparedStatement ps = con.prepareStatement(
+        "INSERT INTO students(name, email) VALUES (?, ?)", Statement.RETURN_GENERATED_KEYS)) {
+    ps.setString(1, "Asha");
+    ps.setString(2, "asha@mail.com");
+    ps.executeUpdate();
+    try (ResultSet keys = ps.getGeneratedKeys()) {
+        if (keys.next()) System.out.println("new id " + keys.getLong(1));
+    }
+}
+
+// UPDATE
+PreparedStatement up = con.prepareStatement("UPDATE students SET email = ? WHERE id = ?");
+up.setString(1, "new@mail.com");  up.setLong(2, 5);
+int changed = up.executeUpdate();
+
+// DELETE
+PreparedStatement del = con.prepareStatement("DELETE FROM students WHERE id = ?");
+del.setLong(1, 5);
+del.executeUpdate();</code></pre>
+<h2 id="resultset"><span class="num">07</span>ResultSet</h2>
+<pre><code class="language-java">rs.next();                    // moves to next row; false when no more
+rs.getInt("id");  rs.getString(2);  rs.getDouble("fee");  rs.getBoolean("active");
+rs.getDate("dob").toLocalDate();
+rs.getTimestamp("created").toInstant();
+rs.getObject("created", LocalDateTime.class);
+rs.wasNull();                 // was the last read value SQL NULL?</code></pre>
+<ul><li>Default type is <strong>forward-only, read-only</strong></li><li>Scrollable and updatable variants exist but are rarely used</li><li>Prefer column <strong>names</strong> for clarity or indexes (start at <strong>1</strong>) for speed</li></ul>
+<h3 id="metadata">Metadata</h3>
+<pre><code class="language-java">ResultSetMetaData md = rs.getMetaData();
+int cols = md.getColumnCount();
+String name = md.getColumnName(1);
+DatabaseMetaData dbmd = con.getMetaData();   // tables, driver info</code></pre>
+<h2 id="sql-to-java-type-mapping"><span class="num">08</span>SQL to Java Type Mapping</h2>
+<div class="table-wrap"><table><thead><tr><th>SQL</th><th>Java</th></tr></thead><tbody><tr><td><code>INTEGER</code></td><td><code>int</code></td></tr><tr><td><code>BIGINT</code></td><td><code>long</code></td></tr><tr><td><code>VARCHAR</code>, <code>TEXT</code></td><td><code>String</code></td></tr><tr><td><code>DECIMAL</code>, <code>NUMERIC</code></td><td><code>BigDecimal</code></td></tr><tr><td><code>BOOLEAN</code></td><td><code>boolean</code></td></tr><tr><td><code>DATE</code></td><td><code>LocalDate</code></td></tr><tr><td><code>TIMESTAMP</code></td><td><code>LocalDateTime</code> / <code>Instant</code></td></tr><tr><td><code>BLOB</code>, <code>CLOB</code></td><td><code>byte[]</code> / <code>String</code></td></tr></tbody></table></div>
+<h2 id="transactions"><span class="num">09</span>Transactions</h2>
+<p>A transaction groups statements so they succeed or fail <strong>together</strong> (<strong>ACID</strong>: Atomicity, Consistency, Isolation, Durability). JDBC auto-commits each statement by default.</p>
+<pre><code class="language-java">try (Connection con = dataSource.getConnection()) {
+    con.setAutoCommit(false);
+    try {
+        debit(con, fromId, amount);
+        credit(con, toId, amount);
+        con.commit();
+    } catch (SQLException e) {
+        con.rollback();
+        throw e;
+    }
+}</code></pre>
+<h3 id="savepoints">Savepoints</h3>
+<pre><code class="language-java">Savepoint sp = con.setSavepoint("afterDebit");
+// ... later
+con.rollback(sp);</code></pre>
+<h3 id="isolation-levels">Isolation levels</h3>
+<div class="table-wrap"><table><thead><tr><th>Level</th><th>Prevents</th><th>Allows</th></tr></thead><tbody><tr><td><code>READ_UNCOMMITTED</code></td><td>Nothing</td><td>Dirty, non-repeatable, phantom reads</td></tr><tr><td><code>READ_COMMITTED</code></td><td>Dirty reads</td><td>Non-repeatable, phantom</td></tr><tr><td><code>REPEATABLE_READ</code></td><td>Dirty, non-repeatable</td><td>Phantom</td></tr><tr><td><code>SERIALIZABLE</code></td><td>All</td><td>None (slowest)</td></tr></tbody></table></div>
+<pre><code class="language-java">con.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);</code></pre>
+<h2 id="batch-processing"><span class="num">10</span>Batch Processing</h2>
+<p>Send many statements in one round trip.</p>
+<pre><code class="language-java">try (PreparedStatement ps = con.prepareStatement("INSERT INTO logs(msg) VALUES (?)")) {
+    for (String m : messages) {
+        ps.setString(1, m);
+        ps.addBatch();
+    }
+    int[] counts = ps.executeBatch();
+}</code></pre>
+<p>Wrap in a transaction for atomicity and speed.</p>
+<h2 id="stored-procedures"><span class="num">11</span>Stored Procedures</h2>
+<pre><code class="language-java">try (CallableStatement cs = con.prepareCall("{call get_student_count(?, ?)}")) {
+    cs.setString(1, "Java");
+    cs.registerOutParameter(2, Types.INTEGER);
+    cs.execute();
+    int count = cs.getInt(2);
+}</code></pre>
+<h2 id="connection-pooling"><span class="num">12</span>Connection Pooling</h2>
+<p>Opening a database connection is <strong>expensive</strong>. A <strong>pool</strong> keeps connections open and hands them out.</p>
+<pre><code class="language-java">HikariConfig cfg = new HikariConfig();
+cfg.setJdbcUrl("jdbc:postgresql://localhost:5432/lms");
+cfg.setUsername(user);
+cfg.setPassword(pass);
+cfg.setMaximumPoolSize(10);
+DataSource ds = new HikariDataSource(cfg);
+
+try (Connection con = ds.getConnection()) {     // borrowed from the pool
+    // ... use it
+}                                                // close() returns it to the pool</code></pre>
+<p><strong>HikariCP</strong> is the standard (default in Spring Boot). Always close connections so they go back to the pool.</p>
+<h2 id="dao-pattern"><span class="num">13</span>DAO Pattern</h2>
+<p>Separate database access from business logic.</p>
+<pre><code class="language-java">public interface StudentDao {
+    Optional&lt;Student&gt; findById(long id);
+    List&lt;Student&gt; findAll();
+    long save(Student s);
+    void delete(long id);
+}
+
+public class JdbcStudentDao implements StudentDao {
+    private final DataSource ds;
+    public JdbcStudentDao(DataSource ds) { this.ds = ds; }
+
+    @Override
+    public Optional&lt;Student&gt; findById(long id) {
+        String sql = "SELECT id, name, email FROM students WHERE id = ?";
+        try (Connection c = ds.getConnection(); PreparedStatement ps = c.prepareStatement(sql)) {
+            ps.setLong(1, id);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next()
+                    ? Optional.of(new Student(rs.getLong("id"), rs.getString("name"), rs.getString("email")))
+                    : Optional.empty();
+            }
+        } catch (SQLException e) {
+            throw new DataAccessException("findById failed", e);
+        }
+    }
+    // other methods similar
+}</code></pre>
+<h2 id="common-problems"><span class="num">14</span>Common Problems</h2>
+<div class="table-wrap"><table><thead><tr><th>Symptom</th><th>Cause</th></tr></thead><tbody><tr><td><code>No suitable driver found</code></td><td>Driver jar missing or wrong URL</td></tr><tr><td><code>Communications link failure</code></td><td>DB down, wrong host/port, firewall</td></tr><tr><td><code>Connection is closed</code></td><td>Used after close, or pool timeout</td></tr><tr><td>Pool exhausted / app hangs</td><td>Connections not closed</td></tr><tr><td><code>Column not found</code></td><td>Wrong name/index, alias missing</td></tr><tr><td>Slow queries</td><td>No index, N+1 queries, fetching too much</td></tr></tbody></table></div>
+<h2 id="best-practices"><span class="num">15</span>Best Practices</h2>
+<ul><li>Always <code>PreparedStatement</code>; never concatenate user input</li><li>Use try-with-resources for <code>Connection</code>, <code>Statement</code>, <code>ResultSet</code></li><li>Use a <strong>connection pool</strong>, not <code>DriverManager</code> in production</li><li>Keep transactions short; roll back on failure</li><li>Select only the columns you need; paginate large results (<code>LIMIT/OFFSET</code>)</li><li>Put queries in a DAO / repository layer</li><li>In larger applications use JPA/Hibernate or Spring <code>JdbcTemplate</code> on top of JDBC</li></ul>
+<h2 id="quick-recap"><span class="num">16</span>Quick Recap</h2>
+<ul><li>JDBC = standard API; the driver does the vendor-specific work</li><li><code>DriverManager</code>/<code>DataSource</code> → <code>Connection</code> → <code>PreparedStatement</code> → <code>ResultSet</code></li><li><code>PreparedStatement</code> prevents SQL injection and is faster</li><li>Transactions: <code>setAutoCommit(false)</code>, <code>commit</code>, <code>rollback</code></li><li>Pool connections with HikariCP and always close them</li></ul>
+    </article>
+    <nav class="pager" aria-label="Topic navigation">
+      <a class="prev" href="16-jvm-reflection-annotations.html"><small>← Previous</small><strong>JVM Internals, Reflection and Annotations</strong></a>
+      <a class="next" href="18-build-testing-logging.html"><small>Next →</small><strong>Build Tools, Testing and Logging</strong></a>
+    </nav>
+  </main>
+</div>
+</body>
+</html>

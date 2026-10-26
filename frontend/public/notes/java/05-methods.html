@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en" data-track="java">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Methods — Java Notes · Hanbee</title>
+<meta name="description" content="Package reusable logic into methods. Parameters, return values, overloading, varargs, recursion and how Java passes arguments.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500..700;1,9..144,500&amp;family=Inter:wght@400..700&amp;family=JetBrains+Mono:wght@400..600&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/notes.css">
+<script src="../assets/notes.js" defer></script>
+</head>
+<body>
+<div class="progress" aria-hidden="true"><i></i></div>
+<header class="top">
+  <a class="brand" href="../index.html"><b>H</b>Hanbee · Java Notes</a>
+  <nav><a class="keep" href="index.html">All topics</a><button id="theme-toggle" type="button" aria-label="Toggle light and dark theme">Theme</button></nav>
+</header>
+<div class="shell">
+  <details class="toc"><summary>On this page</summary><nav aria-label="On this page"><ol><li><a href="#what-is-a-method"><span>01</span>What is a Method?</a></li><li><a href="#static-vs-instance-methods"><span>02</span>Static vs Instance Methods</a></li><li><a href="#pass-by-value"><span>03</span>Pass by Value</a></li><li><a href="#method-overloading"><span>04</span>Method Overloading</a></li><li><a href="#varargs"><span>05</span>Varargs</a></li><li><a href="#returning-values"><span>06</span>Returning Values</a></li><li><a href="#recursion"><span>07</span>Recursion</a></li><li><a href="#method-best-practices"><span>08</span>Method Best Practices</a></li><li><a href="#the-main-method"><span>09</span>The main Method</a></li><li><a href="#quick-recap"><span>10</span>Quick Recap</a></li></ol></nav></details>
+  <main>
+    <header class="hero">
+      <p class="kicker"><span class="pill">Foundations</span><span>Topic 05</span><span>Beginner</span><span>5 min read</span></p>
+      <h1>Methods</h1>
+      <p class="lede">Package reusable logic into methods. Parameters, return values, overloading, varargs, recursion and how Java passes arguments.</p>
+    </header>
+    <article>
+<h2 id="what-is-a-method"><span class="num">01</span>What is a Method?</h2>
+<p>A method is a named block of code that performs one task and can be reused. It makes programs shorter, easier to test and easier to read.</p>
+<pre><code class="language-java">accessModifier  [static]  returnType  methodName(parameters) {
+    // body
+    return value;   // if returnType is not void
+}</code></pre>
+<pre><code class="language-java">public static int add(int a, int b) {
+    return a + b;
+}
+
+public static void greet(String name) {
+    System.out.println("Hello, " + name);
+}</code></pre>
+<h3 id="calling-a-method">Calling a method</h3>
+<pre><code class="language-java">int total = add(5, 7);   // arguments: 5 and 7
+greet("Asha");</code></pre>
+<div class="table-wrap"><table><thead><tr><th>Term</th><th>Meaning</th></tr></thead><tbody><tr><td><strong>Parameter</strong></td><td>Variable in the method declaration (<code>int a</code>)</td></tr><tr><td><strong>Argument</strong></td><td>Actual value passed when calling (<code>5</code>)</td></tr><tr><td><strong>Return type</strong></td><td>Type of the value sent back, or <code>void</code> for nothing</td></tr><tr><td><strong>Signature</strong></td><td>Method name + parameter types (return type is not included)</td></tr></tbody></table></div>
+<h2 id="static-vs-instance-methods"><span class="num">02</span>Static vs Instance Methods</h2>
+<ul><li>A <strong>static</strong> method belongs to the class. Call it as <code>ClassName.method()</code>. It cannot use <code>this</code> or instance fields directly.</li><li>An <strong>instance</strong> method belongs to an object. You need an object to call it.</li></ul>
+<pre><code class="language-java">class MathUtil {
+    static int square(int x) { return x * x; }       // MathUtil.square(4)
+    int cube(int x) { return x * x * x; }            // new MathUtil().cube(3)
+}</code></pre>
+<h2 id="pass-by-value"><span class="num">03</span>Pass by Value</h2>
+<p>Java is <strong>always pass-by-value</strong>. A copy of the argument is passed.</p>
+<h3 id="primitives">Primitives</h3>
+<pre><code class="language-java">static void change(int x) { x = 99; }
+
+int n = 10;
+change(n);
+System.out.println(n);   // 10 (unchanged)</code></pre>
+<h3 id="objects">Objects</h3>
+<p>The <em>reference</em> is copied. The method can modify the object the reference points to, but cannot make the caller's variable point to a different object.</p>
+<pre><code class="language-java">static void modify(int[] arr) { arr[0] = 99; }       // changes the shared array
+static void reassign(int[] arr) { arr = new int[]{1}; } // no effect on caller
+
+int[] data = {1, 2, 3};
+modify(data);
+System.out.println(data[0]);   // 99
+reassign(data);
+System.out.println(data[0]);   // still 99</code></pre>
+<aside class="callout interview"><span class="label">Interview question</span><p>Is Java pass-by-value or pass-by-reference?</p><p>Always pass-by-value. For objects, the value that is copied is the reference, which is why changes to the object's state are visible to the caller but reassigning the parameter is not.</p></aside>
+<h2 id="method-overloading"><span class="num">04</span>Method Overloading</h2>
+<p>Several methods with the <strong>same name but different parameter lists</strong> in one class. This is compile-time (static) polymorphism.</p>
+<pre><code class="language-java">static int add(int a, int b)           { return a + b; }
+static double add(double a, double b)  { return a + b; }
+static int add(int a, int b, int c)    { return a + b + c; }</code></pre>
+<p>Overloading differs by number, type or order of parameters. Changing only the return type is <strong>not</strong> allowed.</p>
+<h3 id="how-the-compiler-picks-one">How the compiler picks one</h3>
+<ol><li>Exact match</li><li>Widening (<code>int</code> → <code>long</code> → <code>double</code>)</li><li>Boxing (<code>int</code> → <code>Integer</code>)</li><li>Varargs</li></ol>
+<pre><code class="language-java">static void show(long x)    { System.out.println("long"); }
+static void show(Integer x) { System.out.println("Integer"); }
+show(5);    // prints "long" (widening beats boxing)</code></pre>
+<h2 id="varargs"><span class="num">05</span>Varargs</h2>
+<p>A method can accept any number of arguments of one type using <code>...</code>. The parameter behaves as an array and must be the <strong>last</strong> parameter.</p>
+<pre><code class="language-java">static int sum(int... numbers) {
+    int total = 0;
+    for (int n : numbers) total += n;
+    return total;
+}
+
+sum();            // 0
+sum(1, 2, 3);     // 6</code></pre>
+<h2 id="returning-values"><span class="num">06</span>Returning Values</h2>
+<ul><li><code>return</code> ends the method immediately</li><li>A non-void method must return on <strong>every</strong> path</li><li>Only one value can be returned; return an array, a list or an object to return several</li></ul>
+<pre><code class="language-java">static int[] minMax(int[] a) {
+    int min = a[0], max = a[0];
+    for (int x : a) {
+        if (x &lt; min) min = x;
+        if (x &gt; max) max = x;
+    }
+    return new int[]{min, max};
+}</code></pre>
+<h2 id="recursion"><span class="num">07</span>Recursion</h2>
+<p>A method that calls <strong>itself</strong>. Every recursive method needs a <strong>base case</strong> (stops) and a <strong>recursive case</strong> (moves toward the base case).</p>
+<pre><code class="language-java">static long factorial(int n) {
+    if (n &lt;= 1) return 1;            // base case
+    return n * factorial(n - 1);     // recursive case
+}</code></pre>
+<pre><code class="language-text">factorial(4) → 4 * factorial(3)
+                    → 3 * factorial(2)
+                         → 2 * factorial(1) → 1</code></pre>
+<pre><code class="language-java">static int fib(int n) {
+    return n &lt; 2 ? n : fib(n - 1) + fib(n - 2);   // simple but slow: O(2^n)
+}
+
+static int gcd(int a, int b) {
+    return b == 0 ? a : gcd(b, a % b);
+}</code></pre>
+<aside class="callout warning"><span class="label">Warning</span><p>Missing or unreachable base case causes <code>StackOverflowError</code>. Java does <strong>not</strong> optimise tail recursion; for very deep recursion use a loop.</p></aside>
+<h3 id="recursion-vs-iteration">Recursion vs iteration</h3>
+<div class="table-wrap"><table><thead><tr><th>Recursion</th><th>Iteration</th></tr></thead><tbody><tr><td>Elegant for trees, divide-and-conquer</td><td>Faster, less memory</td></tr><tr><td>Uses call stack</td><td>Uses loop variables</td></tr><tr><td>Risk of stack overflow</td><td>No such risk</td></tr></tbody></table></div>
+<h2 id="method-best-practices"><span class="num">08</span>Method Best Practices</h2>
+<ul><li>One method, one job; keep methods short</li><li>Use verbs for names: <code>calculateTotal</code>, <code>isValid</code>, <code>getName</code></li><li>Prefer few parameters (3 or fewer); group more into an object</li><li>Avoid changing parameters; do not use output parameters</li><li>Document public methods with Javadoc</li></ul>
+<h2 id="the-main-method"><span class="num">09</span>The main Method</h2>
+<pre><code class="language-java">public static void main(String[] args)</code></pre>
+<p><code>main</code> can be overloaded, but the JVM only starts with the exact signature above. In recent Java versions (preview in 21+), simplified instance <code>main</code> methods are being introduced for beginners.</p>
+<h2 id="quick-recap"><span class="num">10</span>Quick Recap</h2>
+<ul><li>A method has a name, parameters, a return type and a body</li><li>Java passes copies: primitives by value, object references by value</li><li>Overloading = same name, different parameters (resolved at compile time)</li><li>Varargs take zero or more arguments as an array</li><li>Recursion needs a base case; mind the stack depth</li></ul>
+    </article>
+    <nav class="pager" aria-label="Topic navigation">
+      <a class="prev" href="04-arrays-strings.html"><small>← Previous</small><strong>Arrays and Strings</strong></a>
+      <a class="next" href="06-classes-objects.html"><small>Next →</small><strong>Classes and Objects</strong></a>
+    </nav>
+  </main>
+</div>
+</body>
+</html>

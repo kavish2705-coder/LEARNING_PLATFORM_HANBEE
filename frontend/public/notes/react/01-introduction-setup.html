@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en" data-track="react">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Introduction to React and Project Setup — React Notes · Hanbee</title>
+<meta name="description" content="What React is, why teams use it, how it updates the screen efficiently, and how to create, run and understand your first React 19 project with Vite.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500..700;1,9..144,500&amp;family=Inter:wght@400..700&amp;family=JetBrains+Mono:wght@400..600&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/notes.css">
+<script src="../assets/notes.js" defer></script>
+</head>
+<body>
+<div class="progress" aria-hidden="true"><i></i></div>
+<header class="top">
+  <a class="brand" href="../index.html"><b>H</b>Hanbee · React Notes</a>
+  <nav><a class="keep" href="index.html">All topics</a><button id="theme-toggle" type="button" aria-label="Toggle light and dark theme">Theme</button></nav>
+</header>
+<div class="shell">
+  <details class="toc"><summary>On this page</summary><nav aria-label="On this page"><ol><li><a href="#what-is-react"><span>01</span>What is React?</a></li><li><a href="#why-react"><span>02</span>Why React?</a></li><li><a href="#core-ideas"><span>03</span>Core Ideas</a></li><li><a href="#react-vs-other-tools"><span>04</span>React vs Other Tools</a></li><li><a href="#what-s-new-react-19-at-a-glance"><span>05</span>What's New: React 19 at a Glance</a></li><li><a href="#prerequisites"><span>06</span>Prerequisites</a></li><li><a href="#tools-you-need"><span>07</span>Tools You Need</a></li><li><a href="#creating-a-project-with-vite"><span>08</span>Creating a Project with Vite</a></li><li><a href="#strictmode"><span>09</span>StrictMode</a></li><li><a href="#alternatives-to-vite"><span>10</span>Alternatives to Vite</a></li><li><a href="#handy-dev-habits"><span>11</span>Handy Dev Habits</a></li><li><a href="#common-setup-errors"><span>12</span>Common Setup Errors</a></li><li><a href="#quick-recap"><span>13</span>Quick Recap</a></li></ol></nav></details>
+  <main>
+    <header class="hero">
+      <p class="kicker"><span class="pill">Foundations</span><span>Topic 01</span><span>Beginner</span><span>6 min read</span></p>
+      <h1>Introduction to React and Project Setup</h1>
+      <p class="lede">What React is, why teams use it, how it updates the screen efficiently, and how to create, run and understand your first React 19 project with Vite.</p>
+    </header>
+    <article>
+<h2 id="what-is-react"><span class="num">01</span>What is React?</h2>
+<p>React is a <strong>JavaScript library for building user interfaces</strong>, created at Facebook (Meta) and released in 2013. You describe <strong>what the screen should look like for the current data</strong>, and React updates the browser efficiently when that data changes.</p>
+<ul><li><strong>Library, not a framework</strong>: it handles the view layer. You choose routing, data fetching and state tools (or use a framework built on React such as Next.js).</li><li><strong>Component-based</strong>: a UI is a tree of small, reusable pieces.</li><li><strong>Declarative</strong>: you write the <em>result</em>, not the step-by-step DOM updates.</li><li>Used by Meta, Netflix, Airbnb, Uber, Shopify and countless startups; also powers React Native for mobile apps.</li></ul>
+<h3 id="imperative-vs-declarative">Imperative vs declarative</h3>
+<pre><code class="language-js">// Imperative (vanilla JS): you manage every step
+const btn = document.getElementById("like");
+let likes = 0;
+btn.addEventListener("click", () =&gt; {
+  likes++;
+  btn.textContent = `Likes: ${likes}`;
+});</code></pre>
+<pre><code class="language-jsx">// Declarative (React): describe the UI for the current state
+function LikeButton() {
+  const [likes, setLikes] = useState(0);
+  return &lt;button onClick={() =&gt; setLikes(likes + 1)}&gt;Likes: {likes}&lt;/button&gt;;
+}</code></pre>
+<h2 id="why-react"><span class="num">02</span>Why React?</h2>
+<div class="table-wrap"><table><thead><tr><th>Benefit</th><th>Meaning</th></tr></thead><tbody><tr><td><strong>Reusable components</strong></td><td>Build once, use everywhere (buttons, cards, forms)</td></tr><tr><td><strong>Predictable data flow</strong></td><td>Data flows one way, top to bottom, so bugs are easier to trace</td></tr><tr><td><strong>Huge ecosystem</strong></td><td>Router, state, forms, UI kits, testing tools for everything</td></tr><tr><td><strong>Performance</strong></td><td>Smart updates, concurrent rendering, automatic memoisation with the React Compiler</td></tr><tr><td><strong>Jobs and community</strong></td><td>Most widely used front-end library</td></tr><tr><td><strong>Cross-platform</strong></td><td>Same ideas for web, mobile (React Native) and desktop</td></tr></tbody></table></div>
+<h2 id="core-ideas"><span class="num">03</span>Core Ideas</h2>
+<h3 id="components">Components</h3>
+<p>Functions that return UI. Names start with a <strong>capital letter</strong>.</p>
+<h3 id="virtual-dom-and-reconciliation">Virtual DOM and reconciliation</h3>
+<p>React keeps a lightweight description of the UI in memory (the <strong>virtual DOM</strong>). When state changes:</p>
+<ol><li>React <strong>renders</strong> your components again to produce a new description</li><li>It <strong>compares</strong> (diffs) the new description with the previous one</li><li>It <strong>commits</strong> only the minimal real DOM changes</li></ol>
+<pre><code class="language-text">state change → render components → diff vs previous tree → update only changed DOM nodes</code></pre>
+<h3 id="unidirectional-data-flow">Unidirectional data flow</h3>
+<p>Parents pass data <strong>down</strong> through <strong>props</strong>; children notify parents by calling <strong>functions</strong> passed down as props.</p>
+<h3 id="rendering-is-a-pure-calculation">Rendering is a pure calculation</h3>
+<p>Given the same props and state, a component must return the same JSX. Side effects (network calls, timers) belong in event handlers or effects, never in the render body.</p>
+<h2 id="react-vs-other-tools"><span class="num">04</span>React vs Other Tools</h2>
+<div class="table-wrap"><table><thead><tr><th></th><th>React</th><th>Angular</th><th>Vue</th></tr></thead><tbody><tr><td>Type</td><td>Library</td><td>Full framework</td><td>Progressive framework</td></tr><tr><td>Language</td><td>JS/TS + JSX</td><td>TypeScript</td><td>JS/TS + templates</td></tr><tr><td>Learning curve</td><td>Moderate</td><td>Steeper</td><td>Gentle</td></tr><tr><td>Flexibility</td><td>Very high</td><td>Opinionated</td><td>Balanced</td></tr></tbody></table></div>
+<h2 id="what-s-new-react-19-at-a-glance"><span class="num">05</span>What's New: React 19 at a Glance</h2>
+<p>React 19 became stable in <strong>December 2024</strong>; later 19.x releases add refinements (19.2 added <code>&lt;Activity&gt;</code> and <code>useEffectEvent</code>). Headline features, each covered in its own topic:</p>
+<ul><li><strong>Actions</strong>: async functions for form submits and mutations, with built-in pending state, errors and optimistic updates</li><li><strong>New hooks</strong>: <code>useActionState</code>, <code>useOptimistic</code>, <code>useFormStatus</code>, and the <code>use</code> API</li><li><strong><code>ref</code> as a prop</strong>: no more <code>forwardRef</code> for function components</li><li><strong>Document metadata</strong>: render <code>&lt;title&gt;</code>, <code>&lt;meta&gt;</code>, <code>&lt;link&gt;</code> anywhere in a component</li><li><strong>Server Components and Server Actions</strong> are stable</li><li><strong>Better errors</strong>: clearer hydration diffs, <code>onCaughtError</code> / <code>onUncaughtError</code></li><li><strong>React Compiler</strong> (separate tool) auto-optimises your components</li></ul>
+<h2 id="prerequisites"><span class="num">06</span>Prerequisites</h2>
+<p>Before React you should be comfortable with <strong>HTML, CSS and modern JavaScript</strong> (arrow functions, destructuring, <code>map</code>/<code>filter</code>, modules, promises). The next topic revises exactly the JavaScript you need.</p>
+<h2 id="tools-you-need"><span class="num">07</span>Tools You Need</h2>
+<ol><li><strong>Node.js</strong> (LTS, 20 or newer): <code>node -v</code> to check</li><li>A package manager: <strong>npm</strong> (included), pnpm or yarn</li><li><strong>VS Code</strong> with extensions: ES7+ React snippets, ESLint, Prettier</li><li><strong>React Developer Tools</strong> browser extension (Components and Profiler tabs)</li><li><strong>Git</strong></li></ol>
+<h2 id="creating-a-project-with-vite"><span class="num">08</span>Creating a Project with Vite</h2>
+<aside class="callout note"><span class="label">Note</span><p>Create React App (CRA) was officially deprecated in 2025. <strong>Vite</strong> is the standard way to start a client-side React app. For full-stack apps use a framework such as Next.js or React Router's framework mode.</p></aside>
+<pre><code class="language-bash">npm create vite@latest my-app -- --template react        # or react-ts for TypeScript
+cd my-app
+npm install
+npm run dev                                              # http://localhost:5173</code></pre>
+<p>Other commands:</p>
+<pre><code class="language-bash">npm run build      # production build into dist/
+npm run preview    # serve the production build locally
+npm run lint       # ESLint</code></pre>
+<h3 id="project-structure">Project structure</h3>
+<pre><code class="language-text">my-app/
+├── index.html            ← the single HTML page (has &lt;div id="root"&gt;)
+├── package.json          ← dependencies and scripts
+├── vite.config.js        ← Vite settings
+├── public/               ← static files served as-is (favicon, robots.txt)
+└── src/
+    ├── main.jsx          ← entry point: mounts React into #root
+    ├── App.jsx           ← root component
+    ├── App.css, index.css
+    └── assets/           ← images and fonts imported by code</code></pre>
+<h3 id="the-entry-point">The entry point</h3>
+<pre data-file="src/main.jsx"><code class="language-jsx">import { StrictMode } from "react";
+import { createRoot } from "react-dom/client";
+import "./index.css";
+import App from "./App.jsx";
+
+createRoot(document.getElementById("root")).render(
+  &lt;StrictMode&gt;
+    &lt;App /&gt;
+  &lt;/StrictMode&gt;
+);</code></pre>
+<pre data-file="index.html"><code class="language-html">&lt;body&gt;
+  &lt;div id="root"&gt;&lt;/div&gt;
+  &lt;script type="module" src="/src/main.jsx"&gt;&lt;/script&gt;
+&lt;/body&gt;</code></pre>
+<h3 id="your-first-component">Your first component</h3>
+<pre data-file="src/App.jsx"><code class="language-jsx">function App() {
+  const name = "Hanbee";
+  return (
+    &lt;main&gt;
+      &lt;h1&gt;Hello, {name}!&lt;/h1&gt;
+      &lt;p&gt;Welcome to React 19.&lt;/p&gt;
+    &lt;/main&gt;
+  );
+}
+
+export default App;</code></pre>
+<h2 id="strictmode"><span class="num">09</span>StrictMode</h2>
+<p><code>&lt;StrictMode&gt;</code> is a <strong>development-only</strong> helper that surfaces bugs:</p>
+<ul><li>Renders components <strong>twice</strong> to catch impure rendering</li><li>Re-runs effects once (mount → unmount → mount) to catch missing cleanup</li><li>Warns about deprecated APIs</li></ul>
+<p>It has <strong>no effect in production builds</strong>. If you see logs twice in development, that is why.</p>
+<h2 id="alternatives-to-vite"><span class="num">10</span>Alternatives to Vite</h2>
+<div class="table-wrap"><table><thead><tr><th>Tool</th><th>Use when</th></tr></thead><tbody><tr><td><strong>Next.js</strong></td><td>Full-stack apps, SEO, server rendering, file-based routing</td></tr><tr><td><strong>React Router (framework mode)</strong></td><td>Full-stack with Vite and the React Router data APIs</td></tr><tr><td><strong>Remix</strong></td><td>Merged into React Router v7</td></tr><tr><td><strong>Expo</strong></td><td>Mobile apps with React Native</td></tr><tr><td><strong>Astro</strong></td><td>Content sites using React "islands"</td></tr></tbody></table></div>
+<h2 id="handy-dev-habits"><span class="num">11</span>Handy Dev Habits</h2>
+<ul><li>Keep one component per file; name the file after the component (<code>StudentCard.jsx</code>)</li><li>Use <code>.jsx</code> (or <code>.tsx</code>) for files that contain JSX</li><li>Run ESLint with <code>eslint-plugin-react-hooks</code> to catch hook mistakes</li><li>Use React DevTools to inspect props, state and re-renders</li><li>Commit early; add <code>node_modules</code> and <code>dist</code> to <code>.gitignore</code></li></ul>
+<h2 id="common-setup-errors"><span class="num">12</span>Common Setup Errors</h2>
+<div class="table-wrap"><table><thead><tr><th>Error</th><th>Cause / fix</th></tr></thead><tbody><tr><td><code>npm: command not found</code></td><td>Install Node.js</td></tr><tr><td>Blank page</td><td>Check the browser console for an import or syntax error</td></tr><tr><td><code>Cannot use import statement outside a module</code></td><td>Running a file with plain Node instead of the bundler</td></tr><tr><td>Port already in use</td><td>Stop the other server or run <code>npm run dev -- --port 3000</code></td></tr><tr><td><code>Failed to resolve import</code></td><td>Wrong path or missing file extension for a non-JS asset</td></tr></tbody></table></div>
+<h2 id="quick-recap"><span class="num">13</span>Quick Recap</h2>
+<ul><li>React builds UIs from <strong>components</strong>; you describe the UI, React updates the DOM</li><li>Data flows <strong>down</strong> through props; changes go <strong>up</strong> through callback functions</li><li>Start projects with <strong>Vite</strong> (<code>npm create vite@latest</code>); CRA is deprecated</li><li><code>main.jsx</code> mounts the app with <code>createRoot(...).render(...)</code></li><li>React 19 adds Actions, new hooks, <code>ref</code> as a prop and stable Server Components</li></ul>
+    </article>
+    <nav class="pager" aria-label="Topic navigation">
+      
+      <a class="next" href="02-javascript-for-react.html"><small>Next →</small><strong>Modern JavaScript You Need for React</strong></a>
+    </nav>
+  </main>
+</div>
+</body>
+</html>

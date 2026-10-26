@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HanbeeLms Frontend Handover</title>
+<style>
+  body { font-family: system-ui, sans-serif; max-width: 960px; margin: 40px auto; padding: 0 20px; color: #1a1a1a; line-height: 1.55; }
+  h1 { font-size: 26px; } h2 { font-size: 19px; margin-top: 34px; border-bottom: 1px solid #ddd; padding-bottom: 6px; }
+  table { border-collapse: collapse; width: 100%; margin: 12px 0; font-size: 14px; }
+  th, td { border: 1px solid #ddd; padding: 7px 9px; text-align: left; vertical-align: top; }
+  th { background: #f3f6f8; }
+  .ok { color: #047857; font-weight: 600; } .warn { color: #b45309; font-weight: 600; } .gap { color: #b91c1c; font-weight: 600; }
+  code { background: #f3f6f8; padding: 1px 5px; border-radius: 4px; }
+</style>
+</head>
+<body>
+
+<h1>HanbeeLms Frontend Handover</h1>
+<p>Status of the connected frontend (<code>LEARNING_PLATFORM_HANBEE</code>, branch <code>dashboard-ui-updated</code>) against the live Supabase backend. Written so the next developer can continue without re-testing everything.</p>
+
+<h2>1. What is connected and working</h2>
+<ul>
+  <li><span class="ok">Login</span>: email and password sign-in, sign-out, and session checks. Wrong passwords show an error.</li>
+  <li><span class="ok">Google and GitHub sign-in</span>: working after enabling the providers in Supabase Auth and registering the Supabase callback URL with each provider.</li>
+  <li><span class="ok">Sign-up</span>: hidden for students. School staff and Hanbee staff keep the option.</li>
+  <li><span class="ok">Role routing</span>: after sign-in each account lands on its own dashboard.</li>
+  <li><span class="ok">Sidebar</span>: shows the real name and role, with no mock names. All 33 sidebar links point to existing pages. Student courses, attendance, and AI assistant sit under the Learning mode switch.</li>
+</ul>
+
+<h2>2. Browser load test by role</h2>
+<p>Each route was opened in a real browser as the matching role. "Loads" means the page renders its heading with no failed backend request. Load testing does not prove every button works; see section 4.</p>
+<table>
+  <tr><th>Role</th><th>Routes tested</th><th>Result</th></tr>
+  <tr><td>Student (ava@student.edu)</td><td>14</td><td><span class="ok">All load.</span> Two issues: school overview is reachable by students (see section 3).</td></tr>
+  <tr><td>Hanbee staff (hanbeetechnology@gmail.com)</td><td>12</td><td><span class="ok">All load.</span> User management and course management are source-only placeholders (section 4).</td></tr>
+  <tr><td>Manager (info@hanbee.in)</td><td>8</td><td><span class="ok">All load.</span> School detail shows "No school was selected" when opened directly, which is correct.</td></tr>
+  <tr><td>School owner (demo.owner1@hanbee.test)</td><td>7</td><td><span class="ok">All load.</span> Announcement publishing restored.</td></tr>
+</table>
+
+<h2>2b. Button check (safe buttons only)</h2>
+<p>Every non-destructive button on each role's pages was clicked in the browser (tabs, filters, toggles, and similar). No click produced an HTTP error, a page error, or an alert across the student, Hanbee staff, school owner, and manager accounts.</p>
+<p><strong>Not clicked:</strong> buttons that save, delete, suspend, restore, publish, submit, pay, or send. These need a click test on test data, one at a time, to avoid changing real accounts.</p>
+
+<h2>2c. Data-changing buttons (tested with TEST items, then removed)</h2>
+<ul>
+  <li><span class="ok">Announcements (manager):</span> create, then delete through the confirmation dialog. Both TEST items were removed. Found and fixed a bug: the delete dialog was never drawn, so Delete did nothing. The dialog now sits inside the page markup.</li>
+  <li><span class="ok">Hanbee schedule:</span> delete opens the themed dialog and Cancel sends nothing. Earlier: create and delete of a TEST event returned 201 and 204.</li>
+  <li><span class="ok">Confirm dialogs in the design app:</span> the remaining browser confirm boxes (school schedule, Hanbee schedule, school detail, tournament results) now use the themed dialog.</li>
+  <li><span class="ok">Announcements (manager):</span> pin, edit, and delete all returned success. The TEST item was removed.</li>
+  <li><span class="ok">Settings (student):</span> profile save returned success with the name unchanged.</li>
+  <li><span class="warn">Not yet tested:</span> chat send (it messages real people), team creation, invitations, payments, approvals, and the school owner publishing. Each needs a TEST item or a test-only account.</li>
+</ul>
+
+<h2>3. Backend and access gaps</h2>
+<table>
+  <tr><th>Item</th><th>Detail</th><th>Owner</th></tr>
+  <tr><td>Students can open school pages</td><td><span class="ok">Fixed.</span> The auth gate in <code>app/dashboard/components/AuthGate.tsx</code> redirects each role to its own home when it opens a page outside its area. Verified: a student is sent from the school overview to the student home; the school owner still reaches the school pages.</td><td class="ok">Done</td></tr>
+  <tr><td>Student and staff data isolation</td><td>Database policies were tested in the earlier 580-check suite. No backend change is needed for the pages above.</td><td class="ok">Backend OK</td></tr>
+</table>
+
+<h2>4. Placeholder or unfinished UI (needs building)</h2>
+<table>
+  <tr><th>Page or component</th><th>Current state</th><th>Backend available?</th></tr>
+  <tr><td>User management (<code>/dashboard/users</code>)</td><td><span class="ok">Live.</span> Lists all 18 accounts with search and role filter. Suspend and restore use <code>set_account_status</code> with a confirmation dialog. Verified: list loads; Cancel sends nothing. The confirm step was not clicked, to avoid changing a real account.</td><td class="ok">Done</td></tr>
+  <tr><td>Course management (<code>/dashboard/courses/manage</code>)</td><td>Source-only page with mock data. It duplicates the Hanbee course catalog (<code>/dashboard/hanbee/courses</code>), which is live.</td><td>Decision needed: remove this page, or build it.</td></tr>
+  <tr><td>School teams (<code>/dashboard/school/teams</code>)</td><td><span class="ok">Live.</span> The route shows real tournament slots. The unused <code>SchoolTeams</code> component is a leftover placeholder and can be deleted.</td><td class="ok">Done</td></tr>
+  <tr><td>School chat (<code>/dashboard/school/chat</code>)</td><td><span class="ok">Fixed.</span> Now the connected chat page. School announcements is live with publish, edit, and delete for staff.</td><td class="ok">Done</td></tr>
+  <tr><td>Header (all dashboards)</td><td><span class="ok">Fixed.</span> Shows the real name, role, live date, and the notification bell. The sidebar still has a fallback name until the profile loads.</td><td class="ok">Done</td></tr>
+  <tr><td>Dashboard home overview</td><td><span class="ok">Fixed.</span> Tournament and learning views now use live data. Verified: shows the correct "No upcoming tournament" state, since none is in the database yet.</td><td class="ok">Done</td></tr>
+</table>
+
+<h2>5. Not in the backend (listed, not invented)</h2>
+<ul>
+  <li>Two-factor login (settings).</li>
+  <li>Notification preferences (settings toggles).</li>
+  <li>Student ID and preferred team name (settings).</li>
+  <li>Team colour choice (team start wizard). Visual only; no database field.</li>
+  <li>Personal leaderboard rank, points, weekly change, and milestones (leaderboard).</li>
+  <li>Student clock-in. Students are recorded automatically, not clocked in.</li>
+</ul>
+
+<h2>6. Environment and setup</h2>
+<ul>
+  <li>Frontend environment file (git-ignored): only <code>NEXT_PUBLIC_SUPABASE_URL</code> and <code>NEXT_PUBLIC_SUPABASE_ANON_KEY</code>.</li>
+  <li>Server secrets (Gemini, Google, GitHub, JWT) live in <code>supabase/functions/.env</code> locally and as Supabase Edge Function secrets in production. Never commit them.</li>
+  <li>Google and GitHub sign-in: enable each provider in Supabase Authentication. Register <code>https://&lt;project&gt;.supabase.co/auth/v1/callback</code> with each provider. Add <code>http://localhost:3000/login</code> to Supabase URL configuration for local testing.</li>
+  <li>The AI assistant origin list (<code>ALLOWED_ORIGINS</code>) must include the frontend origin, for example <code>http://localhost:3000</code>.</li>
+</ul>
+
+<h2>7. Known test accounts</h2>
+<p>Passwords are not stored in this document. Ask the project owner for the current credentials for each role. Accounts verified in this pass: a student, a Hanbee staff account, the manager, and a school owner.</p>
+
+<h2>8. Remaining work, in order</h2>
+<ol>
+      <li>Replace user management and course management placeholders.</li>
+  <li>Click-test every button, not just page loads, one role at a time.</li>
+  </ol>
+
+</body>
+</html>

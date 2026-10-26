@@ -1,0 +1,104 @@
+.root {
+  position: relative;
+  flex: 1;
+  min-width: 240px;
+}
+
+/* The real <select> stays in the DOM (for form semantics/validation) but
+   is visually hidden -- it's never the thing rendered on screen. */
+.nativeShadow {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.trigger {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  background: var(--bg-input);
+  border: 1px solid var(--border-elevated);
+  box-shadow: var(--clay-shadow-active);
+  border-radius: 10px;
+  padding: 10px 14px 10px 16px;
+  color: var(--text-main);
+  font-size: 14px;
+  font-family: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+
+.trigger:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.trigger:focus-visible {
+  outline: none;
+  border-color: var(--accent-subtle-border);
+  box-shadow: 0 0 0 2px rgba(8, 145, 178, 0.2);
+}
+
+.triggerValue {
+  color: var(--text-main);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.triggerPlaceholder {
+  color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chevron {
+  flex-shrink: 0;
+  color: var(--text-muted);
+  transition: transform 0.18s ease;
+}
+
+.panel {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  z-index: 40;
+  max-height: 260px;
+  overflow-y: auto;
+  background: var(--bg-card);
+  border: 1px solid var(--border-elevated);
+  border-radius: 12px;
+  box-shadow: var(--clay-shadow-elevated, 0 12px 32px rgba(0, 0, 0, 0.35));
+  padding: 6px;
+  list-style: none;
+}
+
+.option {
+  padding: 9px 12px;
+  border-radius: 8px;
+  font-size: 14px;
+  color: var(--text-main);
+  cursor: pointer;
+}
+
+.option:hover {
+  background: var(--accent-subtle-bg);
+  color: var(--accent-subtle-text);
+}
+
+.optionActive {
+  background: var(--accent-subtle-bg);
+  color: var(--accent-subtle-text);
+  font-weight: 600;
+}
+
+.empty {
+  padding: 10px 12px;
+  font-size: 13px;
+  color: var(--text-muted);
+}

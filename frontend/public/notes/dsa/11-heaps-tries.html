@@ -1,0 +1,288 @@
+<!doctype html>
+<html lang="en" data-track="dsa">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Heaps, Priority Queues and Tries — DSA Notes · Hanbee</title>
+<meta name="description" content="Binary heaps and Java's PriorityQueue for top-K and scheduling problems, the two-heap median trick, merging k lists, and tries for prefix search and autocomplete.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500..700;1,9..144,500&amp;family=Inter:wght@400..700&amp;family=JetBrains+Mono:wght@400..600&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/notes.css">
+<script src="../assets/notes.js" defer></script>
+</head>
+<body>
+<div class="progress" aria-hidden="true"><i></i></div>
+<header class="top">
+  <a class="brand" href="../index.html"><b>H</b>Hanbee · DSA Notes</a>
+  <nav><a class="keep" href="index.html">All topics</a><button id="theme-toggle" type="button" aria-label="Toggle light and dark theme">Theme</button></nav>
+</header>
+<div class="shell">
+  <details class="toc"><summary>On this page</summary><nav aria-label="On this page"><ol><li><a href="#heap"><span>01</span>Heap</a></li><li><a href="#heap-operations"><span>02</span>Heap Operations</a></li><li><a href="#java-s-priorityqueue"><span>03</span>Java's PriorityQueue</a></li><li><a href="#heap-problems"><span>04</span>Heap Problems</a></li><li><a href="#when-to-use-a-heap"><span>05</span>When to Use a Heap</a></li><li><a href="#trie-prefix-tree"><span>06</span>Trie (Prefix Tree)</a></li><li><a href="#common-mistakes"><span>07</span>Common Mistakes</a></li><li><a href="#quick-recap"><span>08</span>Quick Recap</a></li></ol></nav></details>
+  <main>
+    <header class="hero">
+      <p class="kicker"><span class="pill">Trees and Graphs</span><span>Topic 11</span><span>Intermediate</span><span>10 min read</span></p>
+      <h1>Heaps, Priority Queues and Tries</h1>
+      <p class="lede">Binary heaps and Java's PriorityQueue for top-K and scheduling problems, the two-heap median trick, merging k lists, and tries for prefix search and autocomplete.</p>
+    </header>
+    <article>
+<h2 id="heap"><span class="num">01</span>Heap</h2>
+<p>A <strong>heap</strong> is a <strong>complete binary tree</strong> that satisfies the <strong>heap property</strong>:</p>
+<ul><li><strong>Min-heap</strong>: every parent ≤ its children (the minimum is at the root)</li><li><strong>Max-heap</strong>: every parent ≥ its children (the maximum is at the root)</li></ul>
+<pre><code class="language-text">Min-heap                              Array representation
+       2                              index:  0  1  2  3  4  5
+     /   \                            value: [2, 4, 3, 9, 7, 5]
+    4     3
+   / \   /                            parent(i)=(i-1)/2   left(i)=2i+1   right(i)=2i+2
+  9   7 5</code></pre>
+<p>A heap is <strong>not sorted</strong> overall: only parent-child relations are ordered. Because the tree is complete it is stored compactly in an <strong>array</strong>.</p>
+<div class="table-wrap"><table><thead><tr><th>Operation</th><th>Time</th></tr></thead><tbody><tr><td><code>peek</code> (min or max)</td><td><code>O(1)</code></td></tr><tr><td><code>insert</code> / <code>add</code></td><td><code>O(log n)</code></td></tr><tr><td><code>extract</code> / <code>poll</code></td><td><code>O(log n)</code></td></tr><tr><td>Build a heap from <code>n</code> items</td><td><code>O(n)</code></td></tr><tr><td>Search for an arbitrary item</td><td><code>O(n)</code></td></tr><tr><td>Remove an arbitrary item</td><td><code>O(n)</code> (find) + <code>O(log n)</code></td></tr></tbody></table></div>
+<h2 id="heap-operations"><span class="num">02</span>Heap Operations</h2>
+<ul><li><strong>Insert</strong>: add at the end, then <strong>sift up</strong> (swap with the parent while smaller than it)</li><li><strong>Extract min</strong>: take the root, move the last element to the root, then <strong>sift down</strong> (swap with the smaller child while larger than it)</li></ul>
+<h3 id="min-heap-implementation">Min-heap implementation</h3>
+<pre><code class="language-java">class MinHeap {
+    private int[] a = new int[16];
+    private int size;
+
+    void add(int x) {
+        if (size == a.length) a = Arrays.copyOf(a, size * 2);
+        a[size] = x;
+        siftUp(size++);
+    }
+
+    int peek() { return a[0]; }
+
+    int poll() {
+        int min = a[0];
+        a[0] = a[--size];
+        siftDown(0);
+        return min;
+    }
+
+    private void siftUp(int i) {
+        while (i &gt; 0) {
+            int p = (i - 1) / 2;
+            if (a[p] &lt;= a[i]) break;
+            swap(p, i);
+            i = p;
+        }
+    }
+
+    private void siftDown(int i) {
+        while (true) {
+            int l = 2 * i + 1, r = l + 1, smallest = i;
+            if (l &lt; size &amp;&amp; a[l] &lt; a[smallest]) smallest = l;
+            if (r &lt; size &amp;&amp; a[r] &lt; a[smallest]) smallest = r;
+            if (smallest == i) return;
+            swap(i, smallest);
+            i = smallest;
+        }
+    }
+
+    private void swap(int i, int j) { int t = a[i]; a[i] = a[j]; a[j] = t; }
+    boolean isEmpty() { return size == 0; }
+}</code></pre>
+<h3 id="why-building-a-heap-is-o-n-not-o-n-log-n">Why building a heap is O(n), not O(n log n)</h3>
+<p>Sift down from the last parent (<code>n/2 - 1</code>) up to the root. Most nodes are near the bottom and move very little; the total work sums to <code>O(n)</code>.</p>
+<h2 id="java-s-priorityqueue"><span class="num">03</span>Java's PriorityQueue</h2>
+<p>A <strong>binary min-heap</strong> by default. Elements come out in priority order, <strong>not</strong> insertion order.</p>
+<pre><code class="language-java">PriorityQueue&lt;Integer&gt; minHeap = new PriorityQueue&lt;&gt;();
+PriorityQueue&lt;Integer&gt; maxHeap = new PriorityQueue&lt;&gt;(Collections.reverseOrder());
+
+minHeap.offer(5); minHeap.offer(1); minHeap.offer(3);
+minHeap.peek();     // 1
+minHeap.poll();     // 1
+minHeap.size();
+
+// custom priority: sort pairs by second value
+PriorityQueue&lt;int[]&gt; pq = new PriorityQueue&lt;&gt;((x, y) -&gt; Integer.compare(x[1], y[1]));
+pq.offer(new int[]{7, 2});
+
+// objects
+PriorityQueue&lt;Task&gt; tasks = new PriorityQueue&lt;&gt;(Comparator.comparingInt(Task::priority).thenComparing(Task::name));
+
+// build in O(n)
+PriorityQueue&lt;Integer&gt; fromList = new PriorityQueue&lt;&gt;(List.of(5, 1, 3, 2));</code></pre>
+<aside class="callout warning"><span class="label">Warning</span><p>Iterating a <code>PriorityQueue</code> (or printing it) does <strong>not</strong> give sorted order; only repeated <code>poll()</code> does. Also, <code>remove(Object)</code> and <code>contains</code> are <code>O(n)</code>. Don't use <code>(a, b) -&gt; a - b</code> comparators with large values (overflow).</p></aside>
+<h2 id="heap-problems"><span class="num">04</span>Heap Problems</h2>
+<h3 id="kth-largest-element-size-k-min-heap">Kth largest element (size-k min-heap)</h3>
+<pre><code class="language-java">static int findKthLargest(int[] a, int k) {
+    PriorityQueue&lt;Integer&gt; heap = new PriorityQueue&lt;&gt;();      // keeps the k largest seen so far
+    for (int x : a) {
+        heap.offer(x);
+        if (heap.size() &gt; k) heap.poll();                     // drop the smallest of the k+1
+    }
+    return heap.peek();                                        // O(n log k) time, O(k) space
+}</code></pre>
+<aside class="callout tip"><span class="label">Tip</span><p>For the <strong>k largest</strong> use a <strong>min-heap</strong> of size k; for the <strong>k smallest</strong> use a <strong>max-heap</strong> of size k. The heap keeps the "boundary" element on top so it can be evicted.</p></aside>
+<h3 id="top-k-frequent-elements">Top K frequent elements</h3>
+<pre><code class="language-java">static int[] topKFrequent(int[] nums, int k) {
+    Map&lt;Integer, Integer&gt; freq = new HashMap&lt;&gt;();
+    for (int x : nums) freq.merge(x, 1, Integer::sum);
+
+    PriorityQueue&lt;Map.Entry&lt;Integer, Integer&gt;&gt; heap = new PriorityQueue&lt;&gt;(Map.Entry.comparingByValue());
+    for (var e : freq.entrySet()) {
+        heap.offer(e);
+        if (heap.size() &gt; k) heap.poll();
+    }
+    int[] res = new int[k];
+    for (int i = k - 1; i &gt;= 0; i--) res[i] = heap.poll().getKey();
+    return res;                                                // O(n log k)
+}</code></pre>
+<h3 id="merge-k-sorted-lists">Merge k sorted lists</h3>
+<pre><code class="language-java">static ListNode mergeKLists(ListNode[] lists) {
+    PriorityQueue&lt;ListNode&gt; heap = new PriorityQueue&lt;&gt;((a, b) -&gt; Integer.compare(a.val, b.val));
+    for (ListNode head : lists) if (head != null) heap.offer(head);
+    ListNode dummy = new ListNode(0), tail = dummy;
+    while (!heap.isEmpty()) {
+        ListNode n = heap.poll();
+        tail.next = n; tail = n;
+        if (n.next != null) heap.offer(n.next);
+    }
+    return dummy.next;                                         // O(N log k), N = total nodes
+}</code></pre>
+<h3 id="find-median-from-a-data-stream-two-heaps">Find median from a data stream: two heaps</h3>
+<p>Keep the lower half in a <strong>max-heap</strong> and the upper half in a <strong>min-heap</strong>, sizes differing by at most 1. The median is at the top(s).</p>
+<pre><code class="language-java">class MedianFinder {
+    private final PriorityQueue&lt;Integer&gt; low = new PriorityQueue&lt;&gt;(Collections.reverseOrder());   // max-heap
+    private final PriorityQueue&lt;Integer&gt; high = new PriorityQueue&lt;&gt;();                           // min-heap
+
+    void addNum(int x) {
+        low.offer(x);
+        high.offer(low.poll());                                // keep every value of low ≤ every value of high
+        if (high.size() &gt; low.size()) low.offer(high.poll());  // rebalance: low has equal or one more
+    }
+    double findMedian() {
+        return low.size() &gt; high.size() ? low.peek() : (low.peek() + high.peek()) / 2.0;
+    }                                                          // add: O(log n), median: O(1)
+}</code></pre>
+<h3 id="k-closest-points-to-the-origin">K closest points to the origin</h3>
+<p>Max-heap of size k keyed by distance squared (avoid <code>sqrt</code>).</p>
+<h3 id="sort-a-nearly-sorted-k-sorted-array">Sort a nearly sorted (k-sorted) array</h3>
+<p>Each element is at most <code>k</code> away from its place: use a min-heap of size <code>k + 1</code> → <code>O(n log k)</code>.</p>
+<h3 id="task-scheduler-reorganise-string">Task scheduler / reorganise string</h3>
+<p>Max-heap by remaining count; repeatedly take the most frequent available task or character.</p>
+<h3 id="connect-ropes-with-minimum-cost-huffman-like">Connect ropes with minimum cost (Huffman-like)</h3>
+<pre><code class="language-java">static int connectRopes(int[] ropes) {
+    PriorityQueue&lt;Integer&gt; heap = new PriorityQueue&lt;&gt;();
+    for (int r : ropes) heap.offer(r);
+    int cost = 0;
+    while (heap.size() &gt; 1) {
+        int sum = heap.poll() + heap.poll();                   // always join the two shortest
+        cost += sum;
+        heap.offer(sum);
+    }
+    return cost;
+}</code></pre>
+<h3 id="meeting-rooms-ii-minimum-rooms">Meeting rooms II (minimum rooms)</h3>
+<pre><code class="language-java">static int minMeetingRooms(int[][] iv) {
+    Arrays.sort(iv, (a, b) -&gt; Integer.compare(a[0], b[0]));
+    PriorityQueue&lt;Integer&gt; ends = new PriorityQueue&lt;&gt;();       // end times of rooms in use
+    for (int[] m : iv) {
+        if (!ends.isEmpty() &amp;&amp; ends.peek() &lt;= m[0]) ends.poll();   // reuse a freed room
+        ends.offer(m[1]);
+    }
+    return ends.size();
+}</code></pre>
+<h3 id="heaps-in-graph-algorithms">Heaps in graph algorithms</h3>
+<ul><li><strong>Dijkstra</strong>: min-heap of <code>(distance, node)</code></li><li><strong>Prim's MST</strong>: min-heap of edges</li><li><strong>A\</strong>*: min-heap ordered by <code>f = g + h</code></li></ul>
+<h2 id="when-to-use-a-heap"><span class="num">05</span>When to Use a Heap</h2>
+<div class="table-wrap"><table><thead><tr><th>Clue</th><th>Use</th></tr></thead><tbody><tr><td>"Top K", "K largest/smallest/most frequent"</td><td>Heap of size <code>k</code></td></tr><tr><td>Repeatedly need the current min or max</td><td>Heap</td></tr><tr><td>Merge <code>k</code> sorted streams</td><td>Min-heap of heads</td></tr><tr><td>Running median</td><td>Two heaps</td></tr><tr><td>Scheduling by priority, event simulation</td><td>Heap</td></tr><tr><td>Greedy choices that must pick the best available next</td><td>Heap</td></tr></tbody></table></div>
+<p>Choose <strong>quickselect</strong> instead for a one-off k-th element in <code>O(n)</code>, and <strong>sorting</strong> when you need everything ordered.</p>
+<h2 id="trie-prefix-tree"><span class="num">06</span>Trie (Prefix Tree)</h2>
+<p>A trie stores strings <strong>character by character</strong> along tree paths. Words sharing a prefix share nodes.</p>
+<pre><code class="language-text">Insert: "cat", "car", "dog"
+
+        root
+       /    \
+      c      d
+      |      |
+      a      o
+     / \     |
+    t*  r*   g*          * = end of a word</code></pre>
+<div class="table-wrap"><table><thead><tr><th>Operation</th><th>Time (word length <code>L</code>)</th></tr></thead><tbody><tr><td>Insert</td><td><code>O(L)</code></td></tr><tr><td>Search</td><td><code>O(L)</code></td></tr><tr><td>Prefix check (<code>startsWith</code>)</td><td><code>O(L)</code></td></tr><tr><td>Delete</td><td><code>O(L)</code></td></tr></tbody></table></div>
+<p>The cost depends on the <strong>word length</strong>, not the number of words.</p>
+<h3 id="implementation-with-a-child-array">Implementation with a child array</h3>
+<pre><code class="language-java">class Trie {
+    private static class Node {
+        Node[] next = new Node[26];
+        boolean end;
+        int passCount;                                       // words passing through (prefix counting)
+    }
+    private final Node root = new Node();
+
+    void insert(String word) {
+        Node cur = root;
+        for (char c : word.toCharArray()) {
+            int i = c - 'a';
+            if (cur.next[i] == null) cur.next[i] = new Node();
+            cur = cur.next[i];
+            cur.passCount++;
+        }
+        cur.end = true;
+    }
+
+    boolean search(String word) {
+        Node n = find(word);
+        return n != null &amp;&amp; n.end;
+    }
+
+    boolean startsWith(String prefix) { return find(prefix) != null; }
+
+    int countWordsWithPrefix(String prefix) {
+        Node n = find(prefix);
+        return n == null ? 0 : n.passCount;
+    }
+
+    private Node find(String s) {
+        Node cur = root;
+        for (char c : s.toCharArray()) {
+            cur = cur.next[c - 'a'];
+            if (cur == null) return null;
+        }
+        return cur;
+    }
+}</code></pre>
+<p>For large alphabets (Unicode) use <code>Map&lt;Character, Node&gt;</code> children instead of a fixed array.</p>
+<h3 id="autocomplete-all-words-with-a-prefix">Autocomplete: all words with a prefix</h3>
+<pre><code class="language-java">List&lt;String&gt; autocomplete(String prefix) {
+    List&lt;String&gt; res = new ArrayList&lt;&gt;();
+    Node n = find(prefix);
+    if (n != null) collect(n, new StringBuilder(prefix), res);
+    return res;
+}
+private void collect(Node n, StringBuilder sb, List&lt;String&gt; res) {
+    if (n.end) res.add(sb.toString());
+    for (int i = 0; i &lt; 26; i++) {
+        if (n.next[i] != null) {
+            sb.append((char) ('a' + i));
+            collect(n.next[i], sb, res);
+            sb.deleteCharAt(sb.length() - 1);                // backtrack
+        }
+    }
+}</code></pre>
+<h3 id="wildcard-search-matches-any-letter">Wildcard search (<code>.</code> matches any letter)</h3>
+<pre><code class="language-java">boolean searchWild(Node n, String w, int i) {
+    if (n == null) return false;
+    if (i == w.length()) return n.end;
+    char c = w.charAt(i);
+    if (c != '.') return searchWild(n.next[c - 'a'], w, i + 1);
+    for (Node child : n.next) if (searchWild(child, w, i + 1)) return true;
+    return false;
+}</code></pre>
+<h3 id="trie-problems">Trie problems</h3>
+<div class="table-wrap"><table><thead><tr><th>Problem</th><th>Idea</th></tr></thead><tbody><tr><td>Implement Trie, add and search words</td><td>Direct use</td></tr><tr><td>Word search II (many words in a grid)</td><td>DFS over the grid guided by a trie, prune dead branches</td></tr><tr><td>Longest common prefix</td><td>Walk down while a node has exactly one child and is not a word end</td></tr><tr><td>Replace words with their roots</td><td>Search the shortest prefix</td></tr><tr><td>Maximum XOR of two numbers</td><td><strong>Binary trie</strong> of bit paths, pick the opposite bit greedily</td></tr><tr><td>Search suggestions / autocomplete systems</td><td>Trie with ranking</td></tr><tr><td>IP routing (longest prefix match)</td><td>Binary trie</td></tr></tbody></table></div>
+<h3 id="trie-vs-hashmap-vs-sorted-list">Trie vs HashMap vs sorted list</h3>
+<div class="table-wrap"><table><thead><tr><th></th><th>Trie</th><th><code>HashSet</code> of strings</th><th>Sorted array + binary search</th></tr></thead><tbody><tr><td>Exact lookup</td><td><code>O(L)</code></td><td><code>O(L)</code> avg</td><td><code>O(L log n)</code></td></tr><tr><td><strong>Prefix queries</strong></td><td><strong><code>O(L + output)</code></strong></td><td><code>O(n · L)</code> scan</td><td><code>O(L log n)</code> for the range start</td></tr><tr><td>Memory</td><td>High (many nodes)</td><td>Moderate</td><td>Low</td></tr><tr><td>Sorted order of words</td><td>Natural (DFS in key order)</td><td>No</td><td>Yes</td></tr></tbody></table></div>
+<p>Compressed variants (radix tree, ternary search tree, suffix tree/array) reduce memory.</p>
+<h2 id="common-mistakes"><span class="num">07</span>Common Mistakes</h2>
+<ul><li>Using a max-heap when you need the <strong>k largest</strong> (you want a <strong>min</strong>-heap of size <code>k</code>)</li><li>Assuming <code>PriorityQueue</code> iteration order is sorted</li><li>Subtraction comparators that overflow</li><li>Forgetting <code>end = true</code> in a trie (so prefixes are mistaken for words)</li><li>Allocating 26-element arrays for huge sparse tries without considering memory</li><li>Heap <code>siftDown</code> bounds: use <code>size</code>, not the array length</li></ul>
+<h2 id="quick-recap"><span class="num">08</span>Quick Recap</h2>
+<ul><li>A <strong>heap</strong> gives <code>O(1)</code> min/max and <code>O(log n)</code> insert/extract; it is stored in an array (<code>2i+1</code>, <code>2i+2</code>)</li><li>Java <code>PriorityQueue</code> is a min-heap; pass <code>Collections.reverseOrder()</code> or a comparator for a max-heap</li><li><strong>Top-K</strong>: keep a heap of size <code>k</code> (min-heap for the k largest); <strong>median of a stream</strong>: max-heap + min-heap</li><li><strong>Trie</strong> = prefix tree: <code>O(L)</code> insert/search/prefix, ideal for autocomplete and dictionary problems</li><li>Always mark word endings in a trie and consider memory for large alphabets</li></ul>
+    </article>
+    <nav class="pager" aria-label="Topic navigation">
+      <a class="prev" href="10-bst-balanced-trees.html"><small>← Previous</small><strong>Binary Search Trees and Balanced Trees</strong></a>
+      <a class="next" href="12-graphs.html"><small>Next →</small><strong>Graphs: Representation, BFS, DFS and Union-Find</strong></a>
+    </nav>
+  </main>
+</div>
+</body>
+</html>

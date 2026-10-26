@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="en" data-track="java">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Multithreading and Concurrency — Java Notes · Hanbee</title>
+<meta name="description" content="Run work in parallel safely. Threads, lifecycle, synchronisation, locks, executors, concurrent collections, CompletableFuture and virtual threads.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500..700;1,9..144,500&amp;family=Inter:wght@400..700&amp;family=JetBrains+Mono:wght@400..600&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/notes.css">
+<script src="../assets/notes.js" defer></script>
+</head>
+<body>
+<div class="progress" aria-hidden="true"><i></i></div>
+<header class="top">
+  <a class="brand" href="../index.html"><b>H</b>Hanbee · Java Notes</a>
+  <nav><a class="keep" href="index.html">All topics</a><button id="theme-toggle" type="button" aria-label="Toggle light and dark theme">Theme</button></nav>
+</header>
+<div class="shell">
+  <details class="toc"><summary>On this page</summary><nav aria-label="On this page"><ol><li><a href="#concepts"><span>01</span>Concepts</a></li><li><a href="#creating-threads"><span>02</span>Creating Threads</a></li><li><a href="#thread-lifecycle"><span>03</span>Thread Lifecycle</a></li><li><a href="#thread-methods"><span>04</span>Thread Methods</a></li><li><a href="#the-problem-race-conditions"><span>05</span>The Problem: Race Conditions</a></li><li><a href="#synchronized"><span>06</span>synchronized</a></li><li><a href="#volatile-and-atomic-classes"><span>07</span>volatile and Atomic Classes</a></li><li><a href="#inter-thread-communication"><span>08</span>Inter-thread Communication</a></li><li><a href="#java-util-concurrent"><span>09</span>java.util.concurrent</a></li><li><a href="#completablefuture"><span>10</span>CompletableFuture</a></li><li><a href="#virtual-threads-java-21"><span>11</span>Virtual Threads (Java 21)</a></li><li><a href="#threadlocal"><span>12</span>ThreadLocal</a></li><li><a href="#best-practices"><span>13</span>Best Practices</a></li><li><a href="#quick-recap"><span>14</span>Quick Recap</a></li></ol></nav></details>
+  <main>
+    <header class="hero">
+      <p class="kicker"><span class="pill">Core APIs</span><span>Topic 14</span><span>Advanced</span><span>6 min read</span></p>
+      <h1>Multithreading and Concurrency</h1>
+      <p class="lede">Run work in parallel safely. Threads, lifecycle, synchronisation, locks, executors, concurrent collections, CompletableFuture and virtual threads.</p>
+    </header>
+    <article>
+<h2 id="concepts"><span class="num">01</span>Concepts</h2>
+<ul><li><strong>Process</strong>: an independent running program with its own memory</li><li><strong>Thread</strong>: a lightweight unit of execution <strong>inside</strong> a process; threads share the heap</li><li><strong>Multithreading</strong> lets a program do several things at once (UI + download, many web requests) and use multiple CPU cores</li><li><strong>Concurrency</strong> = dealing with many tasks at once; <strong>parallelism</strong> = running tasks literally at the same time</li></ul>
+<h2 id="creating-threads"><span class="num">02</span>Creating Threads</h2>
+<h3 id="1-implement-runnable-preferred">1. Implement Runnable (preferred)</h3>
+<pre><code class="language-java">Runnable task = () -&gt; System.out.println("Running in " + Thread.currentThread().getName());
+Thread t = new Thread(task, "worker-1");
+t.start();            // start() creates a new thread; run() would execute in the CURRENT thread</code></pre>
+<h3 id="2-extend-thread">2. Extend Thread</h3>
+<pre><code class="language-java">class MyThread extends Thread {
+    @Override public void run() { System.out.println("Hello from thread"); }
+}
+new MyThread().start();</code></pre>
+<h3 id="3-callable-and-future-returns-a-result">3. Callable and Future (returns a result)</h3>
+<pre><code class="language-java">Callable&lt;Integer&gt; job = () -&gt; 6 * 7;
+ExecutorService ex = Executors.newFixedThreadPool(2);
+Future&lt;Integer&gt; f = ex.submit(job);
+System.out.println(f.get());      // blocks until ready
+ex.shutdown();</code></pre>
+<aside class="callout warning"><span class="label">Warning</span><p>Calling <code>run()</code> directly does <strong>not</strong> create a new thread. Always call <code>start()</code>, and only once per <code>Thread</code> object.</p></aside>
+<h2 id="thread-lifecycle"><span class="num">03</span>Thread Lifecycle</h2>
+<pre><code class="language-text">NEW ──start()──► RUNNABLE ◄──► RUNNING
+                     │  ▲
+        lock wait    ▼  │ acquired
+                  BLOCKED
+        wait()/join() ▼  │ notify()/done
+                  WAITING / TIMED_WAITING (sleep, wait(ms), join(ms))
+                     │
+                     ▼
+                TERMINATED</code></pre>
+<div class="table-wrap"><table><thead><tr><th>State</th><th>Meaning</th></tr></thead><tbody><tr><td><code>NEW</code></td><td>Created, not started</td></tr><tr><td><code>RUNNABLE</code></td><td>Ready or running</td></tr><tr><td><code>BLOCKED</code></td><td>Waiting for a monitor lock</td></tr><tr><td><code>WAITING</code></td><td>Waiting indefinitely (<code>wait</code>, <code>join</code>)</td></tr><tr><td><code>TIMED_WAITING</code></td><td>Waiting with timeout (<code>sleep</code>, <code>wait(ms)</code>)</td></tr><tr><td><code>TERMINATED</code></td><td>Finished</td></tr></tbody></table></div>
+<h2 id="thread-methods"><span class="num">04</span>Thread Methods</h2>
+<div class="table-wrap"><table><thead><tr><th>Method</th><th>Purpose</th></tr></thead><tbody><tr><td><code>start()</code></td><td>Begin execution</td></tr><tr><td><code>sleep(ms)</code></td><td>Pause the current thread</td></tr><tr><td><code>join()</code></td><td>Wait for another thread to finish</td></tr><tr><td><code>interrupt()</code></td><td>Request a thread to stop (cooperative)</td></tr><tr><td><code>isAlive()</code></td><td>Still running?</td></tr><tr><td><code>setDaemon(true)</code></td><td>Background thread; JVM exits when only daemons remain</td></tr><tr><td><code>setPriority(1..10)</code></td><td>A hint only</td></tr><tr><td><code>Thread.yield()</code></td><td>Hint to let others run</td></tr></tbody></table></div>
+<pre><code class="language-java">Thread t = new Thread(() -&gt; {
+    while (!Thread.currentThread().isInterrupted()) {
+        try { Thread.sleep(500); }
+        catch (InterruptedException e) {
+            Thread.currentThread().interrupt();     // restore the flag
+            return;
+        }
+    }
+});
+t.start();
+t.interrupt();
+t.join();</code></pre>
+<h2 id="the-problem-race-conditions"><span class="num">05</span>The Problem: Race Conditions</h2>
+<pre><code class="language-java">class Counter {
+    int count = 0;
+    void increment() { count++; }     // NOT atomic: read → add → write
+}</code></pre>
+<p>Two threads can read the same value and both write back, losing an increment. Fixes: synchronisation, atomic classes or locks.</p>
+<h2 id="synchronized"><span class="num">06</span>synchronized</h2>
+<p>Only one thread at a time can hold an object's <strong>monitor lock</strong>.</p>
+<pre><code class="language-java">class Counter {
+    private int count = 0;
+
+    public synchronized void increment() { count++; }     // locks on 'this'
+
+    public void incrementBlock() {
+        synchronized (this) { count++; }                  // smaller critical section
+    }
+
+    private static int total;
+    public static synchronized void addTotal() { total++; }   // locks on the Class object
+}</code></pre>
+<ul><li>Synchronisation gives <strong>mutual exclusion</strong> and <strong>visibility</strong> of changes</li><li>Keep synchronised blocks short; never call unknown code inside them</li></ul>
+<h3 id="deadlock">Deadlock</h3>
+<p>Two threads each hold a lock the other needs.</p>
+<pre><code class="language-java">// Thread 1: lock(A) then lock(B)     Thread 2: lock(B) then lock(A)  → both wait forever</code></pre>
+<p>Prevention: acquire locks in a <strong>consistent global order</strong>, use <code>tryLock</code> with timeouts, hold fewer locks.</p>
+<h2 id="volatile-and-atomic-classes"><span class="num">07</span>volatile and Atomic Classes</h2>
+<pre><code class="language-java">private volatile boolean running = true;      // writes are immediately visible to all threads</code></pre>
+<p><code>volatile</code> guarantees <strong>visibility</strong> and ordering but <strong>not atomicity</strong> of compound actions.</p>
+<pre><code class="language-java">AtomicInteger counter = new AtomicInteger();
+counter.incrementAndGet();
+counter.compareAndSet(5, 10);
+AtomicLong, AtomicBoolean, AtomicReference&lt;T&gt;, LongAdder     // lock-free</code></pre>
+<h2 id="inter-thread-communication"><span class="num">08</span>Inter-thread Communication</h2>
+<p><code>wait()</code>, <code>notify()</code> and <code>notifyAll()</code> (inside <code>synchronized</code>) let threads coordinate.</p>
+<pre><code class="language-java">synchronized (queue) {
+    while (queue.isEmpty()) queue.wait();     // always wait in a LOOP
+    item = queue.remove();
+}
+// producer: synchronized (queue) { queue.add(x); queue.notifyAll(); }</code></pre>
+<p>In modern code prefer <code>BlockingQueue</code> (<code>ArrayBlockingQueue</code>, <code>LinkedBlockingQueue</code>) which handles this for you.</p>
+<h2 id="java-util-concurrent"><span class="num">09</span>java.util.concurrent</h2>
+<h3 id="locks">Locks</h3>
+<pre><code class="language-java">ReentrantLock lock = new ReentrantLock();
+lock.lock();
+try { /* critical section */ }
+finally { lock.unlock(); }             // ALWAYS in finally
+
+if (lock.tryLock(1, TimeUnit.SECONDS)) { ... }
+ReadWriteLock rw = new ReentrantReadWriteLock();   // many readers OR one writer</code></pre>
+<h3 id="executor-framework-thread-pools">Executor framework (thread pools)</h3>
+<p>Creating a raw thread per task is expensive. A <strong>thread pool</strong> reuses threads.</p>
+<pre><code class="language-java">ExecutorService pool = Executors.newFixedThreadPool(4);
+List&lt;Future&lt;Integer&gt;&gt; futures = new ArrayList&lt;&gt;();
+for (int i = 0; i &lt; 10; i++) {
+    int n = i;
+    futures.add(pool.submit(() -&gt; n * n));
+}
+for (Future&lt;Integer&gt; f : futures) System.out.println(f.get());
+pool.shutdown();
+pool.awaitTermination(1, TimeUnit.MINUTES);</code></pre>
+<div class="table-wrap"><table><thead><tr><th>Factory</th><th>Behaviour</th></tr></thead><tbody><tr><td><code>newFixedThreadPool(n)</code></td><td>n reusable threads</td></tr><tr><td><code>newCachedThreadPool()</code></td><td>Grows on demand, reuses idle threads</td></tr><tr><td><code>newSingleThreadExecutor()</code></td><td>One thread, tasks in order</td></tr><tr><td><code>newScheduledThreadPool(n)</code></td><td>Delayed / periodic tasks</td></tr><tr><td><code>newVirtualThreadPerTaskExecutor()</code></td><td>One virtual thread per task (Java 21)</td></tr></tbody></table></div>
+<pre><code class="language-java">ScheduledExecutorService ses = Executors.newScheduledThreadPool(1);
+ses.scheduleAtFixedRate(() -&gt; System.out.println("tick"), 0, 5, TimeUnit.SECONDS);</code></pre>
+<h3 id="synchronisation-aids">Synchronisation aids</h3>
+<div class="table-wrap"><table><thead><tr><th>Class</th><th>Use</th></tr></thead><tbody><tr><td><code>CountDownLatch</code></td><td>Wait until N events have happened (one-shot)</td></tr><tr><td><code>CyclicBarrier</code></td><td>N threads wait for each other, reusable</td></tr><tr><td><code>Semaphore</code></td><td>Limit concurrent access to N permits</td></tr><tr><td><code>Phaser</code>, <code>Exchanger</code></td><td>Advanced coordination</td></tr></tbody></table></div>
+<h3 id="concurrent-collections">Concurrent collections</h3>
+<div class="table-wrap"><table><thead><tr><th>Class</th><th>Notes</th></tr></thead><tbody><tr><td><code>ConcurrentHashMap</code></td><td>Scalable thread-safe map</td></tr><tr><td><code>CopyOnWriteArrayList</code></td><td>Great for read-heavy, rarely modified lists</td></tr><tr><td><code>BlockingQueue</code> family</td><td>Producer-consumer</td></tr><tr><td><code>ConcurrentLinkedQueue</code></td><td>Lock-free queue</td></tr></tbody></table></div>
+<h2 id="completablefuture"><span class="num">10</span>CompletableFuture</h2>
+<p>Compose asynchronous steps without blocking.</p>
+<pre><code class="language-java">CompletableFuture&lt;String&gt; cf = CompletableFuture
+        .supplyAsync(() -&gt; fetchUser(42))                 // runs in the common pool
+        .thenApply(user -&gt; user.getName())                // transform result
+        .thenCombine(CompletableFuture.supplyAsync(() -&gt; fetchOrders(42)),
+                     (name, orders) -&gt; name + " has " + orders.size() + " orders")
+        .exceptionally(ex -&gt; "failed: " + ex.getMessage());
+
+cf.thenAccept(System.out::println);
+CompletableFuture.allOf(a, b, c).join();                  // wait for all</code></pre>
+<h2 id="virtual-threads-java-21"><span class="num">11</span>Virtual Threads (Java 21)</h2>
+<p>Lightweight threads managed by the JVM, not the OS. You can run <strong>millions</strong> of them, so blocking code becomes cheap.</p>
+<pre><code class="language-java">Thread.startVirtualThread(() -&gt; System.out.println("virtual"));
+
+try (var executor = Executors.newVirtualThreadPerTaskExecutor()) {
+    for (int i = 0; i &lt; 10_000; i++) {
+        executor.submit(() -&gt; { Thread.sleep(Duration.ofSeconds(1)); return "done"; });
+    }
+}</code></pre>
+<p>Best for <strong>I/O-bound</strong> server workloads (many waiting requests). Don't pool them, and avoid long <code>synchronized</code> blocks around blocking calls.</p>
+<h2 id="threadlocal"><span class="num">12</span>ThreadLocal</h2>
+<pre><code class="language-java">private static final ThreadLocal&lt;SimpleDateFormat&gt; FORMAT =
+        ThreadLocal.withInitial(() -&gt; new SimpleDateFormat("yyyy-MM-dd"));</code></pre>
+<p>Each thread gets its own copy. Remember to <code>remove()</code> in thread pools.</p>
+<h2 id="best-practices"><span class="num">13</span>Best Practices</h2>
+<ul><li>Prefer <strong>immutable</strong> objects and executors over manual threads</li><li>Share as little mutable state as possible</li><li>Use higher-level tools (<code>ConcurrentHashMap</code>, <code>BlockingQueue</code>, atomics) before locks</li><li>Always release locks in <code>finally</code>; handle <code>InterruptedException</code> properly</li><li>Name your threads and shut down executors</li></ul>
+<aside class="callout interview"><span class="label">Interview question</span><p>What is the difference between <code>synchronized</code> and <code>ReentrantLock</code>? What is the difference between <code>wait()</code> and <code>sleep()</code>?</p><p><code>ReentrantLock</code> adds <code>tryLock</code>, timeouts, fairness and interruptible locking. <code>wait()</code> releases the monitor and must be called inside <code>synchronized</code>; <code>sleep()</code> keeps all locks and just pauses.</p></aside>
+<h2 id="quick-recap"><span class="num">14</span>Quick Recap</h2>
+<ul><li>Use <code>start()</code>, never <code>run()</code>, to begin a thread</li><li>Race conditions need synchronisation, locks or atomics</li><li>Prefer <code>ExecutorService</code>, <code>CompletableFuture</code> and concurrent collections</li><li><code>volatile</code> = visibility, not atomicity</li><li>Virtual threads make blocking I/O scale cheaply</li></ul>
+    </article>
+    <nav class="pager" aria-label="Topic navigation">
+      <a class="prev" href="13-file-io.html"><small>← Previous</small><strong>File I/O, NIO and Serialization</strong></a>
+      <a class="next" href="15-modern-java.html"><small>Next →</small><strong>Modern Java (Java 9 to 25)</strong></a>
+    </nav>
+  </main>
+</div>
+</body>
+</html>

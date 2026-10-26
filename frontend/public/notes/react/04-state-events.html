@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="en" data-track="react">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>State, Events and Controlled Inputs — React Notes · Hanbee</title>
+<meta name="description" content="Make components interactive with useState. Updater functions, immutable updates for objects and arrays, lifting state up, controlled inputs and how React batches updates.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500..700;1,9..144,500&amp;family=Inter:wght@400..700&amp;family=JetBrains+Mono:wght@400..600&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/notes.css">
+<script src="../assets/notes.js" defer></script>
+</head>
+<body>
+<div class="progress" aria-hidden="true"><i></i></div>
+<header class="top">
+  <a class="brand" href="../index.html"><b>H</b>Hanbee · React Notes</a>
+  <nav><a class="keep" href="index.html">All topics</a><button id="theme-toggle" type="button" aria-label="Toggle light and dark theme">Theme</button></nav>
+</header>
+<div class="shell">
+  <details class="toc"><summary>On this page</summary><nav aria-label="On this page"><ol><li><a href="#what-is-state"><span>01</span>What is State?</a></li><li><a href="#rules-of-hooks"><span>02</span>Rules of Hooks</a></li><li><a href="#how-a-render-works"><span>03</span>How a Render Works</a></li><li><a href="#lazy-initial-state"><span>04</span>Lazy Initial State</a></li><li><a href="#state-can-be-any-type"><span>05</span>State Can Be Any Type</a></li><li><a href="#updating-objects-immutably"><span>06</span>Updating Objects Immutably</a></li><li><a href="#updating-arrays-immutably"><span>07</span>Updating Arrays Immutably</a></li><li><a href="#a-complete-todo-example"><span>08</span>A Complete Todo Example</a></li><li><a href="#controlled-inputs"><span>09</span>Controlled Inputs</a></li><li><a href="#lifting-state-up"><span>10</span>Lifting State Up</a></li><li><a href="#choosing-what-to-put-in-state"><span>11</span>Choosing What to Put in State</a></li><li><a href="#resetting-state-with-key"><span>12</span>Resetting State with key</a></li><li><a href="#state-and-re-rendering-facts"><span>13</span>State and Re-rendering Facts</a></li><li><a href="#quick-recap"><span>14</span>Quick Recap</a></li></ol></nav></details>
+  <main>
+    <header class="hero">
+      <p class="kicker"><span class="pill">Core Hooks</span><span>Topic 04</span><span>Beginner</span><span>7 min read</span></p>
+      <h1>State, Events and Controlled Inputs</h1>
+      <p class="lede">Make components interactive with useState. Updater functions, immutable updates for objects and arrays, lifting state up, controlled inputs and how React batches updates.</p>
+    </header>
+    <article>
+<h2 id="what-is-state"><span class="num">01</span>What is State?</h2>
+<p><strong>State</strong> is data a component remembers between renders. When state changes, React <strong>re-renders</strong> the component so the screen matches the new data.</p>
+<pre><code class="language-jsx">import { useState } from "react";
+
+function Counter() {
+  const [count, setCount] = useState(0);        // [current value, setter], initial value 0
+
+  return (
+    &lt;div&gt;
+      &lt;p&gt;You clicked {count} times&lt;/p&gt;
+      &lt;button onClick={() =&gt; setCount(count + 1)}&gt;Click&lt;/button&gt;
+    &lt;/div&gt;
+  );
+}</code></pre>
+<h3 id="why-not-a-normal-variable">Why not a normal variable?</h3>
+<p>A plain <code>let count = 0</code> is reset on every render and changing it does not trigger a re-render. State <strong>persists</strong> and <strong>triggers</strong> renders.</p>
+<div class="table-wrap"><table><thead><tr><th></th><th>Local variable</th><th>State</th></tr></thead><tbody><tr><td>Survives re-renders</td><td>No</td><td>Yes</td></tr><tr><td>Changing it re-renders</td><td>No</td><td>Yes</td></tr></tbody></table></div>
+<h2 id="rules-of-hooks"><span class="num">02</span>Rules of Hooks</h2>
+<p>Hooks are functions that start with <code>use</code>. They must follow two rules (enforced by <code>eslint-plugin-react-hooks</code>):</p>
+<ol><li>Call hooks <strong>only at the top level</strong> of a component or custom hook: not inside loops, conditions or nested functions</li><li>Call hooks <strong>only from React functions</strong>: components or custom hooks</li></ol>
+<p>(<code>use()</code> in React 19 is the one hook-like API that may be called conditionally.)</p>
+<h2 id="how-a-render-works"><span class="num">03</span>How a Render Works</h2>
+<pre><code class="language-text">1. Trigger   : initial render or a state update
+2. Render    : React calls your component to get JSX (pure calculation)
+3. Commit    : React updates the DOM with the differences
+4. Browser paints, then effects run</code></pre>
+<h3 id="state-is-a-snapshot">State is a snapshot</h3>
+<p>Each render has its <strong>own values</strong> of props and state. Setting state does <strong>not</strong> change the variable in the current render; it schedules a new render.</p>
+<pre><code class="language-jsx">function Demo() {
+  const [n, setN] = useState(0);
+  function handleClick() {
+    setN(n + 1);
+    setN(n + 1);
+    setN(n + 1);
+    console.log(n);        // still 0 in this render
+  }                        // result: n becomes 1, not 3
+  return &lt;button onClick={handleClick}&gt;{n}&lt;/button&gt;;
+}</code></pre>
+<h3 id="updater-functions">Updater functions</h3>
+<p>When the next value depends on the previous one, pass a <strong>function</strong>.</p>
+<pre><code class="language-jsx">function handleClick() {
+  setN(prev =&gt; prev + 1);
+  setN(prev =&gt; prev + 1);
+  setN(prev =&gt; prev + 1);      // n becomes 3
+}</code></pre>
+<h3 id="batching">Batching</h3>
+<p>React <strong>batches</strong> multiple state updates in one event (and in promises, timeouts and native handlers since React 18) into a <strong>single re-render</strong>.</p>
+<h2 id="lazy-initial-state"><span class="num">04</span>Lazy Initial State</h2>
+<pre><code class="language-jsx">const [todos, setTodos] = useState(() =&gt; JSON.parse(localStorage.getItem("todos")) ?? []);</code></pre>
+<p>Pass a function so expensive initialisation runs <strong>only once</strong>, not on every render.</p>
+<h2 id="state-can-be-any-type"><span class="num">05</span>State Can Be Any Type</h2>
+<pre><code class="language-jsx">const [name, setName] = useState("");
+const [age, setAge] = useState(0);
+const [isOpen, setIsOpen] = useState(false);
+const [user, setUser] = useState(null);
+const [items, setItems] = useState([]);
+const [form, setForm] = useState({ email: "", password: "" });</code></pre>
+<h2 id="updating-objects-immutably"><span class="num">06</span>Updating Objects Immutably</h2>
+<p>Never mutate state. Create a <strong>new object</strong>.</p>
+<pre><code class="language-jsx">const [user, setUser] = useState({ name: "Asha", address: { city: "Chennai" } });
+
+// Wrong
+user.name = "Ravi";                    // mutates; no re-render guaranteed
+
+// Right
+setUser({ ...user, name: "Ravi" });
+setUser(prev =&gt; ({ ...prev, address: { ...prev.address, city: "Pune" } }));   // nested</code></pre>
+<h2 id="updating-arrays-immutably"><span class="num">07</span>Updating Arrays Immutably</h2>
+<div class="table-wrap"><table><thead><tr><th>Task</th><th>Avoid (mutates)</th><th>Use (new array)</th></tr></thead><tbody><tr><td>Add</td><td><code>push</code>, <code>unshift</code></td><td><code>[...arr, item]</code>, <code>[item, ...arr]</code></td></tr><tr><td>Remove</td><td><code>pop</code>, <code>shift</code>, <code>splice</code></td><td><code>filter</code></td></tr><tr><td>Replace</td><td><code>arr[i] = x</code></td><td><code>map</code></td></tr><tr><td>Sort / reverse</td><td><code>sort</code>, <code>reverse</code></td><td><code>toSorted</code>, <code>toReversed</code> or copy first</td></tr></tbody></table></div>
+<pre><code class="language-jsx">const [todos, setTodos] = useState([{ id: 1, text: "Learn React", done: false }]);
+
+const add = (text) =&gt; setTodos(prev =&gt; [...prev, { id: crypto.randomUUID(), text, done: false }]);
+const remove = (id) =&gt; setTodos(prev =&gt; prev.filter(t =&gt; t.id !== id));
+const toggle = (id) =&gt; setTodos(prev =&gt; prev.map(t =&gt; t.id === id ? { ...t, done: !t.done } : t));</code></pre>
+<aside class="callout tip"><span class="label">Tip</span><p>For deeply nested state, the <strong>Immer</strong> library (or <code>useImmer</code>) lets you write "mutating" code that produces immutable updates.</p></aside>
+<h2 id="a-complete-todo-example"><span class="num">08</span>A Complete Todo Example</h2>
+<pre data-file="Todos.jsx"><code class="language-jsx">import { useState } from "react";
+
+export default function Todos() {
+  const [todos, setTodos] = useState([]);
+  const [text, setText] = useState("");
+
+  function handleSubmit(e) {
+    e.preventDefault();
+    const trimmed = text.trim();
+    if (!trimmed) return;
+    setTodos(prev =&gt; [...prev, { id: crypto.randomUUID(), text: trimmed, done: false }]);
+    setText("");
+  }
+
+  return (
+    &lt;section&gt;
+      &lt;form onSubmit={handleSubmit}&gt;
+        &lt;input value={text} onChange={e =&gt; setText(e.target.value)} placeholder="New task" /&gt;
+        &lt;button&gt;Add&lt;/button&gt;
+      &lt;/form&gt;
+      &lt;ul&gt;
+        {todos.map(t =&gt; (
+          &lt;li key={t.id}&gt;
+            &lt;label&gt;
+              &lt;input
+                type="checkbox"
+                checked={t.done}
+                onChange={() =&gt; setTodos(prev =&gt; prev.map(x =&gt; x.id === t.id ? { ...x, done: !x.done } : x))}
+              /&gt;
+              &lt;span style={{ textDecoration: t.done ? "line-through" : "none" }}&gt;{t.text}&lt;/span&gt;
+            &lt;/label&gt;
+            &lt;button onClick={() =&gt; setTodos(prev =&gt; prev.filter(x =&gt; x.id !== t.id))}&gt;✕&lt;/button&gt;
+          &lt;/li&gt;
+        ))}
+      &lt;/ul&gt;
+      &lt;p&gt;{todos.filter(t =&gt; !t.done).length} remaining&lt;/p&gt;
+    &lt;/section&gt;
+  );
+}</code></pre>
+<h2 id="controlled-inputs"><span class="num">09</span>Controlled Inputs</h2>
+<p>A <strong>controlled</strong> input's value lives in React state. The input shows <code>value</code>, and <code>onChange</code> updates state.</p>
+<pre><code class="language-jsx">function Login() {
+  const [form, setForm] = useState({ email: "", password: "", remember: false });
+
+  function handleChange(e) {
+    const { name, value, type, checked } = e.target;
+    setForm(prev =&gt; ({ ...prev, [name]: type === "checkbox" ? checked : value }));
+  }
+
+  return (
+    &lt;form&gt;
+      &lt;input name="email" type="email" value={form.email} onChange={handleChange} /&gt;
+      &lt;input name="password" type="password" value={form.password} onChange={handleChange} /&gt;
+      &lt;label&gt;&lt;input name="remember" type="checkbox" checked={form.remember} onChange={handleChange} /&gt; Remember me&lt;/label&gt;
+    &lt;/form&gt;
+  );
+}</code></pre>
+<div class="table-wrap"><table><thead><tr><th>Element</th><th>Props</th></tr></thead><tbody><tr><td>Text, email, textarea</td><td><code>value</code> + <code>onChange</code></td></tr><tr><td>Checkbox</td><td><code>checked</code> + <code>onChange</code></td></tr><tr><td>Radio</td><td><code>checked={value === option}</code> + <code>onChange</code></td></tr><tr><td>Select</td><td><code>value</code> on <code>&lt;select&gt;</code> + <code>onChange</code></td></tr><tr><td>File</td><td>uncontrolled (<code>onChange</code> reads <code>e.target.files</code>)</td></tr></tbody></table></div>
+<pre><code class="language-jsx">&lt;select value={level} onChange={e =&gt; setLevel(e.target.value)}&gt;
+  &lt;option value="beginner"&gt;Beginner&lt;/option&gt;
+  &lt;option value="advanced"&gt;Advanced&lt;/option&gt;
+&lt;/select&gt;</code></pre>
+<aside class="callout warning"><span class="label">Warning</span><p>Giving <code>value</code> without <code>onChange</code> makes the input read-only. Initialise <code>value</code> with <code>""</code>, not <code>undefined</code>/<code>null</code>, to avoid the controlled/uncontrolled warning.</p></aside>
+<h3 id="uncontrolled-inputs">Uncontrolled inputs</h3>
+<p>Let the DOM hold the value and read it when needed (with a ref or <code>FormData</code>). Simpler for large forms. Covered in the Forms topic.</p>
+<h2 id="lifting-state-up"><span class="num">10</span>Lifting State Up</h2>
+<p>When two components need the same data, move the state to their <strong>closest common parent</strong> and pass it down.</p>
+<pre><code class="language-jsx">function Parent() {
+  const [query, setQuery] = useState("");
+  return (
+    &lt;&gt;
+      &lt;SearchBox query={query} onQueryChange={setQuery} /&gt;
+      &lt;ResultList query={query} /&gt;
+    &lt;/&gt;
+  );
+}
+
+function SearchBox({ query, onQueryChange }) {
+  return &lt;input value={query} onChange={e =&gt; onQueryChange(e.target.value)} /&gt;;
+}</code></pre>
+<h3 id="where-should-state-live">Where should state live?</h3>
+<ol><li>Used by <strong>one</strong> component → keep it there</li><li>Used by <strong>siblings</strong> → lift to the common parent</li><li>Used <strong>across the app</strong> (theme, current user) → Context or a state library</li></ol>
+<h2 id="choosing-what-to-put-in-state"><span class="num">11</span>Choosing What to Put in State</h2>
+<h3 id="good-state">Good state</h3>
+<ul><li>Changes over time and affects what is rendered</li><li>Cannot be computed from other state or props</li></ul>
+<h3 id="derive-instead-of-duplicating">Derive instead of duplicating</h3>
+<pre><code class="language-jsx">// Bad: redundant state that can go out of sync
+const [items, setItems] = useState([]);
+const [count, setCount] = useState(0);
+
+// Good: derive during render
+const [items, setItems] = useState([]);
+const count = items.length;
+const total = items.reduce((t, i) =&gt; t + i.price * i.qty, 0);
+const visible = items.filter(i =&gt; i.name.includes(query));</code></pre>
+<h3 id="state-structure-tips">State structure tips</h3>
+<ul><li>Group related values that change together</li><li>Avoid contradictions (<code>isLoading</code> + <code>isError</code> + <code>isSuccess</code> → use one <code>status</code>)</li><li>Avoid duplicated data (store <code>selectedId</code>, not a copy of the selected object)</li><li>Avoid deeply nested state; normalise by id</li></ul>
+<pre><code class="language-jsx">const [status, setStatus] = useState("idle");   // "idle" | "loading" | "success" | "error"
+const [selectedId, setSelectedId] = useState(null);
+const selected = items.find(i =&gt; i.id === selectedId);</code></pre>
+<h2 id="resetting-state-with-key"><span class="num">12</span>Resetting State with key</h2>
+<p>Changing a component's <code>key</code> makes React create a <strong>fresh instance</strong> with new state.</p>
+<pre><code class="language-jsx">&lt;ProfileForm key={user.id} user={user} /&gt;      // switching users resets the form</code></pre>
+<h2 id="state-and-re-rendering-facts"><span class="num">13</span>State and Re-rendering Facts</h2>
+<ul><li>Calling <code>setX(sameValue)</code> (same via <code>Object.is</code>) does <strong>not</strong> re-render</li><li>When a component re-renders, <strong>all its children re-render</strong> too (unless memoised)</li><li>State is <strong>private</strong> to each component instance: two <code>&lt;Counter /&gt;</code> have separate counts</li><li>State is tied to a component's <strong>position in the tree</strong>; moving or removing it resets state</li></ul>
+<h2 id="quick-recap"><span class="num">14</span>Quick Recap</h2>
+<ul><li><code>const [value, setValue] = useState(initial)</code>; setting state triggers a re-render</li><li>State is a <strong>snapshot</strong>; use <strong>updater functions</strong> (<code>prev =&gt; …</code>) when based on previous state</li><li><strong>Never mutate</strong>: use spread, <code>map</code>, <code>filter</code> to create new objects/arrays</li><li>Controlled inputs: <code>value</code> + <code>onChange</code></li><li><strong>Lift state up</strong> to share it; <strong>derive</strong> values instead of duplicating state</li><li>Change <code>key</code> to reset a component's state</li></ul>
+    </article>
+    <nav class="pager" aria-label="Topic navigation">
+      <a class="prev" href="03-jsx-components-props.html"><small>← Previous</small><strong>JSX, Components and Props</strong></a>
+      <a class="next" href="05-effects-lifecycle.html"><small>Next →</small><strong>Effects and Component Lifecycle</strong></a>
+    </nav>
+  </main>
+</div>
+</body>
+</html>

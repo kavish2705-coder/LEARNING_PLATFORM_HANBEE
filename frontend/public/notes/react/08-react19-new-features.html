@@ -1,0 +1,269 @@
+<!doctype html>
+<html lang="en" data-track="react">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>React 19 New Features — React Notes · Hanbee</title>
+<meta name="description" content="A guided tour of what React 19 adds. Actions, useActionState, useFormStatus, useOptimistic, the use API, ref as a prop, metadata and resource support, better error handling, and the 19.1/19.2 additions.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500..700;1,9..144,500&amp;family=Inter:wght@400..700&amp;family=JetBrains+Mono:wght@400..600&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/notes.css">
+<script src="../assets/notes.js" defer></script>
+</head>
+<body>
+<div class="progress" aria-hidden="true"><i></i></div>
+<header class="top">
+  <a class="brand" href="../index.html"><b>H</b>Hanbee · React Notes</a>
+  <nav><a class="keep" href="index.html">All topics</a><button id="theme-toggle" type="button" aria-label="Toggle light and dark theme">Theme</button></nav>
+</header>
+<div class="shell">
+  <details class="toc"><summary>On this page</summary><nav aria-label="On this page"><ol><li><a href="#release-overview"><span>01</span>Release Overview</a></li><li><a href="#actions"><span>02</span>Actions</a></li><li><a href="#useactionstate"><span>03</span>useActionState</a></li><li><a href="#useformstatus"><span>04</span>useFormStatus</a></li><li><a href="#useoptimistic"><span>05</span>useOptimistic</a></li><li><a href="#the-use-api"><span>06</span>The use API</a></li><li><a href="#ref-as-a-prop-and-ref-cleanup"><span>07</span>ref as a Prop and Ref Cleanup</a></li><li><a href="#context-as-a-provider"><span>08</span>Context as a Provider</a></li><li><a href="#document-metadata"><span>09</span>Document Metadata</a></li><li><a href="#stylesheets-and-scripts"><span>10</span>Stylesheets and Scripts</a></li><li><a href="#resource-preloading-apis"><span>11</span>Resource Preloading APIs</a></li><li><a href="#better-error-reporting"><span>12</span>Better Error Reporting</a></li><li><a href="#custom-elements-web-components"><span>13</span>Custom Elements (Web Components)</a></li><li><a href="#usedeferredvalue-initial-value"><span>14</span>useDeferredValue Initial Value</a></li><li><a href="#react-19-2-additions"><span>15</span>React 19.2 Additions</a></li><li><a href="#breaking-changes-and-removals"><span>16</span>Breaking Changes and Removals</a></li><li><a href="#server-components-and-server-actions"><span>17</span>Server Components and Server Actions</a></li><li><a href="#putting-it-together-a-form-with-all-the-new-pieces"><span>18</span>Putting It Together: A Form with All the New Pieces</a></li><li><a href="#quick-recap"><span>19</span>Quick Recap</a></li></ol></nav></details>
+  <main>
+    <header class="hero">
+      <p class="kicker"><span class="pill">React 19 and Patterns</span><span>Topic 08</span><span>Intermediate</span><span>9 min read</span></p>
+      <h1>React 19 New Features</h1>
+      <p class="lede">A guided tour of what React 19 adds. Actions, useActionState, useFormStatus, useOptimistic, the use API, ref as a prop, metadata and resource support, better error handling, and the 19.1/19.2 additions.</p>
+    </header>
+    <article>
+<h2 id="release-overview"><span class="num">01</span>Release Overview</h2>
+<div class="table-wrap"><table><thead><tr><th>Release</th><th>Date</th><th>Highlights</th></tr></thead><tbody><tr><td><strong>React 19</strong></td><td>Dec 2024</td><td>Actions, <code>use</code>, new form hooks, <code>ref</code> as prop, metadata, Server Components stable</td></tr><tr><td><strong>19.1</strong></td><td>Mar 2025</td><td>Owner Stacks in DevTools, Suspense improvements, <code>useId</code> format change</td></tr><tr><td><strong>19.2</strong></td><td>Oct 2025</td><td><code>&lt;Activity&gt;</code>, <code>useEffectEvent</code>, <code>cacheSignal</code>, Performance Tracks, partial pre-rendering, batched Suspense reveals</td></tr><tr><td><strong>React Compiler 1.0</strong></td><td>Oct 2025</td><td>Automatic memoisation (separate tool)</td></tr></tbody></table></div>
+<h3 id="upgrading">Upgrading</h3>
+<pre><code class="language-bash">npm install react@latest react-dom@latest
+npm install -D @types/react@latest @types/react-dom@latest        # TypeScript
+npx codemod@latest react/19/migration-recipe                      # automated fixes</code></pre>
+<h2 id="actions"><span class="num">02</span>Actions</h2>
+<p>An <strong>Action</strong> is an <strong>async function used in a transition</strong>. React tracks its <strong>pending state</strong>, handles <strong>errors</strong>, supports <strong>optimistic updates</strong> and <strong>resets forms</strong> for you.</p>
+<pre><code class="language-jsx">function UpdateName() {
+  const [name, setName] = useState("");
+  const [error, setError] = useState(null);
+  const [isPending, startTransition] = useTransition();
+
+  const handleSubmit = () =&gt; {
+    startTransition(async () =&gt; {                 // async function inside a transition = Action
+      const err = await updateName(name);
+      if (err) { setError(err); return; }
+      redirect("/profile");
+    });
+  };
+
+  return (
+    &lt;div&gt;
+      &lt;input value={name} onChange={e =&gt; setName(e.target.value)} /&gt;
+      &lt;button onClick={handleSubmit} disabled={isPending}&gt;Update&lt;/button&gt;
+      {error &amp;&amp; &lt;p&gt;{error}&lt;/p&gt;}
+    &lt;/div&gt;
+  );
+}</code></pre>
+<p>Before React 19 you wrote <code>isPending</code>, <code>error</code> and <code>try/catch/finally</code> state manually for every mutation.</p>
+<h3 id="form-actions">Form Actions: <code>&lt;form action={fn}&gt;</code></h3>
+<pre><code class="language-jsx">async function enroll(formData) {                 // receives FormData
+  const email = formData.get("email");
+  await api.enroll(email);
+}
+
+&lt;form action={enroll}&gt;
+  &lt;input name="email" type="email" required /&gt;
+  &lt;button&gt;Enroll&lt;/button&gt;
+&lt;/form&gt;</code></pre>
+<ul><li>When <code>action</code> is a <strong>function</strong>, React calls it with the form's <code>FormData</code> on submit (no <code>preventDefault</code>, no controlled inputs needed)</li><li>After a successful action, <strong>uncontrolled fields reset automatically</strong></li><li>Works with <strong>progressive enhancement</strong> when used with Server Functions</li><li>Buttons can override with <code>formAction={otherFn}</code></li></ul>
+<h2 id="useactionstate"><span class="num">03</span>useActionState</h2>
+<p>Wraps an action and gives you its <strong>latest result</strong> and <strong>pending flag</strong>. (Replaces the older <code>useFormState</code> from <code>react-dom</code>.)</p>
+<pre><code class="language-jsx">import { useActionState } from "react";
+
+async function signup(prevState, formData) {      // (previous state, form data)
+  const email = formData.get("email");
+  if (!email.includes("@")) return { error: "Enter a valid email" };
+  await api.signup(email);
+  return { success: true };
+}
+
+function Signup() {
+  const [state, formAction, isPending] = useActionState(signup, { error: null });
+
+  return (
+    &lt;form action={formAction}&gt;
+      &lt;input name="email" type="email" /&gt;
+      &lt;button disabled={isPending}&gt;{isPending ? "Joining…" : "Join"}&lt;/button&gt;
+      {state.error &amp;&amp; &lt;p role="alert"&gt;{state.error}&lt;/p&gt;}
+      {state.success &amp;&amp; &lt;p&gt;Welcome aboard!&lt;/p&gt;}
+    &lt;/form&gt;
+  );
+}</code></pre>
+<p>Signature: <code>const [state, action, isPending] = useActionState(fn, initialState, permalink?)</code></p>
+<h2 id="useformstatus"><span class="num">04</span>useFormStatus</h2>
+<p>Reads the status of the <strong>parent <code>&lt;form&gt;</code></strong> from any child component, which is perfect for reusable submit buttons. Imported from <code>react-dom</code>.</p>
+<pre><code class="language-jsx">import { useFormStatus } from "react-dom";
+
+function SubmitButton({ children }) {
+  const { pending, data, method, action } = useFormStatus();
+  return &lt;button type="submit" disabled={pending}&gt;{pending ? "Saving…" : children}&lt;/button&gt;;
+}
+
+&lt;form action={save}&gt;
+  &lt;input name="title" /&gt;
+  &lt;SubmitButton&gt;Save&lt;/SubmitButton&gt;          {/* must be rendered INSIDE the form */}
+&lt;/form&gt;</code></pre>
+<aside class="callout warning"><span class="label">Warning</span><p><code>useFormStatus</code> only reports on a <code>&lt;form&gt;</code> that is an <strong>ancestor</strong> of the component calling it, not a form rendered by the same component.</p></aside>
+<h2 id="useoptimistic"><span class="num">05</span>useOptimistic</h2>
+<p>Show the <strong>expected result immediately</strong> while the real request is in flight. If the action fails, React automatically reverts to the real state.</p>
+<pre><code class="language-jsx">import { useOptimistic } from "react";
+
+function Messages({ messages, sendMessage }) {
+  const [optimisticMessages, addOptimistic] = useOptimistic(
+    messages,
+    (current, newText) =&gt; [...current, { id: "temp", text: newText, sending: true }]
+  );
+
+  async function formAction(formData) {
+    const text = formData.get("text");
+    addOptimistic(text);                      // appears instantly
+    await sendMessage(text);                  // real update; state is replaced when `messages` changes
+  }
+
+  return (
+    &lt;&gt;
+      {optimisticMessages.map(m =&gt; (
+        &lt;p key={m.id} style={{ opacity: m.sending ? 0.5 : 1 }}&gt;{m.text}&lt;/p&gt;
+      ))}
+      &lt;form action={formAction}&gt;&lt;input name="text" /&gt;&lt;button&gt;Send&lt;/button&gt;&lt;/form&gt;
+    &lt;/&gt;
+  );
+}</code></pre>
+<p>Great for likes, comments, todo toggles and any UI where waiting for the server feels slow.</p>
+<h2 id="the-use-api"><span class="num">06</span>The use API</h2>
+<p><code>use</code> reads a <strong>resource</strong>: a <strong>Promise</strong> or a <strong>Context</strong>. Unlike hooks, <strong>it can be called conditionally and inside loops</strong>.</p>
+<h3 id="reading-a-promise-with-suspense">Reading a promise (with Suspense)</h3>
+<pre><code class="language-jsx">import { use, Suspense } from "react";
+
+function Comments({ commentsPromise }) {
+  const comments = use(commentsPromise);          // suspends until resolved; throws if rejected
+  return comments.map(c =&gt; &lt;p key={c.id}&gt;{c.text}&lt;/p&gt;);
+}
+
+function Page({ id }) {
+  const commentsPromise = fetchComments(id);      // created in a parent / Server Component
+  return (
+    &lt;ErrorBoundary fallback={&lt;p&gt;Failed to load&lt;/p&gt;}&gt;
+      &lt;Suspense fallback={&lt;p&gt;Loading comments…&lt;/p&gt;}&gt;
+        &lt;Comments commentsPromise={commentsPromise} /&gt;
+      &lt;/Suspense&gt;
+    &lt;/ErrorBoundary&gt;
+  );
+}</code></pre>
+<aside class="callout warning"><span class="label">Warning</span><p>Don't create the promise <strong>inside the component that calls <code>use</code></strong> during render in a Client Component: a new promise each render causes an endless suspend loop. Create it in a parent, a Server Component, a cache, or a data library.</p></aside>
+<h3 id="reading-context-conditionally">Reading context conditionally</h3>
+<pre><code class="language-jsx">function Button({ show }) {
+  if (!show) return null;
+  const theme = use(ThemeContext);               // allowed after an early return
+  return &lt;button className={theme}&gt;OK&lt;/button&gt;;
+}</code></pre>
+<div class="table-wrap"><table><thead><tr><th></th><th><code>useContext</code></th><th><code>use(Context)</code></th><th><code>use(promise)</code></th></tr></thead><tbody><tr><td>Conditional calls</td><td>No</td><td><strong>Yes</strong></td><td><strong>Yes</strong></td></tr><tr><td>Suspends</td><td>No</td><td>No</td><td>Yes</td></tr></tbody></table></div>
+<h2 id="ref-as-a-prop-and-ref-cleanup"><span class="num">07</span>ref as a Prop and Ref Cleanup</h2>
+<pre><code class="language-jsx">function MyInput({ ref, ...props }) { return &lt;input ref={ref} {...props} /&gt;; }   // no forwardRef
+
+&lt;input ref={(node) =&gt; { /* setup */ return () =&gt; { /* cleanup */ }; }} /&gt;        // cleanup functions</code></pre>
+<p>Details are in the Refs topic. Note: ref callbacks should no longer use <strong>implicit return</strong> of an assignment (<code>ref={el =&gt; (instance = el)}</code>); use braces.</p>
+<h2 id="context-as-a-provider"><span class="num">08</span>Context as a Provider</h2>
+<pre><code class="language-jsx">const ThemeContext = createContext("light");
+&lt;ThemeContext value="dark"&gt;{children}&lt;/ThemeContext&gt;          // instead of &lt;ThemeContext.Provider&gt;</code></pre>
+<h2 id="document-metadata"><span class="num">09</span>Document Metadata</h2>
+<p>Render <code>&lt;title&gt;</code>, <code>&lt;meta&gt;</code> and <code>&lt;link&gt;</code> <strong>anywhere</strong>; React hoists them into <code>&lt;head&gt;</code> (works with client rendering, streaming SSR and Server Components).</p>
+<pre><code class="language-jsx">function BlogPost({ post }) {
+  return (
+    &lt;article&gt;
+      &lt;h1&gt;{post.title}&lt;/h1&gt;
+      &lt;title&gt;{post.title}&lt;/title&gt;
+      &lt;meta name="author" content={post.author} /&gt;
+      &lt;meta name="keywords" content={post.keywords} /&gt;
+      &lt;link rel="canonical" href={`https://hanbee.com/blog/${post.slug}`} /&gt;
+    &lt;/article&gt;
+  );
+}</code></pre>
+<p>Libraries like React Helmet are usually unnecessary now.</p>
+<h2 id="stylesheets-and-scripts"><span class="num">10</span>Stylesheets and Scripts</h2>
+<pre><code class="language-jsx">function Widget() {
+  return (
+    &lt;Suspense fallback="loading…"&gt;
+      &lt;link rel="stylesheet" href="/widget.css" precedence="default" /&gt;   {/* ordered, deduped, awaited */}
+      &lt;div className="widget"&gt;…&lt;/div&gt;
+    &lt;/Suspense&gt;
+  );
+}
+
+&lt;script async src="https://example.com/analytics.js" /&gt;                 {/* deduped across components */}</code></pre>
+<ul><li><code>precedence</code> tells React how to order stylesheets and lets it wait for the CSS before revealing content (no flash of unstyled content)</li><li>Async scripts rendered in many components load <strong>once</strong></li></ul>
+<h2 id="resource-preloading-apis"><span class="num">11</span>Resource Preloading APIs</h2>
+<p><code>prefetchDNS</code>, <code>preconnect</code>, <code>preload</code> and <code>preinit</code> from <code>react-dom</code> start loading resources early (see the Performance topic).</p>
+<h2 id="better-error-reporting"><span class="num">12</span>Better Error Reporting</h2>
+<pre><code class="language-jsx">const root = createRoot(container, {
+  onCaughtError: (error, info) =&gt; reportToSentry(error, info.componentStack),      // caught by an Error Boundary
+  onUncaughtError: (error, info) =&gt; reportToSentry(error, info.componentStack),    // not caught
+  onRecoverableError: (error, info) =&gt; console.warn(error),                        // React recovered
+});</code></pre>
+<ul><li>Errors are no longer logged <strong>twice</strong></li><li><strong>Hydration mismatch</strong> errors now show a clear <strong>diff</strong> instead of several vague messages</li><li>Third-party scripts or browser extensions that inject tags into <code>&lt;head&gt;</code>/<code>&lt;body&gt;</code> no longer break hydration</li></ul>
+<h2 id="custom-elements-web-components"><span class="num">13</span>Custom Elements (Web Components)</h2>
+<p>React 19 passes all tests on Custom Elements Everywhere: props are set as <strong>properties</strong> when available, as attributes otherwise, on both client and server.</p>
+<h2 id="usedeferredvalue-initial-value"><span class="num">14</span>useDeferredValue Initial Value</h2>
+<pre><code class="language-jsx">const deferred = useDeferredValue(value, "");      // first render uses "", then updates in background</code></pre>
+<h2 id="react-19-2-additions"><span class="num">15</span>React 19.2 Additions</h2>
+<h3 id=""><code>&lt;Activity&gt;</code></h3>
+<pre><code class="language-jsx">&lt;Activity mode={isOpen ? "visible" : "hidden"}&gt;&lt;Sidebar /&gt;&lt;/Activity&gt;</code></pre>
+<p>Hide UI but keep its state; hidden trees have effects unmounted and low-priority updates.</p>
+<h3 id="useeffectevent"><code>useEffectEvent</code></h3>
+<p>Read the latest props/state inside an effect without re-triggering it (see the Effects topic).</p>
+<h3 id="cachesignal-server-components"><code>cacheSignal</code> (Server Components)</h3>
+<p>Know when a <code>cache()</code> result is no longer needed so you can abort in-flight work.</p>
+<h3 id="performance-tracks">Performance Tracks</h3>
+<p>New Chrome DevTools tracks (<strong>Scheduler</strong> and <strong>Components</strong>) visualise priorities and render timing.</p>
+<h3 id="partial-pre-rendering-and-batched-suspense-reveals">Partial Pre-rendering and Batched Suspense reveals</h3>
+<p>Pre-render the static shell ahead of time and resume dynamic content later; server-rendered Suspense boundaries reveal in batches to reduce flicker.</p>
+<h3 id="eslint">ESLint</h3>
+<p><code>eslint-plugin-react-hooks</code> v6 uses flat config and includes React Compiler-powered rules.</p>
+<h2 id="breaking-changes-and-removals"><span class="num">16</span>Breaking Changes and Removals</h2>
+<div class="table-wrap"><table><thead><tr><th>Removed / changed</th><th>Migrate to</th></tr></thead><tbody><tr><td><code>propTypes</code>, <code>defaultProps</code> (function components)</td><td>TypeScript, default parameter values</td></tr><tr><td><code>ReactDOM.render</code>, <code>ReactDOM.hydrate</code></td><td><code>createRoot().render()</code>, <code>hydrateRoot()</code></td></tr><tr><td><code>unmountComponentAtNode</code></td><td><code>root.unmount()</code></td></tr><tr><td><code>ReactDOM.findDOMNode</code></td><td>DOM refs</td></tr><tr><td>String refs, legacy Context (<code>contextTypes</code>)</td><td>Callback/<code>useRef</code>, <code>createContext</code></td></tr><tr><td><code>react-test-renderer/shallow</code></td><td>React Testing Library</td></tr><tr><td>Module pattern factories</td><td>Regular components</td></tr><tr><td>UMD builds</td><td>ESM via CDN (<code>esm.sh</code>)</td></tr><tr><td><code>forwardRef</code></td><td>Deprecated: use <code>ref</code> as a prop</td></tr><tr><td><code>&lt;Context.Provider&gt;</code></td><td>Deprecated: use <code>&lt;Context&gt;</code></td></tr><tr><td><code>useFormState</code></td><td>Renamed <code>useActionState</code></td></tr><tr><td><code>act</code> from <code>react-dom/test-utils</code></td><td><code>import { act } from "react"</code></td></tr><tr><td><code>useRef()</code> without argument</td><td><code>useRef(null)</code></td></tr><tr><td>New JSX transform required</td><td>Update bundler/Babel config</td></tr></tbody></table></div>
+<p>TypeScript changes: the global <code>JSX</code> namespace is gone (use <code>React.JSX</code>), <code>useRef</code> needs an argument, and <code>ReactElement["props"]</code> defaults to <code>unknown</code>.</p>
+<h2 id="server-components-and-server-actions"><span class="num">17</span>Server Components and Server Actions</h2>
+<p>Stable in React 19 for frameworks (Next.js, React Router, etc.): components that run only on the server, plus <code>"use server"</code> functions callable from the client. See the Server Components topic.</p>
+<h2 id="putting-it-together-a-form-with-all-the-new-pieces"><span class="num">18</span>Putting It Together: A Form with All the New Pieces</h2>
+<pre><code class="language-jsx">import { useActionState, useOptimistic } from "react";
+import { useFormStatus } from "react-dom";
+
+function Submit() {
+  const { pending } = useFormStatus();
+  return &lt;button disabled={pending}&gt;{pending ? "Posting…" : "Post"}&lt;/button&gt;;
+}
+
+export default function Comments({ initial, postComment }) {
+  const [comments, setComments] = useState(initial);
+  const [optimistic, addOptimistic] = useOptimistic(comments, (cur, text) =&gt; [...cur, { id: "tmp", text, pending: true }]);
+
+  const [state, action] = useActionState(async (_prev, formData) =&gt; {
+    const text = formData.get("text");
+    if (text.length &lt; 3) return { error: "Too short" };
+    addOptimistic(text);
+    const saved = await postComment(text);
+    setComments(c =&gt; [...c, saved]);
+    return { error: null };
+  }, { error: null });
+
+  return (
+    &lt;&gt;
+      &lt;ul&gt;{optimistic.map(c =&gt; &lt;li key={c.id} style={{ opacity: c.pending ? 0.5 : 1 }}&gt;{c.text}&lt;/li&gt;)}&lt;/ul&gt;
+      &lt;form action={action}&gt;
+        &lt;input name="text" /&gt;
+        &lt;Submit /&gt;
+        {state.error &amp;&amp; &lt;p role="alert"&gt;{state.error}&lt;/p&gt;}
+      &lt;/form&gt;
+    &lt;/&gt;
+  );
+}</code></pre>
+<h2 id="quick-recap"><span class="num">19</span>Quick Recap</h2>
+<ul><li><strong>Actions</strong> = async functions in transitions with built-in pending, error and form reset handling</li><li><code>useActionState</code>, <code>useFormStatus</code>, <code>useOptimistic</code> and <code>&lt;form action={fn}&gt;</code> replace most hand-written form plumbing</li><li><code>use(promise | context)</code> can be called conditionally; promises must be created outside render</li><li><code>ref</code> is a prop, ref callbacks may clean up, <code>&lt;Context value&gt;</code> replaces <code>.Provider</code></li><li><code>&lt;title&gt;</code>, <code>&lt;meta&gt;</code>, <code>&lt;link&gt;</code> and stylesheets work from any component</li><li>19.2 adds <code>&lt;Activity&gt;</code>, <code>useEffectEvent</code>, Performance Tracks; the Compiler 1.0 automates memoisation</li><li>Check removals (propTypes, defaultProps, <code>ReactDOM.render</code>) before upgrading</li></ul>
+    </article>
+    <nav class="pager" aria-label="Topic navigation">
+      <a class="prev" href="07-performance-optimization.html"><small>← Previous</small><strong>Performance and Optimisation</strong></a>
+      <a class="next" href="09-forms-validation.html"><small>Next →</small><strong>Forms and Validation</strong></a>
+    </nav>
+  </main>
+</div>
+</body>
+</html>

@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en" data-track="java">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>File I/O, NIO and Serialization — Java Notes · Hanbee</title>
+<meta name="description" content="Read and write files with the java.io streams, the modern java.nio.file API, and persist objects with serialization.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500..700;1,9..144,500&amp;family=Inter:wght@400..700&amp;family=JetBrains+Mono:wght@400..600&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/notes.css">
+<script src="../assets/notes.js" defer></script>
+</head>
+<body>
+<div class="progress" aria-hidden="true"><i></i></div>
+<header class="top">
+  <a class="brand" href="../index.html"><b>H</b>Hanbee · Java Notes</a>
+  <nav><a class="keep" href="index.html">All topics</a><button id="theme-toggle" type="button" aria-label="Toggle light and dark theme">Theme</button></nav>
+</header>
+<div class="shell">
+  <details class="toc"><summary>On this page</summary><nav aria-label="On this page"><ol><li><a href="#i-o-basics"><span>01</span>I/O Basics</a></li><li><a href="#the-file-class"><span>02</span>The File Class</a></li><li><a href="#reading-and-writing-text-java-io"><span>03</span>Reading and Writing Text (java.io)</a></li><li><a href="#nio-2-java-nio-file-java-7"><span>04</span>NIO.2: java.nio.file (Java 7+)</a></li><li><a href="#scanner-and-console"><span>05</span>Scanner and Console</a></li><li><a href="#serialization"><span>06</span>Serialization</a></li><li><a href="#working-with-json-brief"><span>07</span>Working with JSON (brief)</a></li><li><a href="#common-exceptions"><span>08</span>Common Exceptions</a></li><li><a href="#quick-recap"><span>09</span>Quick Recap</a></li></ol></nav></details>
+  <main>
+    <header class="hero">
+      <p class="kicker"><span class="pill">Core APIs</span><span>Topic 13</span><span>Intermediate</span><span>4 min read</span></p>
+      <h1>File I/O, NIO and Serialization</h1>
+      <p class="lede">Read and write files with the java.io streams, the modern java.nio.file API, and persist objects with serialization.</p>
+    </header>
+    <article>
+<h2 id="i-o-basics"><span class="num">01</span>I/O Basics</h2>
+<p>Java I/O is built on the idea of a <strong>stream</strong>: an ordered flow of data from a source to a destination.</p>
+<div class="table-wrap"><table><thead><tr><th></th><th>Byte streams</th><th>Character streams</th></tr></thead><tbody><tr><td>Unit</td><td>8-bit bytes</td><td>16-bit characters</td></tr><tr><td>Base classes</td><td><code>InputStream</code> / <code>OutputStream</code></td><td><code>Reader</code> / <code>Writer</code></td></tr><tr><td>Use for</td><td>Images, audio, any binary</td><td>Text</td></tr><tr><td>Examples</td><td><code>FileInputStream</code>, <code>BufferedOutputStream</code></td><td><code>FileReader</code>, <code>BufferedWriter</code></td></tr></tbody></table></div>
+<p>Standard streams: <code>System.in</code> (input), <code>System.out</code> (output), <code>System.err</code> (errors).</p>
+<h2 id="the-file-class"><span class="num">02</span>The File Class</h2>
+<p>Represents a <strong>path</strong> to a file or directory (not its content).</p>
+<pre><code class="language-java">File f = new File("notes/data.txt");
+f.exists();   f.isFile();   f.isDirectory();   f.length();
+f.getName();  f.getParent();   f.getAbsolutePath();
+f.createNewFile();   f.mkdirs();   f.delete();
+String[] names = new File("notes").list();</code></pre>
+<h2 id="reading-and-writing-text-java-io"><span class="num">03</span>Reading and Writing Text (java.io)</h2>
+<h3 id="reading-line-by-line">Reading line by line</h3>
+<pre><code class="language-java">try (BufferedReader br = new BufferedReader(new FileReader("data.txt"))) {
+    String line;
+    while ((line = br.readLine()) != null) {
+        System.out.println(line);
+    }
+} catch (IOException e) {
+    e.printStackTrace();
+}</code></pre>
+<h3 id="writing">Writing</h3>
+<pre><code class="language-java">try (BufferedWriter bw = new BufferedWriter(new FileWriter("out.txt", true))) {   // true = append
+    bw.write("Hello");
+    bw.newLine();
+}
+try (PrintWriter pw = new PrintWriter("report.txt")) {
+    pw.printf("Total: %d%n", 42);
+}</code></pre>
+<h3 id="binary-data">Binary data</h3>
+<pre><code class="language-java">try (InputStream in = new BufferedInputStream(new FileInputStream("a.jpg"));
+     OutputStream out = new BufferedOutputStream(new FileOutputStream("copy.jpg"))) {
+    byte[] buffer = new byte[8192];
+    int n;
+    while ((n = in.read(buffer)) != -1) out.write(buffer, 0, n);
+}</code></pre>
+<aside class="callout tip"><span class="label">Tip</span><p>Always wrap in <code>Buffered*</code> classes: it cuts expensive disk calls. Always use try-with-resources.</p></aside>
+<h3 id="decorator-pattern-in-java-io">Decorator pattern in java.io</h3>
+<p>Streams wrap each other to add behaviour: <code>new BufferedReader(new InputStreamReader(new FileInputStream(f), UTF_8))</code>.</p>
+<h3 id="specifying-the-character-set">Specifying the character set</h3>
+<pre><code class="language-java">new InputStreamReader(new FileInputStream("a.txt"), StandardCharsets.UTF_8);</code></pre>
+<h2 id="nio-2-java-nio-file-java-7"><span class="num">04</span>NIO.2: java.nio.file (Java 7+)</h2>
+<p>The modern, simpler API. Prefer it for new code.</p>
+<pre><code class="language-java">Path path = Path.of("data", "notes.txt");              // or Paths.get(...)
+path.getFileName();  path.getParent();  path.toAbsolutePath();  path.resolve("x.txt");
+
+String content = Files.readString(path);                       // Java 11+
+List&lt;String&gt; lines = Files.readAllLines(path);
+Files.writeString(path, "Hello\n", StandardOpenOption.CREATE, StandardOpenOption.APPEND);
+Files.write(path, lines);
+
+Files.exists(path);   Files.isDirectory(path);   Files.size(path);
+Files.createDirectories(Path.of("a/b/c"));
+Files.copy(src, dest, StandardCopyOption.REPLACE_EXISTING);
+Files.move(src, dest);
+Files.delete(path);   Files.deleteIfExists(path);
+
+try (Stream&lt;String&gt; s = Files.lines(path)) {                  // lazy, for large files
+    s.filter(l -&gt; l.contains("ERROR")).forEach(System.out::println);
+}
+try (Stream&lt;Path&gt; files = Files.walk(Path.of("project"))) {   // recursive listing
+    files.filter(p -&gt; p.toString().endsWith(".java")).forEach(System.out::println);
+}
+try (DirectoryStream&lt;Path&gt; ds = Files.newDirectoryStream(dir, "*.txt")) { ... }</code></pre>
+<h3 id="java-io-vs-java-nio">java.io vs java.nio</h3>
+<div class="table-wrap"><table><thead><tr><th></th><th><code>java.io</code></th><th><code>java.nio.file</code></th></tr></thead><tbody><tr><td>Path type</td><td><code>File</code></td><td><code>Path</code> + <code>Files</code></td></tr><tr><td>Errors</td><td>Boolean returns</td><td>Real exceptions</td></tr><tr><td>Features</td><td>Basic</td><td>Symbolic links, attributes, walking, watching</td></tr><tr><td>Style</td><td>Streams</td><td>Helper methods + streams</td></tr></tbody></table></div>
+<h3 id="watching-a-directory">Watching a directory</h3>
+<pre><code class="language-java">WatchService ws = FileSystems.getDefault().newWatchService();
+dir.register(ws, StandardWatchEventKinds.ENTRY_CREATE, StandardWatchEventKinds.ENTRY_MODIFY);</code></pre>
+<h2 id="scanner-and-console"><span class="num">05</span>Scanner and Console</h2>
+<pre><code class="language-java">try (Scanner sc = new Scanner(new File("numbers.txt"))) {
+    while (sc.hasNextInt()) sum += sc.nextInt();
+}</code></pre>
+<h2 id="serialization"><span class="num">06</span>Serialization</h2>
+<p>Serialization converts an object's <strong>state into a byte stream</strong>; deserialization rebuilds it. Used for saving, caching and (historically) network transfer.</p>
+<pre><code class="language-java">class User implements Serializable {
+    private static final long serialVersionUID = 1L;
+    String name;
+    transient String password;     // transient fields are skipped
+    static int counter;            // static fields are not serialised
+}
+
+// write
+try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream("user.ser"))) {
+    out.writeObject(new User());
+}
+// read
+try (ObjectInputStream in = new ObjectInputStream(new FileInputStream("user.ser"))) {
+    User u = (User) in.readObject();
+}</code></pre>
+<h3 id="rules">Rules</h3>
+<ul><li>Class must implement the marker interface <code>Serializable</code></li><li>All non-transient fields must be serializable too (else <code>NotSerializableException</code>)</li><li><code>serialVersionUID</code> is the version stamp: mismatch causes <code>InvalidClassException</code></li><li>If a parent class is not serializable, it needs an accessible no-arg constructor</li><li>Constructors are <strong>not</strong> called during deserialization</li></ul>
+<aside class="callout warning"><span class="label">Warning</span><p>Deserializing untrusted data is a <strong>serious security risk</strong> (remote code execution). For data exchange prefer <strong>JSON</strong> (Jackson/Gson) or similar text formats, and use <code>ObjectInputFilter</code> if you must deserialize.</p></aside>
+<h2 id="working-with-json-brief"><span class="num">07</span>Working with JSON (brief)</h2>
+<p>Real applications use a library such as <strong>Jackson</strong>.</p>
+<pre><code class="language-java">ObjectMapper mapper = new ObjectMapper();
+String json = mapper.writeValueAsString(user);
+User back = mapper.readValue(json, User.class);</code></pre>
+<h2 id="common-exceptions"><span class="num">08</span>Common Exceptions</h2>
+<div class="table-wrap"><table><thead><tr><th>Exception</th><th>Meaning</th></tr></thead><tbody><tr><td><code>FileNotFoundException</code></td><td>File missing or not accessible</td></tr><tr><td><code>NoSuchFileException</code></td><td>NIO equivalent</td></tr><tr><td><code>IOException</code></td><td>General I/O failure</td></tr><tr><td><code>UncheckedIOException</code></td><td>I/O error inside a stream/lambda</td></tr><tr><td><code>EOFException</code></td><td>Unexpected end of stream</td></tr></tbody></table></div>
+<h2 id="quick-recap"><span class="num">09</span>Quick Recap</h2>
+<ul><li>Byte streams for binary, character streams for text; wrap with <code>Buffered*</code></li><li>Prefer <code>Path</code> and <code>Files</code> (NIO.2) for new code</li><li>Always close resources with try-with-resources</li><li>Use <code>transient</code> for fields that must not be serialised</li><li>Avoid native Java serialization for untrusted or long-lived data; use JSON</li></ul>
+    </article>
+    <nav class="pager" aria-label="Topic navigation">
+      <a class="prev" href="12-lambda-streams.html"><small>← Previous</small><strong>Lambdas, Functional Interfaces and Streams</strong></a>
+      <a class="next" href="14-multithreading.html"><small>Next →</small><strong>Multithreading and Concurrency</strong></a>
+    </nav>
+  </main>
+</div>
+</body>
+</html>

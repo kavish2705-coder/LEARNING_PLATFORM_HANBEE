@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="en" data-track="react">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Global State Management — React Notes · Hanbee</title>
+<meta name="description" content="Decide where state belongs and pick the right tool. Context limits, Zustand, Redux Toolkit, Jotai, URL state and a practical decision guide.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500..700;1,9..144,500&amp;family=Inter:wght@400..700&amp;family=JetBrains+Mono:wght@400..600&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/notes.css">
+<script src="../assets/notes.js" defer></script>
+</head>
+<body>
+<div class="progress" aria-hidden="true"><i></i></div>
+<header class="top">
+  <a class="brand" href="../index.html"><b>H</b>Hanbee · React Notes</a>
+  <nav><a class="keep" href="index.html">All topics</a><button id="theme-toggle" type="button" aria-label="Toggle light and dark theme">Theme</button></nav>
+</header>
+<div class="shell">
+  <details class="toc"><summary>On this page</summary><nav aria-label="On this page"><ol><li><a href="#types-of-state"><span>01</span>Types of State</a></li><li><a href="#prop-drilling-and-its-fixes"><span>02</span>Prop Drilling and Its Fixes</a></li><li><a href="#context-api-recap-and-limits"><span>03</span>Context API (Recap and Limits)</a></li><li><a href="#zustand"><span>04</span>Zustand</a></li><li><a href="#redux-toolkit-rtk"><span>05</span>Redux Toolkit (RTK)</a></li><li><a href="#jotai-atomic-state"><span>06</span>Jotai (Atomic State)</a></li><li><a href="#url-as-state"><span>07</span>URL as State</a></li><li><a href="#comparison"><span>08</span>Comparison</a></li><li><a href="#decision-guide"><span>09</span>Decision Guide</a></li><li><a href="#patterns-for-good-global-state"><span>10</span>Patterns for Good Global State</a></li><li><a href="#example-auth-store-zustand"><span>11</span>Example: Auth Store (Zustand)</a></li><li><a href="#quick-recap"><span>12</span>Quick Recap</a></li></ol></nav></details>
+  <main>
+    <header class="hero">
+      <p class="kicker"><span class="pill">Ecosystem</span><span>Topic 13</span><span>Intermediate</span><span>7 min read</span></p>
+      <h1>Global State Management</h1>
+      <p class="lede">Decide where state belongs and pick the right tool. Context limits, Zustand, Redux Toolkit, Jotai, URL state and a practical decision guide.</p>
+    </header>
+    <article>
+<h2 id="types-of-state"><span class="num">01</span>Types of State</h2>
+<div class="table-wrap"><table><thead><tr><th>Kind</th><th>Examples</th><th>Best home</th></tr></thead><tbody><tr><td><strong>Local UI state</strong></td><td>Input text, open/closed, hover</td><td><code>useState</code> in the component</td></tr><tr><td><strong>Shared UI state</strong></td><td>Selected item across siblings</td><td>Lift state to common parent</td></tr><tr><td><strong>Global client state</strong></td><td>Theme, sidebar, cart, current user session</td><td>Context / Zustand / Redux Toolkit</td></tr><tr><td><strong>Server state</strong></td><td>Courses, users, orders</td><td>TanStack Query / SWR</td></tr><tr><td><strong>URL state</strong></td><td>Filters, page, selected tab</td><td>Router search params</td></tr><tr><td><strong>Form state</strong></td><td>Field values, errors</td><td>React Hook Form / form actions</td></tr></tbody></table></div>
+<aside class="callout note"><span class="label">Note</span><p><strong>Rule of thumb:</strong> Keep state <strong>as local as possible</strong>. Reach for a global store only when many distant components need the same client-side data.</p></aside>
+<h2 id="prop-drilling-and-its-fixes"><span class="num">02</span>Prop Drilling and Its Fixes</h2>
+<p>Passing props through many layers that don't use them is <strong>prop drilling</strong>. Fixes, in order:</p>
+<ol><li><strong>Composition</strong>: pass the finished element or <code>children</code> instead of data</li></ol>
+<pre><code class="language-jsx">&lt;Layout sidebar={&lt;UserMenu user={user} /&gt;} /&gt;          // Layout never needs to know about `user`</code></pre>
+<ol><li><strong>Context</strong> for stable, app-wide values</li><li>A <strong>store</strong> for frequently changing global state</li></ol>
+<h2 id="context-api-recap-and-limits"><span class="num">03</span>Context API (Recap and Limits)</h2>
+<p>Great for theme, locale, auth user. Limitations:</p>
+<ul><li><strong>All consumers re-render</strong> whenever the context value changes (no selectors)</li><li>Large, fast-changing state in one context causes broad re-renders</li><li>No built-in devtools, middleware or persistence</li></ul>
+<p>Split by concern and use <code>useMemo</code> for the value (or the React Compiler). For heavier needs pick one of the libraries below.</p>
+<h2 id="zustand"><span class="num">04</span>Zustand</h2>
+<p>A tiny, popular store with a hook API and <strong>selectors</strong> (components re-render only when the selected slice changes). No providers needed.</p>
+<pre><code class="language-bash">npm install zustand</code></pre>
+<pre data-file="cartStore.js"><code class="language-jsx">import { create } from "zustand";
+import { persist, devtools } from "zustand/middleware";
+
+export const useCart = create(
+  devtools(
+    persist(
+      (set, get) =&gt; ({
+        items: [],
+        add: (course) =&gt; set(s =&gt; ({ items: s.items.some(i =&gt; i.id === course.id) ? s.items : [...s.items, course] })),
+        remove: (id) =&gt; set(s =&gt; ({ items: s.items.filter(i =&gt; i.id !== id) })),
+        clear: () =&gt; set({ items: [] }),
+        total: () =&gt; get().items.reduce((sum, i) =&gt; sum + i.price, 0),
+      }),
+      { name: "cart" }                                       // saved in localStorage
+    )
+  )
+);</code></pre>
+<pre><code class="language-jsx">function CartBadge() {
+  const count = useCart(s =&gt; s.items.length);               // re-renders only when the count changes
+  return &lt;span&gt;{count}&lt;/span&gt;;
+}
+
+function AddButton({ course }) {
+  const add = useCart(s =&gt; s.add);                           // actions are stable
+  return &lt;button onClick={() =&gt; add(course)}&gt;Add to cart&lt;/button&gt;;
+}</code></pre>
+<aside class="callout warning"><span class="label">Warning</span><p>Select <strong>primitive values or stable references</strong>. <code>useCart(s =&gt; ({ a: s.a, b: s.b }))</code> creates a new object each time; use <code>useShallow</code> from <code>zustand/react/shallow</code>.</p></aside>
+<div class="table-wrap"><table><thead><tr><th>Zustand strengths</th><th></th></tr></thead><tbody><tr><td>Tiny API, minimal boilerplate</td><td>Works outside React (<code>useCart.getState()</code>)</td></tr><tr><td>Selector-based re-renders</td><td>Middleware: persist, devtools, immer</td></tr></tbody></table></div>
+<h2 id="redux-toolkit-rtk"><span class="num">05</span>Redux Toolkit (RTK)</h2>
+<p>The official, batteries-included way to use <strong>Redux</strong>: a single global store, predictable updates through <strong>actions</strong> and <strong>reducers</strong>, excellent DevTools (time travel). Best for large apps and teams that value strict structure.</p>
+<pre><code class="language-bash">npm install @reduxjs/toolkit react-redux</code></pre>
+<h3 id="concepts">Concepts</h3>
+<pre><code class="language-text">UI → dispatch(action) → reducer(state, action) → new state → store → UI re-renders (via selectors)</code></pre>
+<h3 id="slice">Slice</h3>
+<pre data-file="cartSlice.js"><code class="language-jsx">import { createSlice } from "@reduxjs/toolkit";
+
+const cartSlice = createSlice({
+  name: "cart",
+  initialState: { items: [] },
+  reducers: {
+    added(state, action) {
+      state.items.push(action.payload);                      // "mutating" syntax is safe: Immer under the hood
+    },
+    removed(state, action) {
+      state.items = state.items.filter(i =&gt; i.id !== action.payload);
+    },
+    cleared: (state) =&gt; { state.items = []; },
+  },
+});
+
+export const { added, removed, cleared } = cartSlice.actions;
+export default cartSlice.reducer;</code></pre>
+<h3 id="store-and-provider">Store and provider</h3>
+<pre data-file="store.js"><code class="language-jsx">import { configureStore } from "@reduxjs/toolkit";
+import cartReducer from "./cartSlice";
+
+export const store = configureStore({ reducer: { cart: cartReducer } });</code></pre>
+<pre data-file="main.jsx"><code class="language-jsx">import { Provider } from "react-redux";
+&lt;Provider store={store}&gt;&lt;App /&gt;&lt;/Provider&gt;</code></pre>
+<h3 id="use-in-components">Use in components</h3>
+<pre><code class="language-jsx">import { useSelector, useDispatch } from "react-redux";
+
+function Cart() {
+  const items = useSelector(state =&gt; state.cart.items);
+  const dispatch = useDispatch();
+  return items.map(i =&gt; &lt;button key={i.id} onClick={() =&gt; dispatch(removed(i.id))}&gt;Remove {i.title}&lt;/button&gt;);
+}</code></pre>
+<h3 id="async-logic-and-rtk-query">Async logic and RTK Query</h3>
+<pre><code class="language-jsx">// createAsyncThunk for custom async flows
+export const loadProfile = createAsyncThunk("user/load", async (id) =&gt; (await fetch(`/api/users/${id}`)).json());
+
+// RTK Query: built-in server-state caching (like TanStack Query)
+const api = createApi({
+  baseQuery: fetchBaseQuery({ baseUrl: "/api" }),
+  endpoints: (b) =&gt; ({
+    getCourses: b.query({ query: () =&gt; "courses" }),
+    addCourse: b.mutation({ query: (body) =&gt; ({ url: "courses", method: "POST", body }) }),
+  }),
+});
+export const { useGetCoursesQuery, useAddCourseMutation } = api;</code></pre>
+<h2 id="jotai-atomic-state"><span class="num">06</span>Jotai (Atomic State)</h2>
+<p>State is split into small <strong>atoms</strong>; components subscribe to only the atoms they use. Feels like <code>useState</code> that can be shared.</p>
+<pre><code class="language-jsx">import { atom, useAtom, useAtomValue } from "jotai";
+
+const countAtom = atom(0);
+const doubleAtom = atom(get =&gt; get(countAtom) * 2);          // derived atom
+
+function Counter() {
+  const [count, setCount] = useAtom(countAtom);
+  const double = useAtomValue(doubleAtom);
+  return &lt;button onClick={() =&gt; setCount(c =&gt; c + 1)}&gt;{count} / {double}&lt;/button&gt;;
+}</code></pre>
+<h2 id="url-as-state"><span class="num">07</span>URL as State</h2>
+<p>Filters, sort order, current tab and pagination belong in the <strong>query string</strong> (<code>useSearchParams</code>): shareable, bookmarkable, back-button friendly. Libraries like <code>nuqs</code> add type-safe helpers.</p>
+<h2 id="comparison"><span class="num">08</span>Comparison</h2>
+<div class="table-wrap"><table><thead><tr><th></th><th>Context</th><th>Zustand</th><th>Redux Toolkit</th><th>Jotai</th></tr></thead><tbody><tr><td>Boilerplate</td><td>Low</td><td><strong>Very low</strong></td><td>Medium</td><td>Low</td></tr><tr><td>Selectors / fine-grained renders</td><td>No</td><td>Yes</td><td>Yes</td><td>Yes (per atom)</td></tr><tr><td>DevTools</td><td>No</td><td>Yes (middleware)</td><td><strong>Excellent</strong></td><td>Yes</td></tr><tr><td>Learning curve</td><td>Low</td><td>Low</td><td>Medium</td><td>Low</td></tr><tr><td>Best for</td><td>Theme, auth user</td><td>Small to mid apps, UI state</td><td>Large apps, strict structure</td><td>Many independent pieces of state</td></tr></tbody></table></div>
+<h2 id="decision-guide"><span class="num">09</span>Decision Guide</h2>
+<ol><li>Data from an API? → <strong>TanStack Query</strong> (not a global store)</li><li>Used by one component or a parent/child? → <code>useState</code> / lift up</li><li>Theme, locale, logged-in user? → <strong>Context</strong></li><li>Cart, UI flags, wizards, shared client state? → <strong>Zustand</strong> (or Jotai)</li><li>Large team/app needing conventions, middleware and time-travel debugging? → <strong>Redux Toolkit</strong></li><li>Filters/pagination? → <strong>URL</strong></li><li>Form fields? → <strong>React Hook Form</strong> or form actions</li></ol>
+<h2 id="patterns-for-good-global-state"><span class="num">10</span>Patterns for Good Global State</h2>
+<ul><li>Store <strong>minimal data</strong> (ids, flags); derive the rest with selectors</li><li><strong>Normalise</strong> collections (<code>{ byId: {}, ids: [] }</code>) for large lists</li><li>Keep state <strong>serialisable</strong> (no class instances, no functions in Redux)</li><li>Put <strong>actions/updates next to the data</strong> they modify</li><li>Don't mirror server data in two places</li><li>Persist only what must survive reloads (token metadata, theme, cart)</li><li>Reset stores on logout to avoid leaking one user's data to the next</li></ul>
+<h2 id="example-auth-store-zustand"><span class="num">11</span>Example: Auth Store (Zustand)</h2>
+<pre><code class="language-jsx">export const useAuth = create((set) =&gt; ({
+  user: null,
+  status: "loading",
+  async init() {
+    try { set({ user: await api("/me"), status: "authed" }); }
+    catch { set({ user: null, status: "guest" }); }
+  },
+  async login(credentials) {
+    const user = await api("/login", { method: "POST", body: credentials });
+    set({ user, status: "authed" });
+  },
+  async logout() {
+    await api("/logout", { method: "POST" });
+    set({ user: null, status: "guest" });
+    queryClient.clear();                                     // drop cached server data
+  },
+}));</code></pre>
+<h2 id="quick-recap"><span class="num">12</span>Quick Recap</h2>
+<ul><li>Match state to its type: local, shared, global client, server, URL, form</li><li>Prefer composition and Context first; Context re-renders every consumer</li><li><strong>Zustand</strong>: tiny, selector-based store; <strong>Redux Toolkit</strong>: structured, devtools, RTK Query; <strong>Jotai</strong>: atoms</li><li>Server data belongs in <strong>TanStack Query/RTK Query</strong>, not hand-managed in a store</li><li>Keep state minimal, derived values computed, and reset stores on logout</li></ul>
+    </article>
+    <nav class="pager" aria-label="Topic navigation">
+      <a class="prev" href="12-data-fetching.html"><small>← Previous</small><strong>Data Fetching and Server State</strong></a>
+      <a class="next" href="14-styling-ui.html"><small>Next →</small><strong>Styling, UI Libraries and Animation</strong></a>
+    </nav>
+  </main>
+</div>
+</body>
+</html>

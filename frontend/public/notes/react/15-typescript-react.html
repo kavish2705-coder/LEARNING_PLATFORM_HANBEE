@@ -1,0 +1,254 @@
+<!doctype html>
+<html lang="en" data-track="react">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TypeScript with React — React Notes · Hanbee</title>
+<meta name="description" content="Add static types to React 19 code. Typing props, children, state, events, refs, context, reducers, generic components, hooks and Server Actions, plus the React 19 type changes.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500..700;1,9..144,500&amp;family=Inter:wght@400..700&amp;family=JetBrains+Mono:wght@400..600&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/notes.css">
+<script src="../assets/notes.js" defer></script>
+</head>
+<body>
+<div class="progress" aria-hidden="true"><i></i></div>
+<header class="top">
+  <a class="brand" href="../index.html"><b>H</b>Hanbee · React Notes</a>
+  <nav><a class="keep" href="index.html">All topics</a><button id="theme-toggle" type="button" aria-label="Toggle light and dark theme">Theme</button></nav>
+</header>
+<div class="shell">
+  <details class="toc"><summary>On this page</summary><nav aria-label="On this page"><ol><li><a href="#why-typescript"><span>01</span>Why TypeScript?</a></li><li><a href="#setup"><span>02</span>Setup</a></li><li><a href="#typescript-basics-refresher"><span>03</span>TypeScript Basics Refresher</a></li><li><a href="#typing-props"><span>04</span>Typing Props</a></li><li><a href="#typing-state"><span>05</span>Typing State</a></li><li><a href="#typing-events"><span>06</span>Typing Events</a></li><li><a href="#typing-refs"><span>07</span>Typing Refs</a></li><li><a href="#typing-context"><span>08</span>Typing Context</a></li><li><a href="#typing-usereducer"><span>09</span>Typing useReducer</a></li><li><a href="#generic-components"><span>10</span>Generic Components</a></li><li><a href="#typing-custom-hooks"><span>11</span>Typing Custom Hooks</a></li><li><a href="#typing-api-data"><span>12</span>Typing API Data</a></li><li><a href="#tanstack-query-and-router-types"><span>13</span>TanStack Query and Router Types</a></li><li><a href="#react-19-actions-and-types"><span>14</span>React 19 Actions and Types</a></li><li><a href="#react-19-type-changes"><span>15</span>React 19 Type Changes</a></li><li><a href="#useful-utility-types"><span>16</span>Useful Utility Types</a></li><li><a href="#common-typescript-react-mistakes"><span>17</span>Common TypeScript + React Mistakes</a></li><li><a href="#quick-recap"><span>18</span>Quick Recap</a></li></ol></nav></details>
+  <main>
+    <header class="hero">
+      <p class="kicker"><span class="pill">Ecosystem</span><span>Topic 15</span><span>Intermediate</span><span>8 min read</span></p>
+      <h1>TypeScript with React</h1>
+      <p class="lede">Add static types to React 19 code. Typing props, children, state, events, refs, context, reducers, generic components, hooks and Server Actions, plus the React 19 type changes.</p>
+    </header>
+    <article>
+<h2 id="why-typescript"><span class="num">01</span>Why TypeScript?</h2>
+<p>TypeScript adds <strong>static types</strong> to JavaScript. In React it gives you:</p>
+<ul><li>Autocomplete for props, hooks and APIs</li><li>Compile-time errors for wrong props, missing fields and typos</li><li>Safer refactoring across large codebases</li><li>Self-documenting components (replaces <code>propTypes</code>, which React 19 removed)</li></ul>
+<h2 id="setup"><span class="num">02</span>Setup</h2>
+<pre><code class="language-bash">npm create vite@latest my-app -- --template react-ts
+npm install -D typescript @types/react @types/react-dom</code></pre>
+<pre data-file="tsconfig.json"><code class="language-json">{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "jsx": "react-jsx",
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "skipLibCheck": true,
+    "isolatedModules": true
+  },
+  "include": ["src"]
+}</code></pre>
+<p>Files with JSX use <code>.tsx</code>; plain TypeScript uses <code>.ts</code>. Always enable <code>"strict": true</code>.</p>
+<h2 id="typescript-basics-refresher"><span class="num">03</span>TypeScript Basics Refresher</h2>
+<pre><code class="language-ts">let name: string = "Asha";
+let age: number = 20;
+let active: boolean = true;
+const tags: string[] = ["a", "b"];                    // or Array&lt;string&gt;
+const pair: [string, number] = ["x", 1];              // tuple
+let id: string | number;                              // union
+type Level = "beginner" | "intermediate" | "advanced"; // literal union
+
+interface Course {
+  id: number;
+  title: string;
+  level: Level;
+  tags?: string[];                                    // optional
+  readonly createdAt: Date;                           // read-only
+}
+
+type CourseSummary = Pick&lt;Course, "id" | "title"&gt;;    // utility types
+type CourseDraft = Partial&lt;Course&gt;;
+type WithoutId = Omit&lt;Course, "id"&gt;;
+type Lookup = Record&lt;string, Course&gt;;
+
+function area(w: number, h: number): number { return w * h; }
+const double = (n: number): number =&gt; n * 2;</code></pre>
+<h3 id="type-vs-interface"><code>type</code> vs <code>interface</code></h3>
+<p>Both describe object shapes. Use <strong><code>interface</code></strong> for object contracts that may be extended, <strong><code>type</code></strong> for unions, tuples and computed types. Either is fine in React; be consistent.</p>
+<h3 id="unknown-vs-any">unknown vs any</h3>
+<p><code>any</code> switches off checking: avoid it. Use <code>unknown</code> for values you must validate first.</p>
+<h2 id="typing-props"><span class="num">04</span>Typing Props</h2>
+<pre><code class="language-tsx">interface CourseCardProps {
+  title: string;
+  price?: number;                                     // optional
+  level: "beginner" | "advanced";
+  tags: string[];
+  onEnroll: (id: number) =&gt; void;                      // callback
+  children?: React.ReactNode;                          // anything renderable
+}
+
+function CourseCard({ title, price = 0, level, tags, onEnroll, children }: CourseCardProps) {
+  return (
+    &lt;article&gt;
+      &lt;h3&gt;{title}&lt;/h3&gt;
+      &lt;p&gt;{level} · ₹{price}&lt;/p&gt;
+      {children}
+    &lt;/article&gt;
+  );
+}</code></pre>
+<ul><li>No need for <code>React.FC</code>; annotate props directly (this is the modern convention)</li><li>Return type is inferred (<code>JSX.Element</code>); don't annotate it</li></ul>
+<h3 id="extending-html-element-props">Extending HTML element props</h3>
+<pre><code class="language-tsx">type ButtonProps = React.ComponentProps&lt;"button"&gt; &amp; {
+  variant?: "primary" | "ghost";
+};
+
+function Button({ variant = "primary", className, ...rest }: ButtonProps) {
+  return &lt;button className={`btn btn--${variant} ${className ?? ""}`} {...rest} /&gt;;
+}</code></pre>
+<p><code>React.ComponentProps&lt;"input"&gt;</code>, <code>React.ComponentProps&lt;typeof MyComponent&gt;</code> and <code>React.ComponentPropsWithoutRef&lt;"div"&gt;</code> reuse existing prop types. In React 19, <code>ref</code> is part of function-component props, so <code>ComponentProps&lt;"input"&gt;</code> already includes it.</p>
+<h3 id="discriminated-unions-for-variants">Discriminated unions for variants</h3>
+<pre><code class="language-tsx">type AlertProps =
+  | { kind: "success"; message: string }
+  | { kind: "error"; message: string; retry: () =&gt; void };
+
+function Alert(props: AlertProps) {
+  if (props.kind === "error") return &lt;p role="alert"&gt;{props.message} &lt;button onClick={props.retry}&gt;Retry&lt;/button&gt;&lt;/p&gt;;
+  return &lt;p&gt;{props.message}&lt;/p&gt;;                      // narrowed to success
+}</code></pre>
+<h2 id="typing-state"><span class="num">05</span>Typing State</h2>
+<pre><code class="language-tsx">const [count, setCount] = useState(0);                          // inferred number
+const [user, setUser] = useState&lt;User | null&gt;(null);            // explicit when initial is null
+const [items, setItems] = useState&lt;Course[]&gt;([]);               // explicit for empty arrays
+const [status, setStatus] = useState&lt;"idle" | "loading" | "error"&gt;("idle");
+
+setItems(prev =&gt; [...prev, newCourse]);                         // updater is typed automatically</code></pre>
+<h2 id="typing-events"><span class="num">06</span>Typing Events</h2>
+<pre><code class="language-tsx">function Form() {
+  const [email, setEmail] = useState("");
+
+  const handleChange = (e: React.ChangeEvent&lt;HTMLInputElement&gt;) =&gt; setEmail(e.target.value);
+  const handleSubmit = (e: React.FormEvent&lt;HTMLFormElement&gt;) =&gt; { e.preventDefault(); };
+  const handleClick = (e: React.MouseEvent&lt;HTMLButtonElement&gt;) =&gt; console.log(e.clientX);
+  const handleKey = (e: React.KeyboardEvent&lt;HTMLInputElement&gt;) =&gt; { if (e.key === "Enter") submit(); };
+  const handleSelect = (e: React.ChangeEvent&lt;HTMLSelectElement&gt;) =&gt; setLevel(e.target.value as Level);
+
+  return &lt;form onSubmit={handleSubmit}&gt;&lt;input value={email} onChange={handleChange} onKeyDown={handleKey} /&gt;&lt;/form&gt;;
+}</code></pre>
+<p>Inline handlers are inferred automatically: <code>onChange={e =&gt; setEmail(e.target.value)}</code>. Annotate only when defining the function separately.</p>
+<h2 id="typing-refs"><span class="num">07</span>Typing Refs</h2>
+<pre><code class="language-tsx">const inputRef = useRef&lt;HTMLInputElement&gt;(null);          // React 19 requires an argument
+inputRef.current?.focus();
+
+const timerRef = useRef&lt;number | null&gt;(null);             // mutable value
+
+// ref as a prop (React 19)
+function TextInput({ ref, ...props }: React.ComponentProps&lt;"input"&gt;) {
+  return &lt;input ref={ref} {...props} /&gt;;
+}</code></pre>
+<h2 id="typing-context"><span class="num">08</span>Typing Context</h2>
+<pre><code class="language-tsx">interface AuthContextValue {
+  user: User | null;
+  login: (email: string, password: string) =&gt; Promise&lt;void&gt;;
+  logout: () =&gt; void;
+}
+
+const AuthContext = createContext&lt;AuthContextValue | null&gt;(null);
+
+export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const [user, setUser] = useState&lt;User | null&gt;(null);
+  const value: AuthContextValue = {
+    user,
+    login: async (email, password) =&gt; setUser(await api.login(email, password)),
+    logout: () =&gt; setUser(null),
+  };
+  return &lt;AuthContext value={value}&gt;{children}&lt;/AuthContext&gt;;
+}
+
+export function useAuth() {
+  const ctx = useContext(AuthContext);
+  if (!ctx) throw new Error("useAuth must be used within AuthProvider");   // narrows away null
+  return ctx;
+}</code></pre>
+<h2 id="typing-usereducer"><span class="num">09</span>Typing useReducer</h2>
+<pre><code class="language-tsx">type State = { items: Todo[] };
+type Action =
+  | { type: "added"; text: string }
+  | { type: "toggled"; id: string }
+  | { type: "removed"; id: string };
+
+function reducer(state: State, action: Action): State {
+  switch (action.type) {
+    case "added":   return { items: [...state.items, { id: crypto.randomUUID(), text: action.text, done: false }] };
+    case "toggled": return { items: state.items.map(t =&gt; t.id === action.id ? { ...t, done: !t.done } : t) };
+    case "removed": return { items: state.items.filter(t =&gt; t.id !== action.id) };
+  }                                                            // exhaustive: TS errors if a case is missing
+}
+
+const [state, dispatch] = useReducer(reducer, { items: [] });</code></pre>
+<h2 id="generic-components"><span class="num">10</span>Generic Components</h2>
+<pre><code class="language-tsx">interface ListProps&lt;T&gt; {
+  items: T[];
+  getKey: (item: T) =&gt; string | number;
+  renderItem: (item: T) =&gt; React.ReactNode;
+}
+
+function List&lt;T&gt;({ items, getKey, renderItem }: ListProps&lt;T&gt;) {
+  return &lt;ul&gt;{items.map(item =&gt; &lt;li key={getKey(item)}&gt;{renderItem(item)}&lt;/li&gt;)}&lt;/ul&gt;;
+}
+
+&lt;List items={courses} getKey={c =&gt; c.id} renderItem={c =&gt; &lt;b&gt;{c.title}&lt;/b&gt;} /&gt;   // T inferred as Course</code></pre>
+<h2 id="typing-custom-hooks"><span class="num">11</span>Typing Custom Hooks</h2>
+<pre><code class="language-tsx">function useLocalStorage&lt;T&gt;(key: string, initial: T): [T, React.Dispatch&lt;React.SetStateAction&lt;T&gt;&gt;] {
+  const [value, setValue] = useState&lt;T&gt;(() =&gt; {
+    const saved = localStorage.getItem(key);
+    return saved ? (JSON.parse(saved) as T) : initial;
+  });
+  useEffect(() =&gt; localStorage.setItem(key, JSON.stringify(value)), [key, value]);
+  return [value, setValue];
+}
+
+const [theme, setTheme] = useLocalStorage&lt;"light" | "dark"&gt;("theme", "light");</code></pre>
+<p>Return <strong>tuples</strong> with an explicit type (otherwise TS infers an array union), or return an object.</p>
+<h2 id="typing-api-data"><span class="num">12</span>Typing API Data</h2>
+<pre><code class="language-ts">interface Course { id: number; title: string }
+
+async function getCourse(id: number): Promise&lt;Course&gt; {
+  const res = await fetch(`/api/courses/${id}`);
+  if (!res.ok) throw new Error("Failed");
+  return res.json() as Promise&lt;Course&gt;;         // this is only a promise; the compiler can't verify the response
+}</code></pre>
+<p>Types vanish at runtime. <strong>Validate untrusted data</strong> with <strong>Zod</strong> and infer the type from the schema:</p>
+<pre><code class="language-ts">import { z } from "zod";
+const CourseSchema = z.object({ id: z.number(), title: z.string() });
+type Course = z.infer&lt;typeof CourseSchema&gt;;
+const course = CourseSchema.parse(await res.json());      // throws if the server sent something unexpected</code></pre>
+<h2 id="tanstack-query-and-router-types"><span class="num">13</span>TanStack Query and Router Types</h2>
+<pre><code class="language-tsx">const { data } = useQuery&lt;Course[], Error&gt;({ queryKey: ["courses"], queryFn: fetchCourses });
+const { courseId } = useParams&lt;{ courseId: string }&gt;();         // params are strings</code></pre>
+<h2 id="react-19-actions-and-types"><span class="num">14</span>React 19 Actions and Types</h2>
+<pre><code class="language-tsx">type FormState = { error?: string; success?: boolean };
+
+async function subscribe(prev: FormState, formData: FormData): Promise&lt;FormState&gt; {
+  const email = formData.get("email");
+  if (typeof email !== "string" || !email.includes("@")) return { error: "Invalid email" };
+  await api.subscribe(email);
+  return { success: true };
+}
+
+const [state, formAction, isPending] = useActionState(subscribe, {});     // types inferred</code></pre>
+<p><code>formData.get()</code> returns <code>FormDataEntryValue | null</code>: always narrow it (<code>typeof x === "string"</code>).</p>
+<h2 id="react-19-type-changes"><span class="num">15</span>React 19 Type Changes</h2>
+<div class="table-wrap"><table><thead><tr><th>Change</th><th>What to do</th></tr></thead><tbody><tr><td><code>useRef</code> requires an argument</td><td><code>useRef&lt;T&gt;(null)</code> or <code>useRef&lt;T&gt;(undefined)</code></td></tr><tr><td>Global <code>JSX</code> namespace removed</td><td>Use <code>React.JSX.Element</code></td></tr><tr><td><code>ReactElement["props"]</code> is <code>unknown</code> by default</td><td>Cast: <code>ReactElement&lt;{ id: string }&gt;</code></td></tr><tr><td><code>ReactNode</code> includes <code>bigint</code> and promises</td><td>Usually no action</td></tr><tr><td><code>forwardRef</code> types</td><td>Prefer <code>ref</code> prop with <code>ComponentProps</code></td></tr><tr><td>Ref callbacks return cleanup</td><td>Use braces so you don't implicitly return a value</td></tr><tr><td><code>useReducer</code> typing simplified</td><td>Pass the reducer; avoid manual generics</td></tr><tr><td>Codemod</td><td><code>npx types-react-codemod@latest preset-19 ./src</code></td></tr></tbody></table></div>
+<h2 id="useful-utility-types"><span class="num">16</span>Useful Utility Types</h2>
+<div class="table-wrap"><table><thead><tr><th>Type</th><th>Meaning</th></tr></thead><tbody><tr><td><code>Partial&lt;T&gt;</code> / <code>Required&lt;T&gt;</code></td><td>Make all props optional / required</td></tr><tr><td><code>Pick&lt;T, K&gt;</code> / <code>Omit&lt;T, K&gt;</code></td><td>Choose / drop properties</td></tr><tr><td><code>Record&lt;K, V&gt;</code></td><td>Object with keys K and values V</td></tr><tr><td><code>ReturnType&lt;typeof fn&gt;</code></td><td>Function's return type</td></tr><tr><td><code>Parameters&lt;typeof fn&gt;</code></td><td>Function's argument tuple</td></tr><tr><td><code>Awaited&lt;Promise&lt;T&gt;&gt;</code></td><td>Unwrapped promise value</td></tr><tr><td><code>NonNullable&lt;T&gt;</code></td><td>Remove <code>null</code>/<code>undefined</code></td></tr><tr><td><code>typeof obj</code> / <code>keyof T</code></td><td>Derive types from values and keys</td></tr><tr><td><code>satisfies</code></td><td>Check a value matches a type while keeping its narrow type</td></tr></tbody></table></div>
+<pre><code class="language-ts">const routes = { home: "/", courses: "/courses" } as const;     // literal types
+type Route = (typeof routes)[keyof typeof routes];              // "/" | "/courses"</code></pre>
+<h2 id="common-typescript-react-mistakes"><span class="num">17</span>Common TypeScript + React Mistakes</h2>
+<div class="table-wrap"><table><thead><tr><th>Mistake</th><th>Better</th></tr></thead><tbody><tr><td><code>any</code> everywhere</td><td><code>unknown</code> + narrowing, or proper types</td></tr><tr><td>Type assertions (<code>as Foo</code>) to silence errors</td><td>Fix the model or validate with Zod</td></tr><tr><td><code>React.FC</code> with children assumptions</td><td>Plain function with typed props</td></tr><tr><td>Non-null assertions (<code>ref.current!</code>)</td><td>Optional chaining or guards</td></tr><tr><td>Optional props that are really required</td><td>Make required; use unions for variants</td></tr><tr><td>Storing derived values in state</td><td>Derive with types intact</td></tr><tr><td>Ignoring <code>strict</code> errors</td><td>Fix them; they are real bugs</td></tr></tbody></table></div>
+<h2 id="quick-recap"><span class="num">18</span>Quick Recap</h2>
+<ul><li>Use <code>.tsx</code>, enable <code>strict</code>, annotate <strong>props</strong> and let TypeScript infer most other things</li><li><code>useState&lt;T | null&gt;(null)</code>, <code>useRef&lt;HTMLElement&gt;(null)</code>, typed events (<code>React.ChangeEvent&lt;HTMLInputElement&gt;</code>)</li><li>Context with a <code>null</code> default plus a hook that throws; reducers with discriminated-union actions</li><li>Generic components and hooks keep reuse type-safe</li><li>Types are erased at runtime: validate external data with <strong>Zod</strong></li><li>React 19: <code>useRef</code> needs an argument, <code>React.JSX</code> replaces global <code>JSX</code>, <code>ref</code> is a prop</li></ul>
+    </article>
+    <nav class="pager" aria-label="Topic navigation">
+      <a class="prev" href="14-styling-ui.html"><small>← Previous</small><strong>Styling, UI Libraries and Animation</strong></a>
+      <a class="next" href="16-server-components-frameworks.html"><small>Next →</small><strong>Server Components, SSR and React Frameworks</strong></a>
+    </nav>
+  </main>
+</div>
+</body>
+</html>

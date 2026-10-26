@@ -1,0 +1,185 @@
+.pageHeader {
+  margin-bottom: 32px;
+}
+
+.pageTitle {
+  font-family: var(--font-heading);
+  font-size: 28px;
+  font-weight: 500;
+  margin-bottom: 4px;
+  letter-spacing: -0.5px;
+}
+
+.pageSubtitle {
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+.clockPanel {
+  background: var(--bg-card);
+  box-shadow: var(--clay-shadow-outer);
+  border: var(--border-subtle);
+  border-radius: 20px;
+  padding: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 32px;
+}
+
+.timeDisplay {
+  font-size: 64px;
+  font-family: var(--font-mono);
+  font-weight: 500;
+  letter-spacing: 2px;
+  color: var(--text-main);
+}
+
+.timeDisplay span {
+  color: var(--text-muted);
+}
+
+.timeDisplay small {
+  font-size: 24px;
+  color: var(--text-muted);
+  margin-left: 12px;
+}
+
+.clockAction {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.statusIndicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: var(--text-muted);
+  background: var(--bg-input);
+  border: 1px solid rgba(0,0,0,0.02);
+  padding: 8px 16px;
+  border-radius: 24px;
+}
+
+.statusDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--text-muted);
+}
+
+.clockInBtn {
+  background: var(--bg-card-hover);
+  box-shadow: var(--clay-shadow-button);
+  color: var(--text-main);
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  padding: 16px 32px;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.3s ease;
+}
+
+.clockInBtn:hover {
+  background: var(--bg-card-hover);
+  box-shadow: var(--clay-shadow-outer);
+  border-color: var(--text-muted);
+  transform: translateY(-2px);
+}
+
+.historySection {
+  background: var(--bg-card);
+  box-shadow: var(--clay-shadow-outer);
+  border-radius: var(--clay-radius-md);
+  padding: 32px;
+}
+
+.historyTitle {
+  font-family: var(--font-heading);
+  font-size: 19px;
+  font-weight: 600;
+  margin-bottom: 24px;
+}
+
+.dataTable {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.dataTable th {
+  text-align: left;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-muted);
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.dataTable td {
+  padding: 24px 0;
+  font-size: 14px;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.badge {
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.badgePresent { background: var(--bg-input); color: var(--text-main); }
+.badgeLate { background: var(--bg-input); color: var(--text-muted); }
+.badgeNoPitDuty { background: transparent; color: var(--text-muted); border: 1px solid var(--border-subtle); }
+
+@media (max-width: 640px) {
+  .clockPanel {
+    padding: 24px 16px;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 20px;
+  }
+
+  .timeDisplay {
+    font-size: 38px;
+    letter-spacing: 1px;
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    white-space: nowrap;
+  }
+
+  .timeDisplay small {
+    font-size: 16px;
+    margin-left: 6px;
+  }
+
+  .clockAction {
+    flex-direction: column;
+    width: 100%;
+    gap: 12px;
+  }
+
+  .clockInBtn {
+    width: 100%;
+    justify-content: center;
+    padding: 14px 20px;
+  }
+
+  .historySection {
+    padding: 20px 16px;
+    overflow-x: auto;
+  }
+}
+

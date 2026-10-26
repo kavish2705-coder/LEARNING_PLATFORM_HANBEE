@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="en" data-track="java">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Interfaces, Enums, Records and Nested Classes — Java Notes · Hanbee</title>
+<meta name="description" content="Define contracts with interfaces, model fixed sets with enums, write data classes with records, and use inner, local and anonymous classes.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500..700;1,9..144,500&amp;family=Inter:wght@400..700&amp;family=JetBrains+Mono:wght@400..600&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/notes.css">
+<script src="../assets/notes.js" defer></script>
+</head>
+<body>
+<div class="progress" aria-hidden="true"><i></i></div>
+<header class="top">
+  <a class="brand" href="../index.html"><b>H</b>Hanbee · Java Notes</a>
+  <nav><a class="keep" href="index.html">All topics</a><button id="theme-toggle" type="button" aria-label="Toggle light and dark theme">Theme</button></nav>
+</header>
+<div class="shell">
+  <details class="toc"><summary>On this page</summary><nav aria-label="On this page"><ol><li><a href="#interfaces"><span>01</span>Interfaces</a></li><li><a href="#default-static-and-private-methods"><span>02</span>Default, Static and Private Methods</a></li><li><a href="#functional-marker-and-sealed-interfaces"><span>03</span>Functional, Marker and Sealed Interfaces</a></li><li><a href="#enums"><span>04</span>Enums</a></li><li><a href="#records-java-16"><span>05</span>Records (Java 16+)</a></li><li><a href="#sealed-classes-java-17"><span>06</span>Sealed Classes (Java 17+)</a></li><li><a href="#nested-and-inner-classes"><span>07</span>Nested and Inner Classes</a></li><li><a href="#quick-recap"><span>08</span>Quick Recap</a></li></ol></nav></details>
+  <main>
+    <header class="hero">
+      <p class="kicker"><span class="pill">Object-Oriented Programming</span><span>Topic 08</span><span>Intermediate</span><span>5 min read</span></p>
+      <h1>Interfaces, Enums, Records and Nested Classes</h1>
+      <p class="lede">Define contracts with interfaces, model fixed sets with enums, write data classes with records, and use inner, local and anonymous classes.</p>
+    </header>
+    <article>
+<h2 id="interfaces"><span class="num">01</span>Interfaces</h2>
+<p>An interface is a <strong>contract</strong>: it declares what a class can do, without saying how. A class <code>implements</code> one or more interfaces.</p>
+<pre><code class="language-java">interface Payable {
+    double MAX_LIMIT = 100000;          // implicitly public static final
+    void pay(double amount);            // implicitly public abstract
+}
+
+class UpiPayment implements Payable {
+    @Override
+    public void pay(double amount) {
+        System.out.println("Paid " + amount + " via UPI");
+    }
+}
+
+Payable p = new UpiPayment();
+p.pay(500);</code></pre>
+<h3 id="why-interfaces">Why interfaces?</h3>
+<ul><li>Achieve <strong>100% abstraction</strong> and loose coupling</li><li>A class can implement <strong>many</strong> interfaces (multiple inheritance of type)</li><li>Program to the interface, not the implementation: swap implementations without changing callers</li></ul>
+<h3 id="interface-inheritance">Interface inheritance</h3>
+<pre><code class="language-java">interface Readable { void read(); }
+interface Writable { void write(); }
+interface Storage extends Readable, Writable { }   // interfaces can extend many</code></pre>
+<h2 id="default-static-and-private-methods"><span class="num">02</span>Default, Static and Private Methods</h2>
+<p>Added in Java 8/9 so interfaces can evolve without breaking existing implementations.</p>
+<pre><code class="language-java">interface Greeter {
+    String name();
+
+    default String greet() {                 // inherited by implementors, may be overridden
+        return prefix() + name();
+    }
+
+    private String prefix() {                // Java 9+, helper for default methods
+        return "Hello, ";
+    }
+
+    static Greeter of(String n) {            // called as Greeter.of("Asha")
+        return () -&gt; n;
+    }
+}</code></pre>
+<aside class="callout warning"><span class="label">Warning</span><p>If a class implements two interfaces with the same <code>default</code> method, it <strong>must</strong> override it and can pick one with <code>InterfaceName.super.method()</code>.</p></aside>
+<h2 id="functional-marker-and-sealed-interfaces"><span class="num">03</span>Functional, Marker and Sealed Interfaces</h2>
+<div class="table-wrap"><table><thead><tr><th>Kind</th><th>Meaning</th><th>Example</th></tr></thead><tbody><tr><td><strong>Functional</strong></td><td>Exactly one abstract method, usable with lambdas, annotated <code>@FunctionalInterface</code></td><td><code>Runnable</code>, <code>Comparator</code></td></tr><tr><td><strong>Marker</strong></td><td>Empty interface that tags a class</td><td><code>Serializable</code>, <code>Cloneable</code></td></tr><tr><td><strong>Sealed</strong> (Java 17)</td><td>Restricts which classes may implement it</td><td><code>sealed interface Shape permits Circle, Square</code></td></tr></tbody></table></div>
+<h2 id="enums"><span class="num">04</span>Enums</h2>
+<p>An <code>enum</code> is a special class representing a <strong>fixed set of constants</strong>.</p>
+<pre><code class="language-java">enum Day { MON, TUE, WED, THU, FRI, SAT, SUN }
+
+Day d = Day.WED;
+switch (d) {
+    case SAT, SUN -&gt; System.out.println("Weekend");
+    default       -&gt; System.out.println("Weekday");
+}
+
+for (Day x : Day.values()) System.out.println(x.name() + " " + x.ordinal());
+Day parsed = Day.valueOf("FRI");</code></pre>
+<h3 id="enums-with-fields-constructors-and-methods">Enums with fields, constructors and methods</h3>
+<pre><code class="language-java">enum Level {
+    LOW(1), MEDIUM(5), HIGH(10);
+
+    private final int weight;
+    Level(int weight) { this.weight = weight; }   // constructor is implicitly private
+    public int getWeight() { return weight; }
+}</code></pre>
+<h3 id="enums-with-abstract-methods">Enums with abstract methods</h3>
+<pre><code class="language-java">enum Op {
+    ADD { int apply(int a, int b) { return a + b; } },
+    MUL { int apply(int a, int b) { return a * b; } };
+    abstract int apply(int a, int b);
+}</code></pre>
+<ul><li>Enums extend <code>java.lang.Enum</code>, so they cannot extend another class but can implement interfaces</li><li>Use <code>EnumMap</code> and <code>EnumSet</code> for fast collections keyed by enum</li><li>Enums are the best way to implement a <strong>singleton</strong></li></ul>
+<h2 id="records-java-16"><span class="num">05</span>Records (Java 16+)</h2>
+<p>A <code>record</code> is a compact <strong>immutable data carrier</strong>. The compiler generates the constructor, accessors, <code>equals</code>, <code>hashCode</code> and <code>toString</code>.</p>
+<pre><code class="language-java">public record Student(int id, String name) { }
+
+Student s = new Student(1, "Asha");
+System.out.println(s.name());     // accessor (no "get" prefix)
+System.out.println(s);            // Student[id=1, name=Asha]</code></pre>
+<h3 id="compact-constructor-and-extra-members">Compact constructor and extra members</h3>
+<pre><code class="language-java">public record Range(int from, int to) {
+    public Range {                          // compact constructor: validation
+        if (from &gt; to) throw new IllegalArgumentException("from &gt; to");
+    }
+    public int length() { return to - from; }
+    public static Range of(int a, int b) { return new Range(a, b); }
+}</code></pre>
+<ul><li>Fields are <code>private final</code>; records are implicitly <code>final</code></li><li>Cannot extend a class but can implement interfaces</li><li>Ideal for DTOs, API responses, map keys and tuples</li></ul>
+<h2 id="sealed-classes-java-17"><span class="num">06</span>Sealed Classes (Java 17+)</h2>
+<p>Control exactly which classes may extend a type.</p>
+<pre><code class="language-java">public sealed interface Shape permits Circle, Square { }
+public record Circle(double r) implements Shape { }
+public record Square(double side) implements Shape { }
+
+double area(Shape s) {
+    return switch (s) {                       // exhaustive, no default needed
+        case Circle c -&gt; Math.PI * c.r() * c.r();
+        case Square q -&gt; q.side() * q.side();
+    };
+}</code></pre>
+<h2 id="nested-and-inner-classes"><span class="num">07</span>Nested and Inner Classes</h2>
+<p>A class declared inside another class. Use when the helper is only meaningful inside its outer class.</p>
+<div class="table-wrap"><table><thead><tr><th>Type</th><th>Declared</th><th>Needs outer instance?</th></tr></thead><tbody><tr><td><strong>Static nested</strong></td><td><code>static class</code> inside a class</td><td>No</td></tr><tr><td><strong>Inner (member)</strong></td><td><code>class</code> inside a class</td><td>Yes</td></tr><tr><td><strong>Local</strong></td><td>Inside a method</td><td>Yes (captures effectively final locals)</td></tr><tr><td><strong>Anonymous</strong></td><td>Unnamed, created inline</td><td>Yes</td></tr></tbody></table></div>
+<pre><code class="language-java">class Outer {
+    private int x = 10;
+
+    static class StaticNested {            // new Outer.StaticNested()
+        void hi() { System.out.println("static nested"); }
+    }
+
+    class Inner {                          // outer.new Inner()
+        void show() { System.out.println(x); }   // can access outer's private members
+    }
+}
+
+Outer o = new Outer();
+Outer.Inner in = o.new Inner();</code></pre>
+<h3 id="anonymous-classes">Anonymous classes</h3>
+<pre><code class="language-java">Runnable r = new Runnable() {
+    @Override public void run() { System.out.println("running"); }
+};</code></pre>
+<p>Prefer a <strong>lambda</strong> when the type is a functional interface.</p>
+<h2 id="quick-recap"><span class="num">08</span>Quick Recap</h2>
+<ul><li>Interfaces define contracts; classes can implement many</li><li><code>default</code>, <code>static</code> and <code>private</code> interface methods allow evolution</li><li>Enums model fixed constants and can carry data and behaviour</li><li>Records are immutable data classes with generated boilerplate</li><li>Sealed types limit hierarchies and enable exhaustive <code>switch</code></li><li>Nested classes keep helpers close; anonymous classes are mostly replaced by lambdas</li></ul>
+    </article>
+    <nav class="pager" aria-label="Topic navigation">
+      <a class="prev" href="07-inheritance-polymorphism.html"><small>← Previous</small><strong>Inheritance, Polymorphism and Abstraction</strong></a>
+      <a class="next" href="09-exception-handling.html"><small>Next →</small><strong>Exception Handling</strong></a>
+    </nav>
+  </main>
+</div>
+</body>
+</html>

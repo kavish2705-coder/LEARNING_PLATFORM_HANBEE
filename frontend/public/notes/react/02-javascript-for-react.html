@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="en" data-track="react">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Modern JavaScript You Need for React — React Notes · Hanbee</title>
+<meta name="description" content="The ES6+ features used in every React codebase. Variables, arrow functions, destructuring, spread, array methods, modules, promises, async/await and closures.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500..700;1,9..144,500&amp;family=Inter:wght@400..700&amp;family=JetBrains+Mono:wght@400..600&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/notes.css">
+<script src="../assets/notes.js" defer></script>
+</head>
+<body>
+<div class="progress" aria-hidden="true"><i></i></div>
+<header class="top">
+  <a class="brand" href="../index.html"><b>H</b>Hanbee · React Notes</a>
+  <nav><a class="keep" href="index.html">All topics</a><button id="theme-toggle" type="button" aria-label="Toggle light and dark theme">Theme</button></nav>
+</header>
+<div class="shell">
+  <details class="toc"><summary>On this page</summary><nav aria-label="On this page"><ol><li><a href="#why-this-topic"><span>01</span>Why This Topic?</a></li><li><a href="#variables-let-and-const"><span>02</span>Variables: let and const</a></li><li><a href="#template-literals"><span>03</span>Template Literals</a></li><li><a href="#arrow-functions"><span>04</span>Arrow Functions</a></li><li><a href="#destructuring"><span>05</span>Destructuring</a></li><li><a href="#spread-and-rest"><span>06</span>Spread and Rest</a></li><li><a href="#array-methods"><span>07</span>Array Methods</a></li><li><a href="#objects"><span>08</span>Objects</a></li><li><a href="#optional-chaining-and-nullish-coalescing"><span>09</span>Optional Chaining and Nullish Coalescing</a></li><li><a href="#truthy-and-falsy-and-short-circuiting"><span>10</span>Truthy and Falsy, and Short-circuiting</a></li><li><a href="#es-modules-import-export"><span>11</span>ES Modules (import / export)</a></li><li><a href="#functions-callbacks-and-higher-order-functions"><span>12</span>Functions, Callbacks and Higher-order Functions</a></li><li><a href="#closures"><span>13</span>Closures</a></li><li><a href="#promises-and-async-await"><span>14</span>Promises and async/await</a></li><li><a href="#the-event-loop-in-one-minute"><span>15</span>The Event Loop (in one minute)</a></li><li><a href="#immutability"><span>16</span>Immutability</a></li><li><a href="#classes-and-this-brief"><span>17</span>Classes and <code>this</code> (brief)</a></li><li><a href="#working-with-dates-numbers-and-strings"><span>18</span>Working with Dates, Numbers and Strings</a></li><li><a href="#json-and-storage"><span>19</span>JSON and Storage</a></li><li><a href="#typescript-teaser"><span>20</span>TypeScript Teaser</a></li><li><a href="#quick-recap"><span>21</span>Quick Recap</a></li></ol></nav></details>
+  <main>
+    <header class="hero">
+      <p class="kicker"><span class="pill">Foundations</span><span>Topic 02</span><span>Beginner</span><span>8 min read</span></p>
+      <h1>Modern JavaScript You Need for React</h1>
+      <p class="lede">The ES6+ features used in every React codebase. Variables, arrow functions, destructuring, spread, array methods, modules, promises, async/await and closures.</p>
+    </header>
+    <article>
+<h2 id="why-this-topic"><span class="num">01</span>Why This Topic?</h2>
+<p>React code is "just JavaScript". Most beginner struggles come from not knowing the JavaScript features React uses constantly. Master these and React becomes easy.</p>
+<h2 id="variables-let-and-const"><span class="num">02</span>Variables: let and const</h2>
+<pre><code class="language-js">const course = "React";     // cannot be reassigned (preferred default)
+let count = 0;              // can be reassigned
+count = count + 1;
+// var is function-scoped and hoisted: avoid it</code></pre>
+<ul><li>Use <code>const</code> by default; use <code>let</code> only when you must reassign</li><li><code>const</code> does not make objects/arrays immutable, only the <strong>binding</strong></li></ul>
+<pre><code class="language-js">const user = { name: "Asha" };
+user.name = "Ravi";         // allowed (mutating the object)
+// user = {};               // TypeError (reassigning the variable)</code></pre>
+<h2 id="template-literals"><span class="num">03</span>Template Literals</h2>
+<pre><code class="language-js">const name = "Asha";
+const msg = `Hello, ${name}! You have ${3 + 2} messages.`;
+const multi = `line one
+line two`;</code></pre>
+<h2 id="arrow-functions"><span class="num">04</span>Arrow Functions</h2>
+<pre><code class="language-js">function add(a, b) { return a + b; }       // regular function
+const add2 = (a, b) =&gt; a + b;              // arrow, implicit return
+const square = (n) =&gt; n * n;
+const greet = name =&gt; `Hi ${name}`;        // one parameter: parentheses optional
+const makeUser = (n) =&gt; ({ name: n });     // returning an object: wrap in ()
+const log = () =&gt; { console.log("hi"); };  // block body needs explicit return</code></pre>
+<p>Arrow functions do not have their own <code>this</code>, which is why they are used for callbacks and event handlers in React.</p>
+<h2 id="destructuring"><span class="num">05</span>Destructuring</h2>
+<h3 id="objects">Objects</h3>
+<pre><code class="language-js">const student = { id: 1, name: "Asha", city: "Chennai" };
+const { name, city } = student;
+const { name: studentName } = student;      // rename
+const { age = 18 } = student;               // default value</code></pre>
+<h3 id="arrays">Arrays</h3>
+<pre><code class="language-js">const [first, second] = ["a", "b", "c"];
+const [count, setCount] = useState(0);      // exactly what hooks return</code></pre>
+<h3 id="in-function-parameters-props">In function parameters (props!)</h3>
+<pre><code class="language-jsx">function Card({ title, price = 0 }) {       // destructure props directly
+  return &lt;h3&gt;{title}: {price}&lt;/h3&gt;;
+}</code></pre>
+<h2 id="spread-and-rest"><span class="num">06</span>Spread and Rest</h2>
+<pre><code class="language-js">// Spread arrays
+const a = [1, 2];
+const b = [...a, 3, 4];                      // [1, 2, 3, 4]
+
+// Spread objects (copy + override)
+const base = { name: "Asha", age: 20 };
+const updated = { ...base, age: 21 };        // { name: "Asha", age: 21 }
+
+// Rest: collect the remaining items
+const { name, ...others } = base;            // others = { age: 20 }
+const sum = (...nums) =&gt; nums.reduce((t, n) =&gt; t + n, 0);</code></pre>
+<aside class="callout note"><span class="label">Remember</span><p>Spread is how you update state <strong>immutably</strong> in React. Never mutate state; create a new copy.</p></aside>
+<h2 id="array-methods"><span class="num">07</span>Array Methods</h2>
+<p>React renders lists with these, so know them well. None of them mutate the original array (except <code>sort</code>, <code>reverse</code>, <code>splice</code>, <code>push</code>, <code>pop</code>).</p>
+<pre><code class="language-js">const nums = [1, 2, 3, 4, 5];
+
+nums.map(n =&gt; n * 2);                    // [2, 4, 6, 8, 10]     transform each item
+nums.filter(n =&gt; n % 2 === 0);           // [2, 4]               keep matching items
+nums.find(n =&gt; n &gt; 3);                   // 4                    first match
+nums.findIndex(n =&gt; n &gt; 3);              // 3
+nums.some(n =&gt; n &gt; 4);                   // true
+nums.every(n =&gt; n &gt; 0);                  // true
+nums.reduce((total, n) =&gt; total + n, 0); // 15                   combine into one value
+nums.includes(3);                        // true
+nums.slice(1, 3);                        // [2, 3]               copy part
+[...nums].sort((a, b) =&gt; b - a);         // copy, then sort (don't sort state in place)
+nums.toSorted((a, b) =&gt; b - a);          // ES2023: non-mutating sort
+nums.at(-1);                             // 5                    last item</code></pre>
+<h3 id="array-method-cheat-sheet-for-react">Array method cheat sheet for React</h3>
+<div class="table-wrap"><table><thead><tr><th>Task</th><th>Use</th></tr></thead><tbody><tr><td>Render a list</td><td><code>items.map(item =&gt; &lt;li key={item.id}&gt;…&lt;/li&gt;)</code></td></tr><tr><td>Remove an item from state</td><td><code>items.filter(i =&gt; i.id !== id)</code></td></tr><tr><td>Update one item in state</td><td><code>items.map(i =&gt; i.id === id ? { ...i, done: true } : i)</code></td></tr><tr><td>Add an item to state</td><td><code>[...items, newItem]</code></td></tr><tr><td>Total / count</td><td><code>reduce</code></td></tr></tbody></table></div>
+<h2 id="objects"><span class="num">08</span>Objects</h2>
+<pre><code class="language-js">const course = { title: "React", level: "Beginner", tags: ["ui", "js"] };
+
+course.title;                 // dot access
+course["level"];              // bracket access
+const key = "title";
+course[key];                  // dynamic key
+
+const title = "React";
+const obj = { title };        // shorthand for { title: title }
+const dyn = { [key]: 1 };     // computed property name
+
+Object.keys(course);          // ["title", "level", "tags"]
+Object.values(course);
+Object.entries(course);       // [["title","React"], ...]
+Object.fromEntries([["a", 1]]);
+structuredClone(course);      // deep copy</code></pre>
+<h2 id="optional-chaining-and-nullish-coalescing"><span class="num">09</span>Optional Chaining and Nullish Coalescing</h2>
+<pre><code class="language-js">const city = user?.address?.city;            // undefined instead of an error if address is missing
+const first = list?.[0];
+user.save?.();                               // call only if the method exists
+
+const name = input ?? "Guest";               // fallback only for null/undefined
+const count = 0 || 10;                       // 10   (|| treats 0 as falsy)
+const count2 = 0 ?? 10;                      // 0    (?? only checks null/undefined)</code></pre>
+<h2 id="truthy-and-falsy-and-short-circuiting"><span class="num">10</span>Truthy and Falsy, and Short-circuiting</h2>
+<p>Falsy values: <code>false</code>, <code>0</code>, <code>""</code>, <code>null</code>, <code>undefined</code>, <code>NaN</code>. Everything else is truthy.</p>
+<pre><code class="language-js">const label = isAdmin &amp;&amp; "Admin";            // "Admin" or false
+const text = name || "Anonymous";
+const cond = isLoggedIn ? "Logout" : "Login";</code></pre>
+<aside class="callout warning"><span class="label">Warning</span><p>In JSX, <code>{count &amp;&amp; &lt;Badge/&gt;}</code> prints <code>0</code> when <code>count</code> is <code>0</code>. Use <code>{count &gt; 0 &amp;&amp; &lt;Badge/&gt;}</code> instead.</p></aside>
+<h2 id="es-modules-import-export"><span class="num">11</span>ES Modules (import / export)</h2>
+<pre data-file="utils.js"><code class="language-js">export const PI = 3.14;                  // named export
+export function add(a, b) { return a + b; }
+export default function greet() { }      // one default export per file</code></pre>
+<pre data-file="app.js"><code class="language-js">import greet, { PI, add } from "./utils.js";     // default + named
+import { add as sum } from "./utils.js";         // rename
+import * as utils from "./utils.js";             // everything
+import logo from "./logo.svg";                   // assets (handled by the bundler)</code></pre>
+<ul><li>Relative paths start with <code>./</code> or <code>../</code>; packages have no path prefix (<code>import React from "react"</code>)</li><li>One component per file, exported as default or named, is the usual React style</li></ul>
+<h2 id="functions-callbacks-and-higher-order-functions"><span class="num">12</span>Functions, Callbacks and Higher-order Functions</h2>
+<pre><code class="language-js">// A function can be passed around like any value
+function run(task) { task(); }
+run(() =&gt; console.log("hi"));
+
+// Higher-order function: takes or returns functions
+const times = (n) =&gt; (x) =&gt; x * n;
+const double = times(2);
+double(5);                                   // 10</code></pre>
+<p>Event handlers, <code>map</code>, <code>useEffect</code> callbacks and props like <code>onClick</code> all rely on this idea.</p>
+<h2 id="closures"><span class="num">13</span>Closures</h2>
+<p>A function <strong>remembers the variables from where it was created</strong>.</p>
+<pre><code class="language-js">function counter() {
+  let count = 0;
+  return () =&gt; ++count;
+}
+const next = counter();
+next();  // 1
+next();  // 2</code></pre>
+<p>In React, each render creates new functions that "close over" that render's props and state. This is why a stale closure can show an old value (see the Effects topic).</p>
+<h2 id="promises-and-async-await"><span class="num">14</span>Promises and async/await</h2>
+<pre><code class="language-js">// Promise
+fetch("/api/courses")
+  .then(res =&gt; res.json())
+  .then(data =&gt; console.log(data))
+  .catch(err =&gt; console.error(err));
+
+// async/await: same thing, easier to read
+async function loadCourses() {
+  try {
+    const res = await fetch("/api/courses");
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return await res.json();
+  } catch (err) {
+    console.error(err);
+    throw err;
+  }
+}</code></pre>
+<pre><code class="language-js">const [a, b] = await Promise.all([fetchUser(), fetchCourses()]);   // run in parallel
+Promise.allSettled([p1, p2]);                                      // wait for all, never rejects
+Promise.race([p1, p2]);                                            // first to finish</code></pre>
+<aside class="callout note"><span class="label">Note</span><p><code>fetch</code> only rejects on network failure. A 404 or 500 still resolves, so always check <code>res.ok</code>.</p></aside>
+<h2 id="the-event-loop-in-one-minute"><span class="num">15</span>The Event Loop (in one minute)</h2>
+<p>JavaScript is single-threaded. Long-running work (network, timers) is handed off, and its callback runs later from a queue. Promise callbacks (microtasks) run before timers (<code>setTimeout</code>).</p>
+<pre><code class="language-js">console.log("1");
+setTimeout(() =&gt; console.log("2"), 0);
+Promise.resolve().then(() =&gt; console.log("3"));
+console.log("4");
+// 1, 4, 3, 2</code></pre>
+<h2 id="immutability"><span class="num">16</span>Immutability</h2>
+<p>React compares <strong>references</strong> to decide if something changed. If you mutate an object in place, the reference is the same and React may skip the update.</p>
+<pre><code class="language-js">// Wrong: mutates the existing array
+items.push(newItem);
+
+// Right: new array, new reference
+const next = [...items, newItem];</code></pre>
+<h3 id="immutable-update-patterns">Immutable update patterns</h3>
+<div class="table-wrap"><table><thead><tr><th>Task</th><th>Pattern</th></tr></thead><tbody><tr><td>Update object field</td><td><code>{ ...obj, field: value }</code></td></tr><tr><td>Update nested field</td><td><code>{ ...obj, address: { ...obj.address, city: "Pune" } }</code></td></tr><tr><td>Add to array</td><td><code>[...arr, item]</code></td></tr><tr><td>Remove from array</td><td><code>arr.filter(x =&gt; x.id !== id)</code></td></tr><tr><td>Replace in array</td><td><code>arr.map(x =&gt; x.id === id ? updated : x)</code></td></tr><tr><td>Insert at index</td><td><code>[...arr.slice(0, i), item, ...arr.slice(i)]</code></td></tr></tbody></table></div>
+<h2 id="classes-and-this-brief"><span class="num">17</span>Classes and <code>this</code> (brief)</h2>
+<p>Modern React uses function components, so you rarely write classes. Just know that <code>this</code> depends on <strong>how</strong> a function is called, and arrow functions capture <code>this</code> from their surroundings.</p>
+<h2 id="working-with-dates-numbers-and-strings"><span class="num">18</span>Working with Dates, Numbers and Strings</h2>
+<pre><code class="language-js">new Date().toLocaleDateString("en-IN");
+new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(2499);   // ₹2,499.00
+"hello".toUpperCase();   " hi ".trim();   "a,b".split(",");   "abc".padStart(5, "0");
+Number("42");   parseInt("42px");   (3.14159).toFixed(2);</code></pre>
+<h2 id="json-and-storage"><span class="num">19</span>JSON and Storage</h2>
+<pre><code class="language-js">const text = JSON.stringify({ a: 1 });       // object → string
+const obj = JSON.parse(text);                // string → object
+localStorage.setItem("theme", "dark");
+localStorage.getItem("theme");</code></pre>
+<h2 id="typescript-teaser"><span class="num">20</span>TypeScript Teaser</h2>
+<p>Most professional React projects use TypeScript, a typed superset of JavaScript. You can learn React with plain JavaScript first; there is a dedicated TypeScript topic later in this track.</p>
+<h2 id="quick-recap"><span class="num">21</span>Quick Recap</h2>
+<ul><li>Prefer <code>const</code>; use template literals and arrow functions</li><li>Destructuring and spread appear in almost every component</li><li><code>map</code>, <code>filter</code>, <code>reduce</code> build UI from data; <strong>never mutate</strong> state, copy it</li><li><code>?.</code> and <code>??</code> handle missing data safely</li><li>Modules split code into files; <code>export default</code> + named exports</li><li><code>async/await</code> + <code>fetch</code> for network calls; always check <code>res.ok</code></li></ul>
+    </article>
+    <nav class="pager" aria-label="Topic navigation">
+      <a class="prev" href="01-introduction-setup.html"><small>← Previous</small><strong>Introduction to React and Project Setup</strong></a>
+      <a class="next" href="03-jsx-components-props.html"><small>Next →</small><strong>JSX, Components and Props</strong></a>
+    </nav>
+  </main>
+</div>
+</body>
+</html>

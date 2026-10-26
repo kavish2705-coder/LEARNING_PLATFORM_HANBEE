@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="en" data-track="react">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Effects and Component Lifecycle — React Notes · Hanbee</title>
+<meta name="description" content="Synchronise components with the outside world using useEffect. Dependencies, cleanup, data fetching and race conditions, when not to use an effect, and useEffectEvent from React 19.2.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500..700;1,9..144,500&amp;family=Inter:wght@400..700&amp;family=JetBrains+Mono:wght@400..600&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/notes.css">
+<script src="../assets/notes.js" defer></script>
+</head>
+<body>
+<div class="progress" aria-hidden="true"><i></i></div>
+<header class="top">
+  <a class="brand" href="../index.html"><b>H</b>Hanbee · React Notes</a>
+  <nav><a class="keep" href="index.html">All topics</a><button id="theme-toggle" type="button" aria-label="Toggle light and dark theme">Theme</button></nav>
+</header>
+<div class="shell">
+  <details class="toc"><summary>On this page</summary><nav aria-label="On this page"><ol><li><a href="#what-is-an-effect"><span>01</span>What is an Effect?</a></li><li><a href="#useeffect-anatomy"><span>02</span>useEffect Anatomy</a></li><li><a href="#cleanup"><span>03</span>Cleanup</a></li><li><a href="#strictmode-runs-effects-twice-in-development"><span>04</span>StrictMode Runs Effects Twice (in development)</a></li><li><a href="#fetching-data-in-an-effect"><span>05</span>Fetching Data in an Effect</a></li><li><a href="#you-might-not-need-an-effect"><span>06</span>You Might Not Need an Effect</a></li><li><a href="#common-effect-use-cases"><span>07</span>Common Effect Use Cases</a></li><li><a href="#dependency-pitfalls"><span>08</span>Dependency Pitfalls</a></li><li><a href="#useeffectevent-react-19-2"><span>09</span>useEffectEvent (React 19.2)</a></li><li><a href="#uselayouteffect"><span>10</span>useLayoutEffect</a></li><li><a href="#usesyncexternalstore"><span>11</span>useSyncExternalStore</a></li><li><a href="#useeffect-vs-uselayouteffect-vs-useinsertioneffect"><span>12</span>useEffect vs useLayoutEffect vs useInsertionEffect</a></li><li><a href="#debugging-effects"><span>13</span>Debugging Effects</a></li><li><a href="#quick-recap"><span>14</span>Quick Recap</a></li></ol></nav></details>
+  <main>
+    <header class="hero">
+      <p class="kicker"><span class="pill">Core Hooks</span><span>Topic 05</span><span>Intermediate</span><span>8 min read</span></p>
+      <h1>Effects and Component Lifecycle</h1>
+      <p class="lede">Synchronise components with the outside world using useEffect. Dependencies, cleanup, data fetching and race conditions, when not to use an effect, and useEffectEvent from React 19.2.</p>
+    </header>
+    <article>
+<h2 id="what-is-an-effect"><span class="num">01</span>What is an Effect?</h2>
+<p>An <strong>effect</strong> is code that runs <strong>after React has rendered</strong> to synchronise your component with something <strong>outside React</strong>: the network, browser APIs, timers, subscriptions, third-party widgets.</p>
+<pre><code class="language-jsx">import { useEffect, useState } from "react";
+
+function Clock() {
+  const [now, setNow] = useState(new Date());
+
+  useEffect(() =&gt; {
+    const id = setInterval(() =&gt; setNow(new Date()), 1000);   // setup
+    return () =&gt; clearInterval(id);                           // cleanup
+  }, []);                                                      // dependencies
+
+  return &lt;p&gt;{now.toLocaleTimeString()}&lt;/p&gt;;
+}</code></pre>
+<h3 id="event-handlers-vs-effects">Event handlers vs effects</h3>
+<div class="table-wrap"><table><thead><tr><th></th><th>Event handler</th><th>Effect</th></tr></thead><tbody><tr><td>Runs because</td><td>The user <strong>did</strong> something (click, submit)</td><td>The component <strong>appeared</strong> or its data changed</td></tr><tr><td>Purpose</td><td>Respond to an interaction</td><td>Keep the component in sync with something external</td></tr><tr><td>Example</td><td><code>onClick={() =&gt; save()}</code></td><td>Connect to a chat room while visible</td></tr></tbody></table></div>
+<aside class="callout tip"><span class="label">Tip</span><p>If the code runs because of a <strong>specific user action</strong>, put it in the event handler, not an effect.</p></aside>
+<h2 id="useeffect-anatomy"><span class="num">02</span>useEffect Anatomy</h2>
+<pre><code class="language-jsx">useEffect(() =&gt; {
+  // 1. setup: runs after render (when dependencies change)
+  return () =&gt; {
+    // 2. cleanup: runs before the next setup and on unmount
+  };
+}, [dep1, dep2]);              // 3. dependency array</code></pre>
+<h3 id="the-dependency-array">The dependency array</h3>
+<div class="table-wrap"><table><thead><tr><th>Form</th><th>When the effect runs</th></tr></thead><tbody><tr><td><code>useEffect(fn)</code></td><td>After <strong>every</strong> render</td></tr><tr><td><code>useEffect(fn, [])</code></td><td><strong>Once</strong> after mount (and cleanup on unmount)</td></tr><tr><td><code>useEffect(fn, [a, b])</code></td><td>After mount and whenever <code>a</code> or <code>b</code> changed</td></tr></tbody></table></div>
+<p><strong>Every reactive value</strong> (props, state, variables derived from them) used inside the effect must be listed. The ESLint rule <code>react-hooks/exhaustive-deps</code> checks this; do not silence it.</p>
+<h3 id="lifecycle-mapping">Lifecycle mapping</h3>
+<div class="table-wrap"><table><thead><tr><th>Class lifecycle</th><th>Hook equivalent</th></tr></thead><tbody><tr><td><code>componentDidMount</code></td><td><code>useEffect(() =&gt; {...}, [])</code></td></tr><tr><td><code>componentDidUpdate</code></td><td><code>useEffect(() =&gt; {...}, [deps])</code></td></tr><tr><td><code>componentWillUnmount</code></td><td>cleanup function returned from the effect</td></tr></tbody></table></div>
+<p>Better mental model: an effect <strong>starts</strong> a synchronisation and its cleanup <strong>stops</strong> it. React may start and stop it several times.</p>
+<h2 id="cleanup"><span class="num">03</span>Cleanup</h2>
+<p>Clean up anything the effect started so nothing leaks.</p>
+<pre><code class="language-jsx">useEffect(() =&gt; {
+  const onResize = () =&gt; setWidth(window.innerWidth);
+  window.addEventListener("resize", onResize);
+  return () =&gt; window.removeEventListener("resize", onResize);
+}, []);
+
+useEffect(() =&gt; {
+  const connection = createConnection(roomId);
+  connection.connect();
+  return () =&gt; connection.disconnect();
+}, [roomId]);                                   // reconnects when roomId changes</code></pre>
+<p>Typical things to clean up: event listeners, timers (<code>setTimeout</code>/<code>setInterval</code>), subscriptions, WebSocket connections, in-flight fetches (<code>AbortController</code>).</p>
+<h2 id="strictmode-runs-effects-twice-in-development"><span class="num">04</span>StrictMode Runs Effects Twice (in development)</h2>
+<p>In development React mounts, <strong>unmounts, then re-mounts</strong> each component once to test that your cleanup works. If your effect breaks when run twice, <strong>it is missing cleanup</strong>; fix it instead of removing StrictMode.</p>
+<pre><code class="language-text">Dev:  setup → cleanup → setup      Production: setup</code></pre>
+<h2 id="fetching-data-in-an-effect"><span class="num">05</span>Fetching Data in an Effect</h2>
+<pre><code class="language-jsx">function Courses() {
+  const [courses, setCourses] = useState([]);
+  const [status, setStatus] = useState("loading");     // loading | success | error
+
+  useEffect(() =&gt; {
+    const controller = new AbortController();
+
+    async function load() {
+      try {
+        const res = await fetch("/api/courses", { signal: controller.signal });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        setCourses(await res.json());
+        setStatus("success");
+      } catch (err) {
+        if (err.name !== "AbortError") setStatus("error");
+      }
+    }
+    load();
+
+    return () =&gt; controller.abort();                    // cancel on unmount / re-run
+  }, []);
+
+  if (status === "loading") return &lt;p&gt;Loading…&lt;/p&gt;;
+  if (status === "error") return &lt;p role="alert"&gt;Could not load courses.&lt;/p&gt;;
+  return &lt;ul&gt;{courses.map(c =&gt; &lt;li key={c.id}&gt;{c.title}&lt;/li&gt;)}&lt;/ul&gt;;
+}</code></pre>
+<h3 id="race-conditions">Race conditions</h3>
+<p>If a query depends on state (like a search term), responses can arrive <strong>out of order</strong>. Ignore stale responses:</p>
+<pre><code class="language-jsx">useEffect(() =&gt; {
+  let ignore = false;
+  fetchResults(query).then(data =&gt; {
+    if (!ignore) setResults(data);
+  });
+  return () =&gt; { ignore = true; };                      // outdated request is ignored
+}, [query]);</code></pre>
+<aside class="callout tip"><span class="label">Tip</span><p>For real applications use a data library (<strong>TanStack Query</strong>, SWR) or a framework's data loading. They handle caching, retries, deduplication and race conditions for you. See the Data Fetching topic.</p></aside>
+<h2 id="you-might-not-need-an-effect"><span class="num">06</span>You Might Not Need an Effect</h2>
+<p>Effects are an <strong>escape hatch</strong>. Many uses are mistakes:</p>
+<div class="table-wrap"><table><thead><tr><th>Situation</th><th>Do this instead</th></tr></thead><tbody><tr><td>Transform data for display</td><td>Compute it <strong>during render</strong></td></tr><tr><td>Expensive calculation</td><td><code>useMemo</code> (or let the React Compiler do it)</td></tr><tr><td>Reset state when a prop changes</td><td>Give the component a different <strong><code>key</code></strong></td></tr><tr><td>Handle a user action</td><td>Do it in the <strong>event handler</strong></td></tr><tr><td>Update state based on other state</td><td>Derive it, or compute in the handler</td></tr><tr><td>Notify a parent of a change</td><td>Call the parent's callback in the event handler</td></tr></tbody></table></div>
+<pre><code class="language-jsx">// Bad: effect to derive state (extra render, can desync)
+const [fullName, setFullName] = useState("");
+useEffect(() =&gt; setFullName(first + " " + last), [first, last]);
+
+// Good
+const fullName = first + " " + last;</code></pre>
+<pre><code class="language-jsx">// Bad: effect to react to a click
+useEffect(() =&gt; { if (submitted) post(form); }, [submitted]);
+
+// Good
+function handleSubmit() { post(form); }</code></pre>
+<h2 id="common-effect-use-cases"><span class="num">07</span>Common Effect Use Cases</h2>
+<pre><code class="language-jsx">// Update document title
+useEffect(() =&gt; { document.title = `${count} new messages`; }, [count]);
+
+// Persist to localStorage
+useEffect(() =&gt; { localStorage.setItem("theme", theme); }, [theme]);
+
+// Subscribe to an external store: prefer useSyncExternalStore (below)
+// Focus an input on mount
+const ref = useRef(null);
+useEffect(() =&gt; { ref.current?.focus(); }, []);
+
+// Debounce
+useEffect(() =&gt; {
+  const id = setTimeout(() =&gt; setDebounced(value), 300);
+  return () =&gt; clearTimeout(id);
+}, [value]);
+
+// Keyboard shortcut
+useEffect(() =&gt; {
+  const onKey = (e) =&gt; { if (e.key === "Escape") onClose(); };
+  window.addEventListener("keydown", onKey);
+  return () =&gt; window.removeEventListener("keydown", onKey);
+}, [onClose]);</code></pre>
+<h2 id="dependency-pitfalls"><span class="num">08</span>Dependency Pitfalls</h2>
+<h3 id="infinite-loops">Infinite loops</h3>
+<pre><code class="language-jsx">useEffect(() =&gt; {
+  setCount(count + 1);          // changes count → re-renders → effect runs again → loop
+}, [count]);</code></pre>
+<p>Objects, arrays and functions created in the component body are <strong>new on every render</strong>, so putting them in the dependency array re-runs the effect every time.</p>
+<pre><code class="language-jsx">// Problem: options is a new object each render
+const options = { roomId };
+useEffect(() =&gt; connect(options), [options]);
+
+// Fix: depend on primitives, or create the object inside the effect
+useEffect(() =&gt; connect({ roomId }), [roomId]);</code></pre>
+<h3 id="stale-closures">Stale closures</h3>
+<p>An effect "closes over" the values from the render it was created in. Leaving a value out of the dependency array makes the effect see an <strong>old</strong> value.</p>
+<pre><code class="language-jsx">useEffect(() =&gt; {
+  const id = setInterval(() =&gt; console.log(count), 1000);   // always logs the initial count
+  return () =&gt; clearInterval(id);
+}, []);                                                       // count is missing!</code></pre>
+<p>Fix by adding the dependency, or use an updater function (<code>setCount(c =&gt; c + 1)</code>).</p>
+<h2 id="useeffectevent-react-19-2"><span class="num">09</span>useEffectEvent (React 19.2)</h2>
+<p>Sometimes an effect should react to <strong>some</strong> values but read the <strong>latest</strong> of others without re-running. <code>useEffectEvent</code> extracts that "event" logic.</p>
+<pre><code class="language-jsx">import { useEffect, useEffectEvent } from "react";
+
+function ChatRoom({ roomId, theme }) {
+  const onConnected = useEffectEvent(() =&gt; {
+    showNotification("Connected!", theme);       // always sees the latest theme
+  });
+
+  useEffect(() =&gt; {
+    const connection = createConnection(roomId);
+    connection.on("connected", onConnected);
+    connection.connect();
+    return () =&gt; connection.disconnect();
+  }, [roomId]);                                   // reconnect only when roomId changes
+}</code></pre>
+<p>Rules: call Effect Events only <strong>inside effects</strong>, never pass them to other components, and do not list them in the dependency array.</p>
+<h2 id="uselayouteffect"><span class="num">10</span>useLayoutEffect</h2>
+<p>Runs <strong>synchronously after DOM changes but before the browser paints</strong>. Use only to <strong>measure</strong> the DOM and adjust layout without flicker (tooltips, positioning). Prefer <code>useEffect</code> otherwise because <code>useLayoutEffect</code> blocks painting.</p>
+<pre><code class="language-jsx">useLayoutEffect(() =&gt; {
+  const { height } = ref.current.getBoundingClientRect();
+  setTooltipHeight(height);
+}, []);</code></pre>
+<h2 id="usesyncexternalstore"><span class="num">11</span>useSyncExternalStore</h2>
+<p>The correct hook for subscribing to <strong>external stores</strong> (browser APIs, state libraries) without tearing.</p>
+<pre><code class="language-jsx">function useOnlineStatus() {
+  return useSyncExternalStore(
+    (callback) =&gt; {
+      window.addEventListener("online", callback);
+      window.addEventListener("offline", callback);
+      return () =&gt; {
+        window.removeEventListener("online", callback);
+        window.removeEventListener("offline", callback);
+      };
+    },
+    () =&gt; navigator.onLine,         // client snapshot
+    () =&gt; true                      // server snapshot
+  );
+}</code></pre>
+<h2 id="useeffect-vs-uselayouteffect-vs-useinsertioneffect"><span class="num">12</span>useEffect vs useLayoutEffect vs useInsertionEffect</h2>
+<div class="table-wrap"><table><thead><tr><th>Hook</th><th>Runs</th><th>Use for</th></tr></thead><tbody><tr><td><code>useEffect</code></td><td>After paint</td><td>Almost everything</td></tr><tr><td><code>useLayoutEffect</code></td><td>Before paint</td><td>Measuring and positioning</td></tr><tr><td><code>useInsertionEffect</code></td><td>Before layout effects</td><td>CSS-in-JS libraries inserting styles</td></tr></tbody></table></div>
+<h2 id="debugging-effects"><span class="num">13</span>Debugging Effects</h2>
+<ul><li>Log inside setup <strong>and</strong> cleanup to see the order</li><li>Remember StrictMode doubles effects in development</li><li>Check the dependency list with the ESLint rule</li><li>Use React DevTools Profiler to see why something re-rendered</li><li>Ask: "Could this be done during render or in an event handler?"</li></ul>
+<h2 id="quick-recap"><span class="num">14</span>Quick Recap</h2>
+<ul><li>Effects <strong>synchronise</strong> a component with external systems and run <strong>after render</strong></li><li>Dependency array controls when: none = every render, <code>[]</code> = once, <code>[a]</code> = when <code>a</code> changes</li><li>Always <strong>clean up</strong> listeners, timers, subscriptions and requests</li><li>Handle <strong>race conditions</strong> with <code>ignore</code> flags or <code>AbortController</code>; prefer TanStack Query for data</li><li>Don't use effects for derived data or user actions; use render-time calculation and event handlers</li><li><code>useEffectEvent</code> (19.2) reads the latest values without making the effect re-run</li></ul>
+    </article>
+    <nav class="pager" aria-label="Topic navigation">
+      <a class="prev" href="04-state-events.html"><small>← Previous</small><strong>State, Events and Controlled Inputs</strong></a>
+      <a class="next" href="06-refs-context-reducers.html"><small>Next →</small><strong>Refs, Context and Reducers</strong></a>
+    </nav>
+  </main>
+</div>
+</body>
+</html>
