@@ -352,6 +352,11 @@ export default function TournamentOverview() {
           <span className={styles.perfValue}>
             {team?.name ? (schoolName ? `${team.name} (${schoolName})` : team.name) : "No team yet"}
           </span>
+          {!team && (
+            <Link href={teamHref} style={{ color: "var(--accent-subtle-text)", fontSize: 13, fontWeight: 600, textDecoration: "none" }}>
+              Register your team →
+            </Link>
+          )}
         </div>
         <div className={styles.perfItem}>
           <span className={styles.perfLabel}>PADDOCK STANDING</span>
