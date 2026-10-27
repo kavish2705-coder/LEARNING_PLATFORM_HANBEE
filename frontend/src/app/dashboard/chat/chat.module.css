@@ -281,10 +281,12 @@
 
 .messageRow.me {
   align-items: flex-end;
+  justify-content: flex-end;
 }
 
 .messageRow.other {
   align-items: flex-start;
+  justify-content: flex-start;
 }
 
 .messageWrapper {
@@ -296,11 +298,13 @@
 .messageWrapper.other {
   align-self: flex-start;
   margin-right: auto;
+  align-items: flex-start;
 }
 
 .messageWrapper.me {
   align-self: flex-end;
   margin-left: auto;
+  align-items: flex-end;
 }
 
 .senderLabel {
@@ -314,11 +318,13 @@
 .messageWrapper.me .senderLabel {
   color: var(--accent-subtle-text, #38bdf8);
   text-align: right;
+  align-self: flex-end;
 }
 
 .messageWrapper.other .senderLabel {
   color: var(--text-muted);
   text-align: left;
+  align-self: flex-start;
 }
 
 .message {
@@ -328,6 +334,8 @@
   line-height: 1.5;
   word-break: break-word;
   transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+  display: inline-block;
+  max-width: 100%;
 }
 
 .message.other {
@@ -336,6 +344,7 @@
   border: var(--border-subtle);
   color: var(--text-main);
   border-bottom-left-radius: 4px;
+  align-self: flex-start;
 }
 
 .message.other:hover {
@@ -344,10 +353,11 @@
 }
 
 .message.me {
-  background: linear-gradient(135deg, #0891b2 0%, #2563eb 100%);
+  background: linear-gradient(135deg, #0284c7 0%, #2563eb 100%);
   color: #ffffff;
-  box-shadow: 0 4px 14px rgba(8, 145, 178, 0.3);
+  box-shadow: 0 4px 14px rgba(2, 132, 199, 0.35);
   border-bottom-right-radius: 4px;
+  align-self: flex-end;
 }
 
 .message.me:hover {
@@ -361,13 +371,20 @@
   color: var(--text-muted);
   margin-top: 6px;
   padding: 0 4px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 
 .messageWrapper.other .timestamp {
   text-align: left;
+  align-self: flex-start;
 }
 
 .messageWrapper.me .timestamp {
+  text-align: right;
+  align-self: flex-end;
+}
   text-align: right;
 }
 

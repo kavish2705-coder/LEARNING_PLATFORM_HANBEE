@@ -27,7 +27,7 @@ function LoginContent() {
   }, []);
 
   useEffect(() => {
-    if (activeRole !== "School" && activeRole !== "Staff") setIsLogin(true);
+    if (activeRole !== "School" && activeRole !== "Staff" && activeRole !== "Manager") setIsLogin(true);
   }, [activeRole]);
   
   const { setRole } = useRole();
@@ -103,10 +103,10 @@ function LoginContent() {
     if (process.env.NODE_ENV === "development" && password === "password" && isLogin) {
       const e = email.trim().toLowerCase();
       let dummyRole: HanbeeRole | null = null;
-      if (e === "student@hanbee.in") dummyRole = "student";
-      else if (e === "staff@hanbee.in") dummyRole = "staff";
-      else if (e === "manager@hanbee.in") dummyRole = "manager";
-      else if (e === "school@hanbee.in") dummyRole = "school_staff";
+      if (e === "student@hanbee.in" || e === "student" || e === "ava@student.edu" || activeRole === "Student") dummyRole = "student";
+      else if (e === "staff@hanbee.in" || e === "staff") dummyRole = "staff";
+      else if (e === "manager@hanbee.in" || e === "manager") dummyRole = "manager";
+      else if (e === "school@hanbee.in" || e === "school") dummyRole = "school_staff";
 
       if (dummyRole) {
         const fakeSession = {
@@ -135,7 +135,7 @@ function LoginContent() {
 
     try {
       if (!isLogin) {
-        const role = activeRole === "School" ? "school_staff" : "staff";
+        const role = activeRole === "School" ? "school_staff" : activeRole === "Manager" ? "manager" : "staff";
         await signUpWithPassword({
           fullName,
           email: email.trim(),
@@ -149,7 +149,17 @@ function LoginContent() {
         return;
       }
 
-      const result = await signInWithPassword(email.trim(), password);
+      const loginIdentifier = email.trim();
+      let result;
+      try {
+        result = await signInWithPassword(loginIdentifier, password);
+      } catch (initialErr) {
+        if (!loginIdentifier.includes("@") && activeRole === "Student") {
+          result = await signInWithPassword(`${loginIdentifier.toLowerCase()}@student.hanbee.in`, password);
+        } else {
+          throw initialErr;
+        }
+      }
       window.localStorage.setItem(AUTH_SESSION_KEY, JSON.stringify(result.session));
       finishLogin(result.role);
     } catch (reason) {
@@ -173,12 +183,11 @@ function LoginContent() {
     }
   };
 
-
   const getPrimaryPlaceholder = () => {
     if (activeRole === "Staff") return "Email / Staff ID";
     if (activeRole === "Manager") return "Email / Manager ID";
     if (activeRole === "School") return "Email / School Admin ID";
-    return "Email / Student ID";
+    return "Username / Email / Student ID";
   };
 
   return (
@@ -248,7 +257,7 @@ function LoginContent() {
           >
             Sign In
           </button>
-          {(activeRole === "School" || activeRole === "Staff") && (
+          {(activeRole === "School" || activeRole === "Staff" || activeRole === "Manager") && (
             <button
               className={`${styles.tabBtn} ${!isLogin ? styles.tabBtnActive : ''}`}
               onClick={() => setIsLogin(false)}
@@ -274,7 +283,12 @@ function LoginContent() {
 
         {!isLogin && signupDone ? (
           <p style={{ textAlign: "center", marginTop: "16px" }}>
-            Your account was created. {activeRole === "School" ? "A manager or Hanbee staff member will verify your school before you can sign in." : "A manager or Hanbee staff member will approve your account before you can sign in."}
+            Your account was created.{" "}
+            {activeRole === "School"
+              ? "A manager or Hanbee staff member will verify your school before you can sign in."
+              : activeRole === "Manager"
+              ? "You can sign in now."
+              : "A manager or Hanbee staff member will approve your account before you can sign in."}
           </p>
         ) : (
         <form onSubmit={handleAuthSubmit}>
@@ -294,7 +308,7 @@ function LoginContent() {
 
           <div className={styles.formGroup}>
             <input
-              type="email"
+              type={isLogin ? "text" : "email"}
               className={styles.input}
               placeholder={getPrimaryPlaceholder()}
               value={email}

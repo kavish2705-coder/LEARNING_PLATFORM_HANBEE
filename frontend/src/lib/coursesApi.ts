@@ -16,6 +16,14 @@ type Lesson = {
   sort_order: number;
 };
 type Completion = { enrollment_id: string; lesson_id: string; completed_at: string };
+type LessonMaterialRow = { id: string; lesson_id: string; file_name: string; file_size_bytes: number; storage_path: string };
+
+export interface LessonMaterial {
+  id: string;
+  fileName: string;
+  fileSizeBytes: number;
+  storagePath: string;
+}
 
 export interface CourseLesson {
   id: string;
@@ -25,6 +33,7 @@ export interface CourseLesson {
   externalUrl: string;
   youtubeId: string | null;
   completed: boolean;
+  materials: LessonMaterial[];
 }
 
 export interface CourseModule {
@@ -218,6 +227,21 @@ export async function fetchCourseContent(courseId: string): Promise<CourseConten
       lesson_id: inFilter(lessons.map((lesson) => lesson.id)),
     });
   const completedIds = new Set(completions.map((completion) => completion.lesson_id));
+  const materials = lessons.length === 0
+    ? []
+    : await fetchRows<LessonMaterialRow>("lesson_materials", {
+      select: "id,lesson_id,file_name,file_size_bytes,storage_path",
+      lesson_id: inFilter(lessons.map((lesson) => lesson.id)),
+    });
+  const materialsByLesson = new Map<string, LessonMaterial[]>();
+  for (const material of materials) {
+    materialsByLesson.set(material.lesson_id, [...(materialsByLesson.get(material.lesson_id) ?? []), {
+      id: material.id,
+      fileName: material.file_name,
+      fileSizeBytes: material.file_size_bytes,
+      storagePath: material.storage_path,
+    }]);
+  }
   const lessonsByModule = new Map<string, CourseLesson[]>();
   for (const lesson of lessons) {
     lessonsByModule.set(lesson.module_id, [...(lessonsByModule.get(lesson.module_id) ?? []), {
@@ -228,6 +252,7 @@ export async function fetchCourseContent(courseId: string): Promise<CourseConten
       externalUrl: lesson.external_url,
       youtubeId: lesson.youtube_id,
       completed: completedIds.has(lesson.id),
+      materials: materialsByLesson.get(lesson.id) ?? [],
     }]);
   }
   const contentModules = modules.map((module) => ({
@@ -247,4 +272,65 @@ export async function fetchCourseContent(courseId: string): Promise<CourseConten
     lessonCount,
     progressPercent: lessonCount === 0 ? 0 : Math.round((completedLessonCount / lessonCount) * 100),
   };
+}
+
+// --- Lesson attachments (private "lesson-attachments" storage bucket) ---
+// Path convention (0073_reconcile_lesson_attachments.sql): "<lesson_id>/<file_name>",
+// must equal lesson_materials.storage_path. No service-role key ever belongs
+// in the browser -- uploads/signed URLs go through the authenticated client
+// only, and the bucket's own RLS policies do the real access control.
+
+function getSupabaseUrl() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL?.replace(/\/$/, "");
+  if (!url) throw new Error("Supabase URL is not configured.");
+  return url;
+}
+
+export async function fetchAttachmentDownloadUrl(storagePath: string): Promise<string> {
+  const { signedURL } = await authenticatedSupabaseFetch<{ signedURL: string }>(
+    `/storage/v1/object/sign/lesson-attachments/${storagePath}`,
+    { method: "POST", body: JSON.stringify({ expiresIn: 120 }) },
+  );
+  return `${getSupabaseUrl()}/storage/v1${signedURL}`;
+}
+
+export async function uploadLessonAttachment(lessonId: string, file: File): Promise<void> {
+  const storagePath = `${lessonId}/${file.name}`;
+  await authenticatedSupabaseFetch<unknown>(`/storage/v1/object/lesson-attachments/${storagePath}`, {
+    method: "POST",
+    headers: { "Content-Type": file.type || "application/octet-stream" },
+    body: file,
+  });
+  await authenticatedSupabaseFetch<unknown>("/rest/v1/lesson_materials", {
+    method: "POST",
+    headers: { Prefer: "return=minimal" },
+    body: JSON.stringify({
+      lesson_id: lessonId,
+      file_name: file.name,
+      file_size_bytes: file.size,
+      storage_path: storagePath,
+    }),
+  });
+}
+
+export async function deleteLessonAttachment(materialId: string, storagePath: string): Promise<void> {
+  await authenticatedSupabaseFetch<unknown>(`/storage/v1/object/lesson-attachments/${storagePath}`, {
+    method: "DELETE",
+  });
+  await authenticatedSupabaseFetch<unknown>(`/rest/v1/lesson_materials?id=eq.${materialId}`, {
+    method: "DELETE",
+  });
+}
+
+export async function fetchLessonMaterials(lessonId: string): Promise<LessonMaterial[]> {
+  const rows = await fetchRows<LessonMaterialRow>("lesson_materials", {
+    select: "id,lesson_id,file_name,file_size_bytes,storage_path",
+    lesson_id: `eq.${lessonId}`,
+  });
+  return rows.map((row) => ({
+    id: row.id,
+    fileName: row.file_name,
+    fileSizeBytes: row.file_size_bytes,
+    storagePath: row.storage_path,
+  }));
 }

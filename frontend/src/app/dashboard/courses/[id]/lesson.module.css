@@ -198,7 +198,7 @@
   padding: 16px;
   border-radius: var(--clay-radius-sm);
   overflow-x: auto;
-  font-family: monospace;
+  font-family: var(--font-mono);
   font-size: 14px;
   color: var(--text-muted);
 }
@@ -421,6 +421,60 @@
   gap: 12px;
   margin-top: 16px;
   flex-wrap: wrap;
+}
+
+.attachmentsList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.attachmentsTitle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin: 0;
+}
+
+.attachmentItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 14px;
+  background: var(--bg-card);
+  border: var(--border-subtle);
+  border-radius: var(--clay-radius-sm);
+  cursor: pointer;
+  text-align: left;
+  font-size: 13px;
+  color: var(--text-main);
+}
+
+.attachmentItem:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.attachmentName {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.attachmentMeta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  color: var(--text-muted);
+  font-size: 12px;
 }
 
 .navButton {

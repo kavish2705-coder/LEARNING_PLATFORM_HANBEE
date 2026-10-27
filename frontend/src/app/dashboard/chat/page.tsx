@@ -73,12 +73,26 @@ export default function ChatPage() {
 
   const conversations = rawConversations ?? [];
 
-  // Pick default conversation
+  // Pick default conversation or user from query params
   useEffect(() => {
-    if (activeConversationId || !conversations.length) return;
-    const requestedId = new URLSearchParams(window.location.search).get("conversation");
+    if (activeConversationId) return;
+    const params = new URLSearchParams(window.location.search);
+    const requestedUser = params.get("user");
+    if (requestedUser) {
+      const match = conversations.find((row) => row.other_user_id === requestedUser);
+      if (match) {
+        setActiveConversationId(match.id);
+        return;
+      } else {
+        openContact.mutate(requestedUser);
+        return;
+      }
+    }
+    const requestedId = params.get("conversation");
     const requested = requestedId ? conversations.find((row) => row.id === requestedId) : undefined;
-    setActiveConversationId(requested?.id ?? conversations[0]?.id ?? "");
+    if (conversations.length) {
+      setActiveConversationId(requested?.id ?? conversations[0]?.id ?? "");
+    }
   }, [conversations, activeConversationId]);
 
   const messagesQuery = useInfiniteQuery({
@@ -397,7 +411,16 @@ export default function ChatPage() {
               {messages.map((message, index) => {
                 const previous = messages[index - 1];
                 const newDay = !previous || dayKey(previous.created_at) !== dayKey(message.created_at);
-                const mine = Boolean(effectiveUserId && message.sender_id === effectiveUserId);
+                const mine = Boolean(
+                  effectiveUserId && (
+                    message.sender_id === effectiveUserId ||
+                    message.sender_id === "me" ||
+                    message.sender_id === "user-self" ||
+                    message.sender_id === profile?.id ||
+                    (profile?.email && (message as any).sender?.email === profile.email) ||
+                    (profile?.full_name && (message as any).sender?.full_name === profile.full_name)
+                  )
+                );
                 const seen = (receipts ?? []).some(
                   (r) => r.user_id !== effectiveUserId && r.last_read_at && r.last_read_at >= message.created_at,
                 );

@@ -3,12 +3,12 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams } from "next/navigation";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { ChevronLeft, Play, CheckCircle, FileText } from "lucide-react";
+import { ChevronLeft, Play, CheckCircle, FileText, Paperclip, Download } from "lucide-react";
 import Link from "next/link";
 import styles from "./lesson.module.css";
 import Shimmer from "../../components/ui/Shimmer";
 import Modal from "../../../../components/ui/Modal";
-import { completeLesson, fetchCourseContent, type CourseLesson } from "../../../../lib/coursesApi";
+import { completeLesson, fetchCourseContent, fetchAttachmentDownloadUrl, type CourseLesson } from "../../../../lib/coursesApi";
 
 type Tab = "video" | "notes";
 
@@ -22,6 +22,7 @@ export default function LessonViewer() {
   const [busy, setBusy] = useState(false);
   const notesFrameRef = useRef<HTMLIFrameElement | null>(null);
   const [message, setMessage] = useState("");
+  const [downloadingId, setDownloadingId] = useState<string | null>(null);
   const [blocked, setBlocked] = useState<{ target: string; pending: string[] } | null>(null);
   const navigateRef = useRef<(targetIndex: number) => void>(() => undefined);
 
@@ -44,6 +45,24 @@ export default function LessonViewer() {
   const hasNotes = Boolean(current?.lesson.externalUrl?.startsWith("/notes/"));
   const hasVideo = Boolean(current?.lesson.youtubeId);
   const activeTab: Tab = tab ?? (hasVideo ? "video" : "notes");
+
+  async function downloadMaterial(materialId: string, storagePath: string) {
+    setDownloadingId(materialId);
+    try {
+      const url = await fetchAttachmentDownloadUrl(storagePath);
+      window.open(url, "_blank", "noopener,noreferrer");
+    } catch (reason) {
+      setMessage(reason instanceof Error ? reason.message : "We couldn't open that file.");
+    } finally {
+      setDownloadingId(null);
+    }
+  }
+
+  function formatFileSize(bytes: number) {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  }
 
   async function markComplete(lesson: CourseLesson) {
     setBusy(true);
@@ -171,6 +190,27 @@ export default function LessonViewer() {
                 <div className={styles.videoPlayerContainer}><div className={styles.videoPlaceholder}><p>No notes for this lesson yet.</p></div></div>
               )}
             </div>
+
+            {current.lesson.materials.length > 0 && (
+              <div className={styles.attachmentsList}>
+                <p className={styles.attachmentsTitle}><Paperclip size={14} /> Attachments</p>
+                {current.lesson.materials.map((material) => (
+                  <button
+                    key={material.id}
+                    type="button"
+                    className={styles.attachmentItem}
+                    disabled={downloadingId === material.id}
+                    onClick={() => void downloadMaterial(material.id, material.storagePath)}
+                  >
+                    <span className={styles.attachmentName}>{material.fileName}</span>
+                    <span className={styles.attachmentMeta}>
+                      {formatFileSize(material.fileSizeBytes)}
+                      <Download size={13} />
+                    </span>
+                  </button>
+                ))}
+              </div>
+            )}
 
             <div className={styles.lessonActions}>
               {previous ? <button type="button" className={styles.navButton} onClick={() => open(previous.lesson.id)}>← Previous</button> : <span />}

@@ -29,6 +29,35 @@ export interface TournamentResult {
   notes: string;
 }
 
+export interface StudentLeaderboardRow {
+  team_id: string;
+  team_name: string;
+  school_name: string | null;
+  org_id: string | null;
+  rank: number | null;
+  points: number;
+  notes: string;
+  field_size: number;
+  matches_participated: number;
+  wins: number;
+  top_three_finishes: number;
+  average_lap_time_ms: number | null;
+  is_current_user: boolean;
+}
+
+export interface TournamentRaceResult {
+  tournament_id: string;
+  tournament_title: string;
+  race_id: string;
+  race_name: string;
+  team_id: string;
+  team_name: string;
+  finished: boolean;
+  finish_time_ms: number | null;
+  lap_count: number;
+  average_lap_time_ms: number | null;
+}
+
 async function rpc<T>(name: string, args: Record<string, unknown>) {
   return authenticatedSupabaseFetch<T>(`/rest/v1/rpc/${name}`, { method: "POST", body: JSON.stringify(args) });
 }
@@ -92,4 +121,28 @@ export function getLeaderboard(tournamentId: string) {
     "get_leaderboard",
     { p_tournament: tournamentId },
   );
+}
+
+export function getStudentLeaderboard(tournamentId: string) {
+  return rpc<StudentLeaderboardRow[]>("get_student_leaderboard", { p_tournament: tournamentId });
+}
+
+export function listTournamentRaceResults() {
+  return rpc<TournamentRaceResult[]>("list_tournament_race_results", {});
+}
+
+export function saveTournamentRaceResult(input: {
+  tournamentId: string;
+  raceName: string;
+  teamId: string;
+  lapTimesMs: number[];
+  finished: boolean;
+}) {
+  return rpc<string>("record_tournament_race_result", {
+    p_tournament: input.tournamentId,
+    p_race_name: input.raceName,
+    p_team: input.teamId,
+    p_lap_times_ms: input.lapTimesMs,
+    p_finished: input.finished,
+  });
 }

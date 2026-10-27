@@ -3,6 +3,8 @@
 import { FormEvent, useCallback, useEffect, useState, useMemo } from "react";
 import { Users, ShieldCheck, CheckCircle2, AlertCircle, UserPlus, Zap, RotateCw, Play } from "lucide-react";
 import styles from "./team.module.css";
+import Shimmer from "../components/ui/Shimmer";
+import Dropdown from "../components/ui/Dropdown";
 import {
   answerTeamInvitation,
   applyStudentTeam,
@@ -198,6 +200,14 @@ export default function MyTeamPage() {
   const teamStatus = isRealTeam ? team!.status : "practice";
   const memberCount = isRealTeam ? (team?.members.length ?? 0) : drivers.length;
   const isCaptain = isRealTeam ? team!.is_captain : true;
+
+  if (loading) {
+    return (
+      <div className={styles.teamPage}>
+        <Shimmer variant="cards" count={4} />
+      </div>
+    );
+  }
 
   return (
     <div className={styles.teamPage}>
@@ -408,7 +418,7 @@ export default function MyTeamPage() {
                     borderRadius: 10,
                     fontSize: 13,
                     color: "var(--accent-subtle-text)",
-                    fontFamily: "monospace",
+                    fontFamily: "var(--font-mono)",
                   }}
                 >
                   {simMessage}
@@ -488,22 +498,15 @@ export default function MyTeamPage() {
 
               {memberCount < MAX_TEAM_SIZE ? (
                 <form onSubmit={inviteClassmate} className={styles.inlineForm}>
-                  <select
+                  <Dropdown
                     id="team-invitee"
                     value={inviteeId}
-                    onChange={(e) => setInviteeId(e.target.value)}
+                    onChange={setInviteeId}
                     required
                     disabled={busy}
-                    className={styles.selectInput}
-                    style={{ flex: 1 }}
-                  >
-                    <option value="">Select a classmate</option>
-                    {(formation?.eligible_classmates ?? []).map((student) => (
-                      <option key={student.student_id} value={student.student_id}>
-                        {student.name}
-                      </option>
-                    ))}
-                  </select>
+                    placeholder="Select a classmate"
+                    options={(formation?.eligible_classmates ?? []).map((student) => ({ value: student.student_id, label: student.name }))}
+                  />
                   <button type="submit" disabled={busy} className={styles.actionBtn}>
                     {busy ? "Sending Invite..." : "Send Squad Invite"}
                   </button>

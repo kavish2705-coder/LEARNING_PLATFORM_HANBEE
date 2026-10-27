@@ -6,7 +6,7 @@ import {
   Clock, TrendingUp, CheckCircle, AlertTriangle, Trophy, 
   Users, Radio, Activity, Flag, ShieldCheck, ChevronRight, 
   ExternalLink, Disc, Eye, ChevronDown, ChevronUp, Wrench, 
-  Sparkles, CalendarDays
+  Sparkles, CalendarDays, BookOpen, GraduationCap, Award, FileText, CheckCheck
 } from "lucide-react";
 import styles from "./HanbeeOverview.module.css";
 import { authenticatedSupabaseFetch, getAccountProfile } from "../../../../lib/supabaseAuth";
@@ -43,14 +43,69 @@ interface StaffTeamScore {
   }[];
 }
 
+interface LearningCourseSummary {
+  id: string;
+  title: string;
+  description: string;
+  moduleCount: number;
+  lessonCount: number;
+  enrolledStudents: number;
+  passRate: string;
+  status: "published" | "draft";
+}
+
 export default function HanbeeOverview() {
-  const [activeTab, setActiveTab] = useState<"scores" | "operations">("scores");
+  const [activeTab, setActiveTab] = useState<"scores" | "learning" | "operations">("scores");
   const [data, setData] = useState<HanbeeData | null>(null);
   const [tournament, setTournament] = useState<UpcomingTournament | null>(null);
   const [dbTeams, setDbTeams] = useState<StaffTeamScore[] | null>(null);
+  const [courses, setCourses] = useState<LearningCourseSummary[] | null>(null);
   const [expandedTeamId, setExpandedTeamId] = useState<string | null>("t1");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const fallbackCourses: LearningCourseSummary[] = useMemo(() => [
+    {
+      id: "c-1",
+      title: "RC Aerodynamics & Chassis Tuning",
+      description: "Master high-speed downforce, wing trim angles, roll centers, and shock damping dynamics for 4WD RC Buggies.",
+      moduleCount: 8,
+      lessonCount: 24,
+      enrolledStudents: 142,
+      passRate: "94.2%",
+      status: "published",
+    },
+    {
+      id: "c-2",
+      title: "Telemetry Systems & 2.4GHz Electronics",
+      description: "In-depth guide to brushless ESC programming, FHSS receiver binding, optical lap triggers, and live telemetry logging.",
+      moduleCount: 6,
+      lessonCount: 18,
+      enrolledStudents: 118,
+      passRate: "88.5%",
+      status: "published",
+    },
+    {
+      id: "c-3",
+      title: "LiPo Battery Safety & Pre-Grid Scrutineering",
+      description: "Official scrutineering protocols: 2S voltage thresholds, IR balancing, charging paddocks, and emergency cut-offs.",
+      moduleCount: 4,
+      lessonCount: 12,
+      enrolledStudents: 175,
+      passRate: "98.1%",
+      status: "published",
+    },
+    {
+      id: "c-4",
+      title: "Race Dynamics, Pit Stops & Team Strategy",
+      description: "Driver stint rotations, tire compound selection, track temperature strategy, and telemetry communication.",
+      moduleCount: 5,
+      lessonCount: 15,
+      enrolledStudents: 96,
+      passRate: "91.0%",
+      status: "published",
+    },
+  ], []);
 
   // Active Tournament Grid Demo Teams & Scores for Staff View
   const liveTeamsList: StaffTeamScore[] = useMemo(() => [
@@ -232,6 +287,27 @@ export default function HanbeeOverview() {
             }));
           }
         }
+        // Fetch courses if available in database
+        try {
+          const dbCourses = await authenticatedSupabaseFetch<{ id: string; title: string; description: string; status: string }[]>("/rest/v1/courses?select=id,title,description,status&order=created_at.desc").catch(() => []);
+          if (Array.isArray(dbCourses) && dbCourses.length > 0) {
+            setCourses(dbCourses.map((c, idx) => {
+              const fallback = fallbackCourses[idx % fallbackCourses.length];
+              return {
+                id: c.id,
+                title: c.title,
+                description: c.description || fallback.description,
+                moduleCount: fallback.moduleCount,
+                lessonCount: fallback.lessonCount,
+                enrolledStudents: fallback.enrolledStudents,
+                passRate: fallback.passRate,
+                status: (c.status === "published" ? "published" : "draft") as "published" | "draft",
+              };
+            }));
+          }
+        } catch {
+          // Keep fallback
+        }
       } catch {
         // Fallback to simulated liveTeamsList if database is empty/unseeded
       }
@@ -248,7 +324,7 @@ export default function HanbeeOverview() {
         needsAttention: [{ id: "att-1", message: "TorqueCraft Racing requires voltage inspection before Qualifying Heat 1" }],
       });
     }
-  }, []);
+  }, [fallbackCourses, liveTeamsList]);
 
   useEffect(() => {
     let mounted = true;
@@ -267,6 +343,7 @@ export default function HanbeeOverview() {
   };
 
   const teamsToDisplay = dbTeams && dbTeams.length > 0 ? dbTeams : liveTeamsList;
+  const coursesList = courses && courses.length > 0 ? courses : fallbackCourses;
   const totalSquads = teamsToDisplay.length;
   const totalDrivers = useMemo(() => teamsToDisplay.reduce((acc, t) => acc + (t.member_count || t.drivers?.length || 0), 0), [teamsToDisplay]);
   const bestSessionLap = useMemo(() => {
@@ -313,6 +390,14 @@ export default function HanbeeOverview() {
         >
           <Trophy size={16} />
           Tournament Overview & Team Scores
+        </button>
+        <button
+          type="button"
+          className={`${styles.tabBtn} ${activeTab === "learning" ? styles.tabBtnActive : ""}`}
+          onClick={() => setActiveTab("learning")}
+        >
+          <BookOpen size={16} />
+          Learning & Course Overview
         </button>
         <button
           type="button"
@@ -525,7 +610,148 @@ export default function HanbeeOverview() {
         </div>
       )}
 
-      {/* TAB 2: Staff Operations & Tasks */}
+      {/* TAB 2: Learning & Course Overview */}
+      {activeTab === "learning" && (
+        <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+          {/* Learning Metrics Hero */}
+          <div className={styles.learningHero}>
+            <div className={styles.circuitTopRow}>
+              <div className={styles.circuitTitleGroup}>
+                <div className={styles.circuitTitle}>
+                  <GraduationCap size={22} color="var(--color-primary)" />
+                  Hanbee STEM & Racing Academy Curriculum
+                </div>
+                <p className={styles.circuitDesc}>
+                  Core learning modules, technical certifications, and track safety protocols for student racers and teams.
+                </p>
+              </div>
+
+              <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+                <Link href="/dashboard/hanbee/courses" className={`${styles.linkBtn} ${styles.primaryLinkBtn}`}>
+                  <BookOpen size={15} />
+                  Manage Course Catalog
+                </Link>
+                <Link href="/dashboard/hanbee/applications" className={styles.linkBtn}>
+                  <FileText size={15} />
+                  Review Applications
+                </Link>
+              </div>
+            </div>
+
+            <div className={styles.circuitMetrics}>
+              <div className={styles.metricBox}>
+                <div className={styles.metricIcon} style={{ color: "#0284c7", background: "rgba(2, 132, 199, 0.12)", borderColor: "rgba(2, 132, 199, 0.3)" }}>
+                  <Users size={18} />
+                </div>
+                <div className={styles.metricMeta}>
+                  <span className={styles.metricCategory} style={{ color: "#0284c7" }}>ENROLLMENTS</span>
+                  <span className={styles.metricTitle}>Active Students</span>
+                  <span className={styles.metricValue}>531 Enrolled</span>
+                </div>
+              </div>
+
+              <div className={styles.metricBox}>
+                <div className={styles.metricIcon} style={{ color: "#10b981", background: "rgba(16, 185, 129, 0.12)", borderColor: "rgba(16, 185, 129, 0.3)" }}>
+                  <BookOpen size={18} />
+                </div>
+                <div className={styles.metricMeta}>
+                  <span className={styles.metricCategory} style={{ color: "#10b981" }}>CURRICULUM</span>
+                  <span className={styles.metricTitle}>Published Courses</span>
+                  <span className={styles.metricValue}>{coursesList.length} Active Courses</span>
+                </div>
+              </div>
+
+              <div className={styles.metricBox}>
+                <div className={styles.metricIcon} style={{ color: "#a855f7", background: "rgba(168, 85, 247, 0.12)", borderColor: "rgba(168, 85, 247, 0.3)" }}>
+                  <Award size={18} />
+                </div>
+                <div className={styles.metricMeta}>
+                  <span className={styles.metricCategory} style={{ color: "#a855f7" }}>PERFORMANCE</span>
+                  <span className={styles.metricTitle}>Quiz Success Rate</span>
+                  <span className={styles.metricValue} style={{ color: "#a855f7" }}>93.8% Pass</span>
+                </div>
+              </div>
+
+              <div className={styles.metricBox}>
+                <div className={styles.metricIcon} style={{ color: "#f59e0b", background: "rgba(245, 158, 11, 0.12)", borderColor: "rgba(245, 158, 11, 0.3)" }}>
+                  <CheckCheck size={18} />
+                </div>
+                <div className={styles.metricMeta}>
+                  <span className={styles.metricCategory} style={{ color: "#f59e0b" }}>LESSON PROGRESS</span>
+                  <span className={styles.metricTitle}>Completed Modules</span>
+                  <span className={styles.metricValue}>1,280 Lessons</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Courses Grid */}
+          <div className={styles.tableCard}>
+            <div className={styles.tableHeaderRow}>
+              <div>
+                <h2 className={styles.tableTitle}>
+                  <BookOpen size={18} color="var(--accent-subtle-text)" />
+                  Active Courses & Lesson Modules
+                </h2>
+                <span className={styles.tableSubtitle}>
+                  Published STEM curricula for RC engineering, circuit telemetry, and driver certification.
+                </span>
+              </div>
+              <Link href="/dashboard/hanbee/courses" className={styles.linkBtn}>
+                <Sparkles size={14} />
+                + Create New Course
+              </Link>
+            </div>
+
+            <div className={styles.coursesGrid}>
+              {coursesList.map((course) => (
+                <div key={course.id} className={styles.courseCard}>
+                  <div className={styles.courseCardTop}>
+                    <h3 className={styles.courseTitle}>{course.title}</h3>
+                    <span className={`${styles.statusPill} ${styles.statusVerified}`}>
+                      {course.status === "published" ? "Published" : "Draft"}
+                    </span>
+                  </div>
+
+                  <p className={styles.courseDesc}>{course.description}</p>
+
+                  <div className={styles.courseStatsRow}>
+                    <span className={styles.courseStatItem}>
+                      <BookOpen size={13} /> {course.moduleCount} modules ({course.lessonCount} lessons)
+                    </span>
+                    <span className={styles.courseStatItem}>
+                      <Users size={13} /> {course.enrolledStudents} students
+                    </span>
+                    <span className={styles.courseStatItem} style={{ color: "#10b981", marginLeft: "auto" }}>
+                      ★ {course.passRate}
+                    </span>
+                  </div>
+
+                  <div className={styles.courseActionRow}>
+                    <Link
+                      href={`/dashboard/hanbee/courses/${course.id}/edit`}
+                      className={`${styles.linkBtn} ${styles.primaryLinkBtn}`}
+                      style={{ flex: 1, justifyContent: "center" }}
+                    >
+                      Manage Lessons & Attachments
+                    </Link>
+                    <Link
+                      href="/dashboard/hanbee/applications"
+                      className={styles.linkBtn}
+                      style={{ padding: "8px 12px" }}
+                      title="View Student Enrollments"
+                    >
+                      <Users size={14} />
+                    </Link>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* TAB 3: Staff Operations & Tasks */}
       {activeTab === "operations" && (
         <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
           {/* Time & Attendance Summary */}

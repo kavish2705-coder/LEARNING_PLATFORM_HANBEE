@@ -4,6 +4,13 @@ const intentionallyPrivateTables = new Set([
   "ai_chat_minute_usage",
   "ai_chat_usage",
   "ai_daily_capacity",
+  // tournament_races/results/laps: written and read only through the
+  // SECURITY DEFINER RPCs in 0086 (record_tournament_race_result,
+  // list_tournament_race_results, get_student_leaderboard) -- all direct
+  // table grants are revoked, matching the ai_* tables' pattern above.
+  "tournament_races",
+  "tournament_race_results",
+  "tournament_race_laps",
 ]);
 const db = await connect();
 

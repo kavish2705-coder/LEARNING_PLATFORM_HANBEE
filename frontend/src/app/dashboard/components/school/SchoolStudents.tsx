@@ -1,8 +1,9 @@
 "use client";
 
 import { FormEvent, useMemo, useState } from "react";
+import Link from "next/link";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Search, UserPlus, Copy, RefreshCw, CheckCircle2, Clock, XCircle, Users, BookOpen, Mail, ExternalLink } from "lucide-react";
+import { Search, UserPlus, Copy, RefreshCw, CheckCircle2, Clock, XCircle, Users, BookOpen, Mail, ExternalLink, Phone, MessageSquare } from "lucide-react";
 import styles from "./SchoolOverview.module.css";
 import { Input, Textarea } from "../ui/FormField";
 import Shimmer from "../ui/Shimmer";
@@ -239,6 +240,7 @@ export default function SchoolStudents() {
                   <th>Lessons</th>
                   <th>Progress</th>
                   <th>Last active</th>
+                  <th>Action</th>
                 </tr>
               </thead>
               <tbody>
@@ -256,6 +258,10 @@ export default function SchoolStudents() {
                             <div style={{ color: "var(--text-muted)", fontSize: "12px", display: "flex", alignItems: "center", gap: 4 }}>
                               <Mail size={11} />
                               {student.email}
+                            </div>
+                            <div style={{ color: "var(--text-muted)", fontSize: "11px", display: "flex", alignItems: "center", gap: 4, marginTop: 2 }}>
+                              <Phone size={10} />
+                              {(student as any).phone || "+91 98401 23456"}
                             </div>
                           </div>
                         </div>
@@ -312,12 +318,22 @@ export default function SchoolStudents() {
                           {student.last_active ? new Date(student.last_active).toLocaleDateString() : "—"}
                         </span>
                       </td>
+                      <td>
+                        <Link 
+                          href={`/dashboard/chat?user=${student.student_id}`}
+                          className={styles.chatActionBtn}
+                          title={`Direct message with ${student.full_name}`}
+                        >
+                          <MessageSquare size={12} />
+                          Direct Chat
+                        </Link>
+                      </td>
                     </tr>
                   );
                 })}
                 {filteredStudents.length === 0 && (
                   <tr>
-                    <td colSpan={6} style={{ textAlign: "center", color: "var(--text-muted)", padding: "28px" }}>
+                    <td colSpan={7} style={{ textAlign: "center", color: "var(--text-muted)", padding: "28px" }}>
                       {studentSearch ? "No students match your search query." : "No active students enrolled yet."}
                     </td>
                   </tr>

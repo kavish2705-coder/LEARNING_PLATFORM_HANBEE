@@ -213,7 +213,7 @@ export async function signUpWithPassword(input: {
   fullName: string;
   email: string;
   password: string;
-  role: "student" | "staff" | "school_staff";
+  role: "student" | "staff" | "school_staff" | "manager";
   inviteToken?: string;
   joinToken?: string;
   schoolName?: string;

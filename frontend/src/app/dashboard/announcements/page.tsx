@@ -313,9 +313,9 @@ export default function AnnouncementsPage() {
                 className={styles.inputField}
                 style={{ width: "auto" }}
               >
-                <option value="all">Audience: All Drivers & Staff</option>
-                <option value="student">Audience: Students Only</option>
-                <option value="staff">Audience: Staff Only</option>
+                <option value="all">All Members (Staff & Drivers)</option>
+                <option value="student">Drivers & Students Only</option>
+                <option value="staff">Staff Members Only</option>
               </select>
 
               <button type="submit" disabled={busy} className={styles.submitBtn}>
@@ -354,7 +354,7 @@ export default function AnnouncementsPage() {
               className={styles.announcementCard}
             >
               {/* Top Meta Bar */}
-              <div className={styles.cardMetaBar}>
+              <div className={styles.cardMetaBar} style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <div className={styles.metaLeft}>
                   <span className={styles.categoryName}>
                     {item.category === "technical" 
@@ -365,6 +365,22 @@ export default function AnnouncementsPage() {
                   </span>
                   <span className={styles.metaDot}>•</span>
                   <span className={styles.timeText}>{item.timeLabel}</span>
+                </div>
+                <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+                  <span 
+                    style={{
+                      fontSize: 11,
+                      fontWeight: 700,
+                      textTransform: "uppercase",
+                      padding: "2px 8px",
+                      borderRadius: 6,
+                      background: item.audience === "staff" ? "rgba(168, 85, 247, 0.15)" : item.audience === "student" ? "rgba(2, 132, 199, 0.15)" : "rgba(16, 185, 129, 0.15)",
+                      color: item.audience === "staff" ? "#a855f7" : item.audience === "student" ? "#0284c7" : "#10b981",
+                      border: item.audience === "staff" ? "1px solid rgba(168, 85, 247, 0.3)" : item.audience === "student" ? "1px solid rgba(2, 132, 199, 0.3)" : "1px solid rgba(16, 185, 129, 0.3)",
+                    }}
+                  >
+                    {item.audience === "staff" ? "Staff" : item.audience === "student" ? "Drivers" : "All Members"}
+                  </span>
                 </div>
               </div>
 

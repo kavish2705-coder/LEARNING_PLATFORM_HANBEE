@@ -9,6 +9,8 @@ import Shimmer from "../../../../components/ui/Shimmer";
 import { useConfirm } from "../../../../../../components/ui/useConfirm";
 import { authenticatedSupabaseFetch, getAccountProfile } from "../../../../../../lib/supabaseAuth";
 import AssessmentEditor from "./AssessmentEditor";
+import AttachmentManager from "./AttachmentManager";
+import EnrollmentManager from "./EnrollmentManager";
 
 type Lesson = {
   id: string;
@@ -255,6 +257,8 @@ export default function EditCoursePage() {
       {error && <p role="alert" style={{ marginBottom: 12 }}>{error}</p>}
       {notice && <p role="status" style={{ marginBottom: 12 }}>{notice}</p>}
 
+      <EnrollmentManager courseId={courseId} />
+
       <form className={styles.sectionCard} onSubmit={addModule} style={{ marginBottom: 24, display: "flex", gap: 12, alignItems: "flex-end" }}>
         <label style={{ flex: 1 }}>
           New module title
@@ -311,6 +315,7 @@ export default function EditCoursePage() {
                       </div>
                     </div>
                     <AssessmentEditor lessonId={lesson.id} createdBy={profileId} />
+                    <AttachmentManager lessonId={lesson.id} />
                   </div>
                 ))}
               </div>

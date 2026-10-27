@@ -686,6 +686,29 @@
   border-color: var(--text-muted);
 }
 
+.chatActionBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--border-elevated);
+  color: var(--color-primary);
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.chatActionBtn:hover {
+  background: var(--color-primary);
+  color: #ffffff;
+  border-color: var(--color-primary);
+  box-shadow: 0 4px 12px rgba(8, 145, 178, 0.3);
+}
+
 /* Status Badges for Invitations */
 .statusBadgeAccepted {
   display: inline-flex;

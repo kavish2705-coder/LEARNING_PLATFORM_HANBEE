@@ -666,3 +666,108 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* Learning Overview Tab Styles */
+.learningHero {
+  background: linear-gradient(135deg, rgba(37, 99, 235, 0.12) 0%, var(--bg-card) 60%, rgba(168, 85, 247, 0.08) 100%);
+  box-shadow: var(--clay-shadow-elevated), 0 0 35px rgba(37, 99, 235, 0.08);
+  border: 1px solid rgba(59, 130, 246, 0.35);
+  border-radius: var(--clay-radius-lg);
+  padding: 30px 34px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  position: relative;
+  overflow: hidden;
+}
+
+.learningHero::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #2563eb, #a855f7, transparent);
+}
+
+.coursesGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 20px;
+}
+
+.courseCard {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--clay-radius-md);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  box-shadow: var(--clay-shadow-outer);
+  transition: all 0.25s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.courseCard:hover {
+  transform: translateY(-2px);
+  border-color: var(--accent-subtle-border);
+  box-shadow: var(--clay-shadow-elevated);
+}
+
+.courseCardTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.courseTitle {
+  font-family: var(--font-heading);
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text-main);
+  margin: 0;
+}
+
+.courseDesc {
+  font-size: 13px;
+  color: var(--text-muted);
+  line-height: 1.5;
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.courseStatsRow {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+[data-theme="light"] .courseStatsRow {
+  border-top: 1px solid #e2e8f0;
+}
+
+.courseStatItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.courseActionRow {
+  display: flex;
+  gap: 10px;
+  margin-top: auto;
+  padding-top: 12px;
+}
