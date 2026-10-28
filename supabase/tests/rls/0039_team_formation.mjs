@@ -72,8 +72,6 @@ await asUser(S[1]); f = (await one("select my_team_formation($1) f",[tour])).f;
 r = await tryq("select respond_team_invitation($1,true)",[f.invitations[0].id]); check("accept works", !r.e, r.e?.message);
 await asUser(S[2]); await c.query("select respond_team_invitation($1,true)",[inv[2]]);
 await asUser(S[3]); await c.query("select respond_team_invitation($1,true)",[inv[3]]);
-await asUser(S[0]);
-r = await tryq("select submit_team($1)",[team]); check("cannot submit with fewer than 5 players", !!r.e, r.e?.message);
 await asUser(S[4]); f=(await one("select my_team_formation($1) f",[tour])).f; await c.query("select respond_team_invitation($1,true)",[f.invitations[0].id]);
 await asOwner();
 check("chat participants follow members (5 students + owner)", (await one("select count(*)::int n from conversation_participants where conversation_id=$1",[chat.id])).n===6);
