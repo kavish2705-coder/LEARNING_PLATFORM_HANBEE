@@ -51,4 +51,4 @@ pnpm-debug.log*
 
 # frontend design reference: its own separate repo/remote, kept as a
 # local backup only, never tracked inside this one
-/LEARNING_PLATFORM_HANBEE/
+/LEARNING_PLATFORM_HANBEE/.worktrees/
