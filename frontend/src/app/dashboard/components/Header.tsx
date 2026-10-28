@@ -64,7 +64,13 @@ const PAGE_TITLES: Record<string, string> = {
   "/dashboard/manager/chat": "Chat",
 };
 
-export default function Header({ toggleMobileMenu }: { toggleMobileMenu?: () => void }) {
+export default function Header({
+  toggleMobileMenu,
+  mobileMenuOpen = false,
+}: {
+  toggleMobileMenu?: () => void;
+  mobileMenuOpen?: boolean;
+}) {
   const pathname = usePathname();
   const { mode } = useMode();
   const { data: profile } = useSessionProfile();
@@ -128,7 +134,14 @@ export default function Header({ toggleMobileMenu }: { toggleMobileMenu?: () => 
   return (
     <header className={styles.header}>
       <div className={styles.headerLeft}>
-        <button className={styles.mobileMenuBtn} onClick={toggleMobileMenu} aria-label="Toggle Menu">
+        <button
+          type="button"
+          className={styles.mobileMenuBtn}
+          onClick={toggleMobileMenu}
+          aria-label={mobileMenuOpen ? "Close navigation menu" : "Open navigation menu"}
+          aria-expanded={mobileMenuOpen}
+          aria-controls="dashboard-sidebar"
+        >
           <Menu size={24} />
         </button>
 

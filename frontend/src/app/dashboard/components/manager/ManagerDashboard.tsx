@@ -1,12 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import type { ReactNode } from "react";
 import Link from "next/link";
 import { ArrowUpRight, Bell, BookOpen, Building2, CircleAlert, Clock3, Flag, Users } from "lucide-react";
 import styles from "../../dashboard.module.css";
 import { authenticatedSupabaseFetch, getAccountProfile } from "../../../../lib/supabaseAuth";
 import { fetchSchoolDirectory, type SchoolDirectoryRow } from "../../../../lib/schoolAdminApi";
+import { useSessionProfile } from "../../../../lib/hooks/useSessionProfile";
 
 type TournamentStats = { tournaments?: Record<string, number>; teams?: Record<string, number>; schools_with_teams?: number; solo_teams?: number; participants?: number; teams_awaiting_decision?: number };
 type LmsStats = { courses?: Record<string, number>; students?: number; solo_students?: number; enrollments?: number; avg_completion_pct?: number; course_applications_pending?: number; schools?: Record<string, number> };
@@ -14,6 +14,7 @@ type StaffStats = { staff_id: string; full_name: string; approved: boolean; acco
 async function rpc<T>(name: string) { return authenticatedSupabaseFetch<T>("/rest/v1/rpc/" + name, { method: "POST", body: "{}" }); }
 
 export default function ManagerDashboard() {
+  const { data: profile } = useSessionProfile();
   const [tournament, setTournament] = useState<TournamentStats | null>(null);
   const [lms, setLms] = useState<LmsStats | null>(null);
   const [schools, setSchools] = useState<SchoolDirectoryRow[]>([]);
@@ -47,13 +48,18 @@ export default function ManagerDashboard() {
   const attentionCount = pendingSchools + staffApplications + (lms?.course_applications_pending ?? 0) + (tournament?.teams_awaiting_decision ?? 0);
   const orderedStaff = [...staff].sort((a, b) => (b.last_clock_in ?? "").localeCompare(a.last_clock_in ?? "")).slice(0, 6);
 
+  const firstName = profile?.full_name.trim().split(/\s+/)[0];
+
   return <div>
-    <header className={styles.pageHeader} style={{ marginBottom: "24px" }}>
+    <header className={`${styles.pageHeader} ${styles.managerPageHeader}`}>
       <div>
-        <h1 className={styles.pageTitle}>Platform monitor</h1>
-        <p className={styles.pageSubtitle}>Live view of school activity, learning, tournaments, and Hanbee staff.</p>
+        <span className={styles.managerEyebrow}>Manager overview</span>
+        <h1 className={`${styles.pageTitle} ${styles.managerPageTitle}`}>
+          Welcome back{firstName ? `, ${firstName}` : ""}
+        </h1>
+        <p className={styles.pageSubtitle}>Here’s your platform at a glance across schools, learning, tournaments, and Hanbee staff.</p>
       </div>
-      <div style={{ display: "flex", gap: "16px", marginTop: "16px" }}>
+      <div className={styles.managerAttentionLinks}>
         <AttentionLink href="/dashboard/manager/verifications" label="School registrations" count={pendingSchools} />
         <AttentionLink href="/dashboard/manager/verifications" label="Staff applications" count={staffApplications} />
         <AttentionLink href="/dashboard/hanbee/applications" label="Course applications" count={lms?.course_applications_pending ?? 0} />
@@ -62,65 +68,77 @@ export default function ManagerDashboard() {
     {error && <p role="alert" className={styles.sectionCard}>{error}</p>}
     {loading ? <div className={styles.sectionCard} role="status">Loading platform activity…</div> : <>
 
-      {/* Summary Info Bar - Dense */}
-      <div className={styles.sectionCard} style={{ display: "flex", gap: "32px", padding: "16px 24px", marginBottom: "24px" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-          <Building2 size={20} style={{ color: "var(--accent)" }} />
-          <div>
-            <div style={{ fontSize: "12px", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.5px" }}>Registered schools</div>
-            <div style={{ fontSize: "20px", fontWeight: "600" }}>{schools.length}</div>
+      <div className={styles.managerMetricsGrid}>
+        <div className={styles.metricCard}>
+          <div className={styles.metricCardHeader}>
+            <span className={styles.metricLabel}>Registered schools</span>
+            <span className={styles.metricIconBadge}><Building2 size={19} /></span>
           </div>
+          <div className={styles.metricValue}>{schools.length}</div>
+          <div className={styles.metricSubtext}>Schools on the platform</div>
         </div>
-        <div style={{ width: "1px", background: "var(--border-subtle)" }}></div>
-        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-          <Users size={20} style={{ color: "var(--accent)" }} />
-          <div>
-            <div style={{ fontSize: "12px", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.5px" }}>Active students</div>
-            <div style={{ fontSize: "20px", fontWeight: "600" }}>{lms?.students ?? 0}</div>
+        <div className={styles.metricCard}>
+          <div className={styles.metricCardHeader}>
+            <span className={styles.metricLabel}>Active students</span>
+            <span className={styles.metricIconBadge}><Users size={19} /></span>
           </div>
+          <div className={styles.metricValue}>{lms?.students ?? 0}</div>
+          <div className={styles.metricSubtext}>Students across Hanbee</div>
         </div>
-        <div style={{ width: "1px", background: "var(--border-subtle)" }}></div>
-        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-          <BookOpen size={20} style={{ color: "var(--accent)" }} />
-          <div>
-            <div style={{ fontSize: "12px", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.5px" }}>Published courses</div>
-            <div style={{ fontSize: "20px", fontWeight: "600" }}>{activeCourses}</div>
+        <div className={styles.metricCard}>
+          <div className={styles.metricCardHeader}>
+            <span className={styles.metricLabel}>Published courses</span>
+            <span className={styles.metricIconBadge}><BookOpen size={19} /></span>
           </div>
+          <div className={styles.metricValue}>{activeCourses}</div>
+          <div className={styles.metricSubtext}>Courses currently available</div>
         </div>
       </div>
 
       <div className={styles.dashboardGrid} style={{ gridTemplateColumns: "minmax(0, 1fr)" }}>
         <div className={styles.mainColumn}>
-          <div className={styles.sectionCard}>
-            <div className={styles.sectionHeader} style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <h2 className={styles.tableTitle}>Staff Snapshot</h2>
-              <div style={{ display: "flex", gap: "8px" }}>
-                <input type="text" placeholder="Filter staff..." className={styles.filterInput} style={{ background: "var(--bg-input)", border: "var(--border-subtle)", padding: "6px 12px", borderRadius: "6px", color: "var(--text-main)", fontSize: "13px" }} />
-                <Link href="/dashboard/manager/hanbee-staff" className={styles.actionBtn} style={{ textDecoration: "none", fontSize: "13px" }}>View all</Link>
+          <div className={`${styles.sectionCard} ${styles.managerSectionCard}`}>
+            <div className={styles.managerSectionHeader}>
+              <div>
+                <h2 className={styles.tableTitle}>Staff snapshot</h2>
+                <p className={styles.managerSectionSubtitle}>Recent attendance and workload at a glance.</p>
               </div>
+              <Link href="/dashboard/manager/hanbee-staff" className={styles.actionBtn} style={{ textDecoration: "none", fontSize: "13px" }}>View all staff</Link>
             </div>
-            <table className={styles.dataTable}>
-              <thead><tr><th>Staff member</th><th>Hours (7d)</th><th>Days (30d)</th><th>Open Tasks</th><th>Status</th><th>Last clock-in</th></tr></thead>
-              <tbody>
-                {orderedStaff.map((person) => <tr key={person.staff_id}>
-                  <td style={{ color: "var(--text-main)", fontWeight: "500" }}>{person.full_name}</td>
-                  <td>{person.hours_last_7_days}</td>
-                  <td>{person.days_worked_last_30}</td>
-                  <td>{person.open_tasks}</td>
-                  <td>
-                    <span className={styles.badge + ' ' + (person.last_clock_in ? styles.badgeCompleted : styles.badgeUpcoming)}>
-                      {person.last_clock_in ? "Active" : "Offline"}
-                    </span>
-                  </td>
-                  <td style={{ color: "var(--text-muted)" }}>{person.last_clock_in ? new Date(person.last_clock_in).toLocaleString() : "—"}</td>
-                </tr>)}
-                {orderedStaff.length === 0 && <tr><td colSpan={6}>No staff activity is available.</td></tr>}
-              </tbody>
-            </table>
+            {orderedStaff.length === 0 ? (
+              <p className={styles.managerEmptyState}>No staff activity is available.</p>
+            ) : (
+              <div className={styles.managerStaffGrid}>
+                {orderedStaff.map((person) => {
+                  const initials = person.full_name.split(/\s+/).slice(0, 2).map((part) => part[0]).join("").toUpperCase();
+                  return (
+                    <article key={person.staff_id} className={styles.managerStaffCard}>
+                      <div className={styles.managerStaffCardHeader}>
+                        <div className={styles.managerStaffIdentity}>
+                          <span className={styles.managerStaffAvatar}>{initials || "H"}</span>
+                          <h3 className={styles.managerStaffName}>{person.full_name}</h3>
+                        </div>
+                        <span className={styles.badge + " " + (person.last_clock_in ? styles.badgeCompleted : styles.badgeUpcoming)}>
+                          {person.last_clock_in ? "Active" : "Offline"}
+                        </span>
+                      </div>
+                      <div className={styles.managerStaffStats}>
+                        <div><span>Hours · 7 days</span><strong>{person.hours_last_7_days}</strong></div>
+                        <div><span>Days · 30 days</span><strong>{person.days_worked_last_30}</strong></div>
+                        <div><span>Open tasks</span><strong>{person.open_tasks}</strong></div>
+                      </div>
+                      <p className={styles.managerStaffLastSeen}>
+                        Last clock-in <time>{person.last_clock_in ? new Date(person.last_clock_in).toLocaleString() : "—"}</time>
+                      </p>
+                    </article>
+                  );
+                })}
+              </div>
+            )}
           </div>
 
-          <div className={styles.sectionCard}>
-            <div className={styles.sectionHeader} style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div className={`${styles.sectionCard} ${styles.managerSectionCard}`}>
+            <div className={styles.managerSectionHeader}>
               <h2 className={styles.tableTitle}>Tournament Registrations</h2>
               <div style={{ display: "flex", gap: "8px" }}>
                 <select className={styles.filterInput} style={{ background: "var(--bg-input)", border: "var(--border-subtle)", padding: "6px 12px", borderRadius: "6px", color: "var(--text-main)", fontSize: "13px" }}>
@@ -131,6 +149,7 @@ export default function ManagerDashboard() {
                 <Link href="/dashboard/hanbee/tournament" className={styles.actionBtn} style={{ textDecoration: "none", fontSize: "13px" }}>Manage teams</Link>
               </div>
             </div>
+            <div className={styles.managerTableWrap}>
             <table className={styles.dataTable}>
               <thead>
                 <tr><th>Status</th><th>Count</th><th>Progress</th></tr>
@@ -154,6 +173,7 @@ export default function ManagerDashboard() {
                 {Object.keys(tournament?.teams ?? {}).length === 0 && <tr><td colSpan={3}>No tournament teams are registered.</td></tr>}
               </tbody>
             </table>
+            </div>
           </div>
 
         </div>

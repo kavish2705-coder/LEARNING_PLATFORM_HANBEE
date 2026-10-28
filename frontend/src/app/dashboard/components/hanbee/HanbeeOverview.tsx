@@ -12,6 +12,7 @@ import styles from "./HanbeeOverview.module.css";
 import { authenticatedSupabaseFetch, getAccountProfile } from "../../../../lib/supabaseAuth";
 import { listTournaments, getStudentLeaderboard, listTournamentTeamRoster } from "../../../../lib/tournamentAdminApi";
 import type { StudentLeaderboardRow, TournamentRecord } from "../../../../lib/tournamentAdminApi";
+import { useSessionProfile } from "../../../../lib/hooks/useSessionProfile";
 import EmptyState from "../ui/EmptyState";
 import Shimmer from "../ui/Shimmer";
 
@@ -30,7 +31,7 @@ function formatLapTime(milliseconds: number | null) {
 }
 
 export default function HanbeeOverview() {
-  const [activeTab, setActiveTab] = useState<"scores" | "operations">("scores");
+  const { data: profile } = useSessionProfile();
   const [data, setData] = useState<HanbeeData | null>(null);
   const [tournament, setTournament] = useState<TournamentRecord | null>(null);
   const [rows, setRows] = useState<StudentLeaderboardRow[] | null>(null);
@@ -122,6 +123,7 @@ export default function HanbeeOverview() {
     const laps = teamsToDisplay.map((row) => row.average_lap_time_ms).filter((ms): ms is number => ms !== null);
     return laps.length ? formatLapTime(Math.min(...laps)) : "--";
   }, [teamsToDisplay]);
+  const firstName = profile?.full_name.trim().split(/\s+/)[0];
 
   return (
     <div className={styles.container}>
@@ -132,10 +134,10 @@ export default function HanbeeOverview() {
             Hanbee Staff Operations
           </div>
           <h1 className={styles.pageTitle}>
-            Tournament Control & Team Standings
+            Welcome back{firstName ? `, ${firstName}` : ""}
           </h1>
           <p className={styles.pageSubtitle}>
-            Real-time synchronization with Student Tournament Track, School Teams & Circuit Telemetry.
+            Tournament Control & Team Standings. Real-time synchronization with Student Tournament Track, School Teams & Circuit Telemetry.
           </p>
         </div>
 
@@ -152,36 +154,24 @@ export default function HanbeeOverview() {
         </div>
       </header>
 
-      <div className={styles.tabBar}>
-        <button
-          type="button"
-          className={`${styles.tabBtn} ${activeTab === "scores" ? styles.tabBtnActive : ""}`}
-          onClick={() => setActiveTab("scores")}
-        >
-          <Trophy size={16} />
-          Tournament Overview & Team Scores
-        </button>
-        <button
-          type="button"
-          className={`${styles.tabBtn} ${activeTab === "operations" ? styles.tabBtnActive : ""}`}
-          onClick={() => setActiveTab("operations")}
-        >
-          <Clock size={16} />
-          Staff Operations & Tasks
-        </button>
-      </div>
-
-      {activeTab === "scores" && (
-        loading ? (
-          <Shimmer rows={5} />
-        ) : !tournament ? (
-          <EmptyState
-            icon={<Trophy size={22} />}
-            title="No tournaments yet"
-            description="Tournament standings will appear here once a tournament is scheduled."
-          />
-        ) : (
-        <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+      {loading ? <Shimmer rows={5} /> : (
+        <div className={styles.overviewSections}>
+          <section className={styles.dashboardSection}>
+            <div className={styles.dashboardSectionHeading}>
+              <div>
+                <h2>Tournament overview</h2>
+                <p>Standings and team performance.</p>
+              </div>
+              <Trophy size={19} aria-hidden="true" />
+            </div>
+            {!tournament ? (
+              <EmptyState
+                icon={<Trophy size={22} />}
+                title="No tournaments yet"
+                description="Tournament standings will appear here once a tournament is scheduled."
+              />
+            ) : (
+            <div className={styles.scoreSectionContent}>
           <div className={styles.circuitHero}>
             <div className={styles.circuitTopRow}>
               <div className={styles.circuitTitleGroup}>
@@ -355,11 +345,17 @@ export default function HanbeeOverview() {
             )}
           </div>
         </div>
-        )
-      )}
+            )}
+          </section>
 
-      {activeTab === "operations" && (
-        <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+          <section className={styles.dashboardSection}>
+            <div className={styles.dashboardSectionHeading}>
+              <div>
+                <h2>Staff operations</h2>
+                <p>Your shift, weekly hours, and assigned tasks.</p>
+              </div>
+              <Clock size={19} aria-hidden="true" />
+            </div>
           <div className={styles.staffOpsRow}>
             <div className={styles.opsCard}>
               <div className={styles.opsHeader}>
@@ -479,6 +475,7 @@ export default function HanbeeOverview() {
             </div>
             )}
           </div>
+          </section>
         </div>
       )}
     </div>

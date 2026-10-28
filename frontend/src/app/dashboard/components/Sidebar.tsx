@@ -118,13 +118,15 @@ export default function Sidebar({
     <>
       {/* Mobile overlay */}
       {isMobileMenuOpen && (
-        <div 
-          className={styles.sidebarOverlay} 
+        <button
+          type="button"
+          className={styles.sidebarOverlay}
           onClick={() => setIsMobileMenuOpen?.(false)}
+          aria-label="Close navigation menu"
         />
       )}
       
-      <aside className={`${styles.sidebar} ${isMobileMenuOpen ? styles.sidebarOpen : ""}`}>
+      <aside id="dashboard-sidebar" className={`${styles.sidebar} ${isMobileMenuOpen ? styles.sidebarOpen : ""}`}>
         <div className={styles.logo}>
           <span className={styles.logoMark} role="img" aria-label="Hanbee" />
         </div>
@@ -171,4 +173,3 @@ export default function Sidebar({
     </>
   );
 }
-

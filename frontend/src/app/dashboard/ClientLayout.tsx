@@ -23,7 +23,10 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
       
       {/* Main Content */}
       <div className={styles.mainArea}>
-        <Header toggleMobileMenu={() => setIsMobileMenuOpen(!isMobileMenuOpen)} />
+        <Header
+          toggleMobileMenu={() => setIsMobileMenuOpen((isOpen) => !isOpen)}
+          mobileMenuOpen={isMobileMenuOpen}
+        />
         <EmailNudgeBanner />
         <main className={styles.contentScroll}>
           <LearningComingSoon>{children}</LearningComingSoon>
@@ -32,4 +35,3 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
     </div>
   );
 }
-

@@ -666,3 +666,159 @@
     grid-template-columns: 1fr;
   }
 }
+
+.container {
+  gap: 24px;
+}
+
+.pageHeader {
+  padding: 24px 28px;
+}
+
+.overviewSections {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.dashboardSection {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.dashboardSectionHeading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 0 2px;
+}
+
+.dashboardSectionHeading h2 {
+  margin: 0;
+  color: var(--text-main);
+  font-family: var(--font-heading);
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.dashboardSectionHeading p {
+  margin: 4px 0 0;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.dashboardSectionHeading > svg {
+  box-sizing: content-box;
+  flex: 0 0 auto;
+  padding: 10px;
+  border: 1px solid var(--accent-subtle-border);
+  border-radius: 12px;
+  background: var(--accent-subtle-bg);
+  color: var(--accent-subtle-text);
+}
+
+.scoreSectionContent {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.circuitHero,
+.tableCard,
+.opsCard {
+  border-color: color-mix(in srgb, var(--text-main) 9%, transparent);
+  box-shadow: var(--elevation-card, var(--clay-shadow-outer));
+}
+
+.circuitHero {
+  padding: 26px 28px;
+}
+
+.staffOpsRow {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.opsCard {
+  min-width: 0;
+  padding: 20px;
+  border-radius: var(--clay-radius-md);
+  background: var(--bg-card);
+}
+
+.tableCard {
+  min-width: 0;
+  padding: 22px;
+}
+
+.tableWrapper {
+  max-width: 100%;
+  overscroll-behavior-x: contain;
+}
+
+.dataTable {
+  min-width: 660px;
+}
+
+@media (max-width: 1000px) {
+  .staffOpsRow {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .pageHeader {
+    align-items: stretch;
+  }
+
+  .headerActions {
+    width: 100%;
+  }
+
+  .headerActions .linkBtn {
+    flex: 1 1 180px;
+    justify-content: center;
+  }
+
+  .staffOpsRow {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .circuitHero,
+  .tableCard {
+    padding: 20px;
+  }
+}
+
+@media (max-width: 560px) {
+  .pageHeader {
+    padding: 20px;
+  }
+
+  .pageTitle {
+    font-size: 25px;
+  }
+
+  .staffOpsRow,
+  .circuitMetrics {
+    grid-template-columns: 1fr;
+  }
+
+  .headerActions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .headerActions .linkBtn {
+    flex-basis: auto;
+  }
+
+  .tableHeaderRow {
+    align-items: flex-start;
+  }
+}
