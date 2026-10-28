@@ -131,7 +131,7 @@ export default function Home() {
           zIndex: 10,
           backgroundColor: "#242432",
           backgroundImage:
-            "radial-gradient(ellipse 85% 65% at 50% 0%, rgba(125, 211, 232, 0.16), transparent 70%), radial-gradient(ellipse 70% 50% at 80% 80%, rgba(139, 92, 246, 0.12), transparent 60%), linear-gradient(180deg, #1e1e2a 0%, #262636 100%)",
+            "radial-gradient(ellipse 85% 65% at 50% 0%, rgba(157, 82, 20, 0.16), transparent 70%), radial-gradient(ellipse 70% 50% at 80% 80%, rgba(139, 92, 246, 0.12), transparent 60%), linear-gradient(180deg, #1e1e2a 0%, #262636 100%)",
           padding: "140px 40px",
         }}
       >
@@ -180,7 +180,7 @@ export default function Home() {
                 }}
               >
                 <div className={styles.orbBackground}></div>
-                <span style={{ position: "relative", zIndex: 2, fontFamily: "var(--font-body)", fontSize: "12px", letterSpacing: "0.1em", textTransform: "uppercase", color: "#7dd3e8", textShadow: "0 0 10px rgba(125, 211, 232, 0.4)" }}>
+                <span style={{ position: "relative", zIndex: 2, fontFamily: "var(--font-body)", fontSize: "12px", letterSpacing: "0.1em", textTransform: "uppercase", color: "#9d5214", textShadow: "0 0 10px rgba(157, 82, 20, 0.4)" }}>
                   {track.tag}
                 </span>
                 <h3 style={{ position: "relative", zIndex: 2, fontFamily: "var(--font-heading)", fontSize: "26px", fontWeight: 400, color: "#fff", margin: "14px 0 12px" }}>
@@ -192,7 +192,7 @@ export default function Home() {
                 <ul style={{ position: "relative", zIndex: 2, display: "flex", flexDirection: "column", gap: "12px" }}>
                   {track.points.map((point) => (
                     <li key={point} style={{ display: "flex", alignItems: "center", gap: "10px", fontFamily: "var(--font-body)", fontSize: "14px", color: "rgba(255,255,255,0.7)" }}>
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7dd3e8" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9d5214" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
                         <path d="M20 6L9 17l-5-5" />
                       </svg>
                       {point}
@@ -326,7 +326,7 @@ export default function Home() {
           zIndex: 10,
           backgroundColor: "#242432",
           backgroundImage:
-            "linear-gradient(rgba(30, 30, 42, 0.65), rgba(32, 32, 46, 0.78)), radial-gradient(ellipse 60% 70% at 50% 100%, rgba(8, 145, 178, 0.26), transparent 65%), url('/rc-detail.jpg')",
+            "linear-gradient(rgba(30, 30, 42, 0.65), rgba(32, 32, 46, 0.78)), radial-gradient(ellipse 60% 70% at 50% 100%, rgba(157, 82, 20, 0.26), transparent 65%), url('/rc-detail.jpg')",
           backgroundSize: "cover, cover, cover",
           backgroundPosition: "center, center, center 35%",
           backgroundRepeat: "no-repeat",
@@ -360,7 +360,7 @@ export default function Home() {
           </motion.a>
           <p style={{ fontFamily: "var(--font-body)", fontSize: "13.5px", color: "rgba(255,255,255,0.68)", marginTop: "18px" }}>
             Not ready to create an account?{" "}
-            <a href="/apply" style={{ color: "#7dd3e8", textDecoration: "underline" }}>Just ask us a question</a>
+            <a href="/apply" style={{ color: "#9d5214", textDecoration: "underline" }}>Just ask us a question</a>
           </p>
         </motion.div>
       </section>
