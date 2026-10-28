@@ -283,6 +283,11 @@
   overflow: hidden;
   background-color: #22222c;
   padding: 120px 40px;
+  display: flex;
+  justifyContent: center;
+  align-items: center;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .differentImageBg {
@@ -298,7 +303,7 @@
   height: 100%;
   object-fit: cover;
   object-position: center 38%;
-  filter: blur(2px) brightness(1.02) contrast(1.04);
+  filter: blur(2px) brightness(1.04) contrast(1.04);
   transform: scale(1.04);
 }
 
@@ -306,32 +311,112 @@
   position: absolute;
   inset: 0;
   background:
-    linear-gradient(to right,
-      rgba(18, 18, 28, 0.48) 0%,
-      rgba(22, 22, 34, 0.22) 45%,
-      rgba(18, 18, 28, 0.42) 100%),
+    radial-gradient(ellipse 90% 90% at 50% 50%, rgba(18, 18, 28, 0.30) 0%, rgba(14, 14, 24, 0.55) 100%),
     linear-gradient(180deg,
-      rgba(24, 24, 34, 0.35) 0%,
-      transparent 40%,
-      rgba(28, 28, 38, 0.78) 100%);
+      rgba(28, 28, 38, 0.75) 0%,
+      transparent 25%,
+      transparent 75%,
+      rgba(28, 28, 38, 0.80) 100%);
   z-index: 1;
   pointer-events: none;
 }
 
-.differentGrid {
+.doersCard {
   position: relative;
   z-index: 2;
-  display: grid;
-  grid-template-columns: 0.9fr 1.3fr;
-  gap: 64px;
-  max-width: 1280px;
+  width: 100%;
+  max-width: 1200px;
   margin: 0 auto;
+  border-radius: 32px;
+  padding: 64px 56px;
+  background: rgba(30, 30, 42, 0.72);
+  backdrop-filter: blur(20px) saturate(140%);
+  -webkit-backdrop-filter: blur(20px) saturate(140%);
+  border: 1px solid rgba(255, 255, 255, 0.20);
+  box-shadow: 
+    0 24px 70px -15px rgba(0, 0, 0, 0.45),
+    0 0 50px -10px rgba(125, 211, 232, 0.16),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25);
+  box-sizing: border-box;
+}
+
+.differentGrid {
+  display: grid;
+  grid-template-columns: 1fr 1.15fr;
+  gap: 56px;
+  align-items: center;
+}
+
+.categoryBadge {
+  display: inline-block;
+  font-family: var(--font-body);
+  font-size: 13px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #7dd3e8;
+  margin-bottom: 12px;
+}
+
+.doersTitle {
+  font-family: var(--font-heading);
+  font-size: clamp(32px, 3.6vw, 46px);
+  font-weight: 400;
+  color: #fff;
+  margin: 0 0 20px;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+}
+
+.doersDesc {
+  font-family: var(--font-body);
+  font-size: 16px;
+  color: rgba(255, 255, 255, 0.82);
+  line-height: 1.65;
+}
+
+.doersItem {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  position: relative;
+  z-index: 2;
+  background: rgba(255, 255, 255, 0.055);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  border-radius: 16px;
+  padding: 16px 20px;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.doersItem:hover {
+  background: rgba(255, 255, 255, 0.10);
+  border-color: rgba(125, 211, 232, 0.40);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3), 0 0 20px rgba(125, 211, 232, 0.12);
+}
+
+.doersItemTitle {
+  font-family: var(--font-heading);
+  font-weight: 500;
+  font-size: 17px;
+  color: #fff;
+  display: block;
+  margin-bottom: 4px;
+  letter-spacing: -0.01em;
+}
+
+.doersItemDesc {
+  font-family: var(--font-body);
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.72);
+  line-height: 1.5;
 }
 
 @media (max-width: 800px) {
   .differentGrid {
     grid-template-columns: 1fr;
     gap: 40px;
+  }
+  .doersCard {
+    padding: 40px 24px;
   }
 }
 

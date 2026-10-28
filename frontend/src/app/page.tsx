@@ -52,9 +52,9 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Why it's different - blurred photo background aesthetic */}
-      <div className={styles.differentSection}>
-        {/* Blurred Background Image */}
+      {/* Why it's different - glass box on photo background */}
+      <section className={styles.differentSection} id="platform">
+        {/* Background Image */}
         <div className={styles.differentImageBg}>
           <img
             src="/hanbee-cars.jpg"
@@ -64,64 +64,72 @@ export default function Home() {
           <div className={styles.differentOverlay} />
         </div>
 
-        <div className={styles.differentGrid}>
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-100px" }}
-          transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-          style={{ position: "relative", zIndex: 2, alignSelf: "start" }}
-        >
-          <span style={{ fontFamily: "var(--font-body)", fontSize: "13px", letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.68)" }}>
-            Beyond standard learning
-          </span>
-          <h2 style={{
-            fontFamily: "var(--font-heading)",
-            fontSize: "clamp(32px, 3.6vw, 46px)",
-            fontWeight: 400,
-            color: "#fff",
-            margin: "16px 0 20px",
-            letterSpacing: "-0.02em",
-            lineHeight: 1.1,
-            textShadow: "0 2px 16px rgba(0, 0, 0, 0.75)",
-          }}>
-            An LMS built for doers.
-          </h2>
-          <p style={{
-            fontFamily: "var(--font-body)",
-            fontSize: "16px",
-            color: "rgba(255, 255, 255, 0.75)",
-            lineHeight: 1.65,
-            textShadow: "0 1px 10px rgba(0, 0, 0, 0.75)",
-          }}>
-            From mastering core engineering concepts to building and programming your own FC racing car, Hanbee bridges the gap between theory and adrenaline-pumping reality.
-          </p>
-        </motion.div>
+        {/* Centered Glass Container Box */}
+        <div className={`${styles.doersCard} ${styles.differentGrid}`} style={{ margin: "0 auto" }}>
+          <div className={styles.orbBackground} style={{ opacity: 0.35 }}></div>
 
-        <div>
-          {[
-            { title: "Led by track pros", desc: "Learn directly from engineering veterans who design real-world flight controllers and autonomous systems." },
-            { title: "Live progress telemetry", desc: "Monitor your learning milestones like live race telemetry — visualize your growth from novice to track-ready." },
-            { title: "Pit-stop mentorship", desc: "Get 1-on-1 guidance when debugging your RC car's code or tuning its FC for maximum speed and control." },
-            { title: "Code, build, race", desc: "Learn the theory at home, then take your skills straight to the asphalt at the Hanbee RC Cup." },
-          ].map((feature, i) => (
-            <motion.div
-              key={feature.title}
-              className={styles.featureRow}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-50px" }}
-              transition={{ duration: 0.6, delay: i * 0.08, ease: [0.16, 1, 0.3, 1] }}
-              whileHover={{ x: 10, transition: { duration: 0.3, ease: [0.16, 1, 0.3, 1] } }}
-            >
-              <span className={styles.featureNum}>{String(i + 1).padStart(2, "0")}</span>
-              <h3 className={styles.featureTitle}>{feature.title}</h3>
-              <p className={styles.featureDesc}>{feature.desc}</p>
-            </motion.div>
-          ))}
+          <motion.div
+            initial={{ opacity: 0, x: -30 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true, margin: "-100px" }}
+            transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+            style={{ position: "relative", zIndex: 2 }}
+          >
+            <span className={styles.categoryBadge}>
+              Beyond standard learning
+            </span>
+            <h2 className={styles.doersTitle}>
+              An LMS built for doers.
+            </h2>
+            <p className={styles.doersDesc}>
+              From mastering core engineering concepts to building and programming your own FC racing car, Hanbee bridges the gap between theory and adrenaline-pumping reality.
+            </p>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, x: 30 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true, margin: "-100px" }}
+            transition={{ duration: 0.7, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
+            style={{ display: "flex", flexDirection: "column", gap: "16px", position: "relative", zIndex: 2 }}
+          >
+            {[
+              {
+                n: "01",
+                t: "Led by track pros",
+                d: "Learn directly from engineering veterans who design real-world flight controllers and autonomous systems."
+              },
+              {
+                n: "02",
+                t: "Live progress telemetry",
+                d: "Monitor your learning milestones like live race telemetry — visualize your growth from novice to track-ready."
+              },
+              {
+                n: "03",
+                t: "Pit-stop mentorship",
+                d: "Get 1-on-1 guidance when debugging your RC car's code or tuning its FC for maximum speed and control."
+              },
+              {
+                n: "04",
+                t: "Code, build, race",
+                d: "Learn the theory at home, then take your skills straight to the asphalt at the Hanbee RC Cup."
+              },
+            ].map((feature) => (
+              <motion.div
+                key={feature.t}
+                className={styles.doersItem}
+                whileHover={{ x: 6, transition: { duration: 0.25, ease: [0.16, 1, 0.3, 1] } }}
+              >
+                <span className={styles.glowingNumber} style={{ minWidth: "32px", margin: 0, marginTop: "2px" }}>{feature.n}</span>
+                <div>
+                  <strong className={styles.doersItemTitle}>{feature.t}</strong>
+                  <span className={styles.doersItemDesc}>{feature.d}</span>
+                </div>
+              </motion.div>
+            ))}
+          </motion.div>
         </div>
-      </div>
-      </div>
+      </section>
 
       {/* Two tracks, one platform */}
       <section
