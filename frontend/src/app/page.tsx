@@ -34,7 +34,7 @@ export default function Home() {
 
 
   return (
-    <main style={{ backgroundColor: "#1c1c22", position: "relative" }}>
+    <main style={{ backgroundColor: "#20202a", position: "relative" }}>
       <Navbar />
 
       {/* Hero section */}
@@ -129,9 +129,9 @@ export default function Home() {
         style={{
           position: "relative",
           zIndex: 10,
-          backgroundColor: "#202028",
+          backgroundColor: "#242432",
           backgroundImage:
-            "radial-gradient(ellipse 85% 65% at 50% 0%, rgba(125, 211, 232, 0.12), transparent 70%), radial-gradient(ellipse 70% 50% at 80% 80%, rgba(139, 92, 246, 0.08), transparent 60%), linear-gradient(180deg, #1a1a22 0%, #22222a 100%)",
+            "radial-gradient(ellipse 85% 65% at 50% 0%, rgba(125, 211, 232, 0.16), transparent 70%), radial-gradient(ellipse 70% 50% at 80% 80%, rgba(139, 92, 246, 0.12), transparent 60%), linear-gradient(180deg, #1e1e2a 0%, #262636 100%)",
           padding: "140px 40px",
         }}
       >
@@ -324,9 +324,9 @@ export default function Home() {
         style={{
           position: "relative",
           zIndex: 10,
-          backgroundColor: "#202028",
+          backgroundColor: "#242432",
           backgroundImage:
-            "linear-gradient(rgba(26, 26, 34, 0.75), rgba(28, 28, 38, 0.88)), radial-gradient(ellipse 60% 70% at 50% 100%, rgba(8, 145, 178, 0.22), transparent 65%), url('/rc-detail.jpg')",
+            "linear-gradient(rgba(30, 30, 42, 0.65), rgba(32, 32, 46, 0.78)), radial-gradient(ellipse 60% 70% at 50% 100%, rgba(8, 145, 178, 0.26), transparent 65%), url('/rc-detail.jpg')",
           backgroundSize: "cover, cover, cover",
           backgroundPosition: "center, center, center 35%",
           backgroundRepeat: "no-repeat",
@@ -366,7 +366,7 @@ export default function Home() {
       </section>
 
       {/* FAQ */}
-      <section style={{ position: "relative", zIndex: 10, backgroundColor: "#202028", padding: "100px 40px" }}>
+      <section style={{ position: "relative", zIndex: 10, backgroundColor: "#22222e", padding: "100px 40px" }}>
         <div style={{ maxWidth: "820px", margin: "0 auto" }}>
           <motion.p
             initial={{ opacity: 0, y: 16 }}
@@ -430,7 +430,7 @@ export default function Home() {
       </section>
 
       {/* Footer */}
-      <footer style={{ position: "relative", zIndex: 10, backgroundColor: "#181820", borderTop: "1px solid rgba(255,255,255,0.06)", padding: "56px 40px 32px" }}>
+      <footer style={{ position: "relative", zIndex: 10, backgroundColor: "#1c1c26", borderTop: "1px solid rgba(255,255,255,0.06)", padding: "56px 40px 32px" }}>
         <div style={{ maxWidth: "1200px", margin: "0 auto", display: "flex", flexWrap: "wrap", justifyContent: "space-between", gap: "32px", paddingBottom: "40px" }}>
           <div>
             <span style={{ fontFamily: "var(--font-logo, var(--font-heading))", fontSize: "22px", color: "#fff", letterSpacing: "0.02em" }}>HANBEE</span>
