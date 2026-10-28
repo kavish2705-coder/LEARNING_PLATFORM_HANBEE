@@ -46,6 +46,9 @@ begin
   if v_full_name is null then
     raise exception 'a full name is required';
   end if;
+  if v_email is null then
+    raise exception 'an email is required';
+  end if;
   if v_email !~ '^[^@\s]+@[^@\s]+\.[^@\s]+$' then
     raise exception 'invalid email';
   end if;

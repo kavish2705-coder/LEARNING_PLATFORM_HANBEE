@@ -61,6 +61,8 @@ r = await tryq("select staff_create_independent_invite('', 'rk5@x.test')");
 check("an empty full name is refused", !!r.e, r.e?.message);
 r = await tryq("select staff_create_independent_invite('Bad Email','not-an-email')");
 check("an invalid email is refused", !!r.e, r.e?.message);
+r = await tryq("select staff_create_independent_invite('Null Email', null)");
+check("a null email is refused", !!r.e, r.e?.message);
 r = await tryq("select staff_create_independent_invite('Taken','ava@student.edu')");
 check("an email already in use by a profile is refused", !!r.e, r.e?.message);
 
