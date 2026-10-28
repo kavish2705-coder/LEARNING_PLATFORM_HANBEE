@@ -40,8 +40,18 @@ export default function Hero() {
 
   return (
     <section className={styles.hero}>
-      {/* Background Image with Parallax */}
-      <motion.div className={styles.bgImage} style={{ y: yBg }} />
+      {/* Background Video with Parallax & Fallback Poster */}
+      <motion.div className={styles.bgVideoWrap} style={{ y: yBg }}>
+        <video
+          className={styles.bgVideo}
+          autoPlay
+          muted
+          playsInline
+          poster="/hero-bg.jpg"
+        >
+          <source src="/hero-video.mp4" type="video/mp4" />
+        </video>
+      </motion.div>
 
       {/* Futuristic Grid Overlay */}
       <div className={styles.gridOverlay} />

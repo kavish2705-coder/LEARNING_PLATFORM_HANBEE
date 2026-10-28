@@ -1,5 +1,6 @@
 "use client";
 
+import { useRef, useEffect } from "react";
 import { useScroll, useTransform, motion } from "framer-motion";
 import Navbar from "@/components/Navbar/Navbar";
 import Hero from "@/components/Hero/Hero";
@@ -9,6 +10,27 @@ const tickerItems = ["BUILD THE FLIGHT CONTROLLER", "CODE IT YOURSELF", "RACE AT
 
 export default function Home() {
   const { scrollY } = useScroll();
+  const schoolVideoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    const video = schoolVideoRef.current;
+    if (!video) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            video.play().catch(() => {});
+            observer.unobserve(video);
+          }
+        });
+      },
+      { threshold: 0.2 }
+    );
+
+    observer.observe(video);
+    return () => observer.disconnect();
+  }, []);
 
 
   return (
@@ -30,29 +52,19 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Why it's different - asymmetric split, no icon-card cliche */}
-      <div
-        style={{
-          position: "relative",
-          zIndex: 10,
-          backgroundColor: "#1c1c1e",
-          backgroundImage:
-            "linear-gradient(rgba(20, 16, 10, 0.82), rgba(20, 16, 10, 0.93)), url('/hero-waterfall.jpg')",
-          backgroundSize: "cover",
-          backgroundPosition: "center 30%",
-          backgroundRepeat: "no-repeat",
-          padding: "120px 40px",
-        }}
-      >
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "0.9fr 1.3fr",
-          gap: "64px",
-          maxWidth: "1280px",
-          margin: "0 auto",
-        }}
-      >
+      {/* Why it's different - blurred photo background aesthetic */}
+      <div className={styles.differentSection}>
+        {/* Blurred Background Image */}
+        <div className={styles.differentImageBg}>
+          <img
+            src="/hanbee-cars.jpg"
+            alt="Hanbee RC Racing Cars"
+            className={styles.differentImage}
+          />
+          <div className={styles.differentOverlay} />
+        </div>
+
+        <div className={styles.differentGrid}>
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -71,14 +83,16 @@ export default function Home() {
             margin: "16px 0 20px",
             letterSpacing: "-0.02em",
             lineHeight: 1.1,
+            textShadow: "0 2px 16px rgba(0, 0, 0, 0.75)",
           }}>
             An LMS built for doers.
           </h2>
           <p style={{
             fontFamily: "var(--font-body)",
             fontSize: "16px",
-            color: "rgba(255, 255, 255, 0.55)",
+            color: "rgba(255, 255, 255, 0.75)",
             lineHeight: 1.65,
+            textShadow: "0 1px 10px rgba(0, 0, 0, 0.75)",
           }}>
             From mastering core engineering concepts to building and programming your own FC racing car, Hanbee bridges the gap between theory and adrenaline-pumping reality.
           </p>
@@ -232,32 +246,37 @@ export default function Home() {
       </section>
 
       {/* For schools */}
-      <section
-        id="educators"
-        style={{
-          position: "relative",
-          zIndex: 10,
-          backgroundColor: "#1c1c1e",
-          padding: "100px 40px 140px",
-          display: "flex",
-          justifyContent: "center",
-        }}
-      >
-        <div className={`${styles.glassCard} ${styles.schoolGrid}`} style={{ width: "100%", maxWidth: "1200px", borderRadius: "32px", padding: "64px 48px" }}>
-          <div className={styles.orbBackground} style={{ opacity: 0.6 }}></div>
+      <section className={styles.schoolSection} id="educators">
+        {/* Background Race Track Video */}
+        <div className={styles.schoolVideoBg}>
+          <video
+            ref={schoolVideoRef}
+            className={styles.schoolVideo}
+            playsInline
+            muted
+            preload="auto"
+          >
+            <source src="/race-track-video.mp4" type="video/mp4" />
+          </video>
+          <div className={styles.schoolOverlay} />
+        </div>
+
+        <div className={`${styles.schoolCard} ${styles.schoolGrid}`} style={{ margin: "0 auto" }}>
+          <div className={styles.orbBackground} style={{ opacity: 0.35 }}></div>
           <motion.div
             initial={{ opacity: 0, x: -30 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true, margin: "-100px" }}
             transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+            style={{ position: "relative", zIndex: 2 }}
           >
-            <span style={{ fontFamily: "var(--font-body)", fontSize: "13px", letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)" }}>
+            <span style={{ fontFamily: "var(--font-body)", fontSize: "13px", letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.6)" }}>
               For schools
             </span>
             <h2 style={{ fontFamily: "var(--font-heading)", fontSize: "clamp(28px, 3.4vw, 40px)", fontWeight: 400, color: "#fff", margin: "16px 0 20px", letterSpacing: "-0.02em" }}>
               Bring your students to the track and the classroom.
             </h2>
-            <p style={{ fontFamily: "var(--font-body)", fontSize: "16px", color: "rgba(255,255,255,0.55)", lineHeight: 1.65, marginBottom: "32px" }}>
+            <p style={{ fontFamily: "var(--font-body)", fontSize: "16px", color: "rgba(255,255,255,0.72)", lineHeight: 1.65, marginBottom: "32px" }}>
               Register your school, and once a Hanbee staff member verifies it, invite your students, form tournament teams, and follow their course progress — all from one dashboard.
             </p>
             <motion.a
@@ -277,7 +296,7 @@ export default function Home() {
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true, margin: "-100px" }}
             transition={{ duration: 0.7, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
-            style={{ display: "flex", flexDirection: "column", gap: "20px" }}
+            style={{ display: "flex", flexDirection: "column", gap: "16px", position: "relative", zIndex: 2 }}
           >
             {[
               { n: "01", t: "Register your school", d: "Share your school's name — no paperwork required to get started." },
@@ -285,11 +304,15 @@ export default function Home() {
               { n: "03", t: "Invite your students", d: "Send join links by email, bulk or one at a time." },
               { n: "04", t: "Track and compete", d: "Form teams for the tournament and follow classroom progress." },
             ].map((step) => (
-              <li key={step.n} style={{ display: "flex", gap: "16px", alignItems: "flex-start", position: "relative", zIndex: 2 }}>
+              <li
+                key={step.n}
+                className={styles.schoolStepItem}
+                style={{ display: "flex", gap: "16px", alignItems: "flex-start", position: "relative", zIndex: 2 }}
+              >
                 <span className={styles.glowingNumber} style={{ minWidth: "28px", margin: 0, marginTop: "2px" }}>{step.n}</span>
                 <div>
                   <strong style={{ fontFamily: "var(--font-heading)", fontWeight: 500, fontSize: "16px", color: "#fff", display: "block", marginBottom: "4px" }}>{step.t}</strong>
-                  <span style={{ fontFamily: "var(--font-body)", fontSize: "14px", color: "rgba(255,255,255,0.5)" }}>{step.d}</span>
+                  <span style={{ fontFamily: "var(--font-body)", fontSize: "14px", color: "rgba(255,255,255,0.68)" }}>{step.d}</span>
                 </div>
               </li>
             ))}
