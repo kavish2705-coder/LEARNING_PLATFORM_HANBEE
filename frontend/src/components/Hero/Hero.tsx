@@ -8,29 +8,31 @@ export default function Hero() {
   const yBg = useTransform(scrollY, [0, 1000], [0, 300]);
   const opacityText = useTransform(scrollY, [0, 400], [1, 0]);
   const containerVariant = {
-    hidden: { opacity: 1 },
+    hidden: { opacity: 0 },
     visible: {
       opacity: 1,
       transition: {
-        staggerChildren: 0.018,
-        delayChildren: 0.3,
+        staggerChildren: 0.02,
+        delayChildren: 0.22,
       },
     },
   };
 
   const charVariant: any = {
-    hidden: { opacity: 0, y: 30, scale: 0.9, filter: "blur(8px)", rotateX: -30 },
+    hidden: { 
+      opacity: 0, 
+      y: 26, 
+      filter: "blur(10px)", 
+      scale: 0.96 
+    },
     visible: {
       opacity: 1,
       y: 0,
-      scale: 1,
       filter: "blur(0px)",
-      rotateX: 0,
+      scale: 1,
       transition: {
-        type: "spring",
-        stiffness: 150,
-        damping: 12,
-        mass: 0.8
+        duration: 0.65,
+        ease: [0.16, 1, 0.3, 1],
       },
     },
   };
@@ -47,7 +49,7 @@ export default function Hero() {
           autoPlay
           muted
           playsInline
-          poster="/hero-bg.jpg"
+          preload="auto"
         >
           <source src="/hero-video.mp4" type="video/mp4" />
         </video>

@@ -131,10 +131,7 @@ export default function Home() {
           zIndex: 10,
           backgroundColor: "#1c1c1e",
           backgroundImage:
-            "linear-gradient(rgba(26, 20, 16, 0.78), rgba(22, 19, 20, 0.95)), url('/bg_light.png')",
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-          backgroundRepeat: "no-repeat",
+            "radial-gradient(ellipse 80% 60% at 50% 0%, rgba(125, 211, 232, 0.08), transparent 70%), linear-gradient(180deg, #16151a 0%, #1c1c1e 100%)",
           padding: "140px 40px",
         }}
       >
@@ -176,6 +173,7 @@ export default function Home() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: "-60px" }}
                 transition={{ duration: 0.65, delay: i * 0.12, ease: [0.16, 1, 0.3, 1] }}
+                whileHover={{ y: -6, scale: 1.015, transition: { duration: 0.3, ease: [0.16, 1, 0.3, 1] } }}
                 style={{
                   borderRadius: "28px",
                   padding: "40px",

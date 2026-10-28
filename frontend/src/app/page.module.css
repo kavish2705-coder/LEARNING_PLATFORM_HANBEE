@@ -9,6 +9,7 @@
   display: flex;
   width: max-content;
   animation: marquee 28s linear infinite;
+  will-change: transform;
 }
 
 .marqueeItem {
@@ -49,7 +50,7 @@
   gap: 32px;
   padding: 36px 0;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  transition: border-color 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .featureRow:first-child {
@@ -57,7 +58,12 @@
 }
 
 .featureRow:hover {
-  border-color: rgba(8, 145, 178, 0.4);
+  border-color: rgba(125, 211, 232, 0.45);
+  transform: translateX(6px);
+}
+
+.featureRow:hover .featureTitle {
+  color: #7dd3e8;
 }
 
 .featureNum {

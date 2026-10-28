@@ -17,7 +17,7 @@
   bottom: -10vh;
   z-index: 0;
   overflow: hidden;
-  background-color: #0e0e11;
+  background-color: #0b0a0d;
 }
 
 .bgVideo {
@@ -25,21 +25,13 @@
   height: 100%;
   object-fit: cover;
   object-position: center;
-  filter: brightness(0.82) contrast(1.06);
+  filter: brightness(0.84) contrast(1.06);
+  background-color: #0b0a0d;
 }
 
 /* Background Image Fallback */
 .bgImage {
-  position: absolute;
-  top: -10vh;
-  left: 0;
-  right: 0;
-  bottom: -10vh;
-  background-image: url('/hero-bg.jpg');
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-  z-index: 0;
+  display: none;
 }
 
 /* Futuristic Grid Overlay */
@@ -104,13 +96,23 @@
 
 /* Tagline */
 .tagline {
-  font-family: var(--font-accent);
-  font-size: 13px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-body);
+  font-size: 12px;
   font-weight: 500;
-  color: rgba(255, 255, 255, 0.6);
-  letter-spacing: 6px;
+  color: #7dd3e8;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
-  margin-bottom: 16px;
+  margin-bottom: 22px;
+  padding: 6px 16px;
+  border-radius: 9999px;
+  background: rgba(125, 211, 232, 0.08);
+  border: 1px solid rgba(125, 211, 232, 0.22);
+  box-shadow: 0 0 20px rgba(125, 211, 232, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 /* Heading */
