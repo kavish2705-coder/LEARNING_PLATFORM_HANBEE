@@ -34,7 +34,7 @@ export default function Home() {
 
 
   return (
-    <main style={{ backgroundColor: "#1c1c1e", position: "relative" }}>
+    <main style={{ backgroundColor: "#1c1c22", position: "relative" }}>
       <Navbar />
 
       {/* Hero section */}
@@ -72,7 +72,7 @@ export default function Home() {
           transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
           style={{ position: "relative", zIndex: 2, alignSelf: "start" }}
         >
-          <span style={{ fontFamily: "var(--font-body)", fontSize: "13px", letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)" }}>
+          <span style={{ fontFamily: "var(--font-body)", fontSize: "13px", letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.68)" }}>
             Beyond standard learning
           </span>
           <h2 style={{
@@ -129,9 +129,9 @@ export default function Home() {
         style={{
           position: "relative",
           zIndex: 10,
-          backgroundColor: "#1c1c1e",
+          backgroundColor: "#202028",
           backgroundImage:
-            "radial-gradient(ellipse 80% 60% at 50% 0%, rgba(125, 211, 232, 0.08), transparent 70%), linear-gradient(180deg, #16151a 0%, #1c1c1e 100%)",
+            "radial-gradient(ellipse 85% 65% at 50% 0%, rgba(125, 211, 232, 0.12), transparent 70%), radial-gradient(ellipse 70% 50% at 80% 80%, rgba(139, 92, 246, 0.08), transparent 60%), linear-gradient(180deg, #1a1a22 0%, #22222a 100%)",
           padding: "140px 40px",
         }}
       >
@@ -143,7 +143,7 @@ export default function Home() {
             transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
             style={{ textAlign: "center", maxWidth: "680px", margin: "0 auto 72px" }}
           >
-            <span style={{ fontFamily: "var(--font-body)", fontSize: "13px", letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)" }}>
+            <span style={{ fontFamily: "var(--font-body)", fontSize: "13px", letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.68)" }}>
               What you get
             </span>
             <h2 style={{ fontFamily: "var(--font-heading)", fontSize: "clamp(32px, 4vw, 48px)", fontWeight: 400, color: "#fff", margin: "16px 0 0", letterSpacing: "-0.02em" }}>
@@ -186,7 +186,7 @@ export default function Home() {
                 <h3 style={{ position: "relative", zIndex: 2, fontFamily: "var(--font-heading)", fontSize: "26px", fontWeight: 400, color: "#fff", margin: "14px 0 12px" }}>
                   {track.title}
                 </h3>
-                <p style={{ position: "relative", zIndex: 2, fontFamily: "var(--font-body)", fontSize: "16px", color: "rgba(255,255,255,0.55)", lineHeight: 1.6, marginBottom: "24px" }}>
+                <p style={{ position: "relative", zIndex: 2, fontFamily: "var(--font-body)", fontSize: "16px", color: "rgba(255,255,255,0.78)", lineHeight: 1.6, marginBottom: "24px" }}>
                   {track.desc}
                 </p>
                 <ul style={{ position: "relative", zIndex: 2, display: "flex", flexDirection: "column", gap: "12px" }}>
@@ -209,7 +209,7 @@ export default function Home() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-40px" }}
               transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-              style={{ fontFamily: "var(--font-body)", fontSize: "13px", letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)", marginBottom: "20px" }}
+              style={{ fontFamily: "var(--font-body)", fontSize: "13px", letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.68)", marginBottom: "20px" }}
             >
               Inside the RC track
             </motion.p>
@@ -235,7 +235,7 @@ export default function Home() {
                 >
                   <div className={styles.glowingNumber}>{String(i + 1).padStart(2, "0")}</div>
                   <div style={{ position: "relative", zIndex: 2, fontFamily: "var(--font-heading)", fontSize: "18px", color: "#fff", marginBottom: "8px" }}>{item.stage}</div>
-                  <div style={{ position: "relative", zIndex: 2, fontFamily: "var(--font-body)", fontSize: "14px", color: "rgba(255,255,255,0.5)", lineHeight: 1.5 }}>{item.desc}</div>
+                  <div style={{ position: "relative", zIndex: 2, fontFamily: "var(--font-body)", fontSize: "14px", color: "rgba(255,255,255,0.72)", lineHeight: 1.5 }}>{item.desc}</div>
                 </motion.div>
               ))}
             </div>
@@ -324,9 +324,9 @@ export default function Home() {
         style={{
           position: "relative",
           zIndex: 10,
-          backgroundColor: "#1c1c1e",
+          backgroundColor: "#202028",
           backgroundImage:
-            "linear-gradient(rgba(20, 20, 22, 0.88), rgba(20, 20, 22, 0.95)), radial-gradient(ellipse 60% 70% at 50% 100%, rgba(8, 145, 178, 0.14), transparent 65%), url('/rc-detail.jpg')",
+            "linear-gradient(rgba(26, 26, 34, 0.75), rgba(28, 28, 38, 0.88)), radial-gradient(ellipse 60% 70% at 50% 100%, rgba(8, 145, 178, 0.22), transparent 65%), url('/rc-detail.jpg')",
           backgroundSize: "cover, cover, cover",
           backgroundPosition: "center, center, center 35%",
           backgroundRepeat: "no-repeat",
@@ -341,7 +341,7 @@ export default function Home() {
           transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
           style={{ maxWidth: "800px", margin: "0 auto", textAlign: "center" }}
         >
-          <span style={{ fontFamily: "var(--font-body)", fontSize: "13px", letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)" }}>
+          <span style={{ fontFamily: "var(--font-body)", fontSize: "13px", letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.68)" }}>
             Why Hanbee
           </span>
           <h2 style={{ fontFamily: "var(--font-heading)", fontSize: "clamp(26px, 3.2vw, 36px)", fontWeight: 400, color: "#fff", margin: "16px 0 0", lineHeight: 1.4, letterSpacing: "-0.01em" }}>
@@ -358,7 +358,7 @@ export default function Home() {
             Start learning
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14" /><path d="M12 5l7 7-7 7" /></svg>
           </motion.a>
-          <p style={{ fontFamily: "var(--font-body)", fontSize: "13.5px", color: "rgba(255,255,255,0.4)", marginTop: "18px" }}>
+          <p style={{ fontFamily: "var(--font-body)", fontSize: "13.5px", color: "rgba(255,255,255,0.68)", marginTop: "18px" }}>
             Not ready to create an account?{" "}
             <a href="/apply" style={{ color: "#7dd3e8", textDecoration: "underline" }}>Just ask us a question</a>
           </p>
@@ -366,14 +366,14 @@ export default function Home() {
       </section>
 
       {/* FAQ */}
-      <section style={{ position: "relative", zIndex: 10, backgroundColor: "#1c1c1e", padding: "100px 40px" }}>
+      <section style={{ position: "relative", zIndex: 10, backgroundColor: "#202028", padding: "100px 40px" }}>
         <div style={{ maxWidth: "820px", margin: "0 auto" }}>
           <motion.p
             initial={{ opacity: 0, y: 16 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-60px" }}
             transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-            style={{ fontFamily: "var(--font-body)", fontSize: "13px", letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)", textAlign: "center", marginBottom: "16px" }}
+            style={{ fontFamily: "var(--font-body)", fontSize: "13px", letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.68)", textAlign: "center", marginBottom: "16px" }}
           >
             Questions
           </motion.p>
@@ -421,7 +421,7 @@ export default function Home() {
               <summary style={{ fontFamily: "var(--font-heading)", fontSize: "18px", fontWeight: 400, color: "#fff", listStyle: "none" }}>
                 {item.q}
               </summary>
-              <p style={{ fontFamily: "var(--font-body)", fontSize: "15px", color: "rgba(255,255,255,0.55)", lineHeight: 1.65, marginTop: "14px" }}>
+              <p style={{ fontFamily: "var(--font-body)", fontSize: "15px", color: "rgba(255,255,255,0.78)", lineHeight: 1.65, marginTop: "14px" }}>
                 {item.a}
               </p>
             </motion.details>
@@ -430,11 +430,11 @@ export default function Home() {
       </section>
 
       {/* Footer */}
-      <footer style={{ position: "relative", zIndex: 10, backgroundColor: "#161618", borderTop: "1px solid rgba(255,255,255,0.06)", padding: "56px 40px 32px" }}>
+      <footer style={{ position: "relative", zIndex: 10, backgroundColor: "#181820", borderTop: "1px solid rgba(255,255,255,0.06)", padding: "56px 40px 32px" }}>
         <div style={{ maxWidth: "1200px", margin: "0 auto", display: "flex", flexWrap: "wrap", justifyContent: "space-between", gap: "32px", paddingBottom: "40px" }}>
           <div>
             <span style={{ fontFamily: "var(--font-logo, var(--font-heading))", fontSize: "22px", color: "#fff", letterSpacing: "0.02em" }}>HANBEE</span>
-            <p style={{ fontFamily: "var(--font-body)", fontSize: "14px", color: "rgba(255,255,255,0.4)", marginTop: "10px", maxWidth: "280px" }}>
+            <p style={{ fontFamily: "var(--font-body)", fontSize: "14px", color: "rgba(255,255,255,0.68)", marginTop: "10px", maxWidth: "280px" }}>
               Learn beyond the obvious. Build beyond the expected.
             </p>
           </div>

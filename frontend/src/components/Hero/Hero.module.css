@@ -17,7 +17,7 @@
   bottom: -10vh;
   z-index: 0;
   overflow: hidden;
-  background-color: #0b0a0d;
+  background-color: #121218;
 }
 
 .bgVideo {
@@ -25,8 +25,8 @@
   height: 100%;
   object-fit: cover;
   object-position: center;
-  filter: brightness(0.84) contrast(1.06);
-  background-color: #0b0a0d;
+  filter: brightness(0.96) contrast(1.04);
+  background-color: #121218;
 }
 
 /* Background Image Fallback */
@@ -56,7 +56,7 @@
   width: 50vw;
   height: 50vw;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(125, 211, 232, 0.12) 0%, rgba(139, 92, 246, 0.08) 30%, transparent 70%);
+  background: radial-gradient(circle, rgba(125, 211, 232, 0.22) 0%, rgba(139, 92, 246, 0.14) 35%, transparent 70%);
   filter: blur(80px);
   z-index: 1;
   animation: floatOrb 12s ease-in-out infinite alternate;
@@ -74,13 +74,13 @@
   inset: 0;
   background: 
     linear-gradient(to right,
-      rgba(0, 0, 0, 0.72) 0%,
-      rgba(0, 0, 0, 0.42) 45%,
-      rgba(0, 0, 0, 0.22) 100%),
+      rgba(12, 14, 20, 0.52) 0%,
+      rgba(14, 16, 24, 0.25) 45%,
+      rgba(14, 16, 24, 0.06) 100%),
     linear-gradient(to bottom,
-      rgba(15, 15, 18, 0.4) 0%,
+      rgba(15, 16, 22, 0.22) 0%,
       transparent 35%,
-      rgba(28, 28, 30, 0.95) 100%);
+      rgba(24, 25, 32, 0.88) 100%);
   z-index: 2;
   pointer-events: none;
 }
