@@ -99,6 +99,7 @@ export default function MyTeamPage() {
 
   const currentUserName = profile?.full_name || "You";
   const currentUserId = profile?.id || "";
+  const teamSizeLimit = Math.min(tournament?.team_size ?? MAX_TEAM_SIZE, MAX_TEAM_SIZE);
 
   // Real data check: if the database returns a real team with members, use ONLY real data.
   const realTeam = formation?.my_team;
@@ -145,7 +146,7 @@ export default function MyTeamPage() {
             </span>
             <span className={styles.schoolBadge}>
               <Users size={13} />
-              {memberCount}/{MAX_TEAM_SIZE} Drivers (Min: {MIN_TEAM_SIZE})
+              {memberCount}/{teamSizeLimit} Drivers (Min: {MIN_TEAM_SIZE})
             </span>
           </div>
 
@@ -170,6 +171,28 @@ export default function MyTeamPage() {
         </div>
       )}
 
+      {team?.status === "proposed" && (
+        <div className={styles.formSection} role="status">
+          <div className={styles.formHeader}>
+            <h2 className={styles.formTitle}>Waiting for school staff approval</h2>
+            <p className={styles.formSubtitle}>
+              Your team will appear in Hanbee&apos;s tournament entry review after your school approves it and confirms the payment declaration.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {(team?.status === "applied" || team?.status === "payment_declared") && (
+        <div className={styles.formSection} role="status">
+          <div className={styles.formHeader}>
+            <h2 className={styles.formTitle}>Waiting for Hanbee review</h2>
+            <p className={styles.formSubtitle}>
+              Your school has submitted this team. It is now in the tournament entry review queue.
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Tabs Navigation */}
       <div className={styles.tabsBar}>
         <button
@@ -178,7 +201,7 @@ export default function MyTeamPage() {
           onClick={() => setActiveTab("roster")}
         >
           <Users size={16} />
-          Driver Roster ({memberCount}/{MAX_TEAM_SIZE})
+          Driver Roster ({memberCount}/{teamSizeLimit})
         </button>
         <button
           type="button"
@@ -234,7 +257,7 @@ export default function MyTeamPage() {
               <div className={styles.slotsInfo}>
                 <div className={styles.slotsTitle}>
                   <ShieldCheck size={16} color="var(--accent-subtle-text)" />
-                  Team Roster Capacity: {memberCount} of {MAX_TEAM_SIZE} Drivers (Min: {MIN_TEAM_SIZE})
+                  Team Roster Capacity: {memberCount} of {teamSizeLimit} Drivers (Min: {MIN_TEAM_SIZE})
                 </div>
                 <div className={styles.slotsDesc}>
                   Official tournament teams require between 1 and 5 registered students. All teammates have equal track eligibility.
@@ -242,7 +265,7 @@ export default function MyTeamPage() {
               </div>
 
               <div className={styles.slotsVisual}>
-                {[1, 2, 3, 4, 5].map((slotNum) => {
+                {Array.from({ length: teamSizeLimit }, (_, index) => index + 1).map((slotNum) => {
                   const isFilled = slotNum <= memberCount;
                   return (
                     <button
@@ -324,7 +347,7 @@ export default function MyTeamPage() {
                   <div>
                     <strong style={{ fontSize: 15 }}>{invitation.team_name}</strong>
                     <div style={{ fontSize: 12, color: "var(--text-muted)" }}>
-                      {invitation.members} / {MAX_TEAM_SIZE} members
+                      {invitation.members} / {teamSizeLimit} members
                     </div>
                   </div>
 
@@ -357,14 +380,14 @@ export default function MyTeamPage() {
               <div className={styles.formHeader}>
                 <h2 className={styles.formTitle}>Invite Classmates to Squad</h2>
                 <p className={styles.formSubtitle}>
-                  Current size: {memberCount} of {MAX_TEAM_SIZE} players.{" "}
-                  {memberCount < MAX_TEAM_SIZE
-                    ? `${MAX_TEAM_SIZE - memberCount} slot${MAX_TEAM_SIZE - memberCount === 1 ? "" : "s"} remaining.`
-                    : "Your squad has reached the maximum capacity of 5 students."}
+                  Current size: {memberCount} of {teamSizeLimit} players.{" "}
+                  {memberCount < teamSizeLimit
+                    ? `${teamSizeLimit - memberCount} slot${teamSizeLimit - memberCount === 1 ? "" : "s"} remaining.`
+                    : `Your squad has reached the maximum capacity of ${teamSizeLimit} students.`}
                 </p>
               </div>
 
-              {memberCount < MAX_TEAM_SIZE ? (
+              {memberCount < teamSizeLimit ? (
                 <form onSubmit={inviteClassmate} className={styles.inlineForm}>
                   <Dropdown
                     id="team-invitee"
@@ -450,7 +473,7 @@ export default function MyTeamPage() {
               <div className={styles.formHeader}>
                 <h2 className={styles.formTitle}>Submit Squad for School Staff Approval</h2>
                 <p className={styles.formSubtitle}>
-                  Teams with 1 to 5 players are eligible for official submission.
+                  Teams with 1 to {teamSizeLimit} players are eligible for school staff approval. School team slots determine how many teams your school can enter.
                 </p>
               </div>
 
@@ -458,10 +481,10 @@ export default function MyTeamPage() {
                 <button
                   type="button"
                   className={styles.actionBtn}
-                  disabled={busy || memberCount < MIN_TEAM_SIZE || memberCount > MAX_TEAM_SIZE}
+                  disabled={busy || memberCount < MIN_TEAM_SIZE || memberCount > teamSizeLimit}
                   onClick={() => void runAction(() => submitStudentTeam(team.id), "Squad submitted to school staff for verification.")}
                 >
-                  Submit Team for Verification ({memberCount}/{MAX_TEAM_SIZE} Players)
+                  Submit Team for School Approval ({memberCount}/{teamSizeLimit} Players)
                 </button>
 
                 <button
