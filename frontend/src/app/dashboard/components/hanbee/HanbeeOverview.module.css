@@ -608,13 +608,10 @@
   box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.04);
 }
 
-/* Staff Operations Section */
-.staffOpsRow {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 20px;
-}
-
+/* Staff Operations Section -- single definition; see the canonical
+   .staffOpsRow rule and its breakpoints further down (was previously
+   duplicated here and again below with conflicting column counts,
+   producing an unpredictable 2-then-1 wrap on desktop). */
 .opsCard {
   background: var(--bg-card);
   box-shadow: var(--clay-shadow-outer);
@@ -661,9 +658,6 @@
   }
   .circuitMetrics {
     grid-template-columns: 1fr 1fr;
-  }
-  .staffOpsRow {
-    grid-template-columns: 1fr;
   }
 }
 
@@ -740,6 +734,7 @@
 }
 
 .staffOpsRow {
+  display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 16px;
 }
@@ -785,10 +780,6 @@
     justify-content: center;
   }
 
-  .staffOpsRow {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
   .circuitHero,
   .tableCard {
     padding: 20px;
@@ -796,6 +787,10 @@
 }
 
 @media (max-width: 560px) {
+  .staffOpsRow {
+    grid-template-columns: 1fr;
+  }
+
   .pageHeader {
     padding: 20px;
   }

@@ -2,13 +2,14 @@
   overflow: hidden;
   border-top: 1px solid rgba(255, 255, 255, 0.08);
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  background: #141416;
+  background: var(--landing-surface-2);
 }
 
 .marqueeTrack {
   display: flex;
   width: max-content;
   animation: marquee 28s linear infinite;
+  will-change: transform;
 }
 
 .marqueeItem {
@@ -28,13 +29,18 @@
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: #0891b2;
+  background: var(--landing-accent);
   flex-shrink: 0;
 }
 
 @keyframes marquee {
-  from { transform: translateX(0); }
-  to { transform: translateX(-50%); }
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    transform: translateX(-50%);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -49,7 +55,7 @@
   gap: 32px;
   padding: 36px 0;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  transition: border-color 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .featureRow:first-child {
@@ -57,7 +63,12 @@
 }
 
 .featureRow:hover {
-  border-color: rgba(8, 145, 178, 0.4);
+  border-color: color-mix(in srgb, var(--landing-accent) 45%, transparent);
+  transform: translateX(6px);
+}
+
+.featureRow:hover .featureTitle {
+  color: var(--landing-accent);
 }
 
 .featureNum {
@@ -76,14 +87,16 @@
   min-width: 260px;
   flex-shrink: 0;
   letter-spacing: -0.01em;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.7);
 }
 
 .featureDesc {
   font-family: var(--font-body);
   font-size: 15px;
   line-height: 1.6;
-  color: rgba(255, 255, 255, 0.5);
+  color: rgba(255, 255, 255, 0.7);
   max-width: 460px;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.7);
 }
 
 .faqItem summary {
@@ -115,6 +128,7 @@
     flex-direction: column;
     gap: 8px;
   }
+
   .featureTitle {
     min-width: 0;
   }
@@ -122,13 +136,13 @@
 
 /* Futuristic Utilities */
 .glassCard {
-  background: rgba(30, 30, 35, 0.4);
-  backdrop-filter: blur(24px) saturate(120%);
-  -webkit-backdrop-filter: blur(24px) saturate(120%);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  box-shadow: 
-    0 24px 40px -10px rgba(0, 0, 0, 0.6),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  background: rgba(45, 45, 60, 0.65);
+  backdrop-filter: blur(24px) saturate(130%);
+  -webkit-backdrop-filter: blur(24px) saturate(130%);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  box-shadow:
+    0 16px 40px -10px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.22);
   transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
   position: relative;
   overflow: hidden;
@@ -137,10 +151,13 @@
 .glassCard::before {
   content: '';
   position: absolute;
-  top: 0; left: 0; right: 0; bottom: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   border-radius: inherit;
   padding: 1px;
-  background: linear-gradient(135deg, rgba(255,255,255,0.2) 0%, transparent 40%, transparent 60%, rgba(125,211,232,0.15) 100%);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, transparent 40%, transparent 60%, color-mix(in srgb, var(--landing-accent) 15%, transparent) 100%);
   -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor;
   mask-composite: exclude;
@@ -150,32 +167,34 @@
 .glassCard:hover {
   background: rgba(40, 40, 50, 0.5);
   transform: translateY(-4px);
-  box-shadow: 
+  box-shadow:
     0 30px 60px -15px rgba(0, 0, 0, 0.7),
-    0 0 40px rgba(125, 211, 232, 0.1),
+    0 0 40px color-mix(in srgb, var(--landing-accent) 10%, transparent),
     inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 
 .glowingNumber {
   font-family: monospace;
   font-size: 14px;
-  color: #7dd3e8;
-  text-shadow: 0 0 12px rgba(125, 211, 232, 0.6);
+  color: var(--landing-accent);
+  text-shadow: 0 0 12px color-mix(in srgb, var(--landing-accent) 60%, transparent);
   margin-bottom: 12px;
 }
 
 .glowText {
   color: #fff;
-  text-shadow: 0 0 20px rgba(255,255,255,0.2);
+  text-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
 }
 
 /* Glass Orb Background for Sections */
 .orbBackground {
   position: absolute;
-  top: 50%; left: 50%;
+  top: 50%;
+  left: 50%;
   transform: translate(-50%, -50%);
-  width: 100%; height: 100%;
-  background: radial-gradient(circle at 50% 50%, rgba(125, 211, 232, 0.05) 0%, rgba(139, 92, 246, 0.03) 40%, transparent 70%);
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle at 50% 50%, color-mix(in srgb, var(--landing-accent) 5%, transparent) 0%, rgba(139, 92, 246, 0.03) 40%, transparent 70%);
   filter: blur(100px);
   pointer-events: none;
   z-index: 0;
@@ -183,9 +202,21 @@
 
 .schoolGrid {
   display: grid;
-  grid-template-columns: 1.1fr 1fr;
-  gap: 56px;
+  grid-template-columns: 1.1fr 0.85fr 1fr;
+  gap: 40px;
   align-items: center;
+}
+
+@media (max-width: 1080px) {
+  .schoolGrid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .schoolVisualFrame {
+    grid-column: 1 / -1;
+    max-width: 420px;
+    margin: 0 auto;
+  }
 }
 
 .aboutGrid {
@@ -196,7 +227,9 @@
 }
 
 @media (max-width: 800px) {
-  .schoolGrid, .aboutGrid {
+
+  .schoolGrid,
+  .aboutGrid {
     grid-template-columns: 1fr;
     gap: 40px;
   }
@@ -211,21 +244,21 @@
   font-size: 14.5px;
   font-weight: 500;
   color: #ffffff;
-  
+
   /* Ultra-Realistic Liquid Glass Effect */
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.15);
   border-top-color: rgba(255, 255, 255, 0.4);
   border-left-color: rgba(255, 255, 255, 0.3);
-  box-shadow: 
+  box-shadow:
     -2px 0 4px rgba(255, 0, 80, 0.15),
-    2px 0 4px rgba(0, 200, 255, 0.15),
+    2px 0 4px color-mix(in srgb, var(--landing-accent) 15%, transparent),
     inset 0 1px 2px rgba(255, 255, 255, 0.5),
     inset 0 -1px 2px rgba(255, 255, 255, 0.1),
     0 8px 32px rgba(0, 0, 0, 0.15);
   backdrop-filter: blur(24px) saturate(140%) brightness(1.15);
   -webkit-backdrop-filter: blur(24px) saturate(140%) brightness(1.15);
-  
+
   padding: 12px 28px;
   border-radius: 50px;
   text-decoration: none;
@@ -235,9 +268,9 @@
 
 .liquidGlassBtn:hover {
   background: rgba(255, 255, 255, 0.1);
-  box-shadow: 
+  box-shadow:
     -3px 0 6px rgba(255, 0, 80, 0.25),
-    3px 0 6px rgba(0, 200, 255, 0.25),
+    3px 0 6px color-mix(in srgb, var(--landing-accent) 25%, transparent),
     inset 0 1px 3px rgba(255, 255, 255, 0.6),
     inset 0 -1px 3px rgba(255, 255, 255, 0.2),
     0 12px 40px rgba(0, 0, 0, 0.2);
@@ -253,3 +286,328 @@
   transform: translateX(4px);
 }
 
+
+
+/* Blurred Video Section ("An LMS built for doers") */
+.differentSection {
+  position: relative;
+  z-index: 10;
+  overflow: hidden;
+  background-color: var(--landing-surface-3);
+  padding: 120px 40px;
+  display: flex;
+  justifyContent: center;
+  align-items: center;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.differentImageBg {
+  position: absolute;
+  inset: -12px;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.differentImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 38%;
+  filter: blur(2px) brightness(1.04) contrast(1.04);
+  transform: scale(1.04);
+}
+
+.differentOverlay {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 90% 90% at 50% 50%, rgba(18, 18, 28, 0.30) 0%, rgba(14, 14, 24, 0.55) 100%),
+    linear-gradient(180deg,
+      rgba(28, 28, 38, 0.75) 0%,
+      transparent 25%,
+      transparent 75%,
+      rgba(28, 28, 38, 0.80) 100%);
+  z-index: 1;
+  pointer-events: none;
+}
+
+.doersCard,
+.schoolCard {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  border-radius: var(--landing-radius-card);
+  padding: 64px 56px;
+  background: rgba(30, 30, 42, 0.72);
+  backdrop-filter: blur(20px) saturate(140%);
+  -webkit-backdrop-filter: blur(20px) saturate(140%);
+  border: 1px solid rgba(255, 255, 255, 0.20);
+  /* One accent glow for both -- .doersCard previously used a cyan
+     (rgba(125,211,232,...)) that appeared nowhere else on the page while
+     .schoolCard used the real amber accent right next to it; same card,
+     two different undocumented "accents" for no reason. */
+  box-shadow:
+    0 24px 70px -15px rgba(0, 0, 0, 0.45),
+    0 0 50px -10px var(--landing-accent-glow),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25);
+  box-sizing: border-box;
+}
+
+.differentGrid {
+  display: grid;
+  grid-template-columns: 1fr 1.15fr;
+  gap: 56px;
+  align-items: center;
+}
+
+.categoryBadge {
+  display: inline-block;
+  font-family: var(--font-body);
+  font-size: var(--landing-eyebrow);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--landing-accent);
+  margin-bottom: 12px;
+}
+
+.doersTitle {
+  font-family: var(--font-heading);
+  font-size: var(--landing-h2);
+  font-weight: 400;
+  color: #fff;
+  margin: 0 0 20px;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+}
+
+.doersDesc {
+  font-family: var(--font-body);
+  font-size: 16px;
+  color: rgba(255, 255, 255, 0.82);
+  line-height: 1.65;
+}
+
+.doersItem {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  position: relative;
+  z-index: 2;
+  background: rgba(255, 255, 255, 0.055);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  border-radius: 16px;
+  padding: 16px 20px;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.doersItem:hover {
+  background: rgba(255, 255, 255, 0.10);
+  border-color: var(--landing-accent-glow);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3), 0 0 20px var(--landing-accent-glow);
+}
+
+.doersItemTitle {
+  font-family: var(--font-heading);
+  font-weight: 500;
+  font-size: 17px;
+  color: #fff;
+  display: block;
+  margin-bottom: 4px;
+  letter-spacing: -0.01em;
+}
+
+.doersItemDesc {
+  font-family: var(--font-body);
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.72);
+  line-height: 1.5;
+}
+
+@media (max-width: 800px) {
+  .differentGrid {
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
+  .doersCard {
+    padding: 40px 24px;
+  }
+}
+
+
+/* Race Track Video Section ("For schools") */
+.schoolSection {
+  position: relative;
+  z-index: 10;
+  overflow: hidden;
+  background-color: var(--landing-surface-3);
+  padding: 120px 40px;
+  display: flex;
+  justifyContent: center;
+  align-items: center;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.schoolVideoBg {
+  position: absolute;
+  inset: -8px;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.schoolVideo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  filter: brightness(1.02) contrast(1.02);
+  transform: scale(1.02);
+}
+
+.schoolOverlay {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 90% 90% at 50% 50%, rgba(16, 16, 26, 0.28) 0%, rgba(14, 14, 24, 0.52) 100%),
+    linear-gradient(180deg,
+      rgba(28, 28, 38, 0.75) 0%,
+      transparent 25%,
+      transparent 75%,
+      rgba(28, 28, 38, 0.80) 100%);
+  z-index: 1;
+  pointer-events: none;
+}
+
+.schoolStepItem {
+  background: rgba(255, 255, 255, 0.065);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 14px;
+  padding: 14px 18px;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.schoolStepItem:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: color-mix(in srgb, var(--landing-accent) 45%, transparent);
+  transform: translateX(4px);
+}
+
+/* ===== Build showcase: the exploded-parts diagram ties the "Inside the
+   RC track" curriculum cards above it to the actual physical car ===== */
+.buildGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 56px;
+  align-items: center;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+@media (max-width: 860px) {
+  .buildGrid {
+    grid-template-columns: 1fr;
+    gap: 36px;
+  }
+}
+
+/* ===== One shared frame for every real product photo on the page
+   (build diagram, two-car banner, schools top-down shot) -- these three
+   previously had three different radii (24/24/20px) and border opacities
+   (0.12/0.12/0.14) despite looking like they should be the same
+   component. One base, one override point (--landing-radius-photo). ===== */
+.photoFrame {
+  position: relative;
+  border-radius: var(--landing-radius-photo);
+  overflow: hidden;
+  border: 1px solid var(--landing-card-border);
+  box-shadow: 0 30px 80px -20px rgba(0, 0, 0, 0.6), 0 0 60px -20px var(--landing-accent-glow);
+  background: var(--landing-surface-1);
+}
+
+.photoFrame img {
+  width: 100%;
+  display: block;
+  /* The four real product photos were shot warm (golden-hour window
+     light on a wood table); the UI around them is a cool purple-black.
+     Pulling the warmth down and lifting contrast slightly brings them
+     into the same family instead of reading as a separate warm "product
+     catalog" shoot dropped into a cool sci-fi page. */
+  filter: saturate(0.86) brightness(0.96) contrast(1.05) hue-rotate(-6deg);
+}
+
+/* Soft vignette so the photo's corners feather into the frame's own
+   background instead of ending in a hard rectangle -- sits above the
+   image, below nothing (frame has no other overlay content). */
+.photoFrame::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(ellipse 72% 72% at 50% 50%, transparent 58%, var(--landing-surface-1) 100%);
+  opacity: 0.65;
+}
+
+.buildImageFrame {
+  composes: photoFrame;
+}
+
+/* ===== Photo banner (the two-car angle shot) -- the source photo is
+   near-square, so this is a contained, framed image (not a full-bleed
+   cover crop, which would cut one of the two cars off the edge). ===== */
+.photoBanner {
+  position: relative;
+  padding: 100px 40px;
+  background-color: var(--landing-surface-1);
+  background-image: radial-gradient(ellipse 70% 60% at 50% 0%, var(--landing-accent-glow), transparent 65%);
+  text-align: center;
+}
+
+.photoBannerFrame {
+  composes: photoFrame;
+  max-width: 820px;
+  margin: 0 auto;
+}
+
+/* Covers a small AI-generation watermark baked into the bottom-right
+   corner of the source photo -- blurred rather than a flat color patch
+   so it reads as part of the photo's own soft-focus table surface
+   instead of an obvious sticker. */
+.photoWatermarkPatch {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 17%;
+  height: 20%;
+  pointer-events: none;
+  backdrop-filter: blur(14px) saturate(90%);
+  -webkit-backdrop-filter: blur(14px) saturate(90%);
+  background: radial-gradient(ellipse 80% 80% at 70% 70%, rgba(20, 14, 10, 0.55), transparent 75%);
+  -webkit-mask-image: radial-gradient(ellipse 90% 90% at 75% 75%, #000 55%, transparent 100%);
+  mask-image: radial-gradient(ellipse 90% 90% at 75% 75%, #000 55%, transparent 100%);
+}
+
+.photoBannerImg {
+  width: 100%;
+  display: block;
+}
+
+.photoBannerContent {
+  position: relative;
+  z-index: 2;
+  max-width: 680px;
+  margin: 0 auto 40px;
+}
+
+/* ===== Framed top-down image used inside "For schools" ===== */
+.schoolVisualFrame {
+  composes: photoFrame;
+}
+
+.schoolVisualFrame img {
+  object-fit: cover;
+}

@@ -12,6 +12,25 @@
   font-display: swap;
 }
 
+/* Self-hosted fallback for the Kavish landing page (/page.tsx), used there
+   via an inline --font-heading override scoped to that page's <main> so the
+   rest of the app keeps its existing --font-heading (Rajdhani). */
+@font-face {
+  font-family: 'Afacad';
+  src: url('/fonts/Afacad-Regular.woff2') format('woff2');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Afacad';
+  src: url('/fonts/Afacad-Italic.woff2') format('woff2');
+  font-weight: 100 900;
+  font-style: italic;
+  font-display: swap;
+}
+
 /* ===== CSS RESET ===== */
 *,
 *::before,
@@ -92,6 +111,27 @@ img {
   --color-cta-text: rgb(63, 58, 58);
   --color-signin: #d9d9d9;
   --color-icon-muted: rgb(161, 155, 155);
+
+  /* Landing page (/page.tsx) tokens -- prefixed so they never collide with
+     the dashboard's own theme.css tokens. Previously every section on the
+     landing page hardcoded its own near-black hex and its own shade of
+     amber inline, so nothing traced back to one accent or one background
+     scale -- that's what produced the "mismatched theme" look across
+     sections. One accent, one 5-step surface scale, one type scale. */
+  --landing-accent: #c9782f;
+  --landing-accent-glow: rgba(201, 120, 47, 0.28);
+  --landing-surface-1: #17171f; /* darkest -- banners, photo backdrops */
+  --landing-surface-2: #1c1c26; /* base section background */
+  --landing-surface-3: #22222c; /* alternating section background */
+  --landing-surface-4: #262636; /* raised panels within a section */
+  --landing-card-bg: rgba(255, 255, 255, 0.055);
+  --landing-card-border: rgba(255, 255, 255, 0.12);
+  --landing-radius-card: 24px;
+  --landing-radius-photo: 22px;
+  --landing-h1: clamp(34px, 4.4vw, 56px);
+  --landing-h2: clamp(28px, 3.4vw, 42px);
+  --landing-h3: clamp(20px, 2vw, 26px);
+  --landing-eyebrow: 13px;
 
   /* Glass */
   --glass-bg: rgba(30, 28, 28, 0.51);

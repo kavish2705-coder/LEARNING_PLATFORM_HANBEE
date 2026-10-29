@@ -88,6 +88,13 @@ export interface TournamentApplication {
   submitted_at: string | null;
 }
 
+export interface TeamRosterMember {
+  student_id: string;
+  full_name: string | null;
+  org_id_at_join: string | null;
+  joined_at: string;
+}
+
 async function rpc<T>(functionName: string, args: Record<string, unknown>): Promise<T> {
   return authenticatedSupabaseFetch<T>(`/rest/v1/rpc/${functionName}`, {
     method: "POST",
@@ -149,6 +156,10 @@ export function fetchTournamentApplicationQueue() {
 
 export function decideTournamentApplication(teamId: string, decision: "verified" | "rejected") {
   return rpc<null>("decide_team", { p_team: teamId, p_decision: decision });
+}
+
+export function getTeamRoster(teamId: string) {
+  return rpc<TeamRosterMember[]>("get_team_roster", { p_team: teamId });
 }
 
 export function fetchMyTeamFormation(tournamentId: string) {

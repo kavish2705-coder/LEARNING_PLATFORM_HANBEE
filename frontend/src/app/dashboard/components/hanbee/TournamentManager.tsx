@@ -75,14 +75,14 @@ export default function TournamentManager() {
   }
 
   return (
-    <section style={{ marginTop: 32 }}>
+    <section>
       <div className={styles.pageHeader}>
         <h2 className={styles.pageTitle}>Tournament management</h2>
         <p className={styles.pageSubtitle}>Create the next event and manage event dates and status.</p>
       </div>
       {error && <p role="alert">{error}</p>}{notice && <p role="status">{notice}</p>}
       <form className={styles.sectionCard} onSubmit={submit} style={{ marginBottom: 20 }}>
-        <h3>{editingId ? "Edit tournament" : "Create tournament"}</h3>
+        <h3 className={styles.tableTitle}>{editingId ? "Edit tournament" : "Create tournament"}</h3>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 12, marginTop: 14 }}>
           <label>Title<Input value={form.title} onChange={(event) => setForm({ ...form, title: event.target.value })} required maxLength={180} /></label>
           <label>Venue<Input value={form.venue} onChange={(event) => setForm({ ...form, venue: event.target.value })} maxLength={240} /></label>
@@ -91,14 +91,27 @@ export default function TournamentManager() {
           {editingId && <label>Status<Select value={form.status} onChange={(event) => setForm({ ...form, status: event.target.value as TournamentStatus })}><option value="upcoming">Upcoming</option><option value="live">Live</option><option value="completed">Completed</option></Select></label>}
         </div>
         <label style={{ display: "block", marginTop: 12 }}>Description<Textarea value={form.description} onChange={(event) => setForm({ ...form, description: event.target.value })} maxLength={4000} rows={3} style={{ display: "block", width: "100%" }} /></label>
-        <div style={{ display: "flex", gap: 10, marginTop: 14 }}><button type="submit" disabled={saving}>{saving ? "Saving…" : editingId ? "Save tournament" : "Create tournament"}</button>{editingId && <button type="button" disabled={saving} onClick={() => { setEditingId(""); setForm(blank); }}>Cancel</button>}</div>
+        <div style={{ display: "flex", gap: 10, marginTop: 14 }}>
+          <button type="submit" className={styles.primaryBtn} disabled={saving}>{saving ? "Saving…" : editingId ? "Save tournament" : "Create tournament"}</button>
+          {editingId && <button type="button" className={styles.filterBtn} disabled={saving} onClick={() => { setEditingId(""); setForm(blank); }}>Cancel</button>}
+        </div>
       </form>
-      {loading ? <p role="status">Loading tournament list…</p> : <div style={{ display: "grid", gap: 12 }}>
+      {loading ? <p role="status" className={styles.sectionCard}>Loading tournament list…</p> : tournaments.length === 0 ? (
+        <div className={styles.sectionCard} style={{ textAlign: "center", padding: "32px 20px", color: "var(--text-muted)" }}>
+          No tournaments have been created yet. Use the form above to schedule the next one.
+        </div>
+      ) : <div style={{ display: "grid", gap: 12 }}>
         {tournaments.map((row) => <article key={row.id} className={styles.sectionCard}>
-          <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}><div><h3>{row.title}</h3><p style={{ color: "var(--text-muted)" }}>{new Date(row.starts_at).toLocaleString()} – {new Date(row.ends_at).toLocaleString()}</p><p>{row.venue || "Venue not set"} · {row.team_size} per team · {row.status}</p></div><button type="button" disabled={saving} onClick={() => edit(row)}>Edit</button></div>
+          <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+            <div>
+              <h3 className={styles.tableTitle}>{row.title}</h3>
+              <p style={{ color: "var(--text-muted)" }}>{new Date(row.starts_at).toLocaleString()} – {new Date(row.ends_at).toLocaleString()}</p>
+              <p>{row.venue || "Venue not set"} · {row.team_size} per team · {row.status}</p>
+            </div>
+            <button type="button" className={styles.filterBtn} disabled={saving} onClick={() => edit(row)}>Edit</button>
+          </div>
           {row.description && <p style={{ marginTop: 10 }}>{row.description}</p>}
         </article>)}
-        {tournaments.length === 0 && <p>No tournaments have been created.</p>}
       </div>}
     </section>
   );
