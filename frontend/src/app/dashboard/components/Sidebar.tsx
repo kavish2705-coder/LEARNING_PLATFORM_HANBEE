@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { 
   LayoutDashboard, BookOpen, Clock, Bell, Settings, Trophy, 
   Users, MessageSquare, Bot, School, CalendarDays, ClipboardList, 
-  UserCheck, LogOut, ClipboardCheck, Activity, IdCard
+  UserCheck, LogOut, ClipboardCheck, Activity, IdCard, UserPlus
 } from "lucide-react";
 import styles from "../layout.module.css";
 import ModeSwitcher from "./ModeSwitcher";
@@ -50,6 +50,7 @@ const staffMenu = [
   { name: "Schools", href: "/dashboard/hanbee/schools", icon: School },
   { name: "Courses", href: "/dashboard/hanbee/courses", icon: BookOpen },
   { name: "Tournament entries", href: "/dashboard/hanbee/tournament", icon: Users },
+  { name: "Independent students", href: "/dashboard/hanbee/independent-students", icon: UserPlus },
   { name: "Applications", href: "/dashboard/hanbee/applications", icon: ClipboardList },
   { name: "Quiz reviews", href: "/dashboard/hanbee/assessment-reviews", icon: ClipboardCheck },
   { name: "Schedule", href: "/dashboard/hanbee/schedule", icon: CalendarDays },
@@ -68,6 +69,7 @@ const managerMenu = [
   { name: "Course applications", href: "/dashboard/hanbee/applications", icon: ClipboardList },
   { name: "Quiz reviews", href: "/dashboard/hanbee/assessment-reviews", icon: ClipboardCheck },
   { name: "Tournament entries", href: "/dashboard/hanbee/tournament", icon: Users },
+  { name: "Independent students", href: "/dashboard/hanbee/independent-students", icon: UserPlus },
   { name: "Hanbee staff", href: "/dashboard/manager/hanbee-staff", icon: Users },
   { name: "Tasks", href: "/dashboard/manager/tasks", icon: ClipboardList },
   { name: "Schedule", href: "/dashboard/hanbee/schedule", icon: CalendarDays },
