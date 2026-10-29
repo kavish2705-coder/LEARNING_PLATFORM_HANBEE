@@ -1,16 +1,23 @@
 "use client";
 
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useState } from "react";
 import { useScroll, useTransform, motion } from "framer-motion";
 import Navbar from "@/components/Navbar/Navbar";
 import Hero from "@/components/Hero/Hero";
+import IndependentStudentModal from "@/components/IndependentStudentModal/IndependentStudentModal";
 import styles from "./page.module.css";
 
-const tickerItems = ["BUILD THE FLIGHT CONTROLLER", "CODE IT YOURSELF", "RACE AT THE HANBEE RC CUP", "LEARN JAVA · DSA · REACT"];
+const tickerItems = [
+  "BUILD THE FLIGHT CONTROLLER",
+  "CODE IT YOURSELF",
+  "RACE AT THE HANBEE RC CUP",
+  "LEARN JAVA · DSA · REACT",
+];
 
 export default function Home() {
   const { scrollY } = useScroll();
   const schoolVideoRef = useRef<HTMLVideoElement>(null);
+  const [isStudentModalOpen, setIsStudentModalOpen] = useState(false);
 
   useEffect(() => {
     const video = schoolVideoRef.current;
@@ -32,15 +39,14 @@ export default function Home() {
     return () => observer.disconnect();
   }, []);
 
-
   return (
     <main style={{ backgroundColor: "#20202a", position: "relative" }}>
       <Navbar />
 
-      {/* Hero section */}
-      <Hero />
+      {/* Hero section with Independent Student Modal trigger */}
+      <Hero onOpenStudentModal={() => setIsStudentModalOpen(true)} />
 
-      {/* Moving ticker strip - breaks straight into the hero's bottom edge */}
+      {/* Moving ticker strip */}
       <div className={styles.marqueeWrap} style={{ position: "relative", zIndex: 10 }}>
         <div className={styles.marqueeTrack}>
           {[...tickerItems, ...tickerItems].map((item, i) => (
@@ -131,19 +137,20 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Two tracks, one platform */}
-      <section
-        id="courses"
-        style={{
-          position: "relative",
-          zIndex: 10,
-          backgroundColor: "#242432",
-          backgroundImage:
-            "radial-gradient(ellipse 85% 65% at 50% 0%, rgba(157, 82, 20, 0.16), transparent 70%), radial-gradient(ellipse 70% 50% at 80% 80%, rgba(139, 92, 246, 0.12), transparent 60%), linear-gradient(180deg, #1e1e2a 0%, #262636 100%)",
-          padding: "140px 40px",
-        }}
-      >
-        <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
+      {/* Two tracks, one platform - Redesigned Cyber Glass */}
+      <section id="courses" className={styles.coursesSection}>
+        {/* Futuristic Circuit Background */}
+        <div className={styles.coursesImageBg}>
+          <img
+            src="/courses-track-bg.jpg"
+            alt="Hanbee RC Racing Circuit"
+            className={styles.coursesImage}
+          />
+          <div className={styles.coursesOverlay} />
+        </div>
+        <div className={styles.orbBackground} style={{ opacity: 0.25 }} />
+
+        <div style={{ maxWidth: "1200px", margin: "0 auto", position: "relative", zIndex: 2 }}>
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -151,7 +158,7 @@ export default function Home() {
             transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
             style={{ textAlign: "center", maxWidth: "680px", margin: "0 auto 72px" }}
           >
-            <span style={{ fontFamily: "var(--font-body)", fontSize: "13px", letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.68)" }}>
+            <span className={styles.categoryBadge}>
               What you get
             </span>
             <h2 style={{ fontFamily: "var(--font-heading)", fontSize: "clamp(32px, 4vw, 48px)", fontWeight: 400, color: "#fff", margin: "16px 0 0", letterSpacing: "-0.02em" }}>
@@ -162,45 +169,41 @@ export default function Home() {
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(380px, 1fr))", gap: "32px" }}>
             {[
               {
-                tag: "Tournament",
+                tag: "Tournament Track",
                 title: "Design, build, and race.",
-                desc: "Program your own RC car's flight controller, form a team with your school, and compete at the Hanbee RC Cup. Solo entries welcome too.",
-                points: ["Team or solo tournament entry", "Live leaderboard and results", "School-verified rosters"],
+                desc: "Program your own RC car's flight controller, form a team with your school, or join solo as an independent racer at the Hanbee RC Cup.",
+                points: ["Team or solo tournament entry", "Live leaderboard and race telemetry", "School & independent verified rosters"],
               },
               {
-                tag: "Classroom",
+                tag: "Classroom Track",
                 title: "Learn the fundamentals that matter.",
                 desc: "Structured courses in Java, data structures, and React — video lessons, written notes, and auto-graded quizzes that unlock as you go.",
-                points: ["Self-paced video and notes", "Auto-graded lesson checks", "Progress tracked per course"],
+                points: ["Self-paced video lessons and notes", "Auto-graded challenges and milestone checks", "Progress tracked per skill level"],
               },
             ].map((track, i) => (
               <motion.div
                 key={track.tag}
-                className={styles.glassCard}
+                className={styles.coursesTrackCard}
                 initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: "-60px" }}
                 transition={{ duration: 0.65, delay: i * 0.12, ease: [0.16, 1, 0.3, 1] }}
                 whileHover={{ y: -6, scale: 1.015, transition: { duration: 0.3, ease: [0.16, 1, 0.3, 1] } }}
-                style={{
-                  borderRadius: "28px",
-                  padding: "40px",
-                }}
               >
-                <div className={styles.orbBackground}></div>
-                <span style={{ position: "relative", zIndex: 2, fontFamily: "var(--font-body)", fontSize: "12px", letterSpacing: "0.1em", textTransform: "uppercase", color: "#9d5214", textShadow: "0 0 10px rgba(157, 82, 20, 0.4)" }}>
+                <div className={styles.orbBackground} style={{ opacity: 0.2 }} />
+                <span className={styles.categoryBadge} style={{ marginBottom: "14px", display: "inline-block" }}>
                   {track.tag}
                 </span>
-                <h3 style={{ position: "relative", zIndex: 2, fontFamily: "var(--font-heading)", fontSize: "26px", fontWeight: 400, color: "#fff", margin: "14px 0 12px" }}>
+                <h3 style={{ position: "relative", zIndex: 2, fontFamily: "var(--font-heading)", fontSize: "26px", fontWeight: 400, color: "#fff", margin: "0 0 14px", letterSpacing: "-0.01em" }}>
                   {track.title}
                 </h3>
-                <p style={{ position: "relative", zIndex: 2, fontFamily: "var(--font-body)", fontSize: "16px", color: "rgba(255,255,255,0.78)", lineHeight: 1.6, marginBottom: "24px" }}>
+                <p style={{ position: "relative", zIndex: 2, fontFamily: "var(--font-body)", fontSize: "16px", color: "rgba(255,255,255,0.78)", lineHeight: 1.6, marginBottom: "26px" }}>
                   {track.desc}
                 </p>
-                <ul style={{ position: "relative", zIndex: 2, display: "flex", flexDirection: "column", gap: "12px" }}>
+                <ul style={{ position: "relative", zIndex: 2, display: "flex", flexDirection: "column", gap: "12px", padding: 0, margin: 0, listStyle: "none" }}>
                   {track.points.map((point) => (
-                    <li key={point} style={{ display: "flex", alignItems: "center", gap: "10px", fontFamily: "var(--font-body)", fontSize: "14px", color: "rgba(255,255,255,0.7)" }}>
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9d5214" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+                    <li key={point} style={{ display: "flex", alignItems: "center", gap: "12px", fontFamily: "var(--font-body)", fontSize: "14.5px", color: "rgba(255,255,255,0.8)" }}>
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fb7185" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
                         <path d="M20 6L9 17l-5-5" />
                       </svg>
                       {point}
@@ -217,11 +220,11 @@ export default function Home() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-40px" }}
               transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-              style={{ fontFamily: "var(--font-body)", fontSize: "13px", letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.68)", marginBottom: "20px" }}
+              style={{ fontFamily: "var(--font-body)", fontSize: "13px", letterSpacing: "0.12em", textTransform: "uppercase", color: "#fde047", marginBottom: "20px" }}
             >
               Inside the RC track
             </motion.p>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "20px" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: "20px" }}>
               {[
                 { stage: "Flight controller fundamentals", desc: "Wire and program the brain of your car." },
                 { stage: "Chassis & tuning", desc: "Suspension, gearing, and getting the balance right." },
@@ -230,18 +233,16 @@ export default function Home() {
               ].map((item, i) => (
                 <motion.div
                   key={item.stage}
-                  className={styles.glassCard}
+                  className={styles.coursesStageCard}
                   initial={{ opacity: 0, y: 30, scale: 0.95 }}
                   whileInView={{ opacity: 1, y: 0, scale: 1 }}
                   viewport={{ once: true, margin: "-40px" }}
                   transition={{ type: "spring", stiffness: 120, damping: 14, delay: i * 0.1 }}
-                  whileHover={{ y: -8, scale: 1.02, transition: { type: "spring", stiffness: 300, damping: 20 } }}
-                  style={{
-                    borderRadius: "18px",
-                    padding: "24px",
-                  }}
+                  whileHover={{ y: -6, scale: 1.02, transition: { type: "spring", stiffness: 300, damping: 20 } }}
                 >
-                  <div className={styles.glowingNumber}>{String(i + 1).padStart(2, "0")}</div>
+                  <div className={styles.glowingNumber} style={{ color: "#fde047", textShadow: "0 0 14px rgba(244, 63, 94, 0.55)", marginBottom: "8px" }}>
+                    {String(i + 1).padStart(2, "0")}
+                  </div>
                   <div style={{ position: "relative", zIndex: 2, fontFamily: "var(--font-heading)", fontSize: "18px", color: "#fff", marginBottom: "8px" }}>{item.stage}</div>
                   <div style={{ position: "relative", zIndex: 2, fontFamily: "var(--font-body)", fontSize: "14px", color: "rgba(255,255,255,0.72)", lineHeight: 1.5 }}>{item.desc}</div>
                 </motion.div>
@@ -276,7 +277,7 @@ export default function Home() {
             transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
             style={{ position: "relative", zIndex: 2 }}
           >
-            <span style={{ fontFamily: "var(--font-body)", fontSize: "13px", letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.6)" }}>
+            <span className={styles.categoryBadge}>
               For schools
             </span>
             <h2 style={{ fontFamily: "var(--font-heading)", fontSize: "clamp(28px, 3.4vw, 40px)", fontWeight: 400, color: "#fff", margin: "16px 0 20px", letterSpacing: "-0.02em" }}>
@@ -326,79 +327,71 @@ export default function Home() {
         </div>
       </section>
 
-      {/* About */}
-      <section
-        id="about"
-        style={{
-          position: "relative",
-          zIndex: 10,
-          backgroundColor: "#242432",
-          backgroundImage:
-            "linear-gradient(rgba(30, 30, 42, 0.65), rgba(32, 32, 46, 0.78)), radial-gradient(ellipse 60% 70% at 50% 100%, rgba(157, 82, 20, 0.26), transparent 65%), url('/rc-detail.jpg')",
-          backgroundSize: "cover, cover, cover",
-          backgroundPosition: "center, center, center 35%",
-          backgroundRepeat: "no-repeat",
-          padding: "100px 40px",
-          overflow: "hidden",
-        }}
-      >
+      {/* About - Redesigned Centered Floating Frosted Glass Card */}
+      <section id="about" className={styles.whyHanbeeSection}>
         <motion.div
+          className={styles.whyHanbeeCard}
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-100px" }}
           transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-          style={{ maxWidth: "800px", margin: "0 auto", textAlign: "center" }}
         >
-          <span style={{ fontFamily: "var(--font-body)", fontSize: "13px", letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.68)" }}>
+          <div className={styles.orbBackground} style={{ opacity: 0.35 }} />
+          <span className={styles.categoryBadge}>
             Why Hanbee
           </span>
-          <h2 style={{ fontFamily: "var(--font-heading)", fontSize: "clamp(26px, 3.2vw, 36px)", fontWeight: 400, color: "#fff", margin: "16px 0 0", lineHeight: 1.4, letterSpacing: "-0.01em" }}>
+          <h2 style={{ fontFamily: "var(--font-heading)", fontSize: "clamp(26px, 3.2vw, 36px)", fontWeight: 400, color: "#fff", margin: "16px 0 0", lineHeight: 1.4, letterSpacing: "-0.01em", position: "relative", zIndex: 2 }}>
             Most courses end where the real learning starts. We built Hanbee so the thing you coded actually has to work — on a track, against the clock, against other teams.
           </h2>
-          <motion.a
-            href="/login"
-            className={styles.liquidGlassBtn}
-            style={{ marginTop: "40px" }}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.97 }}
-            transition={{ type: "spring", stiffness: 400, damping: 17 }}
-          >
-            Start learning
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14" /><path d="M12 5l7 7-7 7" /></svg>
-          </motion.a>
-          <p style={{ fontFamily: "var(--font-body)", fontSize: "13.5px", color: "rgba(255,255,255,0.68)", marginTop: "18px" }}>
-            Not ready to create an account?{" "}
-            <a href="/apply" style={{ color: "#9d5214", textDecoration: "underline" }}>Just ask us a question</a>
-          </p>
+          <div style={{ marginTop: "40px", position: "relative", zIndex: 2, display: "flex", flexDirection: "column", alignItems: "center" }}>
+            <motion.a
+              href="/login"
+              className={styles.liquidGlassBtn}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.97 }}
+              transition={{ type: "spring", stiffness: 400, damping: 17 }}
+            >
+              Start learning
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14" /><path d="M12 5l7 7-7 7" /></svg>
+            </motion.a>
+            <p style={{ fontFamily: "var(--font-body)", fontSize: "13.5px", color: "rgba(255,255,255,0.68)", marginTop: "18px" }}>
+              Not ready to create an account?{" "}
+              <button
+                type="button"
+                onClick={() => setIsStudentModalOpen(true)}
+                style={{ background: "none", border: "none", color: "#fde047", textDecoration: "underline", cursor: "pointer", fontFamily: "inherit", fontSize: "inherit", padding: 0 }}
+              >
+                Join as an independent student
+              </button>
+            </p>
+          </div>
         </motion.div>
       </section>
 
-      {/* FAQ */}
-      <section style={{ position: "relative", zIndex: 10, backgroundColor: "#22222e", padding: "100px 40px" }}>
-        <div style={{ maxWidth: "820px", margin: "0 auto" }}>
-          <motion.p
+      {/* FAQ - Redesigned Floating Cyber Glass Cards */}
+      <section className={styles.faqSection}>
+        <div className={styles.faqContainer}>
+          <motion.div
             initial={{ opacity: 0, y: 16 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-60px" }}
             transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-            style={{ fontFamily: "var(--font-body)", fontSize: "13px", letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.68)", textAlign: "center", marginBottom: "16px" }}
+            style={{ textAlign: "center", marginBottom: "48px" }}
           >
-            Questions
-          </motion.p>
-          <motion.h2
-            initial={{ opacity: 0, y: 16 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-60px" }}
-            transition={{ duration: 0.6, delay: 0.05, ease: [0.16, 1, 0.3, 1] }}
-            style={{ fontFamily: "var(--font-heading)", fontSize: "clamp(28px, 3vw, 38px)", fontWeight: 400, color: "#fff", textAlign: "center", marginBottom: "56px", letterSpacing: "-0.02em" }}
-          >
-            Before you start
-          </motion.h2>
+            <span className={styles.categoryBadge}>
+              Questions
+            </span>
+            <h2
+              style={{ fontFamily: "var(--font-heading)", fontSize: "clamp(28px, 3vw, 38px)", fontWeight: 400, color: "#fff", margin: "14px 0 0", letterSpacing: "-0.02em" }}
+            >
+              Before you start
+            </h2>
+          </motion.div>
 
           {[
             {
               q: "Do I need to be part of a school to enter the tournament?",
-              a: "No. You can enter solo as a team of one, or join through your school if it's registered and verified on Hanbee.",
+              a: "No. You can enter solo as an independent student or team of one, or join through your school if it's registered and verified on Hanbee.",
             },
             {
               q: "How does payment work?",
@@ -415,21 +408,16 @@ export default function Home() {
           ].map((item, i) => (
             <motion.details
               key={item.q}
-              className={styles.faqItem}
+              className={styles.faqCard}
               initial={{ opacity: 0, y: 16 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-40px" }}
               transition={{ duration: 0.5, delay: i * 0.06, ease: [0.16, 1, 0.3, 1] }}
-              style={{
-                borderBottom: "1px solid rgba(255,255,255,0.08)",
-                padding: "22px 0",
-                cursor: "pointer",
-              }}
             >
-              <summary style={{ fontFamily: "var(--font-heading)", fontSize: "18px", fontWeight: 400, color: "#fff", listStyle: "none" }}>
+              <summary className={styles.faqQuestion}>
                 {item.q}
               </summary>
-              <p style={{ fontFamily: "var(--font-body)", fontSize: "15px", color: "rgba(255,255,255,0.78)", lineHeight: 1.65, marginTop: "14px" }}>
+              <p className={styles.faqAnswer}>
                 {item.a}
               </p>
             </motion.details>
@@ -438,10 +426,10 @@ export default function Home() {
       </section>
 
       {/* Footer */}
-      <footer style={{ position: "relative", zIndex: 10, backgroundColor: "#1c1c26", borderTop: "1px solid rgba(255,255,255,0.06)", padding: "56px 40px 32px" }}>
+      <footer style={{ position: "relative", zIndex: 10, backgroundColor: "#171722", borderTop: "1px solid rgba(255,255,255,0.08)", padding: "56px 40px 32px" }}>
         <div style={{ maxWidth: "1200px", margin: "0 auto", display: "flex", flexWrap: "wrap", justifyContent: "space-between", gap: "32px", paddingBottom: "40px" }}>
           <div>
-            <span style={{ fontFamily: "var(--font-logo, var(--font-heading))", fontSize: "22px", color: "#fff", letterSpacing: "0.02em" }}>HANBEE</span>
+            <span className={styles.footerLogo}>HANBEE</span>
             <p style={{ fontFamily: "var(--font-body)", fontSize: "14px", color: "rgba(255,255,255,0.68)", marginTop: "10px", maxWidth: "280px" }}>
               Learn beyond the obvious. Build beyond the expected.
             </p>
@@ -468,6 +456,12 @@ export default function Home() {
           © {new Date().getFullYear()} Hanbee. All rights reserved.
         </div>
       </footer>
+
+      {/* Independent Student Application Modal */}
+      <IndependentStudentModal
+        isOpen={isStudentModalOpen}
+        onClose={() => setIsStudentModalOpen(false)}
+      />
     </main>
   );
 }

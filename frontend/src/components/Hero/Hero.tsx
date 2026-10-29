@@ -3,7 +3,11 @@
 import { motion, useScroll, useTransform } from "framer-motion";
 import styles from "./Hero.module.css";
 
-export default function Hero() {
+interface HeroProps {
+  onOpenStudentModal?: () => void;
+}
+
+export default function Hero({ onOpenStudentModal }: HeroProps) {
   const { scrollY } = useScroll();
   const yBg = useTransform(scrollY, [0, 1000], [0, 300]);
   const opacityText = useTransform(scrollY, [0, 400], [1, 0]);
@@ -55,9 +59,6 @@ export default function Hero() {
         </video>
       </motion.div>
 
-      {/* Futuristic Grid Overlay */}
-      <div className={styles.gridOverlay} />
-      
       {/* Animated Glowing Orb */}
       <div className={styles.glowingOrb} />
 
@@ -67,14 +68,20 @@ export default function Hero() {
       {/* Hero Content */}
       <motion.div className={styles.content} style={{ opacity: opacityText }}>
         {/* Tagline */}
-        <motion.p
+        <motion.div
           className={styles.tagline}
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2, duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
         >
-          LEARN · GROW · BELONG
-        </motion.p>
+          <span className={styles.taglineLine} />
+          <span className={styles.taglineWord}>LEARN</span>
+          <span className={styles.taglineDot} />
+          <span className={styles.taglineWord}>GROW</span>
+          <span className={styles.taglineDot} />
+          <span className={styles.taglineWord}>BELONG</span>
+          <span className={styles.taglineLineRight} />
+        </motion.div>
 
         {/* Main Heading */}
         <motion.h1
@@ -109,33 +116,60 @@ export default function Hero() {
           Write the code. Build the car. Race it for real — at the Hanbee RC Cup.
         </motion.p>
 
-        {/* CTA Button */}
-        <motion.a
-          href="/login"
-          className={styles.ctaButton}
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.8, duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.97 }}
-        >
-          <span>Start Learning</span>
-          <svg
-            width="14"
-            height="14"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
+        {/* CTA Button Group */}
+        <div className={styles.ctaGroup}>
+          <motion.a
+            href="/login"
+            className={styles.ctaButton}
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.8, duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.97 }}
           >
-            <path d="M5 12h14" />
-            <path d="M12 5l7 7-7 7" />
-          </svg>
-        </motion.a>
-      </motion.div>
+            <span>Start Learning</span>
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M5 12h14" />
+              <path d="M12 5l7 7-7 7" />
+            </svg>
+          </motion.a>
 
+          <motion.button
+            type="button"
+            onClick={onOpenStudentModal}
+            className={styles.secondaryCtaButton}
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.85, duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.97 }}
+          >
+            <span>Independent Student</span>
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M5 12h14" />
+              <path d="M12 5l7 7-7 7" />
+            </svg>
+          </motion.button>
+        </div>
+      </motion.div>
     </section>
   );
 }

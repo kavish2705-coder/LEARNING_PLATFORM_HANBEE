@@ -34,19 +34,6 @@
   display: none;
 }
 
-/* Futuristic Grid Overlay */
-.gridOverlay {
-  position: absolute;
-  inset: 0;
-  background-image:
-    linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
-  background-size: 60px 60px;
-  z-index: 1;
-  mask-image: radial-gradient(ellipse at center, black 10%, transparent 70%);
-  -webkit-mask-image: radial-gradient(ellipse at center, black 10%, transparent 70%);
-  opacity: 0.6;
-}
 
 /* Animated Glowing Orb */
 .glowingOrb {
@@ -99,27 +86,65 @@
   width: 100%;
 }
 
-/* Tagline */
+/* Tagline - Stretched Panoramic Typography (GTA 6 Sunset) */
 .tagline {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 16px;
   font-family: var(--font-body);
-  font-size: 12px;
+  font-size: 12.5px;
   font-weight: 500;
-  color: #f3f3f3c7;
-  letter-spacing: 0.16em;
+  letter-spacing: 0.38em;
   text-transform: uppercase;
-  margin-bottom: 22px;
-  padding: 6px 16px;
-  border-radius: 9999px;
-  background: rgba(157, 82, 20, 0.08);
-  border: 1px solid rgba(228, 234, 235, 0.707);
-  box-shadow: 0 0 20px rgba(202, 205, 204, 0.716), inset 0 1px 0 rgba(0, 0, 0, 0.2);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  color: rgba(255, 255, 255, 0.94);
+  margin-bottom: 24px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
 }
 
+.taglineLine {
+  display: inline-block;
+  width: 44px;
+  height: 1.5px;
+  background: linear-gradient(90deg, transparent, #7c3aed 25%, #d946ef 55%, #fb7185 80%, #facc15 100%);
+  box-shadow: 0 0 10px rgba(244, 63, 94, 0.75);
+  border-radius: 2px;
+}
+
+.taglineLineRight {
+  display: inline-block;
+  width: 44px;
+  height: 1.5px;
+  background: linear-gradient(90deg, #facc15 0%, #f97316 25%, #fb7185 55%, #7c3aed 80%, transparent 100%);
+  box-shadow: 0 0 10px rgba(244, 63, 94, 0.75);
+  border-radius: 2px;
+}
+
+.taglineWord {
+  display: inline-block;
+  background: linear-gradient(135deg, #fef08a 0%, #facc15 20%, #f97316 42%, #fb7185 64%, #d946ef 84%, #8b5cf6 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 16px rgba(244, 63, 94, 0.35));
+  transition: all 0.3s ease;
+}
+
+.taglineDot {
+  display: inline-block;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #facc15;
+  box-shadow:
+    0 0 8px #facc15,
+    0 0 16px #f97316,
+    0 0 24px #d946ef;
+  margin: 0 2px;
+}
 /* Heading */
 .heading {
   font-family: var(--font-heading);
@@ -147,7 +172,16 @@
   max-width: 750px;
 }
 
+/* CTA Buttons Group */
+.ctaGroup {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
 /* CTA Button */
+/* CTA Button - Primary (Start Learning) - Clean Edge Fixed */
 .ctaButton {
   display: inline-flex;
   align-items: center;
@@ -157,34 +191,30 @@
   font-weight: 500;
   color: #ffffff;
 
-  /* Ultra-Realistic Liquid Glass Effect */
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  border-top-color: rgba(255, 255, 255, 0.4);
-  border-left-color: rgba(255, 255, 255, 0.3);
+  /* Polished Liquid Glass with Flawless Uniform Edge */
+  background: rgba(255, 255, 255, 0.055);
+  border: 1px solid rgba(255, 255, 255, 0.24);
   box-shadow:
-    -2px 0 4px rgba(255, 0, 80, 0.15),
-    2px 0 4px rgba(157, 82, 20, 0.15),
-    inset 0 1px 2px rgba(255, 255, 255, 0.5),
-    inset 0 -1px 2px rgba(255, 255, 255, 0.1),
-    0 8px 32px rgba(0, 0, 0, 0.15);
-  backdrop-filter: blur(24px) saturate(140%) brightness(1.15);
-  -webkit-backdrop-filter: blur(24px) saturate(140%) brightness(1.15);
+    0 8px 28px rgba(0, 0, 0, 0.28),
+    inset 0 1px 1.5px rgba(255, 255, 255, 0.5),
+    inset 0 -1px 1px rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(20px) saturate(140%);
+  -webkit-backdrop-filter: blur(20px) saturate(140%);
   padding: 12px 28px;
   border-radius: 50px;
   text-decoration: none;
-  transition: all 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   cursor: pointer;
+  outline: none;
 }
 
 .ctaButton:hover {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.45);
   box-shadow:
-    -3px 0 6px rgba(255, 0, 80, 0.25),
-    3px 0 6px rgba(157, 82, 20, 0.25),
-    inset 0 1px 3px rgba(255, 255, 255, 0.6),
-    inset 0 -1px 3px rgba(255, 255, 255, 0.2),
-    0 12px 40px rgba(0, 0, 0, 0.2);
+    0 12px 36px rgba(0, 0, 0, 0.38),
+    0 0 24px rgba(255, 255, 255, 0.2),
+    inset 0 1px 2px rgba(255, 255, 255, 0.7);
 }
 
 .ctaButton svg {
@@ -197,6 +227,59 @@
   transform: translateX(4px);
 }
 
+/* Secondary CTA Button: Independent Student (GTA 6 Sunset Glass) */
+.secondaryCtaButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-body);
+  font-size: 14.5px;
+  font-weight: 500;
+  color: #fde047;
+
+  /* Frosted Glass with Violet -> Magenta -> Coral -> Orange -> Yellow Sunset Highlights */
+  background: linear-gradient(135deg, rgba(124, 58, 237, 0.12) 0%, rgba(217, 70, 239, 0.10) 40%, rgba(249, 115, 22, 0.08) 100%);
+  border: 1px solid rgba(251, 113, 133, 0.38);
+  border-top-color: rgba(250, 204, 21, 0.65);
+  box-shadow:
+    0 8px 24px rgba(0, 0, 0, 0.25),
+    0 0 24px rgba(244, 63, 94, 0.22),
+    0 0 14px rgba(124, 58, 237, 0.18),
+    inset 0 1px 2px rgba(254, 240, 138, 0.5),
+    inset 0 -1px 2px rgba(217, 70, 239, 0.15);
+  backdrop-filter: blur(24px) saturate(140%) brightness(1.15);
+  -webkit-backdrop-filter: blur(24px) saturate(140%) brightness(1.15);
+  padding: 12px 26px;
+  border-radius: 50px;
+  text-decoration: none;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  cursor: pointer;
+  outline: none;
+}
+
+.secondaryCtaButton:hover {
+  background: linear-gradient(135deg, rgba(124, 58, 237, 0.22) 0%, rgba(217, 70, 239, 0.20) 40%, rgba(249, 115, 22, 0.16) 100%);
+  color: #ffffff;
+  border-color: rgba(250, 204, 21, 0.85);
+  box-shadow:
+    0 12px 34px rgba(0, 0, 0, 0.35),
+    0 0 36px rgba(244, 63, 94, 0.45),
+    0 0 20px rgba(250, 204, 21, 0.35),
+    inset 0 1px 3px rgba(254, 240, 138, 0.7);
+}
+
+.secondaryCtaButton svg {
+  transition: transform 0.3s ease;
+  width: 14px;
+  height: 14px;
+  stroke: #facc15;
+}
+
+.secondaryCtaButton:hover svg {
+  transform: translateX(4px);
+  stroke: #ffffff;
+}
+
 /* ===== Responsive ===== */
 @media (max-width: 1024px) {
   .content {
@@ -206,6 +289,17 @@
 }
 
 @media (max-width: 768px) {
+  .tagline {
+    font-size: 11px;
+    letter-spacing: 0.24em;
+    gap: 10px;
+    margin-bottom: 18px;
+  }
+
+  .taglineLine,
+  .taglineLineRight {
+    width: 22px;
+  }
   .content {
     padding-left: 24px;
     padding-top: calc(var(--nav-height) + 40px);
