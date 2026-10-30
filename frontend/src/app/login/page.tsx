@@ -6,7 +6,7 @@ import styles from "./login.module.css";
 import { Suspense, useState, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useRole, Role } from "../RoleContext";
-import { AUTH_SESSION_KEY, signInWithPassword, signInWithUsername, signUpWithPassword, signInWithProvider, requestPasswordReset, checkManagerExists, type SupabaseSession, type HanbeeRole } from "../../lib/supabaseAuth";
+import { AUTH_SESSION_KEY, signInWithPassword, signInStudent, signUpWithPassword, signInWithProvider, requestPasswordReset, checkManagerExists, type SupabaseSession, type HanbeeRole } from "../../lib/supabaseAuth";
 
 function LoginContent() {
   const searchParams = useSearchParams();
@@ -161,7 +161,7 @@ function LoginContent() {
       }
 
       const result = activeRole === "Student"
-        ? await signInWithUsername(email.trim(), password)
+        ? await signInStudent(email.trim(), password)
         : await signInWithPassword(email.trim(), password);
       window.localStorage.setItem(AUTH_SESSION_KEY, JSON.stringify(result.session));
       finishLogin(result.role);
@@ -191,7 +191,7 @@ function LoginContent() {
     if (activeRole === "Staff") return "Email / Staff ID";
     if (activeRole === "Manager") return "Email / Manager ID";
     if (activeRole === "School") return "Email / School Admin ID";
-    return "Username";
+    return "Username or Email";
   };
 
   return (

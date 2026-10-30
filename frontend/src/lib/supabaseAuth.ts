@@ -94,6 +94,21 @@ export async function signInWithUsername(username: string, password: string): Pr
   return signInWithPassword(email, password);
 }
 
+// The student login box accepts either identifier: school students get a
+// username (set by the username-invite path), while independent students
+// created via staff_create_independent_invite -> signUpWithPassword never
+// have one -- only an email. Without this, an independent student can
+// complete signup and then never log back in, since the username lookup
+// has no fallback. Email-shaped input skips the username RPC entirely;
+// anything else goes through the existing username resolution.
+export async function signInStudent(identifier: string, password: string): Promise<SignInResult> {
+  const trimmed = identifier.trim();
+  if (trimmed.includes("@")) {
+    return signInWithPassword(trimmed, password);
+  }
+  return signInWithUsername(trimmed, password);
+}
+
 export interface CreateStudentAccountsResult {
   results: { username: string; fullName: string; password?: string; result: string }[];
 }
