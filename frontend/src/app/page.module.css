@@ -581,12 +581,12 @@
   position: absolute;
   right: 0;
   bottom: 0;
-  width: 17%;
-  height: 20%;
+  width: 24%;
+  height: 28%;
   pointer-events: none;
-  backdrop-filter: blur(14px) saturate(90%);
-  -webkit-backdrop-filter: blur(14px) saturate(90%);
-  background: radial-gradient(ellipse 80% 80% at 70% 70%, rgba(20, 14, 10, 0.55), transparent 75%);
+  backdrop-filter: blur(22px) saturate(85%);
+  -webkit-backdrop-filter: blur(22px) saturate(85%);
+  background: radial-gradient(ellipse 80% 80% at 70% 70%, rgba(18, 13, 9, 0.8), rgba(18, 13, 9, 0.4) 60%, transparent 85%);
   -webkit-mask-image: radial-gradient(ellipse 90% 90% at 75% 75%, #000 55%, transparent 100%);
   mask-image: radial-gradient(ellipse 90% 90% at 75% 75%, #000 55%, transparent 100%);
 }
@@ -610,4 +610,14 @@
 
 .schoolVisualFrame img {
   object-fit: cover;
+}
+
+/* Wrapper for the ambient ember-swarm canvas (replaces the old static
+   grid texture) sitting behind a section's content. */
+.ambientWrap {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 0;
 }

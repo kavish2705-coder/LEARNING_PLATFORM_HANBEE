@@ -4,6 +4,9 @@ import { useRef, useEffect } from "react";
 import { useScroll, useTransform, motion } from "framer-motion";
 import Navbar from "@/components/Navbar/Navbar";
 import Hero from "@/components/Hero/Hero";
+import AnimatedHeading from "@/components/AnimatedHeading/AnimatedHeading";
+import AnimatedCard from "@/components/AnimatedCard/AnimatedCard";
+import AmbientSwarm from "@/components/AmbientSwarm/AmbientSwarm";
 import styles from "./page.module.css";
 
 const tickerItems = ["BUILD THE FLIGHT CONTROLLER", "CODE IT YOURSELF", "RACE AT THE HANBEE RC CUP", "LEARN JAVA · DSA · REACT"];
@@ -86,9 +89,7 @@ export default function Home() {
             <span className={styles.categoryBadge}>
               Beyond standard learning
             </span>
-            <h2 className={styles.doersTitle}>
-              An LMS built for doers.
-            </h2>
+            <AnimatedHeading as="h2" className={styles.doersTitle}>An LMS built for doers.</AnimatedHeading>
             <p className={styles.doersDesc}>
               From mastering core engineering concepts to building and programming your own FC racing car, Hanbee bridges the gap between theory and adrenaline-pumping reality.
             </p>
@@ -147,11 +148,13 @@ export default function Home() {
           zIndex: 10,
           backgroundColor: "var(--landing-surface-4)",
           backgroundImage:
-            "radial-gradient(ellipse 85% 65% at 50% 0%, var(--landing-accent-glow), transparent 70%), radial-gradient(ellipse 70% 50% at 80% 80%, rgba(139, 92, 246, 0.12), transparent 60%), linear-gradient(180deg, var(--landing-surface-1) 0%, var(--landing-surface-4) 100%)",
+            "linear-gradient(180deg, var(--landing-surface-1) 0%, var(--landing-surface-4) 100%)",
           padding: "140px 40px",
+          overflow: "hidden",
         }}
       >
-        <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
+        <div className={styles.ambientWrap}><AmbientSwarm /></div>
+        <div style={{ maxWidth: "1200px", margin: "0 auto", position: "relative", zIndex: 1 }}>
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -162,9 +165,7 @@ export default function Home() {
             <span style={{ fontFamily: "var(--font-body)", fontSize: "var(--landing-eyebrow)", letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.68)" }}>
               What you get
             </span>
-            <h2 style={{ fontFamily: "var(--font-heading)", fontSize: "var(--landing-h2)", fontWeight: 400, color: "#fff", margin: "16px 0 0", letterSpacing: "-0.02em" }}>
-              Two tracks, one platform
-            </h2>
+            <AnimatedHeading as="h2" style={{ fontFamily: "var(--font-heading)", fontSize: "var(--landing-h2)", fontWeight: 400, color: "#fff", margin: "16px 0 0", letterSpacing: "-0.02em" }}>Two tracks, one platform</AnimatedHeading>
           </motion.div>
 
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(380px, 1fr))", gap: "32px" }}>
@@ -182,14 +183,10 @@ export default function Home() {
                 points: ["Self-paced video and notes", "Auto-graded lesson checks", "Progress tracked per course"],
               },
             ].map((track, i) => (
-              <motion.div
+              <AnimatedCard
                 key={track.tag}
                 className={styles.glassCard}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: "-60px" }}
-                transition={{ duration: 0.65, delay: i * 0.12, ease: [0.16, 1, 0.3, 1] }}
-                whileHover={{ y: -6, scale: 1.015, transition: { duration: 0.3, ease: [0.16, 1, 0.3, 1] } }}
+                delay={i * 0.12}
                 style={{
                   borderRadius: "28px",
                   padding: "40px",
@@ -215,7 +212,7 @@ export default function Home() {
                     </li>
                   ))}
                 </ul>
-              </motion.div>
+              </AnimatedCard>
             ))}
           </div>
 
@@ -236,14 +233,10 @@ export default function Home() {
                 { stage: "Race strategy & telemetry", desc: "Read the data, plan the lap." },
                 { stage: "Track day & competition rules", desc: "What it takes to line up at the Hanbee RC Cup." },
               ].map((item, i) => (
-                <motion.div
+                <AnimatedCard
                   key={item.stage}
                   className={styles.glassCard}
-                  initial={{ opacity: 0, y: 30, scale: 0.95 }}
-                  whileInView={{ opacity: 1, y: 0, scale: 1 }}
-                  viewport={{ once: true, margin: "-40px" }}
-                  transition={{ type: "spring", stiffness: 120, damping: 14, delay: i * 0.1 }}
-                  whileHover={{ y: -8, scale: 1.02, transition: { type: "spring", stiffness: 300, damping: 20 } }}
+                  delay={i * 0.08}
                   style={{
                     borderRadius: "18px",
                     padding: "24px",
@@ -252,7 +245,7 @@ export default function Home() {
                   <div className={styles.glowingNumber}>{String(i + 1).padStart(2, "0")}</div>
                   <div style={{ position: "relative", zIndex: 2, fontFamily: "var(--font-heading)", fontSize: "18px", color: "#fff", marginBottom: "8px" }}>{item.stage}</div>
                   <div style={{ position: "relative", zIndex: 2, fontFamily: "var(--font-body)", fontSize: "14px", color: "rgba(255,255,255,0.72)", lineHeight: 1.5 }}>{item.desc}</div>
-                </motion.div>
+                </AnimatedCard>
               ))}
             </div>
           </div>
@@ -281,9 +274,7 @@ export default function Home() {
             <span style={{ fontFamily: "var(--font-body)", fontSize: "var(--landing-eyebrow)", letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.68)" }}>
               Every part, labeled
             </span>
-            <h2 style={{ fontFamily: "var(--font-heading)", fontSize: "var(--landing-h2)", fontWeight: 400, color: "#fff", margin: "16px 0 20px", letterSpacing: "-0.02em" }}>
-              This isn't a kit you snap together.
-            </h2>
+            <AnimatedHeading as="h2" style={{ fontFamily: "var(--font-heading)", fontSize: "var(--landing-h2)", fontWeight: 400, color: "#fff", margin: "16px 0 20px", letterSpacing: "-0.02em" }}>{"This isn't a kit you snap together."}</AnimatedHeading>
             <p style={{ fontFamily: "var(--font-body)", fontSize: "16px", color: "rgba(255,255,255,0.72)", lineHeight: 1.65 }}>
               Monocoque chassis, inner radiator, brake ducts, the flight controller you wrote yourself — by the time you line up at the grid, you know what every part on this car does, because you built and programmed it.
             </p>
@@ -313,9 +304,7 @@ export default function Home() {
           <span style={{ fontFamily: "var(--font-body)", fontSize: "var(--landing-eyebrow)", letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.75)" }}>
             #09 · #23 · #60
           </span>
-          <h2 style={{ fontFamily: "var(--font-heading)", fontSize: "var(--landing-h2)", fontWeight: 400, color: "#fff", margin: "14px 0 0", letterSpacing: "-0.02em" }}>
-            Two liveries. One grid. Every car student-built.
-          </h2>
+          <AnimatedHeading as="h2" style={{ fontFamily: "var(--font-heading)", fontSize: "var(--landing-h2)", fontWeight: 400, color: "#fff", margin: "14px 0 0", letterSpacing: "-0.02em" }}>Two liveries. One grid. Every car student-built.</AnimatedHeading>
         </motion.div>
         <motion.div
           className={styles.photoBannerFrame}
@@ -357,9 +346,7 @@ export default function Home() {
             <span style={{ fontFamily: "var(--font-body)", fontSize: "var(--landing-eyebrow)", letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.6)" }}>
               For schools
             </span>
-            <h2 style={{ fontFamily: "var(--font-heading)", fontSize: "var(--landing-h2)", fontWeight: 400, color: "#fff", margin: "16px 0 20px", letterSpacing: "-0.02em" }}>
-              Bring your students to the track and the classroom.
-            </h2>
+            <AnimatedHeading as="h2" style={{ fontFamily: "var(--font-heading)", fontSize: "var(--landing-h2)", fontWeight: 400, color: "#fff", margin: "16px 0 20px", letterSpacing: "-0.02em" }}>Bring your students to the track and the classroom.</AnimatedHeading>
             <p style={{ fontFamily: "var(--font-body)", fontSize: "16px", color: "rgba(255,255,255,0.72)", lineHeight: 1.65, marginBottom: "32px" }}>
               Register your school, and once a Hanbee staff member verifies it, invite your students, form tournament teams, and follow their course progress — all from one dashboard.
             </p>
@@ -441,9 +428,7 @@ export default function Home() {
           <span style={{ fontFamily: "var(--font-body)", fontSize: "var(--landing-eyebrow)", letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.68)" }}>
             Why Hanbee
           </span>
-          <h2 style={{ fontFamily: "var(--font-heading)", fontSize: "var(--landing-h2)", fontWeight: 400, color: "#fff", margin: "16px 0 0", lineHeight: 1.4, letterSpacing: "-0.01em" }}>
-            Most courses end where the real learning starts. We built Hanbee so the thing you coded actually has to work — on a track, against the clock, against other teams.
-          </h2>
+          <AnimatedHeading as="h2" style={{ fontFamily: "var(--font-heading)", fontSize: "var(--landing-h2)", fontWeight: 400, color: "#fff", margin: "16px 0 0", lineHeight: 1.4, letterSpacing: "-0.01em" }}>{"Most courses end where the real learning starts. We built Hanbee so the thing you coded actually has to work — on a track, against the clock, against other teams."}</AnimatedHeading>
           <motion.a
             href="/login"
             className={styles.liquidGlassBtn}
@@ -463,8 +448,9 @@ export default function Home() {
       </section>
 
       {/* FAQ */}
-      <section style={{ position: "relative", zIndex: 10, backgroundColor: "var(--landing-surface-3)", padding: "100px 40px" }}>
-        <div style={{ maxWidth: "820px", margin: "0 auto" }}>
+      <section style={{ position: "relative", zIndex: 10, backgroundColor: "var(--landing-surface-3)", padding: "100px 40px", overflow: "hidden" }}>
+        <div className={styles.ambientWrap}><AmbientSwarm /></div>
+        <div style={{ maxWidth: "820px", margin: "0 auto", position: "relative", zIndex: 1 }}>
           <motion.p
             initial={{ opacity: 0, y: 16 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -474,15 +460,7 @@ export default function Home() {
           >
             Questions
           </motion.p>
-          <motion.h2
-            initial={{ opacity: 0, y: 16 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-60px" }}
-            transition={{ duration: 0.6, delay: 0.05, ease: [0.16, 1, 0.3, 1] }}
-            style={{ fontFamily: "var(--font-heading)", fontSize: "var(--landing-h2)", fontWeight: 400, color: "#fff", textAlign: "center", marginBottom: "56px", letterSpacing: "-0.02em" }}
-          >
-            Before you start
-          </motion.h2>
+          <AnimatedHeading as="h2" style={{ fontFamily: "var(--font-heading)", fontSize: "var(--landing-h2)", fontWeight: 400, color: "#fff", textAlign: "center", marginBottom: "56px", letterSpacing: "-0.02em" }}>Before you start</AnimatedHeading>
 
           {[
             {

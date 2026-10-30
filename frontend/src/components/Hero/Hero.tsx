@@ -134,6 +134,19 @@ export default function Hero() {
             <path d="M12 5l7 7-7 7" />
           </svg>
         </motion.a>
+
+        {/* Secondary path for students without a school -- the solo/independent
+            entry already exists on the backend (create_solo_team), this just
+            surfaces it at the point visitors actually decide how to start. */}
+        <motion.a
+          href="/login?role=Student"
+          className={styles.independentLink}
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.95, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+        >
+          Not part of a school? Join as an independent student →
+        </motion.a>
       </motion.div>
 
     </section>

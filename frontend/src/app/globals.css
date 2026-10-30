@@ -133,6 +133,14 @@ img {
   --landing-h3: clamp(20px, 2vw, 26px);
   --landing-eyebrow: 13px;
 
+  /* Motion -- one easing curve, one duration scale, shared by
+     AnimatedHeading and AnimatedCard instead of each landing section
+     hand-picking its own spring/duration (the old code had 6+ different
+     transition configs for what was visually the same "fade up" move). */
+  --landing-ease: cubic-bezier(0.19, 1, 0.22, 1);
+  --landing-motion-fast: 0.35s;
+  --landing-motion-section: 0.7s;
+
   /* Glass */
   --glass-bg: rgba(30, 28, 28, 0.51);
   --glass-border: rgba(255, 255, 255, 0.12);

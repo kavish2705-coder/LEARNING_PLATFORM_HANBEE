@@ -220,3 +220,20 @@
     margin-bottom: 24px;
   }
 }
+
+.independentLink {
+  display: inline-block;
+  margin-top: 18px;
+  margin-left: 4px;
+  font-family: var(--font-body);
+  font-size: 13.5px;
+  color: rgba(255, 255, 255, 0.72);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: color 0.25s ease, border-color 0.25s ease;
+}
+
+.independentLink:hover {
+  color: var(--landing-accent, #c9782f);
+  border-bottom-color: var(--landing-accent, #c9782f);
+}
