@@ -42,6 +42,7 @@ export default function HanbeeOverview() {
   const [scrutineeredTeamIds, setScrutineeredTeamIds] = useState<Set<string> | null>(null);
   const [expandedTeamId, setExpandedTeamId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [updatingTaskId, setUpdatingTaskId] = useState("");
 
   // Separate from fetchStandings: attendance/tasks and tournament
   // standings are independent sections with independent failure modes, and
@@ -80,6 +81,25 @@ export default function HanbeeOverview() {
       setOpsError(reason instanceof Error ? reason.message : "Couldn't load your shift and task data.");
     }
   }, []);
+
+  // RLS already allows a staff member to update their own staff_tasks row
+  // (staff_id = auth.uid()) -- the gap was purely that My Space rendered
+  // status as a read-only badge with no control to actually change it.
+  async function updateTaskStatus(taskId: string, status: "todo" | "in_progress" | "done") {
+    setUpdatingTaskId(taskId);
+    try {
+      await authenticatedSupabaseFetch(`/rest/v1/staff_tasks?id=eq.${encodeURIComponent(taskId)}`, {
+        method: "PATCH",
+        headers: { Prefer: "return=minimal" },
+        body: JSON.stringify({ status }),
+      });
+      await fetchOps();
+    } catch {
+      // fetchOps will leave the previous status visible; no silent fake success.
+    } finally {
+      setUpdatingTaskId("");
+    }
+  }
 
   const fetchStandings = useCallback(async () => {
     setStandingsError("");
@@ -510,7 +530,10 @@ export default function HanbeeOverview() {
                         </span>
                       </td>
                       <td>
-                        <span
+                        <select
+                          value={task.status}
+                          disabled={updatingTaskId === task.id}
+                          onChange={(event) => void updateTaskStatus(task.id, event.target.value as "todo" | "in_progress" | "done")}
                           style={{
                             fontFamily: "var(--font-mono)",
                             fontSize: 10,
@@ -523,8 +546,10 @@ export default function HanbeeOverview() {
                             border: task.status === "done" ? "1px solid rgba(16, 185, 129, 0.4)" : "1px solid rgba(245, 158, 11, 0.3)",
                           }}
                         >
-                          {task.status === "done" ? "Completed" : task.status.replace("_", " ")}
-                        </span>
+                          <option value="todo">To do</option>
+                          <option value="in_progress">In progress</option>
+                          <option value="done">Completed</option>
+                        </select>
                       </td>
                       <td>{task.dueDate ?? "--"}</td>
                     </tr>

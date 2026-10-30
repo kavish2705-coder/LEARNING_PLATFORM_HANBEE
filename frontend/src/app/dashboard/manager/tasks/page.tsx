@@ -6,10 +6,13 @@ import { Input, Select, Textarea } from "../../components/ui/FormField";
 import { authenticatedSupabaseFetch, getAccountProfile } from "../../../../lib/supabaseAuth";
 
 type Task = { id: string; title: string; description: string; priority: "low" | "medium" | "high"; status: "todo" | "in_progress" | "done"; due_date: string | null; staff_id: string; created_at: string };
+type StaffOption = { staff_id: string; full_name: string };
 
 export default function ManagerTasksPage() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [managerId, setManagerId] = useState("");
+  const [staffOptions, setStaffOptions] = useState<StaffOption[]>([]);
+  const [assignee, setAssignee] = useState(""); // "" = self (the manager's own task list)
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [dueDate, setDueDate] = useState("");
@@ -23,9 +26,13 @@ export default function ManagerTasksPage() {
     const profile = await getAccountProfile();
     if (profile.role !== "manager") throw new Error("Only the manager can view personal manager tasks.");
     const query = new URLSearchParams({ select: "id,title,description,priority,status,due_date,staff_id,created_at", staff_id: `eq.${profile.id}`, order: "due_date.asc.nullslast,created_at.desc" });
-    const rows = await authenticatedSupabaseFetch<Task[]>(`/rest/v1/staff_tasks?${query.toString()}`);
+    const [rows, staff] = await Promise.all([
+      authenticatedSupabaseFetch<Task[]>(`/rest/v1/staff_tasks?${query.toString()}`),
+      authenticatedSupabaseFetch<StaffOption[]>("/rest/v1/rpc/hanbee_staff_overview", { method: "POST", body: "{}" }),
+    ]);
     setManagerId(profile.id);
     setTasks(rows);
+    setStaffOptions(staff);
   }, []);
 
   useEffect(() => {
@@ -40,8 +47,28 @@ export default function ManagerTasksPage() {
     if (!managerId) return;
     setSaving(true); setError(""); setMessage("");
     try {
-      await authenticatedSupabaseFetch<unknown>("/rest/v1/staff_tasks", { method: "POST", headers: { Prefer: "return=minimal" }, body: JSON.stringify({ staff_id: managerId, title: title.trim(), description: description.trim(), due_date: dueDate || null, priority, status: "todo" }) });
-      setTitle(""); setDescription(""); setDueDate(""); setPriority("medium"); setMessage("Task added to your list."); await load();
+      if (assignee) {
+        // Assigning to a different staff member -- staff_tasks' RLS only
+        // allows staff_id = auth.uid() on insert, so this has to go
+        // through the manager_assign_staff_task RPC instead of a direct
+        // table write.
+        await authenticatedSupabaseFetch<unknown>("/rest/v1/rpc/manager_assign_staff_task", {
+          method: "POST",
+          body: JSON.stringify({
+            p_staff: assignee,
+            p_title: title.trim(),
+            p_description: description.trim(),
+            p_priority: priority,
+            p_due_date: dueDate || null,
+          }),
+        });
+        setMessage(`Task assigned to ${staffOptions.find((s) => s.staff_id === assignee)?.full_name ?? "staff member"}.`);
+      } else {
+        await authenticatedSupabaseFetch<unknown>("/rest/v1/staff_tasks", { method: "POST", headers: { Prefer: "return=minimal" }, body: JSON.stringify({ staff_id: managerId, title: title.trim(), description: description.trim(), due_date: dueDate || null, priority, status: "todo" }) });
+        setMessage("Task added to your list.");
+      }
+      setTitle(""); setDescription(""); setDueDate(""); setPriority("medium");
+      await load();
     } catch (reason) { setError(reason instanceof Error ? reason.message : "We couldn't save this task."); }
     finally { setSaving(false); }
   }
@@ -56,17 +83,21 @@ export default function ManagerTasksPage() {
   }
 
   return <div>
-    <div className={styles.pageHeader}><h1 className={styles.pageTitle}>My Tasks</h1><p className={styles.pageSubtitle}>Your priorities and follow-ups</p></div>
+    <div className={styles.pageHeader}><h1 className={styles.pageTitle}>My Tasks</h1><p className={styles.pageSubtitle}>Your priorities, and tasks you assign to staff</p></div>
     {error && <p role="alert">{error}</p>}{message && <p role="status">{message}</p>}
     <form className={styles.sectionCard} onSubmit={createTask} style={{ marginBottom: 22 }}>
       <h2 className={styles.sectionTitle}>Add a task</h2>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 12, marginTop: 14 }}>
         <label>Task<Input value={title} onChange={(event) => setTitle(event.target.value)} required maxLength={180} /></label>
+        <label>Assign to<Select value={assignee} onChange={(event) => setAssignee(event.target.value)}>
+          <option value="">Myself</option>
+          {staffOptions.map((s) => <option key={s.staff_id} value={s.staff_id}>{s.full_name}</option>)}
+        </Select></label>
         <label>Priority<Select value={priority} onChange={(event) => setPriority(event.target.value as Task["priority"])}><option value="low">Low</option><option value="medium">Medium</option><option value="high">High</option></Select></label>
         <label>Due date<Input type="date" value={dueDate} onChange={(event) => setDueDate(event.target.value)} /></label>
       </div>
       <label style={{ display: "block", marginTop: 12 }}>Notes<Textarea rows={2} value={description} onChange={(event) => setDescription(event.target.value)} maxLength={2000} /></label>
-      <button type="submit" className={styles.actionBtn} disabled={saving || !managerId} style={{ marginTop: 14 }}>{saving ? "Saving…" : "Add task"}</button>
+      <button type="submit" className={styles.actionBtn} disabled={saving || !managerId} style={{ marginTop: 14 }}>{saving ? "Saving…" : assignee ? "Assign task" : "Add task"}</button>
     </form>
     {loading ? <p role="status">Loading your tasks…</p> : <div style={{ display: "grid", gap: 12 }}>
       {tasks.map((task) => <article key={task.id} className={styles.sectionCard}>

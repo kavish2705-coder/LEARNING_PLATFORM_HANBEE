@@ -363,11 +363,14 @@ export interface MySchoolInfo {
   member_status: string;
 }
 
+// my_school() never throws for "no school" -- it's a plain select with no
+// role check, so a student with no organization_members row just gets an
+// empty result set. A previous version of this function swallowed every
+// error (network, auth, 500) into the same null as "no school," which made
+// a real failure indistinguishable from a legitimate empty state. Letting
+// a genuine error propagate lets callers surface it instead of silently
+// showing "no school" for a reason that has nothing to do with schools.
 export async function fetchMySchool(): Promise<MySchoolInfo | null> {
-  try {
-    const rows = await authenticatedSupabaseFetch<MySchoolInfo[]>("/rest/v1/rpc/my_school");
-    return rows[0] ?? null;
-  } catch {
-    return null;
-  }
+  const rows = await authenticatedSupabaseFetch<MySchoolInfo[]>("/rest/v1/rpc/my_school");
+  return rows[0] ?? null;
 }
