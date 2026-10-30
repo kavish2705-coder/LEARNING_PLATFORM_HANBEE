@@ -286,4 +286,4 @@ begin
         where id = p_team_id;
     end if;
 end;
-$$ language plpgsql security definer set search_path = public;
+$$ language plpgsql security definer set search_path = public;  
