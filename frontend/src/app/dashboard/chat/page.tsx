@@ -99,7 +99,13 @@ export default function ChatPage() {
 
   useEffect(() => {
     if (!activeConversationId) return;
-    const channel = getRealtimeClient()
+    let realtimeClient: ReturnType<typeof getRealtimeClient>;
+    try {
+      realtimeClient = getRealtimeClient();
+    } catch {
+      return;
+    }
+    const channel = realtimeClient
       .channel(`chat-${activeConversationId}`)
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "messages", filter: `conversation_id=eq.${activeConversationId}` }, () => {
         queryClient.invalidateQueries({ queryKey: ["chat-messages", activeConversationId] });
@@ -108,9 +114,14 @@ export default function ChatPage() {
       .on("postgres_changes", { event: "UPDATE", schema: "public", table: "conversation_participants", filter: `conversation_id=eq.${activeConversationId}` }, () => {
         queryClient.invalidateQueries({ queryKey: ["chat-receipts", activeConversationId] });
       })
-      .subscribe();
+      .subscribe((status) => {
+        if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
+          queryClient.invalidateQueries({ queryKey: ["chat-messages", activeConversationId] });
+          queryClient.invalidateQueries({ queryKey: ["chat-conversations"] });
+        }
+      });
     return () => {
-      void getRealtimeClient().removeChannel(channel);
+      void realtimeClient.removeChannel(channel).catch(() => undefined);
     };
   }, [activeConversationId, queryClient]);
 
