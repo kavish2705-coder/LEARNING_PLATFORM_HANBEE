@@ -1,8 +1,6 @@
 .wordClip {
   display: inline-block;
-  overflow: hidden;
-  vertical-align: top;
-  line-height: 1.2;
+  vertical-align: baseline;
 }
 
 .word {
