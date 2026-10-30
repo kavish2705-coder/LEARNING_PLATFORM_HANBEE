@@ -21,6 +21,18 @@ export default function Modal({ open, title, onClose, actions, children, elevate
   const dialogRef = useRef<HTMLDivElement>(null);
   const titleId = useId();
 
+  // Callers pass onClose as an inline arrow function, so its identity
+  // changes on every parent render. A ref keeps the Escape handler current
+  // without putting onClose in the effect's dependency array below -- if it
+  // were there, every parent re-render (e.g. a controlled input inside the
+  // modal updating state on each keystroke) would re-run this effect and
+  // re-grab focus onto the dialog's first focusable element, yanking focus
+  // out of whatever the user was actively typing into.
+  const onCloseRef = useRef(onClose);
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  }, [onClose]);
+
   useEffect(() => {
     if (!open) return;
     const previouslyFocused = document.activeElement as HTMLElement | null;
@@ -30,7 +42,7 @@ export default function Modal({ open, title, onClose, actions, children, elevate
 
     const onKey = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
-        onClose();
+        onCloseRef.current();
         return;
       }
       if (event.key !== "Tab" || !dialogRef.current) return;
@@ -54,7 +66,7 @@ export default function Modal({ open, title, onClose, actions, children, elevate
       document.body.style.overflow = previousOverflow;
       previouslyFocused?.focus();
     };
-  }, [open, onClose]);
+  }, [open]);
 
   if (!open) return null;
 
