@@ -168,8 +168,11 @@ export type ScrutineeringItemResult = "pass" | "fail" | "not_checked";
 export interface ScrutineeringQueueRow {
   team_id: string;
   team_name: string;
+  school_name: string | null;
+  captain_name: string | null;
   payment_status: TeamStatus;
   scrutineering_status: ScrutineeringStatus;
+  eligible: boolean;
   checked_by_name: string | null;
   checked_at: string | null;
   notes: string | null;
@@ -187,6 +190,15 @@ export interface ScrutineeringInspection {
   items: ScrutineeringChecklistItem[];
   notes: string | null;
   checked_at?: string | null;
+  updated_at: string | null;
+}
+
+export interface ScrutineeringHistoryEntry {
+  status: ScrutineeringStatus;
+  notes: string | null;
+  items: ScrutineeringChecklistItem[];
+  checked_by_name: string | null;
+  checked_at: string;
 }
 
 export interface TeamEligibility {
@@ -203,17 +215,23 @@ export function getScrutineeringInspection(teamId: string) {
   return rpc<ScrutineeringInspection>("get_scrutineering_inspection", { p_team: teamId });
 }
 
+export function fetchScrutineeringHistory(teamId: string) {
+  return rpc<ScrutineeringHistoryEntry[]>("get_scrutineering_history", { p_team: teamId });
+}
+
 export function submitScrutineeringInspection(
   teamId: string,
   status: ScrutineeringStatus,
   items: ScrutineeringChecklistItem[],
   notes: string | null,
+  expectedUpdatedAt: string | null,
 ) {
   return rpc<TeamEligibility>("submit_scrutineering_inspection", {
     p_team: teamId,
     p_status: status,
     p_items: items.map((item) => ({ key: item.key, result: item.result, note: item.note ?? null })),
     p_notes: notes,
+    p_expected_updated_at: expectedUpdatedAt,
   });
 }
 

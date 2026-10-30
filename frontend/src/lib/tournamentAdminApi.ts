@@ -68,6 +68,25 @@ export function listTournaments() {
   );
 }
 
+// Single source of truth for "which tournament does a staff screen open on
+// by default" -- previously My Space, Leaderboard, and Scrutineering each
+// picked differently (live-first, completed-first, upcoming-first), so a
+// staff member could click from one live-tournament screen into another
+// screen silently showing a different tournament. live beats upcoming beats
+// completed beats whatever's first.
+export function pickActiveTournament<T extends Pick<TournamentRecord, "id" | "status">>(
+  tournaments: T[] | null | undefined,
+): T | null {
+  const list = tournaments ?? [];
+  return (
+    list.find((item) => item.status === "live") ??
+    list.find((item) => item.status === "upcoming") ??
+    list.find((item) => item.status === "completed") ??
+    list[0] ??
+    null
+  );
+}
+
 export function createTournament(input: Omit<TournamentRecord, "id" | "status" | "team_size">) {
   return rpc<string>("create_tournament", {
     p_title: input.title,

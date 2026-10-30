@@ -10,8 +10,9 @@ import {
 } from "lucide-react";
 import styles from "./HanbeeOverview.module.css";
 import { authenticatedSupabaseFetch, getAccountProfile } from "../../../../lib/supabaseAuth";
-import { listTournaments, getStudentLeaderboard, listTournamentTeamRoster } from "../../../../lib/tournamentAdminApi";
+import { listTournaments, getStudentLeaderboard, listTournamentTeamRoster, pickActiveTournament } from "../../../../lib/tournamentAdminApi";
 import type { StudentLeaderboardRow, TournamentRecord } from "../../../../lib/tournamentAdminApi";
+import { fetchScrutineeringQueue } from "../../../../lib/teamFormationApi";
 import { useSessionProfile } from "../../../../lib/hooks/useSessionProfile";
 import EmptyState from "../ui/EmptyState";
 import Shimmer from "../ui/Shimmer";
@@ -33,19 +34,26 @@ function formatLapTime(milliseconds: number | null) {
 export default function HanbeeOverview() {
   const { data: profile } = useSessionProfile();
   const [data, setData] = useState<HanbeeData | null>(null);
+  const [opsError, setOpsError] = useState("");
   const [tournament, setTournament] = useState<TournamentRecord | null>(null);
   const [rows, setRows] = useState<StudentLeaderboardRow[] | null>(null);
   const [roster, setRoster] = useState<Record<string, string[]>>({});
+  const [standingsError, setStandingsError] = useState("");
+  const [scrutineeredTeamIds, setScrutineeredTeamIds] = useState<Set<string> | null>(null);
   const [expandedTeamId, setExpandedTeamId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const fetchData = useCallback(async () => {
+  // Separate from fetchStandings: attendance/tasks and tournament
+  // standings are independent sections with independent failure modes, and
+  // each needs to show "couldn't load" rather than silently becoming "zero."
+  const fetchOps = useCallback(async () => {
+    setOpsError("");
     try {
       await getAccountProfile();
       const taskQuery = new URLSearchParams({ select: "id,title,priority,status,due_date,done", order: "due_date.asc.nullslast" });
       const [attendance, tasks] = await Promise.all([
-        authenticatedSupabaseFetch<AttendanceDay[]>("/rest/v1/rpc/staff_attendance", { method: "POST", body: JSON.stringify({}) }).catch(() => []),
-        authenticatedSupabaseFetch<StaffTask[]>("/rest/v1/staff_tasks?" + taskQuery.toString()).catch(() => []),
+        authenticatedSupabaseFetch<AttendanceDay[]>("/rest/v1/rpc/staff_attendance", { method: "POST", body: JSON.stringify({}) }),
+        authenticatedSupabaseFetch<StaffTask[]>("/rest/v1/staff_tasks?" + taskQuery.toString()),
       ]);
       const now = new Date();
       const todayKey = now.toISOString().slice(0, 10);
@@ -67,23 +75,23 @@ export default function HanbeeOverview() {
         personalTasks: mappedTasks,
         needsAttention: [],
       });
-    } catch {
-      setData({
-        status: "Off shift",
-        hoursWorked: { today: null, totalHours: 0 },
-        personalTasks: [],
-        needsAttention: [],
-      });
+    } catch (reason) {
+      setData(null);
+      setOpsError(reason instanceof Error ? reason.message : "Couldn't load your shift and task data.");
     }
+  }, []);
 
+  const fetchStandings = useCallback(async () => {
+    setStandingsError("");
     try {
-      const tournaments = await listTournaments().catch(() => []);
-      const event = tournaments.find((item) => item.status === "live") ?? tournaments[0] ?? null;
+      const tournaments = await listTournaments();
+      const event = pickActiveTournament(tournaments);
       setTournament(event);
       if (event?.id) {
-        const [lb, rosterRows] = await Promise.all([
-          getStudentLeaderboard(event.id).catch(() => []),
-          listTournamentTeamRoster(event.id).catch(() => []),
+        const [lb, rosterRows, scrutineeringRows] = await Promise.all([
+          getStudentLeaderboard(event.id),
+          listTournamentTeamRoster(event.id),
+          fetchScrutineeringQueue(event.id).catch(() => null),
         ]);
         setRows(lb);
         const grouped: Record<string, string[]> = {};
@@ -92,9 +100,19 @@ export default function HanbeeOverview() {
           list.push(member.full_name ?? "Unnamed driver");
         }
         setRoster(grouped);
+        // null (not an empty set) means "scrutineering data unavailable" so
+        // the metric can say so instead of showing a false zero.
+        setScrutineeredTeamIds(
+          scrutineeringRows ? new Set(scrutineeringRows.filter((row) => row.scrutineering_status === "passed").map((row) => row.team_id)) : null,
+        );
+      } else {
+        setRows([]);
+        setRoster({});
+        setScrutineeredTeamIds(new Set());
       }
-    } catch {
-      // No tournament data available yet.
+    } catch (reason) {
+      setRows(null);
+      setStandingsError(reason instanceof Error ? reason.message : "Couldn't load tournament standings.");
     }
   }, []);
 
@@ -102,12 +120,12 @@ export default function HanbeeOverview() {
     let mounted = true;
     const load = async () => {
       setLoading(true);
-      await fetchData();
+      await Promise.all([fetchOps(), fetchStandings()]);
       if (mounted) setLoading(false);
     };
     void load();
     return () => { mounted = false; };
-  }, [fetchData]);
+  }, [fetchOps, fetchStandings]);
 
   const toggleExpandTeam = (id: string) => {
     setExpandedTeamId((prev) => (prev === id ? null : id));
@@ -115,11 +133,18 @@ export default function HanbeeOverview() {
 
   const teamsToDisplay = rows ?? [];
   const totalSquads = teamsToDisplay.length;
-  const totalDrivers = useMemo(
-    () => teamsToDisplay.reduce((acc, row) => acc + (roster[row.team_id]?.length ?? 0), 0),
-    [teamsToDisplay, roster],
+  const scrutineeredCount = useMemo(
+    () => (scrutineeredTeamIds ? teamsToDisplay.filter((row) => scrutineeredTeamIds.has(row.team_id)).length : null),
+    [teamsToDisplay, scrutineeredTeamIds],
   );
-  const bestSessionLap = useMemo(() => {
+  const scrutineeredDrivers = useMemo(
+    () =>
+      scrutineeredTeamIds
+        ? teamsToDisplay.reduce((acc, row) => acc + (scrutineeredTeamIds.has(row.team_id) ? roster[row.team_id]?.length ?? 0 : 0), 0)
+        : null,
+    [teamsToDisplay, roster, scrutineeredTeamIds],
+  );
+  const bestAverageLap = useMemo(() => {
     const laps = teamsToDisplay.map((row) => row.average_lap_time_ms).filter((ms): ms is number => ms !== null);
     return laps.length ? formatLapTime(Math.min(...laps)) : "--";
   }, [teamsToDisplay]);
@@ -147,7 +172,7 @@ export default function HanbeeOverview() {
             Live Student Grid
             <ExternalLink size={13} />
           </Link>
-          <Link href="/dashboard/hanbee/scrutineering" className={styles.linkBtn}>
+          <Link href={tournament ? `/dashboard/hanbee/scrutineering?tournament=${encodeURIComponent(tournament.id)}` : "/dashboard/hanbee/scrutineering"} className={styles.linkBtn}>
             <Users size={15} />
             Scrutineering Queue
           </Link>
@@ -164,7 +189,15 @@ export default function HanbeeOverview() {
               </div>
               <Trophy size={19} aria-hidden="true" />
             </div>
-            {!tournament ? (
+            {standingsError ? (
+              <EmptyState
+                icon={<AlertTriangle size={22} />}
+                title="Unable to load tournament standings"
+                description={standingsError}
+                actionLabel="Retry"
+                onAction={() => void fetchStandings()}
+              />
+            ) : !tournament ? (
               <EmptyState
                 icon={<Trophy size={22} />}
                 title="No tournaments yet"
@@ -197,7 +230,7 @@ export default function HanbeeOverview() {
                 </div>
                 <div className={styles.metricMeta}>
                   <span className={styles.metricCategory}>PARTICIPATION</span>
-                  <span className={styles.metricTitle}>Registered Squads</span>
+                  <span className={styles.metricTitle}>Payment Verified Squads</span>
                   <span className={styles.metricValue}>{totalSquads} Teams</span>
                 </div>
               </div>
@@ -207,9 +240,14 @@ export default function HanbeeOverview() {
                   <ShieldCheck size={18} />
                 </div>
                 <div className={styles.metricMeta}>
-                  <span className={styles.metricCategory} style={{ color: "#10b981" }}>SCRUTINEERED</span>
-                  <span className={styles.metricTitle}>Active Drivers</span>
-                  <span className={styles.metricValue}>{totalDrivers} Drivers</span>
+                  <span className={styles.metricCategory} style={{ color: "#10b981" }}>SCRUTINEERING</span>
+                  <span className={styles.metricTitle}>Race-Eligible Drivers</span>
+                  <span className={styles.metricValue}>
+                    {scrutineeredDrivers === null ? "—" : `${scrutineeredDrivers} Drivers`}
+                  </span>
+                  {scrutineeredCount !== null && (
+                    <span style={{ fontSize: 11, color: "var(--text-muted)" }}>{scrutineeredCount} of {totalSquads} squads passed</span>
+                  )}
                 </div>
               </div>
 
@@ -219,8 +257,8 @@ export default function HanbeeOverview() {
                 </div>
                 <div className={styles.metricMeta}>
                   <span className={styles.metricCategory} style={{ color: "#a855f7" }}>PACE BENCHMARK</span>
-                  <span className={styles.metricTitle}>Session Fast Lap</span>
-                  <span className={styles.metricValue} style={{ color: "#a855f7" }}>{bestSessionLap}</span>
+                  <span className={styles.metricTitle}>Best Average Lap</span>
+                  <span className={styles.metricValue} style={{ color: "#a855f7" }}>{bestAverageLap}</span>
                 </div>
               </div>
             </div>
@@ -247,8 +285,8 @@ export default function HanbeeOverview() {
             {teamsToDisplay.length === 0 ? (
               <EmptyState
                 icon={<Users size={20} />}
-                title="No verified teams yet"
-                description="Verified teams and their scores will appear here once squads are scrutineered."
+                title="No payment-verified entries yet"
+                description="Teams appear here once their tournament entry payment is verified. Race-day eligibility is tracked separately under Scrutineering."
               />
             ) : (
             <div className={styles.tableWrapper}>
@@ -356,6 +394,16 @@ export default function HanbeeOverview() {
               </div>
               <Clock size={19} aria-hidden="true" />
             </div>
+          {opsError ? (
+            <EmptyState
+              icon={<AlertTriangle size={22} />}
+              title="Unable to load your shift and task data"
+              description={opsError}
+              actionLabel="Retry"
+              onAction={() => void fetchOps()}
+            />
+          ) : (
+          <>
           <div className={styles.staffOpsRow}>
             <div className={styles.opsCard}>
               <div className={styles.opsHeader}>
@@ -387,13 +435,24 @@ export default function HanbeeOverview() {
 
             <div className={styles.opsCard}>
               <div className={styles.opsHeader}>
-                <AlertTriangle size={20} color={data?.needsAttention.length ? "#f59e0b" : "#10b981"} />
+                <AlertTriangle size={20} color={scrutineeredCount !== null && totalSquads - scrutineeredCount > 0 ? "#f59e0b" : "#10b981"} />
                 Scrutineering Alert
               </div>
               <div style={{ fontSize: 14, color: "var(--text-main)", fontWeight: 500 }}>
-                {data?.needsAttention[0]?.message ?? "No scrutineering alerts right now."}
+                {standingsError
+                  ? "Couldn't load scrutineering status."
+                  : scrutineeredCount === null
+                  ? "No tournament selected yet."
+                  : totalSquads - scrutineeredCount > 0
+                  ? `${totalSquads - scrutineeredCount} squad${totalSquads - scrutineeredCount === 1 ? "" : "s"} still need inspection.`
+                  : totalSquads > 0
+                  ? "All payment-verified squads have passed scrutineering."
+                  : "No scrutineering alerts right now."}
               </div>
-              <Link href="/dashboard/hanbee/scrutineering" style={{ fontSize: 12, color: "var(--accent-subtle-text)", textDecoration: "none", marginTop: "auto" }}>
+              <Link
+                href={tournament ? `/dashboard/hanbee/scrutineering?tournament=${encodeURIComponent(tournament.id)}` : "/dashboard/hanbee/scrutineering"}
+                style={{ fontSize: 12, color: "var(--accent-subtle-text)", textDecoration: "none", marginTop: "auto" }}
+              >
                 Open Inspection Queue →
               </Link>
             </div>
@@ -475,6 +534,8 @@ export default function HanbeeOverview() {
             </div>
             )}
           </div>
+          </>
+          )}
           </section>
         </div>
       )}

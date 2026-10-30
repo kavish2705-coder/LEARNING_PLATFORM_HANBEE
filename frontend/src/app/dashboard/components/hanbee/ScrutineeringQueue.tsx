@@ -4,16 +4,19 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import styles from "../../dashboard.module.css";
 import local from "./TournamentReviewQueue.module.css";
 import { getAccountProfile } from "../../../../lib/supabaseAuth";
-import { listTournaments, type TournamentRecord } from "../../../../lib/tournamentAdminApi";
+import { listTournaments, pickActiveTournament, type TournamentRecord } from "../../../../lib/tournamentAdminApi";
 import {
+  fetchScrutineeringHistory,
   fetchScrutineeringQueue,
   getScrutineeringInspection,
   submitScrutineeringInspection,
   type ScrutineeringChecklistItem,
+  type ScrutineeringHistoryEntry,
   type ScrutineeringQueueRow,
 } from "../../../../lib/teamFormationApi";
 import Modal from "../../../../components/ui/Modal";
 import modalStyles from "../../../../components/ui/Modal.module.css";
+import { useConfirm } from "../../../../components/ui/useConfirm";
 
 type FilterTab = "all" | "pending" | "failed" | "passed";
 
@@ -28,7 +31,7 @@ const DEFAULT_CHECKLIST: Array<{ key: string; label: string }> = [
   { key: "safety_equipment", label: "Safety equipment" },
 ];
 
-function relativeTime(iso: string | null): string {
+function relativeTime(iso: string | null, _tick?: number): string {
   if (!iso) return "—";
   const diffMs = Date.now() - new Date(iso).getTime();
   const minutes = Math.floor(diffMs / 60000);
@@ -42,6 +45,13 @@ function relativeTime(iso: string | null): string {
 }
 
 export default function ScrutineeringQueue() {
+  // Read client-side only -- avoids the Suspense boundary next/navigation's
+  // useSearchParams would otherwise require at build time, and this value is
+  // only needed once, on first load.
+  const [requestedTournamentId] = useState<string | null>(() =>
+    typeof window === "undefined" ? null : new URLSearchParams(window.location.search).get("tournament"),
+  );
+
   const [tournaments, setTournaments] = useState<TournamentRecord[]>([]);
   const [tournamentId, setTournamentId] = useState("");
   const [rows, setRows] = useState<ScrutineeringQueueRow[]>([]);
@@ -50,13 +60,26 @@ export default function ScrutineeringQueue() {
   const [notice, setNotice] = useState("");
   const [filter, setFilter] = useState<FilterTab>("all");
   const [search, setSearch] = useState("");
+  const [tick, setTick] = useState(0);
 
   const [inspecting, setInspecting] = useState<ScrutineeringQueueRow | null>(null);
   const [items, setItems] = useState<ScrutineeringChecklistItem[]>([]);
   const [notes, setNotes] = useState("");
+  const [expectedUpdatedAt, setExpectedUpdatedAt] = useState<string | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
   const [detailError, setDetailError] = useState("");
   const [saving, setSaving] = useState(false);
+  const [history, setHistory] = useState<ScrutineeringHistoryEntry[] | null>(null);
+  const [historyOpen, setHistoryOpen] = useState(false);
+
+  const { ask, dialog } = useConfirm();
+
+  // "just now" / "2m ago" otherwise sits frozen until something else
+  // re-renders the component.
+  useEffect(() => {
+    const id = setInterval(() => setTick((t) => t + 1), 30000);
+    return () => clearInterval(id);
+  }, []);
 
   const loadTournaments = useCallback(async () => {
     const profile = await getAccountProfile();
@@ -65,11 +88,12 @@ export default function ScrutineeringQueue() {
     }
     const events = await listTournaments();
     setTournaments(events);
-    if (!tournamentId && events.length > 0) {
-      const upcoming = events.find((event) => event.status === "upcoming") ?? events[0];
-      setTournamentId(upcoming.id);
+    if (!tournamentId) {
+      const preselected = requestedTournamentId ? events.find((event) => event.id === requestedTournamentId) : null;
+      const chosen = preselected ?? pickActiveTournament(events);
+      if (chosen) setTournamentId(chosen.id);
     }
-  }, [tournamentId]);
+  }, [tournamentId, requestedTournamentId]);
 
   useEffect(() => {
     loadTournaments().catch((reason) => setError(reason instanceof Error ? reason.message : "We couldn't load tournaments."));
@@ -103,7 +127,11 @@ export default function ScrutineeringQueue() {
     return rows.filter((row) => {
       if (filter !== "all" && row.scrutineering_status !== filter) return false;
       if (!term) return true;
-      return row.team_name.toLowerCase().includes(term);
+      return (
+        row.team_name.toLowerCase().includes(term) ||
+        (row.school_name ?? "").toLowerCase().includes(term) ||
+        (row.captain_name ?? "").toLowerCase().includes(term)
+      );
     });
   }, [rows, filter, search]);
 
@@ -111,6 +139,8 @@ export default function ScrutineeringQueue() {
     setInspecting(row);
     setDetailError("");
     setDetailLoading(true);
+    setHistory(null);
+    setHistoryOpen(false);
     getScrutineeringInspection(row.team_id)
       .then((insp) => {
         const existingByKey = new Map(insp.items.map((item) => [item.key, item]));
@@ -123,26 +153,54 @@ export default function ScrutineeringQueue() {
           })),
         );
         setNotes(insp.notes ?? "");
+        setExpectedUpdatedAt(insp.updated_at ?? null);
       })
       .catch((reason) => setDetailError(reason instanceof Error ? reason.message : "We couldn't load this inspection."))
       .finally(() => setDetailLoading(false));
+  }
+
+  function loadHistory() {
+    if (!inspecting) return;
+    setHistoryOpen(true);
+    if (history !== null) return;
+    fetchScrutineeringHistory(inspecting.team_id)
+      .then((entries) => setHistory(entries))
+      .catch(() => setHistory([]));
   }
 
   function setItemResult(key: string, result: ScrutineeringChecklistItem["result"]) {
     setItems((prev) => prev.map((item) => (item.key === key ? { ...item, result } : item)));
   }
 
+  function setItemNote(key: string, note: string) {
+    setItems((prev) => prev.map((item) => (item.key === key ? { ...item, note } : item)));
+  }
+
   async function save(status: "passed" | "failed") {
     if (!inspecting) return;
     const unchecked = items.filter((item) => item.result === "not_checked");
-    if (status === "passed" && unchecked.length > 0) {
-      setDetailError(`${unchecked.length} item${unchecked.length === 1 ? "" : "s"} still need${unchecked.length === 1 ? "s" : ""} a check before you can pass this car.`);
+    const failedItems = items.filter((item) => item.result === "fail");
+    if (unchecked.length > 0) {
+      setDetailError(`${unchecked.length} item${unchecked.length === 1 ? "" : "s"} still need${unchecked.length === 1 ? "s" : ""} a check.`);
       return;
+    }
+    if (status === "passed" && failedItems.length > 0) {
+      setDetailError(`${failedItems.length} item${failedItems.length === 1 ? "" : "s"} failed — the car can't pass with a failed item. Mark it as failed instead, or re-check that item.`);
+      return;
+    }
+    if (status === "failed") {
+      const confirmed = await ask({
+        title: "Fail this inspection?",
+        message: `${inspecting.team_name} will be marked as failed and the whole team will be notified. This is operationally significant — confirm before saving.`,
+        confirmLabel: "Fail inspection",
+        tone: "danger",
+      });
+      if (!confirmed) return;
     }
     setSaving(true);
     setDetailError("");
     try {
-      await submitScrutineeringInspection(inspecting.team_id, status, items, notes.trim() || null);
+      await submitScrutineeringInspection(inspecting.team_id, status, items, notes.trim() || null, expectedUpdatedAt);
       setNotice(`${inspecting.team_name} marked as ${status}.`);
       setInspecting(null);
       await loadQueue(tournamentId);
@@ -153,8 +211,11 @@ export default function ScrutineeringQueue() {
     }
   }
 
+  const actionsDisabled = saving || detailLoading;
+
   return (
     <section>
+      {dialog}
       {error && <p role="alert">{error}</p>}
       {notice && <p role="status">{notice}</p>}
       <div className={styles.sectionCard}>
@@ -174,7 +235,7 @@ export default function ScrutineeringQueue() {
               aria-label="Tournament"
             >
               {tournaments.map((event) => (
-                <option key={event.id} value={event.id}>{event.title}</option>
+                <option key={event.id} value={event.id}>{event.title}{event.status === "live" ? " (live)" : ""}</option>
               ))}
             </select>
           )}
@@ -197,7 +258,7 @@ export default function ScrutineeringQueue() {
           <input
             type="search"
             className={local.searchInput}
-            placeholder="Search team…"
+            placeholder="Search team, school, or captain…"
             aria-label="Search teams"
             value={search}
             onChange={(event) => setSearch(event.target.value)}
@@ -219,6 +280,7 @@ export default function ScrutineeringQueue() {
                     <th>Team</th>
                     <th>Payment</th>
                     <th>Scrutineering</th>
+                    <th>Eligible</th>
                     <th>Checked by</th>
                     <th>Action</th>
                   </tr>
@@ -226,7 +288,10 @@ export default function ScrutineeringQueue() {
                 <tbody>
                   {filteredRows.map((row) => (
                     <tr key={row.team_id}>
-                      <td><strong style={{ color: "var(--text-main)" }}>{row.team_name}</strong></td>
+                      <td>
+                        <strong style={{ color: "var(--text-main)", display: "block" }}>{row.team_name}</strong>
+                        <span style={{ fontSize: 12 }}>{row.school_name ?? "Solo entry"}{row.captain_name ? ` · ${row.captain_name}` : ""}</span>
+                      </td>
                       <td style={{ color: "var(--text-main)" }}>{row.payment_status === "verified" ? "Verified" : "Not verified"}</td>
                       <td>
                         <span
@@ -236,7 +301,15 @@ export default function ScrutineeringQueue() {
                           {row.scrutineering_status === "passed" ? "Passed" : row.scrutineering_status === "failed" ? "Failed" : "Needs inspection"}
                         </span>
                       </td>
-                      <td className={local.ageText}>{row.checked_by_name ? `${row.checked_by_name} · ${relativeTime(row.checked_at)}` : "—"}</td>
+                      <td>
+                        <span
+                          className={local.paymentLabel}
+                          style={{ color: row.eligible ? "var(--color-success)" : "var(--text-muted)" }}
+                        >
+                          {row.eligible ? "Race eligible" : "Not eligible"}
+                        </span>
+                      </td>
+                      <td className={local.ageText}>{row.checked_by_name ? `${row.checked_by_name} · ${relativeTime(row.checked_at, tick)}` : "—"}</td>
                       <td>
                         <button type="button" className={styles.filterBtn} style={{ padding: "6px 12px", fontSize: "12px" }} onClick={() => openInspection(row)}>Inspect →</button>
                       </td>
@@ -250,7 +323,10 @@ export default function ScrutineeringQueue() {
               {filteredRows.map((row) => (
                 <div key={row.team_id} className={local.entryCard}>
                   <div className={local.entryCardHead}>
-                    <div className={local.entryCardTeam}>{row.team_name}</div>
+                    <div>
+                      <div className={local.entryCardTeam}>{row.team_name}</div>
+                      <div className={local.entryCardMeta}>{row.school_name ?? "Solo entry"}{row.captain_name ? ` · ${row.captain_name}` : ""}</div>
+                    </div>
                     <span
                       className={`${local.paymentLabel} ${row.scrutineering_status === "passed" ? local.paymentDeclared : local.paymentMissing}`}
                       style={row.scrutineering_status === "failed" ? { color: "var(--color-danger)" } : undefined}
@@ -259,8 +335,13 @@ export default function ScrutineeringQueue() {
                     </span>
                   </div>
                   <div className={local.entryCardRow}>
-                    <span className={local.ageText}>{row.checked_by_name ? `${row.checked_by_name} · ${relativeTime(row.checked_at)}` : "Not inspected yet"}</span>
-                    <button type="button" className={styles.filterBtn} style={{ padding: "6px 12px", fontSize: "12px" }} onClick={() => openInspection(row)}>Inspect →</button>
+                    <span style={{ fontSize: 12, color: row.eligible ? "var(--color-success)" : "var(--text-muted)" }}>
+                      {row.eligible ? "Race eligible" : "Not eligible"}
+                    </span>
+                    <span className={local.ageText}>{row.checked_by_name ? relativeTime(row.checked_at, tick) : "Not inspected yet"}</span>
+                  </div>
+                  <div className={local.entryCardRow}>
+                    <button type="button" className={styles.filterBtn} style={{ padding: "6px 12px", fontSize: "12px", width: "100%" }} onClick={() => openInspection(row)}>Inspect →</button>
                   </div>
                 </div>
               ))}
@@ -278,11 +359,11 @@ export default function ScrutineeringQueue() {
         actions={
           inspecting && (
             <>
-              <button type="button" className={modalStyles.secondaryBtn} disabled={saving} onClick={() => setInspecting(null)}>Close</button>
-              <button type="button" className={modalStyles.dangerBtn} disabled={saving} onClick={() => void save("failed")}>
+              <button type="button" className={modalStyles.secondaryBtn} disabled={actionsDisabled} onClick={() => setInspecting(null)}>Close</button>
+              <button type="button" className={modalStyles.dangerBtn} disabled={actionsDisabled} onClick={() => void save("failed")}>
                 {saving ? "Saving…" : "Fail inspection"}
               </button>
-              <button type="button" className={modalStyles.primaryBtn} disabled={saving} onClick={() => void save("passed")}>
+              <button type="button" className={modalStyles.primaryBtn} disabled={actionsDisabled} onClick={() => void save("passed")}>
                 {saving ? "Saving…" : "Pass inspection"}
               </button>
             </>
@@ -320,6 +401,16 @@ export default function ScrutineeringQueue() {
                           </button>
                         </div>
                       </div>
+                      {item.result === "fail" && (
+                        <input
+                          type="text"
+                          value={item.note ?? ""}
+                          onChange={(event) => setItemNote(item.key, event.target.value)}
+                          placeholder={`Why did ${item.label?.toLowerCase()} fail?`}
+                          className={local.searchInput}
+                          style={{ width: "100%", maxWidth: "none" }}
+                        />
+                      )}
                     </li>
                   ))}
                 </ul>
@@ -332,6 +423,35 @@ export default function ScrutineeringQueue() {
                   className={local.searchInput}
                   style={{ width: "100%", maxWidth: "none", resize: "vertical" }}
                 />
+
+                <button
+                  type="button"
+                  onClick={loadHistory}
+                  style={{ marginTop: 16, background: "none", border: "none", color: "var(--accent-subtle-text)", fontSize: 12.5, cursor: "pointer", padding: 0 }}
+                >
+                  {historyOpen ? "Hide inspection history" : "Show inspection history"}
+                </button>
+                {historyOpen && (
+                  history === null ? (
+                    <p style={{ color: "var(--text-muted)", fontSize: 12.5, marginTop: 8 }}>Loading history…</p>
+                  ) : history.length === 0 ? (
+                    <p style={{ color: "var(--text-muted)", fontSize: 12.5, marginTop: 8 }}>No prior inspections recorded for this team.</p>
+                  ) : (
+                    <ul className={local.rosterList} style={{ marginTop: 8 }}>
+                      {history.map((entry, index) => (
+                        <li key={index} style={{ flexDirection: "column", alignItems: "stretch", gap: 2 }}>
+                          <div style={{ display: "flex", justifyContent: "space-between", width: "100%" }}>
+                            <span style={{ fontWeight: 600, color: entry.status === "failed" ? "var(--color-danger)" : entry.status === "passed" ? "var(--color-success)" : "var(--text-muted)" }}>
+                              {entry.status === "failed" ? "Failed" : entry.status === "passed" ? "Passed" : "Pending"}
+                            </span>
+                            <span style={{ fontSize: 12 }}>{entry.checked_by_name ?? "—"} · {relativeTime(entry.checked_at, tick)}</span>
+                          </div>
+                          {entry.notes && <span style={{ fontSize: 12, color: "var(--text-muted)" }}>{entry.notes}</span>}
+                        </li>
+                      ))}
+                    </ul>
+                  )
+                )}
               </>
             )}
           </div>

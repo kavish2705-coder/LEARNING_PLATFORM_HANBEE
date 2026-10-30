@@ -9,9 +9,15 @@ type ModalProps = {
   onClose: () => void;
   actions?: React.ReactNode;
   children: React.ReactNode;
+  // Neither Modal instance is a portal, so two nested modals (e.g. a
+  // confirm dialog opened from inside another modal) are plain DOM
+  // siblings at the same z-index -- the later one in the tree paints on
+  // top and silently eats the earlier one's clicks. ConfirmDialog passes
+  // this to guarantee it always wins over whatever opened it.
+  elevated?: boolean;
 };
 
-export default function Modal({ open, title, onClose, actions, children }: ModalProps) {
+export default function Modal({ open, title, onClose, actions, children, elevated }: ModalProps) {
   const dialogRef = useRef<HTMLDivElement>(null);
   const titleId = useId();
 
@@ -53,7 +59,11 @@ export default function Modal({ open, title, onClose, actions, children }: Modal
   if (!open) return null;
 
   return (
-    <div className={styles.backdrop} onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}>
+    <div
+      className={styles.backdrop}
+      style={elevated ? { zIndex: 200 } : undefined}
+      onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}
+    >
       <div
         ref={dialogRef}
         className={styles.dialog}

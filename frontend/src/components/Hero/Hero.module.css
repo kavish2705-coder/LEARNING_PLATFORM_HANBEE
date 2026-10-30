@@ -222,9 +222,9 @@
 }
 
 .independentLink {
-  display: inline-block;
-  margin-top: 18px;
-  margin-left: 4px;
+  display: block;
+  width: fit-content;
+  margin-top: 20px;
   font-family: var(--font-body);
   font-size: 13.5px;
   color: rgba(255, 255, 255, 0.72);
