@@ -43,6 +43,8 @@ export default function HanbeeOverview() {
   const [expandedTeamId, setExpandedTeamId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [updatingTaskId, setUpdatingTaskId] = useState("");
+  const [clockBusy, setClockBusy] = useState(false);
+  const [clockError, setClockError] = useState("");
 
   // Separate from fetchStandings: attendance/tasks and tournament
   // standings are independent sections with independent failure modes, and
@@ -98,6 +100,23 @@ export default function HanbeeOverview() {
       // fetchOps will leave the previous status visible; no silent fake success.
     } finally {
       setUpdatingTaskId("");
+    }
+  }
+
+  async function handleClockToggle() {
+    setClockBusy(true);
+    setClockError("");
+    try {
+      if (data?.status === "Clocked In") {
+        await authenticatedSupabaseFetch("/rest/v1/rpc/clock_out", { method: "POST", body: "{}" });
+      } else {
+        await authenticatedSupabaseFetch("/rest/v1/rpc/clock_in", { method: "POST", body: "{}" });
+      }
+      await fetchOps();
+    } catch (reason) {
+      setClockError(reason instanceof Error ? reason.message : "We couldn't update your clock status.");
+    } finally {
+      setClockBusy(false);
     }
   }
 
@@ -437,6 +456,16 @@ export default function HanbeeOverview() {
               <div style={{ fontSize: 12, color: "#10b981", fontWeight: 600 }}>
                 ● Status: {data?.status ?? "Off shift"}
               </div>
+              <button
+                type="button"
+                className={styles.linkBtn}
+                disabled={clockBusy}
+                onClick={() => void handleClockToggle()}
+                style={{ marginTop: 10, justifyContent: "center" }}
+              >
+                {clockBusy ? "Saving…" : data?.status === "Clocked In" ? "Clock out" : "Clock in"}
+              </button>
+              {clockError && <div style={{ fontSize: 11, color: "#ef4444", marginTop: 6 }}>{clockError}</div>}
             </div>
 
             <div className={styles.opsCard}>
