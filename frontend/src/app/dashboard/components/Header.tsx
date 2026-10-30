@@ -48,6 +48,7 @@ const PAGE_TITLES: Record<string, string> = {
   "/dashboard/hanbee/schools": "Schools",
   "/dashboard/hanbee/courses": "Courses",
   "/dashboard/hanbee/tournament": "Tournament Entries",
+  "/dashboard/hanbee/scrutineering": "Scrutineering",
   "/dashboard/hanbee/applications": "Applications",
   "/dashboard/hanbee/assessment-reviews": "Quiz Reviews",
   "/dashboard/hanbee/schedule": "Schedule",

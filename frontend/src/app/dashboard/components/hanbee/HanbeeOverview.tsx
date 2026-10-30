@@ -147,7 +147,7 @@ export default function HanbeeOverview() {
             Live Student Grid
             <ExternalLink size={13} />
           </Link>
-          <Link href="/dashboard/hanbee/tournament" className={styles.linkBtn}>
+          <Link href="/dashboard/hanbee/scrutineering" className={styles.linkBtn}>
             <Users size={15} />
             Scrutineering Queue
           </Link>
@@ -393,7 +393,7 @@ export default function HanbeeOverview() {
               <div style={{ fontSize: 14, color: "var(--text-main)", fontWeight: 500 }}>
                 {data?.needsAttention[0]?.message ?? "No scrutineering alerts right now."}
               </div>
-              <Link href="/dashboard/hanbee/tournament" style={{ fontSize: 12, color: "var(--accent-subtle-text)", textDecoration: "none", marginTop: "auto" }}>
+              <Link href="/dashboard/hanbee/scrutineering" style={{ fontSize: 12, color: "var(--accent-subtle-text)", textDecoration: "none", marginTop: "auto" }}>
                 Open Inspection Queue →
               </Link>
             </div>

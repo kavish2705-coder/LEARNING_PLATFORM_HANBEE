@@ -162,6 +162,65 @@ export function getTeamRoster(teamId: string) {
   return rpc<TeamRosterMember[]>("get_team_roster", { p_team: teamId });
 }
 
+export type ScrutineeringStatus = "pending" | "passed" | "failed";
+export type ScrutineeringItemResult = "pass" | "fail" | "not_checked";
+
+export interface ScrutineeringQueueRow {
+  team_id: string;
+  team_name: string;
+  payment_status: TeamStatus;
+  scrutineering_status: ScrutineeringStatus;
+  checked_by_name: string | null;
+  checked_at: string | null;
+  notes: string | null;
+}
+
+export interface ScrutineeringChecklistItem {
+  key: string;
+  label?: string;
+  result: ScrutineeringItemResult;
+  note?: string | null;
+}
+
+export interface ScrutineeringInspection {
+  status: ScrutineeringStatus;
+  items: ScrutineeringChecklistItem[];
+  notes: string | null;
+  checked_at?: string | null;
+}
+
+export interface TeamEligibility {
+  payment_verified: boolean;
+  scrutineering_status: ScrutineeringStatus;
+  eligible: boolean;
+}
+
+export function fetchScrutineeringQueue(tournamentId: string) {
+  return rpc<ScrutineeringQueueRow[]>("list_scrutineering_queue", { p_tournament: tournamentId });
+}
+
+export function getScrutineeringInspection(teamId: string) {
+  return rpc<ScrutineeringInspection>("get_scrutineering_inspection", { p_team: teamId });
+}
+
+export function submitScrutineeringInspection(
+  teamId: string,
+  status: ScrutineeringStatus,
+  items: ScrutineeringChecklistItem[],
+  notes: string | null,
+) {
+  return rpc<TeamEligibility>("submit_scrutineering_inspection", {
+    p_team: teamId,
+    p_status: status,
+    p_items: items.map((item) => ({ key: item.key, result: item.result, note: item.note ?? null })),
+    p_notes: notes,
+  });
+}
+
+export function fetchTeamEligibility(teamId: string) {
+  return rpc<TeamEligibility>("team_eligibility", { p_team: teamId });
+}
+
 export function fetchMyTeamFormation(tournamentId: string) {
   return rpc<MyTeamFormation>("my_team_formation", { p_tournament: tournamentId });
 }
