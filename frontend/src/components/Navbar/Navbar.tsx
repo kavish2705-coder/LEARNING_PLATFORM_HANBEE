@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { motion, useScroll, useTransform, useMotionValueEvent } from "framer-motion";
+import { motion, useScroll, useTransform, useSpring } from "framer-motion";
 import styles from "./Navbar.module.css";
 
 const navLinks = [
@@ -13,51 +13,42 @@ const navLinks = [
 
 export default function Navbar() {
   const [activeLink, setActiveLink] = useState("Home");
-  const [isScrolled, setIsScrolled] = useState(false);
   const { scrollY } = useScroll();
 
-  useMotionValueEvent(scrollY, "change", (latest) => {
-    setIsScrolled(latest > 24);
+  // Smooth, spring-cushioned transition:
+  // - 0px to 40px: 100% transparent inside the hero
+  // - 40px to 380px: gradual, silky-smooth fade into frosted glass as user crosses the hero
+  const rawBackdropOpacity = useTransform(scrollY, [40, 360], [0, 1]);
+  const backdropOpacity = useSpring(rawBackdropOpacity, {
+    stiffness: 120,
+    damping: 24,
+    mass: 0.25,
   });
 
-  // Smooth, gradual transition: completely transparent in the hero,
-  // gradually becoming solid opaque with blur and border as user scrolls down
-  const backgroundColor = useTransform(
-    scrollY,
-    [10, 160],
-    ["rgba(18, 18, 26, 0)", "rgba(18, 18, 26, 0.96)"]
-  );
-
-  const borderBottomColor = useTransform(
-    scrollY,
-    [10, 160],
-    ["rgba(255, 255, 255, 0)", "rgba(255, 255, 255, 0.08)"]
-  );
-
-  const boxShadow = useTransform(
-    scrollY,
-    [10, 160],
-    ["0 0 0 rgba(0, 0, 0, 0)", "0 10px 30px rgba(0, 0, 0, 0.4)"]
-  );
-
-  const blurPx = useTransform(scrollY, [10, 160], [0, 20]);
-  const backdropFilter = useTransform(blurPx, (v) => `blur(${v}px)`);
-  const webkitBackdropFilter = useTransform(blurPx, (v) => `blur(${v}px)`);
+  // Subtle luxury compression: 86px at top -> 72px when scrolled
+  const rawHeight = useTransform(scrollY, [40, 360], [86, 72]);
+  const navHeight = useSpring(rawHeight, {
+    stiffness: 120,
+    damping: 24,
+    mass: 0.25,
+  });
 
   return (
     <motion.nav
-      className={`${styles.navbar} ${isScrolled ? styles.scrolled : ""}`}
-      style={{
-        backgroundColor,
-        borderBottomColor,
-        boxShadow,
-        backdropFilter,
-        WebkitBackdropFilter: webkitBackdropFilter,
-      }}
+      className={styles.navbar}
+      style={{ height: navHeight }}
       initial={{ y: -24, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
     >
+      {/* Hardware-composited frosted glass backdrop:
+          Using spring-driven opacity on a dedicated GPU layer avoids
+          browser blur recalculation jank and delivers 120fps buttery smoothness */}
+      <motion.div
+        className={styles.navBackdrop}
+        style={{ opacity: backdropOpacity }}
+      />
+
       <div className={styles.navContent}>
         {/* Logo */}
         <motion.a

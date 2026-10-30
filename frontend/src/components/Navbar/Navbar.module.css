@@ -5,16 +5,24 @@
   right: 0;
   z-index: 100;
   padding: 0 40px;
-  height: 84px;
   display: flex;
   align-items: center;
-  /* Completely transparent by default at the top of the hero section;
-     Smoothly transitions to an opaque blurred backdrop as the user scrolls down */
   background: transparent;
-  border-bottom: 1px solid transparent;
-  backdrop-filter: blur(0px);
-  -webkit-backdrop-filter: blur(0px);
-  transition: height 0.3s ease;
+  pointer-events: auto;
+}
+
+/* Hardware-accelerated glass backdrop layer */
+.navBackdrop {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: rgba(18, 18, 26, 0.94);
+  backdrop-filter: blur(24px) saturate(140%);
+  -webkit-backdrop-filter: blur(24px) saturate(140%);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.45);
+  pointer-events: none;
+  will-change: opacity;
 }
 
 .navContent {
@@ -164,7 +172,6 @@
 
 @media (max-width: 600px) {
   .navbar {
-    height: 70px;
     padding: 0 20px;
   }
 
@@ -188,7 +195,6 @@
 /* Strict 390px (and narrow phone) viewport QA - Zero overlap guarantee */
 @media (max-width: 400px) {
   .navbar {
-    height: 64px;
     padding: 0 16px;
   }
 
