@@ -2,17 +2,14 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useMode } from "./ModeContext";
 import { useSessionProfile } from "../../lib/hooks/useSessionProfile";
 import TournamentOverview from "./components/TournamentOverview";
-import LearningOverview from "./components/LearningOverview";
 import SchoolOverview from "./components/school/SchoolOverview";
 import HanbeeOverview from "./components/hanbee/HanbeeOverview";
 import ManagerDashboard from "./components/manager/ManagerDashboard";
 
 export default function DashboardOverview() {
   const router = useRouter();
-  const { mode } = useMode();
   const { data: profile } = useSessionProfile();
 
   const role = profile?.role;
@@ -39,9 +36,13 @@ export default function DashboardOverview() {
     return <ManagerDashboard />;
   }
 
+  // Learning is hidden until it's ready (see Sidebar.tsx) -- a student
+  // always gets the tournament overview here, regardless of any stale
+  // "learning" value left in localStorage from before the mode switcher
+  // was removed.
   return (
     <div>
-      {mode === "tournament" ? <TournamentOverview /> : <LearningOverview />}
+      <TournamentOverview />
     </div>
   );
 }

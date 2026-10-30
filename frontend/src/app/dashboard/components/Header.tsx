@@ -11,7 +11,6 @@ import NotificationBell from "./NotificationBell";
 import SearchBar from "./SearchBar";
 import { useSessionProfile } from "../../../lib/hooks/useSessionProfile";
 import { useUserXp } from "../../../lib/hooks/useUserXp";
-import { useMode } from "../ModeContext";
 import { readStoredSession, signOut } from "../../../lib/supabaseAuth";
 import { fetchCourseContent } from "../../../lib/coursesApi";
 
@@ -73,7 +72,6 @@ export default function Header({
   mobileMenuOpen?: boolean;
 }) {
   const pathname = usePathname();
-  const { mode } = useMode();
   const { data: profile } = useSessionProfile();
   const { xp, isGaining, lastGained } = useUserXp();
   const name = profile?.full_name ?? "";
@@ -121,7 +119,10 @@ export default function Header({
   const getPageTitle = () => {
     if (pathname === "/dashboard") {
       if (profile?.role === "student") {
-        return mode === "tournament" ? "Track Hub" : "Learning Hub";
+        // Learning is hidden until it's ready (see Sidebar.tsx) -- the
+        // root page always renders the tournament overview now, so the
+        // title must match regardless of mode.
+        return "Track Hub";
       }
       return "Overview";
     }
