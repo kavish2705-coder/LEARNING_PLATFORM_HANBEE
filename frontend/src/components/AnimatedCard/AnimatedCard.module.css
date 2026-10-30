@@ -4,24 +4,20 @@
   position: relative;
   overflow: hidden;
   transform-style: preserve-3d;
-  will-change: transform;
 }
 
 .glare {
   position: absolute;
-  width: 260px;
-  height: 260px;
-  top: 50%;
-  left: 50%;
-  margin-left: -130px;
-  margin-top: -130px;
+  width: 240px;
+  height: 240px;
+  margin-left: -120px;
+  margin-top: -120px;
   border-radius: 50%;
   background: radial-gradient(circle, var(--landing-accent-glow) 0%, transparent 70%);
   opacity: 0;
   pointer-events: none;
-  transition: opacity 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: opacity 0.3s ease;
   z-index: 1;
-  will-change: transform, opacity;
 }
 
 .card:hover .glare {

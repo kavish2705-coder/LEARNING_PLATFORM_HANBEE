@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, useScroll, useTransform, useReducedMotion } from "framer-motion";
+import { motion, useScroll, useTransform } from "framer-motion";
 import styles from "./Hero.module.css";
 
 interface HeroProps {
@@ -9,7 +9,6 @@ interface HeroProps {
 
 export default function Hero({ onOpenStudentModal }: HeroProps) {
   const { scrollY } = useScroll();
-  const reduceMotion = useReducedMotion();
   const yBg = useTransform(scrollY, [0, 800], [0, 140]);
   const opacityText = useTransform(scrollY, [0, 420], [1, 0]);
 
@@ -21,10 +20,7 @@ export default function Hero({ onOpenStudentModal }: HeroProps) {
       {/* Background Video with Smooth Parallax */}
       <motion.div
         className={styles.bgVideoWrap}
-        style={{ y: reduceMotion ? 0 : yBg }}
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
+        style={{ y: yBg }}
       >
         <video
           className={styles.bgVideo}
