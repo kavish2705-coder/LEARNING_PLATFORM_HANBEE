@@ -1,6 +1,7 @@
 "use client";
 
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useState } from "react";
+import IndependentStudentModal from "@/components/IndependentStudentModal/IndependentStudentModal";
 import { useScroll, useTransform, motion } from "framer-motion";
 import Navbar from "@/components/Navbar/Navbar";
 import Hero from "@/components/Hero/Hero";
@@ -13,6 +14,7 @@ const tickerItems = ["BUILD THE FLIGHT CONTROLLER", "CODE IT YOURSELF", "RACE AT
 
 export default function Home() {
   const { scrollY } = useScroll();
+  const [isStudentModalOpen, setIsStudentModalOpen] = useState(false);
   const schoolVideoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
@@ -49,7 +51,7 @@ export default function Home() {
       <Navbar />
 
       {/* Hero section */}
-      <Hero />
+      <Hero onOpenStudentModal={() => setIsStudentModalOpen(true)} />
 
       {/* Moving ticker strip - breaks straight into the hero's bottom edge */}
       <div className={styles.marqueeWrap} style={{ position: "relative", zIndex: 10 }}>
@@ -153,6 +155,15 @@ export default function Home() {
           overflow: "hidden",
         }}
       >
+        {/* Background Track Image */}
+        <div className={styles.coursesImageBg}>
+          <img
+            src="/courses-track-bg.jpg"
+            alt="Hanbee RC Racing Circuit"
+            className={styles.coursesImage}
+          />
+          <div className={styles.coursesOverlay} />
+        </div>
         <div className={styles.ambientWrap}><AmbientSwarm /></div>
         <div style={{ maxWidth: "1200px", margin: "0 auto", position: "relative", zIndex: 1 }}>
           <motion.div
@@ -535,6 +546,11 @@ export default function Home() {
           © {new Date().getFullYear()} Hanbee. All rights reserved.
         </div>
       </footer>
+
+      <IndependentStudentModal
+        isOpen={isStudentModalOpen}
+        onClose={() => setIsStudentModalOpen(false)}
+      />
     </main>
   );
 }

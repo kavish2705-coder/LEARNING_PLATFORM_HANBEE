@@ -3,10 +3,15 @@
 import { motion, useScroll, useTransform } from "framer-motion";
 import styles from "./Hero.module.css";
 
-export default function Hero() {
+interface HeroProps {
+  onOpenStudentModal?: () => void;
+}
+
+export default function Hero({ onOpenStudentModal }: HeroProps) {
   const { scrollY } = useScroll();
   const yBg = useTransform(scrollY, [0, 1000], [0, 300]);
   const opacityText = useTransform(scrollY, [0, 400], [1, 0]);
+
   const containerVariant = {
     hidden: { opacity: 0 },
     visible: {
@@ -42,7 +47,7 @@ export default function Hero() {
 
   return (
     <section className={styles.hero}>
-      {/* Background Video with Parallax & Fallback Poster */}
+      {/* Background Video with Parallax & Fallback */}
       <motion.div className={styles.bgVideoWrap} style={{ y: yBg }}>
         <video
           className={styles.bgVideo}
@@ -54,11 +59,8 @@ export default function Hero() {
           <source src="/hero-video.mp4" type="video/mp4" />
         </video>
       </motion.div>
-
-      {/* Futuristic Grid Overlay */}
-      <div className={styles.gridOverlay} />
       
-      {/* Animated Glowing Orb */}
+      {/* Animated Glowing Ambient Warmth */}
       <div className={styles.glowingOrb} />
 
       {/* Gradient Overlay for text readability */}
@@ -67,14 +69,15 @@ export default function Hero() {
       {/* Hero Content */}
       <motion.div className={styles.content} style={{ opacity: opacityText }}>
         {/* Tagline */}
-        <motion.p
+        <motion.div
           className={styles.tagline}
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2, duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
         >
-          LEARN · GROW · BELONG
-        </motion.p>
+          <span className={styles.taglineDot} />
+          <span>LEARN · GROW · BELONG</span>
+        </motion.div>
 
         {/* Main Heading */}
         <motion.h1
@@ -109,46 +112,86 @@ export default function Hero() {
           Write the code. Build the car. Race it for real — at the Hanbee RC Cup.
         </motion.p>
 
-        {/* CTA Button */}
-        <motion.a
-          href="/login"
-          className={styles.ctaButton}
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.8, duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.97 }}
-        >
-          <span>Start Learning</span>
-          <svg
-            width="14"
-            height="14"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
+        {/* CTA Button Group */}
+        <div className={styles.ctaGroup}>
+          <motion.a
+            href="/login"
+            className={styles.ctaButton}
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.8, duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.97 }}
           >
-            <path d="M5 12h14" />
-            <path d="M12 5l7 7-7 7" />
-          </svg>
-        </motion.a>
+            <span>Start Learning</span>
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M5 12h14" />
+              <path d="M12 5l7 7-7 7" />
+            </svg>
+          </motion.a>
 
-        {/* Secondary path for students without a school -- the solo/independent
-            entry already exists on the backend (create_solo_team), this just
-            surfaces it at the point visitors actually decide how to start. */}
-        <motion.a
-          href="/login?role=Student"
+          {onOpenStudentModal ? (
+            <motion.button
+              type="button"
+              onClick={onOpenStudentModal}
+              className={styles.secondaryCtaButton}
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.85, duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
+            >
+              <span>Independent Student</span>
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M5 12h14" />
+                <path d="M12 5l7 7-7 7" />
+              </svg>
+            </motion.button>
+          ) : (
+            <motion.a
+              href="/login?role=Student"
+              className={styles.secondaryCtaButton}
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.85, duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
+            >
+              <span>Independent Student</span>
+            </motion.a>
+          )}
+        </div>
+
+        {/* Secondary path text link */}
+        <motion.button
+          type="button"
+          onClick={onOpenStudentModal || (() => { window.location.href = "/login?role=Student"; })}
           className={styles.independentLink}
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.95, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
         >
           Not part of a school? Join as an independent student →
-        </motion.a>
+        </motion.button>
       </motion.div>
-
     </section>
   );
 }
