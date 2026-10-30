@@ -203,8 +203,8 @@ export default function Home() {
                   padding: "40px",
                 }}
               >
-                <div className={styles.orbBackground}></div>
-                <span style={{ position: "relative", zIndex: 2, fontFamily: "var(--font-body)", fontSize: "12px", letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--landing-accent)", textShadow: "0 0 10px color-mix(in srgb, var(--landing-accent) 40%, transparent)" }}>
+
+                <span style={{ position: "relative", zIndex: 2, fontFamily: "var(--font-body)", fontSize: "12px", letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--landing-accent)" }}>
                   {track.tag}
                 </span>
                 <h3 style={{ position: "relative", zIndex: 2, fontFamily: "var(--font-heading)", fontSize: "26px", fontWeight: 400, color: "#fff", margin: "14px 0 12px" }}>
@@ -421,7 +421,7 @@ export default function Home() {
           zIndex: 10,
           backgroundColor: "var(--landing-surface-4)",
           backgroundImage:
-            "linear-gradient(rgba(30, 30, 42, 0.72), rgba(32, 32, 46, 0.85)), radial-gradient(ellipse 60% 70% at 50% 100%, color-mix(in srgb, var(--landing-accent) 26%, transparent), transparent 65%), url('/rc-car-macro.png')",
+            "linear-gradient(rgba(17, 18, 26, 0.72), rgba(19, 20, 28, 0.85)), radial-gradient(ellipse 60% 70% at 50% 100%, color-mix(in srgb, var(--landing-accent) 28%, transparent), transparent 65%), url('/rc-car-macro.png')",
           backgroundSize: "cover, cover, cover",
           backgroundPosition: "center, center, center 30%",
           backgroundRepeat: "no-repeat",

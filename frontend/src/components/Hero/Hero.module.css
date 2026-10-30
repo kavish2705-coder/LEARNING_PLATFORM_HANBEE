@@ -17,7 +17,7 @@
   bottom: -10vh;
   z-index: 0;
   overflow: hidden;
-  background-color: #12131b;
+  background-color: #0b0c10;
 }
 
 .bgVideo {
@@ -25,37 +25,23 @@
   height: 100%;
   object-fit: cover;
   object-position: center;
-  filter: brightness(1.02) contrast(1.05);
-  background-color: #12131b;
+  filter: brightness(1.06) contrast(1.03) saturate(1.08);
+  background-color: #0b0c10;
 }
 
-/* Ambient Warmth Orb */
-.glowingOrb {
-  position: absolute;
-  top: 15%;
-  left: 35%;
-  width: 45vw;
-  height: 45vw;
-  border-radius: 50%;
-  background: radial-gradient(circle, var(--landing-accent-glow, rgba(201, 120, 47, 0.22)) 0%, transparent 70%);
-  filter: blur(90px);
-  z-index: 1;
-  pointer-events: none;
-}
-
-/* Gradient Overlay - smooth read-through to dark background */
+/* Gradient Overlay - smooth read-through to background */
 .overlay {
   position: absolute;
   inset: 0;
   background:
     linear-gradient(to right,
-      rgba(14, 15, 22, 0.45) 0%,
-      rgba(14, 15, 22, 0.18) 45%,
+      rgba(10, 11, 16, 0.50) 0%,
+      rgba(10, 11, 16, 0.18) 48%,
       transparent 100%),
     linear-gradient(to bottom,
-      rgba(14, 15, 22, 0.2) 0%,
-      transparent 40%,
-      var(--landing-surface-2, #1c1c26) 100%);
+      rgba(10, 11, 16, 0.20) 0%,
+      transparent 45%,
+      var(--landing-surface-2, #111218) 100%);
   z-index: 2;
   pointer-events: none;
 }
@@ -85,9 +71,9 @@
   margin-bottom: 24px;
   padding: 6px 16px;
   border-radius: 9999px;
-  background: rgba(201, 120, 47, 0.08);
-  border: 1px solid rgba(201, 120, 47, 0.28);
-  box-shadow: 0 0 16px rgba(201, 120, 47, 0.12);
+  background: rgba(229, 138, 43, 0.12);
+  border: 1px solid rgba(229, 138, 43, 0.38);
+  box-shadow: 0 0 20px rgba(229, 138, 43, 0.20);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
 }
@@ -96,8 +82,8 @@
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: var(--landing-accent, #c9782f);
-  box-shadow: 0 0 8px var(--landing-accent, #c9782f);
+  background: var(--landing-accent, #e58a2b);
+  box-shadow: 0 0 10px var(--landing-accent, #e58a2b);
 }
 
 /* Heading */
@@ -120,7 +106,7 @@
   font-family: var(--font-body);
   font-size: clamp(16px, 1.8vw, 19px);
   font-weight: 400;
-  color: rgba(255, 255, 255, 0.82);
+  color: rgba(255, 255, 255, 0.88);
   line-height: 1.6;
   margin-bottom: 36px;
   max-width: 680px;
@@ -134,7 +120,7 @@
   flex-wrap: wrap;
 }
 
-/* Primary CTA Button: Filled with single accent */
+/* Primary CTA Button: Filled with warm vibrant accent */
 .ctaButton {
   display: inline-flex;
   align-items: center;
@@ -142,11 +128,11 @@
   font-family: var(--font-body);
   font-size: 14.5px;
   font-weight: 600;
-  color: #12131a;
-  background: var(--landing-accent, #c9782f);
-  border: 1px solid var(--landing-accent, #c9782f);
+  color: #0b0c10;
+  background: var(--landing-accent, #e58a2b);
+  border: 1px solid var(--landing-accent, #e58a2b);
   box-shadow:
-    0 8px 24px color-mix(in srgb, var(--landing-accent, #c9782f) 35%, transparent),
+    0 8px 28px rgba(229, 138, 43, 0.40),
     0 2px 8px rgba(0, 0, 0, 0.25);
   padding: 12px 28px;
   border-radius: 50px;
@@ -156,9 +142,9 @@
 }
 
 .ctaButton:hover {
-  background: color-mix(in srgb, var(--landing-accent, #c9782f) 85%, white);
+  background: color-mix(in srgb, var(--landing-accent, #e58a2b) 85%, white);
   box-shadow:
-    0 12px 32px color-mix(in srgb, var(--landing-accent, #c9782f) 45%, transparent),
+    0 12px 34px rgba(229, 138, 43, 0.52),
     0 4px 12px rgba(0, 0, 0, 0.3);
   transform: translateY(-1px);
 }
@@ -197,10 +183,10 @@
 
 .secondaryCtaButton:hover {
   background: rgba(255, 255, 255, 0.09);
-  border-color: var(--landing-accent, #c9782f);
-  color: var(--landing-accent, #c9782f);
+  border-color: var(--landing-accent, #e58a2b);
+  color: var(--landing-accent, #e58a2b);
   transform: translateY(-1px);
-  box-shadow: 0 6px 24px rgba(201, 120, 47, 0.18);
+  box-shadow: 0 6px 24px rgba(229, 138, 43, 0.25);
 }
 
 .secondaryCtaButton svg {

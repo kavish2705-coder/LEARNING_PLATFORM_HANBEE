@@ -33,9 +33,6 @@ export default function Hero({ onOpenStudentModal }: HeroProps) {
         </video>
       </motion.div>
       
-      {/* Animated Glowing Ambient Warmth */}
-      <div className={styles.glowingOrb} />
-
       {/* Gradient Overlay for text readability */}
       <div className={styles.overlay} />
 

@@ -16,7 +16,7 @@
   position: absolute;
   inset: 0;
   z-index: -1;
-  background: rgba(18, 18, 26, 0.94);
+  background: rgba(14, 15, 22, 0.92);
   backdrop-filter: blur(24px) saturate(140%);
   -webkit-backdrop-filter: blur(24px) saturate(140%);
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
@@ -117,11 +117,11 @@
   font-family: var(--font-body);
   font-size: 14px;
   font-weight: 600;
-  color: #12131a;
-  background: var(--landing-accent, #c9782f);
-  border: 1px solid var(--landing-accent, #c9782f);
+  color: #0b0c10;
+  background: var(--landing-accent, #e58a2b);
+  border: 1px solid var(--landing-accent, #e58a2b);
   box-shadow:
-    0 4px 16px color-mix(in srgb, var(--landing-accent, #c9782f) 35%, transparent),
+    0 4px 18px rgba(229, 138, 43, 0.38),
     0 2px 8px rgba(0, 0, 0, 0.2);
   padding: 9px 20px;
   border-radius: 50px;
@@ -132,9 +132,9 @@
 }
 
 .getStartedBtn:hover {
-  background: color-mix(in srgb, var(--landing-accent, #c9782f) 85%, white);
+  background: color-mix(in srgb, var(--landing-accent, #e58a2b) 85%, white);
   box-shadow:
-    0 6px 22px color-mix(in srgb, var(--landing-accent, #c9782f) 45%, transparent),
+    0 6px 24px rgba(229, 138, 43, 0.50),
     0 4px 12px rgba(0, 0, 0, 0.25);
   transform: translateY(-1px);
 }

@@ -11,7 +11,7 @@ type AnimatedCardProps = {
   delay?: number;
 };
 
-// Refined, physical card with gentle cursor-tracked tilt and specular glow.
+// Refined, physical card with gentle cursor-tracked 3D tilt.
 // Smooth, subtle, and free of jitter.
 export default function AnimatedCard({ children, className, style, delay = 0 }: AnimatedCardProps) {
   const ref = useRef<HTMLDivElement>(null);
@@ -26,9 +26,6 @@ export default function AnimatedCard({ children, className, style, delay = 0 }: 
   // Subtle 2.5-degree tactile tilt
   const rotateX = useTransform(springY, [0, 1], [2.5, -2.5]);
   const rotateY = useTransform(springX, [0, 1], [-2.5, 2.5]);
-  
-  const glareX = useTransform(springX, (v) => `${v * 100}%`);
-  const glareY = useTransform(springY, (v) => `${v * 100}%`);
 
   function handleMouseMove(event: React.MouseEvent<HTMLDivElement>) {
     if (reduceMotion || !ref.current) return;
@@ -67,11 +64,6 @@ export default function AnimatedCard({ children, className, style, delay = 0 }: 
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
     >
-      <motion.div
-        className={styles.glare}
-        style={{ left: glareX, top: glareY }}
-        aria-hidden="true"
-      />
       <div className={styles.content}>{children}</div>
     </motion.div>
   );
