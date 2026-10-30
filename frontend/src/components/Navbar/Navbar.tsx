@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { motion } from "framer-motion";
+import { motion, useScroll, useTransform, useMotionValueEvent } from "framer-motion";
 import styles from "./Navbar.module.css";
 
 const navLinks = [
@@ -13,10 +13,47 @@ const navLinks = [
 
 export default function Navbar() {
   const [activeLink, setActiveLink] = useState("Home");
+  const [isScrolled, setIsScrolled] = useState(false);
+  const { scrollY } = useScroll();
+
+  useMotionValueEvent(scrollY, "change", (latest) => {
+    setIsScrolled(latest > 24);
+  });
+
+  // Smooth, gradual transition: completely transparent in the hero,
+  // gradually becoming solid opaque with blur and border as user scrolls down
+  const backgroundColor = useTransform(
+    scrollY,
+    [10, 160],
+    ["rgba(18, 18, 26, 0)", "rgba(18, 18, 26, 0.96)"]
+  );
+
+  const borderBottomColor = useTransform(
+    scrollY,
+    [10, 160],
+    ["rgba(255, 255, 255, 0)", "rgba(255, 255, 255, 0.08)"]
+  );
+
+  const boxShadow = useTransform(
+    scrollY,
+    [10, 160],
+    ["0 0 0 rgba(0, 0, 0, 0)", "0 10px 30px rgba(0, 0, 0, 0.4)"]
+  );
+
+  const blurPx = useTransform(scrollY, [10, 160], [0, 20]);
+  const backdropFilter = useTransform(blurPx, (v) => `blur(${v}px)`);
+  const webkitBackdropFilter = useTransform(blurPx, (v) => `blur(${v}px)`);
 
   return (
     <motion.nav
-      className={styles.navbar}
+      className={`${styles.navbar} ${isScrolled ? styles.scrolled : ""}`}
+      style={{
+        backgroundColor,
+        borderBottomColor,
+        boxShadow,
+        backdropFilter,
+        WebkitBackdropFilter: webkitBackdropFilter,
+      }}
       initial={{ y: -24, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}

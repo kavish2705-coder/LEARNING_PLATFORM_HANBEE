@@ -8,13 +8,13 @@
   height: 84px;
   display: flex;
   align-items: center;
-  /* Solid, opaque dark surface with backdrop-filter prevents any section text
-     from bleeding or visually colliding with the navbar when scrolled */
-  background: rgba(18, 18, 26, 0.95);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  transition: background 0.3s ease, height 0.3s ease;
+  /* Completely transparent by default at the top of the hero section;
+     Smoothly transitions to an opaque blurred backdrop as the user scrolls down */
+  background: transparent;
+  border-bottom: 1px solid transparent;
+  backdrop-filter: blur(0px);
+  -webkit-backdrop-filter: blur(0px);
+  transition: height 0.3s ease;
 }
 
 .navContent {
