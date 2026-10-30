@@ -30,7 +30,7 @@ function SignupForm() {
   const invited = Boolean(inviteToken || joinToken);
   const usernameInvite = Boolean(inviteToken && inviteUsername);
 
-  const [fullName, setFullName] = useState("");
+  const [fullName, setFullName] = useState(() => searchParams.get("full_name") || "");
   const [email, setEmail] = useState(() => searchParams.get("email") || "");
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");

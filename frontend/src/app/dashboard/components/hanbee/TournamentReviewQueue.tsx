@@ -40,6 +40,7 @@ export default function TournamentReviewQueue() {
   const [search, setSearch] = useState("");
 
   const [reviewing, setReviewing] = useState<TournamentApplication | null>(null);
+  const [decisionNote, setDecisionNote] = useState("");
   const [roster, setRoster] = useState<TeamRosterMember[] | null>(null);
   const [rosterLoading, setRosterLoading] = useState(false);
   const [rosterError, setRosterError] = useState("");
@@ -79,6 +80,7 @@ export default function TournamentReviewQueue() {
 
   function openReview(row: TournamentApplication) {
     setReviewing(row);
+    setDecisionNote("");
     setRoster(null);
     setRosterError("");
     setRosterLoading(true);
@@ -90,6 +92,10 @@ export default function TournamentReviewQueue() {
 
   async function decide(decision: "verified" | "rejected") {
     if (!reviewing) return;
+    if (decision === "rejected" && !decisionNote.trim()) {
+      setError("Add a reason before rejecting this entry.");
+      return;
+    }
     if (decision === "rejected") {
       const confirmed = await ask({
         title: "Reject this entry?",
@@ -103,7 +109,7 @@ export default function TournamentReviewQueue() {
     setError("");
     setNotice("");
     try {
-      await decideTournamentApplication(reviewing.team_id, decision);
+      await decideTournamentApplication(reviewing.team_id, decision, decisionNote);
       setNotice(`${reviewing.team_name} ${decision === "verified" ? "verified" : "rejected"}.`);
       setReviewing(null);
       await load();
@@ -254,6 +260,19 @@ export default function TournamentReviewQueue() {
                 {reviewing.payment_declared ? "Declared by team" : "Not yet declared"}
               </span>
             </div>
+
+            <label style={{ display: "grid", gap: 6, marginTop: 16, color: "var(--text-main)", fontWeight: 600, fontSize: 13.5 }}>
+              Review note {" "}<span style={{ color: "var(--text-muted)", fontWeight: 400 }}>(required when rejecting)</span>
+              <textarea
+                value={decisionNote}
+                onChange={(event) => setDecisionNote(event.target.value)}
+                rows={3}
+                maxLength={2000}
+                placeholder="Explain the payment or entry decision for the team."
+                className={local.searchInput}
+                style={{ width: "100%", maxWidth: "none", resize: "vertical", fontWeight: 400 }}
+              />
+            </label>
 
             <p style={{ marginTop: 16, marginBottom: 6, color: "var(--text-main)", fontWeight: 600, fontSize: 13.5 }}>Roster ({reviewing.member_count})</p>
             {rosterLoading ? (

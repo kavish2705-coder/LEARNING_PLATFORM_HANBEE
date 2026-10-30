@@ -154,8 +154,8 @@ export function fetchTournamentApplicationQueue() {
   return rpc<TournamentApplication[]>("tournament_application_queue", {});
 }
 
-export function decideTournamentApplication(teamId: string, decision: "verified" | "rejected") {
-  return rpc<null>("decide_team", { p_team: teamId, p_decision: decision });
+export function decideTournamentApplication(teamId: string, decision: "verified" | "rejected", note?: string) {
+  return rpc<null>("decide_team", { p_team: teamId, p_decision: decision, p_note: note?.trim() || null });
 }
 
 export function getTeamRoster(teamId: string) {
@@ -207,6 +207,56 @@ export interface TeamEligibility {
   eligible: boolean;
 }
 
+export interface StudentRegistrationChecklistItem {
+  key: string;
+  result: ScrutineeringItemResult;
+  note: string | null;
+}
+
+export interface StudentRegistrationHistoryEntry {
+  status: ScrutineeringStatus;
+  notes: string | null;
+  items: StudentRegistrationChecklistItem[];
+  checked_at: string;
+}
+
+export interface StudentRaceResult {
+  race_name: string;
+  finished: boolean;
+  finish_time_ms: number | null;
+  lap_count: number;
+  average_lap_time_ms: number | null;
+}
+
+export type StudentTeamRegistrationStatus = {
+  tournament: { id: string; title: string; status: string };
+  team: {
+    id: string;
+    name: string;
+    status: TeamStatus;
+    payment_verified: boolean;
+    review_note: string | null;
+    decided_at: string | null;
+  };
+  scrutineering: {
+    status: ScrutineeringStatus;
+    notes: string | null;
+    checked_at: string | null;
+    items: StudentRegistrationChecklistItem[];
+    history: StudentRegistrationHistoryEntry[];
+  };
+  eligible: boolean;
+  result: null | { rank: number; points: number; notes: string };
+  race_results: StudentRaceResult[];
+} | {
+  tournament: { id: string; title: string; status: string };
+  team: null;
+  scrutineering: null;
+  eligible: false;
+  result: null;
+  race_results: StudentRaceResult[];
+};
+
 export function fetchScrutineeringQueue(tournamentId: string) {
   return rpc<ScrutineeringQueueRow[]>("list_scrutineering_queue", { p_tournament: tournamentId });
 }
@@ -237,6 +287,10 @@ export function submitScrutineeringInspection(
 
 export function fetchTeamEligibility(teamId: string) {
   return rpc<TeamEligibility>("team_eligibility", { p_team: teamId });
+}
+
+export function fetchMyTeamRegistrationStatus(tournamentId: string) {
+  return rpc<StudentTeamRegistrationStatus>("get_my_team_registration_status", { p_tournament: tournamentId });
 }
 
 export function fetchMyTeamFormation(tournamentId: string) {
