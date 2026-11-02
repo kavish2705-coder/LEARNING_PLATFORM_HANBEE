@@ -68,6 +68,25 @@ export function listTournaments() {
   );
 }
 
+// Single source of truth for "which tournament does a staff screen open on
+// by default" -- previously My Space, Leaderboard, and Scrutineering each
+// picked differently (live-first, completed-first, upcoming-first), so a
+// staff member could click from one live-tournament screen into another
+// screen silently showing a different tournament. live beats upcoming beats
+// completed beats whatever's first.
+export function pickActiveTournament<T extends Pick<TournamentRecord, "id" | "status">>(
+  tournaments: T[] | null | undefined,
+): T | null {
+  const list = tournaments ?? [];
+  return (
+    list.find((item) => item.status === "live") ??
+    list.find((item) => item.status === "upcoming") ??
+    list.find((item) => item.status === "completed") ??
+    list[0] ??
+    null
+  );
+}
+
 export function createTournament(input: Omit<TournamentRecord, "id" | "status" | "team_size">) {
   return rpc<string>("create_tournament", {
     p_title: input.title,
@@ -131,16 +150,22 @@ export interface TournamentTeamRosterRow {
   team_id: string;
   student_id: string;
   full_name: string | null;
+  phone: string | null;
+  location: string | null;
+  is_independent: boolean | null;
 }
 
 export function listTournamentTeamRoster(tournamentId: string) {
   return authenticatedSupabaseFetch<TournamentTeamRosterRow[]>(
-    `/rest/v1/tournament_team_members?select=team_id,student_id,profiles!tournament_team_members_student_id_fkey(full_name)&tournament_id=eq.${tournamentId}`,
+    `/rest/v1/tournament_team_members?select=team_id,student_id,profiles!tournament_team_members_student_id_fkey(full_name,phone,location,is_solo)&tournament_id=eq.${tournamentId}`,
   ).then((rows) =>
-    (rows as unknown as { team_id: string; student_id: string; profiles: { full_name: string | null } | null }[]).map((row) => ({
+    (rows as unknown as { team_id: string; student_id: string; profiles: { full_name: string | null; phone: string | null; location: string | null; is_solo: boolean | null } | null }[]).map((row) => ({
       team_id: row.team_id,
       student_id: row.student_id,
       full_name: row.profiles?.full_name ?? null,
+      phone: row.profiles?.phone || null,
+      location: row.profiles?.location || null,
+      is_independent: row.profiles?.is_solo ?? null,
     })),
   );
 }

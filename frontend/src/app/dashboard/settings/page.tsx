@@ -58,7 +58,13 @@ const NOTIFICATION_KINDS: NotificationKindItem[] = [
   },
 ];
 
-const LOCAL_PREFS_KEY = "hanbee_notification_preferences";
+// Keyed per account -- a single global key let one browser's notification
+// toggles leak between different accounts signed in on the same machine
+// (account B would see account A's cached preferences until the server
+// sync happened to overwrite each individual kind).
+function localPrefsKey(userId: string) {
+  return `hanbee_notification_preferences:${userId}`;
+}
 
 export default function SettingsPage() {
   const { theme, setTheme, accentHue, setAccentHue, accentLightness, setAccentLightness } = useTheme();
@@ -77,26 +83,29 @@ export default function SettingsPage() {
   const [preferredTeam, setPreferredTeam] = useState("");
   const [status, setStatus] = useState<{ tone: "ok" | "error"; text: string } | null>(null);
 
-  // Local state for notification toggles with local storage persistence
-  const [localPrefs, setLocalPrefs] = useState<Record<string, boolean>>(() => {
-    if (typeof window === "undefined") return {};
+  // Local state for notification toggles with local storage persistence,
+  // keyed per account (profile.id isn't known at mount, so this loads once
+  // the session resolves rather than via a lazy initializer).
+  const [localPrefs, setLocalPrefs] = useState<Record<string, boolean>>({});
+  useEffect(() => {
+    if (typeof window === "undefined" || !profile?.id) return;
     try {
-      const stored = window.localStorage.getItem(LOCAL_PREFS_KEY);
-      if (stored) return JSON.parse(stored);
+      const stored = window.localStorage.getItem(localPrefsKey(profile.id));
+      setLocalPrefs(stored ? JSON.parse(stored) : {});
     } catch {
-      // Ignore parse errors
+      setLocalPrefs({});
     }
-    return {};
-  });
+  }, [profile?.id]);
 
   const { data: extra } = useQuery({
     queryKey: ["account-extra", profile?.id],
-    queryFn: () => authenticatedSupabaseFetch<{ student_id: string | null; preferred_team_name: string | null }[]>(
-      `/rest/v1/profiles?select=student_id,preferred_team_name&id=eq.${profile?.id}`,
+    queryFn: () => authenticatedSupabaseFetch<{ student_id: string | null; preferred_team_name: string | null; is_solo: boolean | null }[]>(
+      `/rest/v1/profiles?select=student_id,preferred_team_name,is_solo&id=eq.${profile?.id}`,
     ),
-    enabled: Boolean(profile?.id),
+    enabled: Boolean(profile?.id) && profile?.role === "student",
   });
   const studentId = extra?.[0]?.student_id ?? null;
+  const isIndependentStudent = extra?.[0]?.is_solo ?? false;
 
   useEffect(() => {
     if (extra?.[0]) setPreferredTeam(extra[0].preferred_team_name ?? "");
@@ -145,13 +154,19 @@ export default function SettingsPage() {
     // 1. Optimistic instant local update
     const updated = { ...localPrefs, [kind]: nextState };
     setLocalPrefs(updated);
-    try {
-      window.localStorage.setItem(LOCAL_PREFS_KEY, JSON.stringify(updated));
-    } catch {
-      // Ignore storage errors
+    if (profile?.id) {
+      try {
+        window.localStorage.setItem(localPrefsKey(profile.id), JSON.stringify(updated));
+      } catch {
+        // Ignore storage errors
+      }
     }
 
-    // 2. Persist to server if real session
+    const targetItem = NOTIFICATION_KINDS.find((k) => k.kind === kind);
+    const actionLabel = nextState ? "enabled" : "disabled";
+
+    // 2. Persist to server if real session -- the UI must not claim success
+    // when this fails, so revert the optimistic update and report it.
     if (profile?.id && !profile.id.startsWith("dummy-")) {
       try {
         await authenticatedSupabaseFetch("/rest/v1/notification_preferences?on_conflict=user_id,kind", {
@@ -161,15 +176,25 @@ export default function SettingsPage() {
         });
       } catch (reason) {
         console.error("Failed to sync notification preference:", reason);
+        const reverted = { ...localPrefs };
+        setLocalPrefs(reverted);
+        try {
+          window.localStorage.setItem(localPrefsKey(profile.id), JSON.stringify(reverted));
+        } catch {
+          // Ignore storage errors
+        }
+        setStatus({
+          tone: "error",
+          text: `Couldn't save "${targetItem?.label || "Notification"}" -- please try again.`,
+        });
+        return;
       }
     }
 
-    // 3. User feedback
-    const targetItem = NOTIFICATION_KINDS.find((k) => k.kind === kind);
-    const actionLabel = nextState ? "enabled" : "disabled";
-    setStatus({ 
-      tone: "ok", 
-      text: `${targetItem?.label || "Notification"} ${actionLabel}.` 
+    // 3. User feedback -- only reached once the server call (if any) succeeded.
+    setStatus({
+      tone: "ok",
+      text: `${targetItem?.label || "Notification"} ${actionLabel}.`
     });
 
     setTimeout(() => {
@@ -368,23 +393,27 @@ export default function SettingsPage() {
           </form>
         </section>
 
-        <section className={styles.sectionCard}>
-          <h2 className={styles.sectionTitle}>Student Details</h2>
-          <div className={styles.formGroup}>
-            <label className={styles.label} htmlFor="student-id">Student ID</label>
-            <input id="student-id" type="text" className={styles.input} value={studentId ?? "Not set yet. Your school adds it."} readOnly />
-          </div>
-          <form onSubmit={savePreferredTeam}>
-            <div className={styles.formGroup}>
-              <label className={styles.label} htmlFor="preferred-team">Preferred Team Name</label>
-              <input id="preferred-team" type="text" className={styles.input} value={preferredTeam} onChange={(e) => setPreferredTeam(e.target.value)} maxLength={60} />
-            </div>
-            <button type="submit" className={styles.saveBtn} disabled={busy !== ""}>
-              <Save size={16} />
-              <span>{busy === "profile" ? "Saving..." : "Save Team Name"}</span>
-            </button>
-          </form>
-        </section>
+        {profile?.role === "student" && (
+          <section className={styles.sectionCard}>
+            <h2 className={styles.sectionTitle}>Student Details</h2>
+            {!isIndependentStudent && (
+              <div className={styles.formGroup}>
+                <label className={styles.label} htmlFor="student-id">Student ID</label>
+                <input id="student-id" type="text" className={styles.input} value={studentId ?? "Not set yet. Your school adds it."} readOnly />
+              </div>
+            )}
+            <form onSubmit={savePreferredTeam}>
+              <div className={styles.formGroup}>
+                <label className={styles.label} htmlFor="preferred-team">Preferred Team Name</label>
+                <input id="preferred-team" type="text" className={styles.input} value={preferredTeam} onChange={(e) => setPreferredTeam(e.target.value)} maxLength={60} />
+              </div>
+              <button type="submit" className={styles.saveBtn} disabled={busy !== ""}>
+                <Save size={16} />
+                <span>{busy === "profile" ? "Saving..." : "Save Team Name"}</span>
+              </button>
+            </form>
+          </section>
+        )}
 
         <section className={styles.sectionCard}>
           <div className={styles.sectionHeaderWrap}>

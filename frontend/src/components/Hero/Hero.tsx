@@ -164,18 +164,6 @@ export default function Hero({ onOpenStudentModal }: HeroProps) {
             </motion.a>
           )}
         </div>
-
-        {/* Secondary path text link */}
-        <motion.button
-          type="button"
-          onClick={onOpenStudentModal || (() => { window.location.href = "/login?role=Student"; })}
-          className={styles.independentLink}
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.66, duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
-        >
-          Not part of a school? Join as an independent student →
-        </motion.button>
       </motion.div>
     </section>
   );

@@ -201,8 +201,8 @@ export default function TournamentOverview() {
       addXpTask(`insp_${id}`, 15, `${name}: Good Condition`);
       const passed = Object.values(updated).filter(Boolean).length;
       if (passed === 6) {
-        setToastMessage(`🏎️ Pre-Race Pit Inspection 100% Complete! Car is cleared for the track! (+50 XP)`);
-        addXpTask("insp_all_bonus", 50, "Full Pre-Race Paddock Clearance");
+        setToastMessage(`🏎️ Practice checklist 100% complete! (+50 XP)`);
+        addXpTask("insp_all_bonus", 50, "Practice Checklist Complete");
       } else {
         setToastMessage(`✓ ${name}: Passed / Good Condition (+15 XP)`);
       }
@@ -232,8 +232,8 @@ export default function TournamentOverview() {
     Object.keys(allPassed).forEach((key) => {
       addXpTask(`insp_${key}`, 15, `${key}: Passed`);
     });
-    addXpTask("insp_all_bonus", 50, "Full Pre-Race Paddock Clearance");
-    setToastMessage(`🎉 All 6 RC Components Inspected & Passed! Full Race Readiness (+50 XP Bonus)`);
+    addXpTask("insp_all_bonus", 50, "Practice Checklist Complete");
+    setToastMessage(`🎉 All 6 items checked on your practice checklist (+50 XP)`);
     setTimeout(() => setToastMessage(null), 3500);
   };
 
@@ -375,9 +375,9 @@ export default function TournamentOverview() {
           </span>
         </div>
         <div className={styles.perfItem}>
-          <span className={styles.perfLabel}>PRE-RACE READINESS</span>
+          <span className={styles.perfLabel}>PRACTICE READINESS</span>
           <span className={styles.perfValue} style={{ color: readinessScore === 100 ? "#10b981" : "#7dd3e8" }}>
-            {readinessScore}% {readinessScore === 100 ? "· Track Ready" : "· In Inspection"}
+            {readinessScore}% {readinessScore === 100 ? "· Checklist Done" : "· In Progress"}
           </span>
         </div>
       </div>
@@ -542,12 +542,12 @@ export default function TournamentOverview() {
       {/* ===== Car Safety Check & Practice Tasks ===== */}
       <div className={styles.sectionHeaderWrap}>
         <div className={styles.sectionHeaderLeft}>
-          <h3 className={styles.sectionGroupTitle}>Car Safety Check & Practice Tasks</h3>
+          <h3 className={styles.sectionGroupTitle}>Practice Checklist & Bounties</h3>
         </div>
         <div className={styles.sectionStatusPill}>
           {passedCount === 6 ? (
             <span className={styles.paddockClearedPill}>
-              <CheckCircle2 size={13} /> READY TO DRIVE
+              <CheckCircle2 size={13} /> CHECKLIST DONE
             </span>
           ) : (
             <span className={styles.paddockActionPill}>
@@ -556,6 +556,10 @@ export default function TournamentOverview() {
           )}
         </div>
       </div>
+      <p style={{ margin: "-8px 0 16px", fontSize: 13, color: "var(--text-muted)" }}>
+        This is your own practice checklist, not the official race inspection. For your team&apos;s real scrutineering
+        result, see <Link href={teamHref} style={{ color: "var(--accent-subtle-text)" }}>My Team</Link>.
+      </p>
 
       {/* ===== Middle Grid: Telemetry Readiness & Daily Bounties ===== */}
       <div className={styles.middleGrid}>
@@ -565,7 +569,7 @@ export default function TournamentOverview() {
           <div className={styles.cardHeaderTitle}>
             <div className={styles.telemetryHeading}>
               <Wrench size={18} color="#7dd3e8" />
-              <span>RC Car Pre-Race Hardware Check</span>
+              <span>Personal Practice Checklist</span>
             </div>
             <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
               {passedCount === 6 ? (
@@ -609,15 +613,15 @@ export default function TournamentOverview() {
             <div className={styles.readinessDetails}>
               <h4>
                 {readinessScore === 100
-                  ? "Car Condition: 100% (Ready to Drive!)"
+                  ? "Practice checklist: 100% complete"
                   : readinessScore >= 50
-                  ? `Car Condition: Good (${readinessScore}%)`
-                  : `Car Condition: Checking (${readinessScore}%)`}
+                  ? `Practice checklist: Good (${readinessScore}%)`
+                  : `Practice checklist: In progress (${readinessScore}%)`}
               </h4>
               <p>
                 {readinessScore === 100
-                  ? "All 6 parts checked and approved by student. Car is good to go!"
-                  : `${6 - passedCount} part(s) left to check before driving.`}
+                  ? "All 6 parts self-checked. This doesn't replace staff scrutineering."
+                  : `${6 - passedCount} part(s) left on your personal checklist.`}
               </p>
             </div>
           </div>

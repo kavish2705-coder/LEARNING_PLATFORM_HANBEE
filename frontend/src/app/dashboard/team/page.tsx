@@ -1,8 +1,9 @@
 "use client";
 
 import { FormEvent, useCallback, useEffect, useState, useMemo } from "react";
-import { Users, ShieldCheck, CheckCircle2, AlertCircle, UserPlus } from "lucide-react";
+import { Users, ShieldCheck, CheckCircle2, AlertCircle, UserPlus, RefreshCw, Trophy, XCircle, AlertTriangle } from "lucide-react";
 import styles from "./team.module.css";
+import registrationStyles from "./registrationStatus.module.css";
 import Shimmer from "../components/ui/Shimmer";
 import Dropdown from "../components/ui/Dropdown";
 import {
@@ -11,6 +12,8 @@ import {
   createSoloTournamentEntry,
   fetchMySoloStatus,
   fetchMyTeamFormation,
+  fetchMyTeamRegistrationStatus,
+  fetchPaymentSettings,
   fetchUpcomingTournament,
   inviteStudentToTeam,
   leaveStudentTeam,
@@ -18,8 +21,22 @@ import {
   submitStudentTeam,
   type MyTeamFormation,
   type UpcomingTournament,
+  type StudentTeamRegistrationStatus,
+  type PaymentSettings,
 } from "../../../lib/teamFormationApi";
 import { useSessionProfile } from "../../../lib/hooks/useSessionProfile";
+import { getRealtimeClient } from "../../../lib/realtime";
+import {
+  listOpenPoolTeams,
+  listPoolJoinRequests,
+  listPoolableStudents,
+  requestJoinPoolTeam,
+  respondToPoolJoinRequest,
+  startPoolTeam,
+  type OpenPoolTeam,
+  type PoolJoinRequest,
+  type PoolableStudent,
+} from "../../../lib/poolApi";
 
 // Maximum and Minimum members allowed in a team per company guidelines
 const MAX_TEAM_SIZE = 5;
@@ -33,6 +50,34 @@ interface RosterDriver {
   role?: string;
 }
 
+const CHECKLIST_LABELS: Record<string, string> = {
+  chassis_bodywork: "Chassis & bodywork",
+  wheels_tyres: "Wheels & tyres",
+  steering: "Steering",
+  brakes: "Brakes",
+  battery: "Power / battery safety",
+  wiring: "Electronics / wiring",
+  roster_compliance: "Driver / roster compliance",
+  safety_equipment: "Safety equipment",
+};
+
+function checklistLabel(key: string) {
+  return CHECKLIST_LABELS[key] ?? key.replaceAll("_", " ");
+}
+
+function formatRaceTime(milliseconds: number | null) {
+  return milliseconds === null ? "—" : `${(milliseconds / 1000).toFixed(2)}s`;
+}
+
+function errorMessage(reason: unknown, fallback: string) {
+  if (reason instanceof Error && reason.message) return reason.message;
+  if (typeof reason === "string" && reason.trim()) return reason;
+  if (reason && typeof reason === "object" && "message" in reason && typeof reason.message === "string" && reason.message.trim()) {
+    return reason.message;
+  }
+  return fallback;
+}
+
 export default function MyTeamPage() {
   const { data: profile } = useSessionProfile();
 
@@ -42,12 +87,51 @@ export default function MyTeamPage() {
   const [inviteeId, setInviteeId] = useState("");
   const [isSolo, setIsSolo] = useState(false);
   const [paymentDeclared, setPaymentDeclared] = useState(false);
+  const [paymentReference, setPaymentReference] = useState("");
+  const [paymentSettings, setPaymentSettings] = useState<PaymentSettings | null>(null);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
+  const [registrationStatus, setRegistrationStatus] = useState<StudentTeamRegistrationStatus | null>(null);
+  const [registrationStatusLoading, setRegistrationStatusLoading] = useState(false);
+  const [poolStudents, setPoolStudents] = useState<PoolableStudent[]>([]);
+  const [openPoolTeams, setOpenPoolTeams] = useState<OpenPoolTeam[]>([]);
+  const [poolJoinRequests, setPoolJoinRequests] = useState<PoolJoinRequest[]>([]);
 
   const [activeTab, setActiveTab] = useState<"roster" | "formation">("roster");
+
+  const loadRegistrationStatus = useCallback(async (tournamentId: string) => {
+    setRegistrationStatusLoading(true);
+    try {
+      setRegistrationStatus(await fetchMyTeamRegistrationStatus(tournamentId));
+    } catch (statusError) {
+      setError(errorMessage(statusError, "Couldn't load registration status. Please refresh and try again."));
+    } finally {
+      setRegistrationStatusLoading(false);
+    }
+  }, []);
+
+  const loadPoolData = useCallback(async (tournamentId: string, independent: boolean) => {
+    if (!independent) {
+      setPoolStudents([]);
+      setOpenPoolTeams([]);
+      setPoolJoinRequests([]);
+      return;
+    }
+    try {
+      const [students, teams, requests] = await Promise.all([
+        listPoolableStudents(tournamentId),
+        listOpenPoolTeams(tournamentId),
+        listPoolJoinRequests(tournamentId),
+      ]);
+      setPoolStudents(students);
+      setOpenPoolTeams(teams);
+      setPoolJoinRequests(requests);
+    } catch (poolError) {
+      setError(errorMessage(poolError, "Couldn't load independent team options."));
+    }
+  }, []);
 
   // Load team data from backend
   const load = useCallback(async () => {
@@ -55,17 +139,62 @@ export default function MyTeamPage() {
     setError("");
     try {
       const [upcoming, solo] = await Promise.all([fetchUpcomingTournament(), fetchMySoloStatus()]);
-      setTournament(upcoming);
-      setIsSolo(solo);
-      setFormation(upcoming ? await fetchMyTeamFormation(upcoming.id) : null);
+       setTournament(upcoming);
+       setIsSolo(solo);
+       if (!upcoming) {
+         setFormation(null);
+         setRegistrationStatus(null);
+       } else {
+         const nextFormation = await fetchMyTeamFormation(upcoming.id);
+         setFormation(nextFormation);
+         await loadRegistrationStatus(upcoming.id);
+         await loadPoolData(upcoming.id, solo && !nextFormation.school_id);
+       }
     } catch (loadError) {
-      setError(loadError instanceof Error ? loadError.message : "Couldn't load your team.");
+      setError(errorMessage(loadError, "Couldn't load your team. Please refresh and try again."));
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [loadPoolData, loadRegistrationStatus]);
 
   useEffect(() => { void load(); }, [load]);
+
+  useEffect(() => {
+    let active = true;
+    fetchPaymentSettings().then((settings) => { if (active) setPaymentSettings(settings); }).catch(() => {});
+    return () => { active = false; };
+  }, []);
+
+  useEffect(() => {
+    if (!profile?.id || !tournament?.id) return;
+    let realtimeClient: ReturnType<typeof getRealtimeClient> | null = null;
+    let channel: ReturnType<ReturnType<typeof getRealtimeClient>["channel"]> | null = null;
+    try {
+      realtimeClient = getRealtimeClient();
+      channel = realtimeClient
+        .channel(`team-registration-${profile.id}-${tournament.id}`)
+        .on(
+          "postgres_changes",
+          { event: "INSERT", schema: "public", table: "notifications", filter: `user_id=eq.${profile.id}` },
+          () => {
+            void loadRegistrationStatus(tournament.id);
+            void loadPoolData(tournament.id, isSolo && !formation?.school_id);
+          },
+        )
+        .subscribe((status, reason) => {
+          if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
+            setError(errorMessage(reason, "Live updates are unavailable. Use Refresh to check your status."));
+          }
+        });
+    } catch {
+      setError("Live updates are unavailable. Use Refresh to check your status.");
+    }
+    return () => {
+      if (channel && realtimeClient) {
+        void realtimeClient.removeChannel(channel).catch(() => undefined);
+      }
+    };
+  }, [profile?.id, tournament?.id, isSolo, formation?.school_id, loadPoolData, loadRegistrationStatus]);
 
   async function runAction(action: () => Promise<unknown>, successMessage: string) {
     setBusy(true);
@@ -85,7 +214,10 @@ export default function MyTeamPage() {
   async function createTeam(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!tournament) return;
-    await runAction(() => startStudentTeam(tournament.id, teamName, "Robotics 101"), "Team created successfully.");
+    await runAction(
+      () => isSolo ? startPoolTeam(tournament.id, teamName) : startStudentTeam(tournament.id, teamName, "Robotics 101"),
+      "Team created successfully.",
+    );
     setTeamName("");
   }
 
@@ -95,6 +227,14 @@ export default function MyTeamPage() {
     if (!team || !inviteeId) return;
     await runAction(() => inviteStudentToTeam(team.id, inviteeId), "Invitation sent.");
     setInviteeId("");
+  }
+
+  async function requestToJoin(teamId: string) {
+    await runAction(() => requestJoinPoolTeam(teamId), "Join request sent to the team captain.");
+  }
+
+  async function decideJoinRequest(requestId: string, decision: "accepted" | "declined") {
+    await runAction(() => respondToPoolJoinRequest(requestId, decision), decision === "accepted" ? "Student added to your team." : "Join request declined.");
   }
 
   const currentUserName = profile?.full_name || "You";
@@ -121,6 +261,7 @@ export default function MyTeamPage() {
   const teamStatus = isRealTeam ? team!.status : "none";
   const memberCount = isRealTeam ? (team?.members.length ?? 0) : 0;
   const isCaptain = isRealTeam ? team!.is_captain : true;
+  const isIndependent = isSolo && !formation?.school_id;
 
   if (loading) {
     return (
@@ -169,6 +310,133 @@ export default function MyTeamPage() {
           <AlertCircle size={16} />
           <span>{error}</span>
         </div>
+      )}
+
+      {registrationStatusLoading && !registrationStatus && (
+        <section className={registrationStyles.panel} aria-label="Loading registration status">
+          <div className={registrationStyles.skeleton}>
+            <div className={`${registrationStyles.skeletonLine} ${registrationStyles.skeletonLineShort}`} />
+            <div className={`${registrationStyles.skeletonLine} ${registrationStyles.skeletonLineWide}`} />
+            <div className={registrationStyles.skeletonLine} />
+            <div className={registrationStyles.skeletonLine} />
+          </div>
+        </section>
+      )}
+
+      {registrationStatus?.team && registrationStatus.scrutineering && (
+        <section className={registrationStyles.panel} aria-labelledby="registration-status-title">
+          <div className={registrationStyles.header}>
+            <div className={registrationStyles.headerCopy}>
+              <div className={registrationStyles.eyebrow}>Race readiness</div>
+              <h2 id="registration-status-title" className={registrationStyles.title}>Registration &amp; Race Status</h2>
+              <p className={registrationStyles.subtitle}>A clear view of payment, inspection, and published results for {registrationStatus.team.name}.</p>
+            </div>
+            <button type="button" className={registrationStyles.refreshButton} onClick={() => void loadRegistrationStatus(registrationStatus.tournament.id)} disabled={registrationStatusLoading || busy}>
+              <RefreshCw size={14} className={registrationStatusLoading ? registrationStyles.refreshIcon : undefined} />
+              {registrationStatusLoading ? "Refreshing" : "Refresh"}
+            </button>
+          </div>
+
+          <div className={`${registrationStyles.eligibilityHero} ${!registrationStatus.eligible ? registrationStyles.eligibilityHeroBlocked : ""}`} role="status">
+            <div>
+              <div className={registrationStyles.eligibilityLabel}>Your race eligibility</div>
+              <div className={registrationStyles.eligibilityState}>
+                {registrationStatus.eligible ? <Trophy size={22} /> : <XCircle size={22} />}
+                {registrationStatus.eligible ? "Race eligible" : "Not race eligible yet"}
+              </div>
+            </div>
+            <div className={registrationStyles.eligibilityHint}>
+              {registrationStatus.eligible ? "Both payment verification and scrutineering are complete." : "Payment verification and a passed car inspection are both required."}
+            </div>
+          </div>
+
+          <div className={registrationStyles.statusGrid}>
+            <div className={registrationStyles.statusCard}>
+              <div className={registrationStyles.statusCardHeader}><CheckCircle2 size={14} /> Payment review</div>
+              <div className={registrationStyles.statusCardValue}>
+                <span className={`${registrationStyles.statusChip} ${registrationStatus.team.status === "verified" ? registrationStyles.statusChipSuccess : registrationStatus.team.status === "rejected" ? registrationStyles.statusChipDanger : registrationStyles.statusChipWarning}`}>
+                  {registrationStatus.team.status === "verified" ? "Verified" : registrationStatus.team.status === "rejected" ? "Rejected" : "Awaiting review"}
+                </span>
+              </div>
+              {registrationStatus.team.status === "rejected" && registrationStatus.team.review_note && <p className={registrationStyles.statusCardMeta}>{registrationStatus.team.review_note}</p>}
+              {registrationStatus.team.status !== "rejected" && <p className={registrationStyles.statusCardMeta}>Entry payment decision from Hanbee staff.</p>}
+            </div>
+            <div className={registrationStyles.statusCard}>
+              <div className={registrationStyles.statusCardHeader}><ShieldCheck size={14} /> Car inspection</div>
+              <div className={registrationStyles.statusCardValue}>
+                <span className={`${registrationStyles.statusChip} ${registrationStatus.scrutineering.status === "passed" ? registrationStyles.statusChipSuccess : registrationStatus.scrutineering.status === "failed" ? registrationStyles.statusChipDanger : registrationStyles.statusChipWarning}`}>
+                  {registrationStatus.scrutineering.status === "passed" ? "Passed" : registrationStatus.scrutineering.status === "failed" ? "Failed" : "Pending inspection"}
+                </span>
+              </div>
+              <p className={registrationStyles.statusCardMeta}>{registrationStatus.scrutineering.checked_at ? `Last checked ${new Date(registrationStatus.scrutineering.checked_at).toLocaleDateString()}` : "Your car has not been inspected yet."}</p>
+            </div>
+          </div>
+
+          {registrationStatus.scrutineering.status === "failed" && (
+            <div className={registrationStyles.feedback} role="alert">
+              <div className={registrationStyles.sectionHeading + " " + registrationStyles.sectionHeadingDanger}><AlertTriangle size={15} /> Inspection feedback</div>
+              <ul className={registrationStyles.failedList}>
+                {registrationStatus.scrutineering.items.filter((item) => item.result === "fail").map((item) => (
+                  <li key={item.key} className={registrationStyles.failedItem}>
+                    <XCircle size={14} />
+                    <span><strong>{checklistLabel(item.key)}</strong>{item.note ? ` — ${item.note}` : ""}</span>
+                  </li>
+                ))}
+              </ul>
+              {registrationStatus.scrutineering.notes && <p className={registrationStyles.note}>{registrationStatus.scrutineering.notes}</p>}
+            </div>
+          )}
+
+          {registrationStatus.scrutineering.history.length > 0 && (
+            <div className={registrationStyles.subsection}>
+              <div className={registrationStyles.subsectionHeader}>
+                <h3 className={registrationStyles.subsectionTitle}>Inspection history</h3>
+                <span className={registrationStyles.subsectionMeta}>{registrationStatus.scrutineering.history.length} inspection{registrationStatus.scrutineering.history.length === 1 ? "" : "s"}</span>
+              </div>
+              <div className={registrationStyles.timeline}>
+                {registrationStatus.scrutineering.history.map((entry, index) => (
+                  <div key={`${entry.checked_at}-${index}`} className={registrationStyles.timelineItem}>
+                    <span className={`${registrationStyles.timelineDot} ${entry.status === "passed" ? registrationStyles.timelineDotSuccess : entry.status === "failed" ? registrationStyles.timelineDotDanger : ""}`} />
+                    <div className={registrationStyles.timelineRow}>
+                      <span className={registrationStyles.timelineStatus}>{entry.status === "passed" ? "Passed" : entry.status === "failed" ? "Failed" : "Pending"}</span>
+                      <span className={registrationStyles.timelineDate}>{new Date(entry.checked_at).toLocaleString()}</span>
+                    </div>
+                    {entry.notes && <p className={registrationStyles.timelineNote}>{entry.notes}</p>}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {(registrationStatus.race_results.length > 0 || registrationStatus.result) && (
+            <div className={registrationStyles.subsection}>
+              <div className={registrationStyles.subsectionHeader}>
+                <h3 className={registrationStyles.subsectionTitle}>Published results</h3>
+                {registrationStatus.result && <span className={registrationStyles.subsectionMeta}>Final ranking available</span>}
+              </div>
+              {registrationStatus.result ? (
+                <p className={registrationStyles.subtitle}>Final position <strong>#{registrationStatus.result.rank}</strong> · {registrationStatus.result.points} points</p>
+              ) : (
+                <p className={registrationStyles.subtitle}>Race results are published; the final leaderboard position is not available yet.</p>
+              )}
+              {registrationStatus.race_results.length > 0 && (
+                <div className={registrationStyles.resultsTableWrap}>
+                  <table className={registrationStyles.resultsTable}>
+                    <thead><tr><th>Race / heat</th><th>Status</th><th>Time</th><th>Laps</th></tr></thead>
+                    <tbody>{registrationStatus.race_results.map((race) => (
+                      <tr key={race.race_name}>
+                        <td>{race.race_name}</td>
+                        <td>{race.finished ? "Finished" : "In progress"}</td>
+                        <td className={!race.finished ? registrationStyles.mutedCell : undefined}>{race.finished ? formatRaceTime(race.finish_time_ms) : "—"}</td>
+                        <td>{race.lap_count}</td>
+                      </tr>
+                    ))}</tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          )}
+        </section>
       )}
 
       {team?.status === "proposed" && (
@@ -374,8 +642,36 @@ export default function MyTeamPage() {
             </div>
           )}
 
+          {isIndependent && isCaptain && isRealTeam && teamStatus !== "draft" && (
+            <div className={styles.formSection}>
+              <div className={styles.formHeader}>
+                <h2 className={styles.formTitle}>Squad formation is closed</h2>
+                <p className={styles.formSubtitle}>
+                  {team!.name} has already applied, so its roster is locked and can no longer accept invites or join requests.
+                </p>
+              </div>
+            </div>
+          )}
+
+          {isIndependent && isCaptain && isRealTeam && teamStatus === "draft" && poolJoinRequests.length > 0 && (
+            <div className={styles.formSection}>
+              <div className={styles.formHeader}>
+                <h2 className={styles.formTitle}>Join requests</h2>
+                <p className={styles.formSubtitle}>Independent students asking to join {team!.name}.</p>
+              </div>
+              <div style={{ display: "grid", gap: 10 }}>
+                {poolJoinRequests.map((request) => (
+                  <div key={request.request_id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap", padding: 12, border: "1px solid var(--border-subtle)", borderRadius: 10 }}>
+                    <div><strong>{request.student_name}</strong><div style={{ color: "var(--text-muted)", fontSize: 12 }}>Requested {new Date(request.created_at).toLocaleDateString()}</div></div>
+                    <div style={{ display: "flex", gap: 8 }}><button type="button" className={styles.actionBtn} disabled={busy} onClick={() => void decideJoinRequest(request.request_id, "accepted")}>Accept</button><button type="button" className={styles.secondaryBtn} disabled={busy} onClick={() => void decideJoinRequest(request.request_id, "declined")}>Decline</button></div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Captain Inviting Classmates (Max 5 Limit) */}
-          {isCaptain && (
+          {isCaptain && !isIndependent && (
             <div className={styles.formSection}>
               <div className={styles.formHeader}>
                 <h2 className={styles.formTitle}>Invite Classmates to Squad</h2>
@@ -411,6 +707,21 @@ export default function MyTeamPage() {
             </div>
           )}
 
+          {isIndependent && isCaptain && isRealTeam && teamStatus === "draft" && (
+            <div className={styles.formSection}>
+              <div className={styles.formHeader}>
+                <h2 className={styles.formTitle}>Invite independent drivers</h2>
+                <p className={styles.formSubtitle}>Invite another independent student while your team is still forming.</p>
+              </div>
+              {memberCount < teamSizeLimit ? (
+                <form onSubmit={inviteClassmate} className={styles.inlineForm}>
+                  <Dropdown id="pool-team-invitee" value={inviteeId} onChange={setInviteeId} required disabled={busy} placeholder="Select an independent student" options={poolStudents.map((student) => ({ value: student.student_id, label: student.full_name }))} />
+                  <button type="submit" disabled={busy || poolStudents.length === 0} className={styles.actionBtn}>{busy ? "Sending Invite..." : "Send Team Invite"}</button>
+                </form>
+              ) : <div style={{ color: "#10b981", fontSize: 13 }}>Your team has reached its capacity.</div>}
+            </div>
+          )}
+
           {/* Create Squad if not in one */}
           {!team && (
             <div className={styles.formSection}>
@@ -418,7 +729,7 @@ export default function MyTeamPage() {
                 <h2 className={styles.formTitle}>Form a New RC Racing Squad</h2>
                 <p className={styles.formSubtitle}>
                   {tournament
-                    ? "Choose a team name. Teams can have 1 to 5 members. You can start solo and invite teammates later."
+                      ? isIndependent ? "Choose a team name and invite other independent students, or request to join an open pool team." : "Choose a team name. Teams can have 1 to 5 members. You can start solo and invite teammates later."
                     : "Team registration isn't open yet — Hanbee staff hasn't scheduled a tournament. Check back once one is announced."}
                 </p>
               </div>
@@ -440,6 +751,13 @@ export default function MyTeamPage() {
                   </button>
                 </form>
               )}
+            </div>
+          )}
+
+          {isIndependent && !team && openPoolTeams.length > 0 && (
+            <div className={styles.formSection}>
+              <div className={styles.formHeader}><h2 className={styles.formTitle}>Open independent teams</h2><p className={styles.formSubtitle}>Request to join a team that is still forming.</p></div>
+              <div style={{ display: "grid", gap: 10 }}>{openPoolTeams.map((poolTeam) => <div key={poolTeam.team_id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap", padding: 12, border: "1px solid var(--border-subtle)", borderRadius: 10 }}><div><strong>{poolTeam.team_name}</strong><div style={{ color: "var(--text-muted)", fontSize: 12 }}>{poolTeam.captain_name ?? "Captain"} · {poolTeam.member_count}/{poolTeam.team_size} drivers</div></div><button type="button" className={styles.actionBtn} disabled={busy} onClick={() => void requestToJoin(poolTeam.team_id)}>Request to join</button></div>)}</div>
             </div>
           )}
 
@@ -510,6 +828,21 @@ export default function MyTeamPage() {
               </div>
 
               <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                {paymentSettings?.qr_image_url ? (
+                  <div style={{ display: "flex", gap: 16, alignItems: "flex-start", flexWrap: "wrap" }}>
+                    {/* eslint-disable-next-line @next/next/no-img-element -- payment-assets is a public Supabase Storage bucket, not a Next-optimizable local/remote image source worth configuring */}
+                    <img src={paymentSettings.qr_image_url} alt="Payment QR code" style={{ width: 160, height: 160, borderRadius: 10, border: "1px solid var(--border-subtle)", objectFit: "contain", background: "#fff" }} />
+                    <div style={{ fontSize: 13, color: "var(--text-muted)", maxWidth: 420 }}>
+                      {paymentSettings.upi_id && <p style={{ marginBottom: 6 }}>Pay to UPI ID: <strong style={{ color: "var(--text-primary)" }}>{paymentSettings.upi_id}</strong></p>}
+                      {paymentSettings.instructions && <p>{paymentSettings.instructions}</p>}
+                    </div>
+                  </div>
+                ) : (
+                  <p role="status" style={{ fontSize: 13, color: "var(--text-muted)" }}>
+                    Payment QR isn&apos;t set up yet -- contact Hanbee staff for payment instructions before confirming.
+                  </p>
+                )}
+
                 <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, cursor: "pointer" }}>
                   <input
                     type="checkbox"
@@ -518,12 +851,27 @@ export default function MyTeamPage() {
                   />
                   I have completed the tournament payment.
                 </label>
+                {paymentDeclared && (
+                  <label style={{ display: "block", fontSize: 13 }}>
+                    UPI transaction ID / UTR
+                    <input
+                      value={paymentReference}
+                      onChange={(e) => setPaymentReference(e.target.value)}
+                      placeholder="e.g. 408812345678"
+                      maxLength={100}
+                      required
+                      disabled={busy}
+                      className={styles.textInput}
+                      style={{ display: "block", marginTop: 6 }}
+                    />
+                  </label>
+                )}
                 <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
                   <button
                     type="button"
                     className={styles.actionBtn}
-                    disabled={busy || !paymentDeclared}
-                    onClick={() => void runAction(() => applyStudentTeam(team.id, true), "Payment declared. Your solo entry is waiting for Hanbee review.")}
+                    disabled={busy || !paymentDeclared || !paymentReference.trim()}
+                    onClick={() => void runAction(async () => { await applyStudentTeam(team.id, true, paymentReference); setPaymentDeclared(false); setPaymentReference(""); }, "Payment declared. Your solo entry is waiting for Hanbee review.")}
                   >
                     Submit Paid Solo Entry
                   </button>

@@ -83,14 +83,19 @@ export default function IndependentStudentModal({ isOpen, onClose }: Independent
         }),
       });
 
+      // The success screen below claims a real entry was recorded and that
+      // staff will follow up -- it must only show once that's actually
+      // true. This previously showed success even on a failed response or
+      // a network error.
       if (!res.ok) {
-        console.warn("Server responded with error, falling back locally.");
+        const body = await res.json().catch(() => null);
+        setError(body?.error || "We couldn't save your application. Please try again.");
+        return;
       }
 
       setSubmitted(true);
     } catch (err) {
-      console.warn("Local network error, proceeding with success UI:", err);
-      setSubmitted(true);
+      setError("We couldn't reach the server. Check your connection and try again.");
     } finally {
       setSubmitting(false);
     }

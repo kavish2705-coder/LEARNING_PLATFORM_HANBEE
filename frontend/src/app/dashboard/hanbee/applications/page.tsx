@@ -4,7 +4,8 @@ import { useEffect, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Search } from "lucide-react";
 import styles from "../../dashboard.module.css";
-import { Input, Select } from "../../components/ui/FormField";
+import { Input } from "../../components/ui/FormField";
+import Dropdown from "../../components/ui/Dropdown";
 import Shimmer from "../../components/ui/Shimmer";
 import { useSessionProfile } from "../../../../lib/hooks/useSessionProfile";
 import { authenticatedSupabaseFetch } from "../../../../lib/supabaseAuth";
@@ -102,14 +103,12 @@ export default function HanbeeApplicationsPage() {
                       <td>{new Date(application.created_at).toLocaleDateString()}</td>
                       <td>
                         <div style={{ display: "flex", flexWrap: "wrap", gap: 8, alignItems: "center" }}>
-                          <Select 
-                            value={selectedSections[application.id] ?? ""} 
-                            onChange={(event) => setSelectedSections((current) => ({ ...current, [application.id]: event.target.value }))}
+                          <Dropdown
+                            value={selectedSections[application.id] ?? ""}
+                            onChange={(v) => setSelectedSections((current) => ({ ...current, [application.id]: v }))}
                             style={{ padding: "6px", fontSize: "12px", minWidth: "120px" }}
-                          >
-                            <option value="">Choose a section</option>
-                            {choices.map((section) => <option key={section.id} value={section.id}>{section.name}</option>)}
-                          </Select>
+                            options={[{ value: "", label: "Choose a section" }, ...choices.map((section) => ({ value: section.id, label: section.name }))]}
+                          />
                           <button type="button" className={styles.filterBtn} style={{ padding: "6px 12px", fontSize: "12px" }} disabled={decide.isPending || choices.length === 0} onClick={() => decide.mutate({ application, decision: "verified" })}>{busy ? "Saving…" : "Approve"}</button>
                           <button type="button" className={styles.filterBtn} style={{ padding: "6px 12px", fontSize: "12px" }} disabled={decide.isPending} onClick={() => decide.mutate({ application, decision: "rejected" })}>Decline</button>
                         </div>

@@ -2,7 +2,8 @@
 
 import { FormEvent, useEffect, useState } from "react";
 import { authenticatedSupabaseFetch, getAccountProfile, type AccountProfile } from "../../../../lib/supabaseAuth";
-import { Input, Select } from "../../components/ui/FormField";
+import { Input } from "../../components/ui/FormField";
+import Dropdown from "../../components/ui/Dropdown";
 import Shimmer from "../../components/ui/Shimmer";
 import styles from "../../dashboard.module.css";
 import { useConfirm } from "../../../../components/ui/useConfirm";
@@ -64,7 +65,7 @@ export default function HanbeeSchedulePage() {
     {error && <p role="alert">{error}</p>}{message && <p role="status">{message}</p>}
     {canManage && <form className={styles.sectionCard} onSubmit={createEvent} style={{ marginBottom: 24 }}><h2 className={styles.sectionTitle}>Add an event</h2><div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(180px,1fr))", gap: 12, marginTop: 16 }}>
       <label>Title<Input value={title} onChange={(event) => setTitle(event.target.value)} required maxLength={200} /></label>
-      <label>Type<Select value={eventType} onChange={(event) => setEventType(event.target.value as CalendarEvent["event_type"])}><option value="other">Other</option><option value="class_session">Class session</option><option value="office_hours">Office hours</option></Select></label>
+      <label>Type<Dropdown value={eventType} onChange={(v) => setEventType(v as CalendarEvent["event_type"])} options={[{ value: "other", label: "Other" }, { value: "class_session", label: "Class session" }, { value: "office_hours", label: "Office hours" }]} style={{ minWidth: 0 }} /></label>
       <label>Location<Input value={location} onChange={(event) => setLocation(event.target.value)} maxLength={200} /></label>
       <label>Starts<Input type="datetime-local" value={startsAt} onChange={(event) => setStartsAt(event.target.value)} required /></label>
       <label>Ends<Input type="datetime-local" value={endsAt} onChange={(event) => setEndsAt(event.target.value)} required /></label>

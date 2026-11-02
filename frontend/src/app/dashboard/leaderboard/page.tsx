@@ -1,13 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Trophy } from "lucide-react";
 import styles from "../dashboard.module.css";
 import leaderboardStyles from "./leaderboard.module.css";
 import Shimmer from "../components/ui/Shimmer";
 import EmptyState from "../components/ui/EmptyState";
-import { getStudentLeaderboard, listTournaments } from "../../../lib/tournamentAdminApi";
+import { getStudentLeaderboard, listTournaments, pickActiveTournament } from "../../../lib/tournamentAdminApi";
 import type { StudentLeaderboardRow } from "../../../lib/tournamentAdminApi";
 
 type EntryType = "school" | "solo";
@@ -17,12 +17,12 @@ function formatLapTime(milliseconds: number | null) {
 }
 
 export default function LeaderboardPage() {
-  const [entryType, setEntryType] = useState<EntryType>("school");
+  const [entryType, setEntryType] = useState<EntryType | null>(null);
   const { data: tournaments, isLoading: loadingTournaments, error: tournamentError } = useQuery({
     queryKey: ["tournaments"],
     queryFn: listTournaments,
   });
-  const tournament = (tournaments ?? []).find((item) => item.status === "completed") ?? (tournaments ?? [])[0];
+  const tournament = pickActiveTournament(tournaments);
 
   const { data: rows, isLoading, error } = useQuery({
     queryKey: ["student-leaderboard", tournament?.id],
@@ -35,7 +35,17 @@ export default function LeaderboardPage() {
   const isRealData = Boolean(rows);
   const schoolRows = (rows ?? []).filter((row) => row.org_id !== null);
   const soloRows = (rows ?? []).filter((row) => row.org_id === null);
-  const filteredRows = entryType === "school" ? schoolRows : soloRows;
+
+  // Default to whichever tab actually has data once it loads, instead of a
+  // fixed "school" default that can land on an empty tab while solo entries
+  // sit unseen on the other one.
+  useEffect(() => {
+    if (entryType !== null || !rows) return;
+    setEntryType(schoolRows.length > 0 || soloRows.length === 0 ? "school" : "solo");
+  }, [entryType, rows, schoolRows.length, soloRows.length]);
+
+  const activeEntryType = entryType ?? "school";
+  const filteredRows = activeEntryType === "school" ? schoolRows : soloRows;
   const currentUserRow = rows?.find((row) => row.is_current_user);
   const fieldSize = currentUserRow?.field_size ?? rows?.[0]?.field_size ?? 0;
 
@@ -87,14 +97,14 @@ export default function LeaderboardPage() {
               <button
                 key={type}
                 type="button"
-                aria-pressed={entryType === type}
+                aria-pressed={activeEntryType === type}
                 onClick={() => setEntryType(type)}
                 style={{
                   padding: "9px 14px",
                   borderRadius: 999,
-                  border: `1px solid ${entryType === type ? "var(--color-primary)" : "var(--border-subtle)"}`,
-                  background: entryType === type ? "color-mix(in srgb, var(--color-primary) 14%, var(--bg-card))" : "var(--bg-card)",
-                  color: entryType === type ? "var(--accent-subtle-text)" : "var(--text-muted)",
+                  border: `1px solid ${activeEntryType === type ? "var(--color-primary)" : "var(--border-subtle)"}`,
+                  background: activeEntryType === type ? "color-mix(in srgb, var(--color-primary) 14%, var(--bg-card))" : "var(--bg-card)",
+                  color: activeEntryType === type ? "var(--accent-subtle-text)" : "var(--text-muted)",
                   fontWeight: 600,
                   cursor: "pointer",
                 }}
@@ -113,7 +123,7 @@ export default function LeaderboardPage() {
               </div>
             ) : (
               <div style={{ padding: 20, border: "1px dashed var(--border-subtle)", borderRadius: 14, color: "var(--text-muted)" }}>
-                No {entryType === "school" ? "school team" : "solo"} entries have been verified for this tournament.
+                No {activeEntryType === "school" ? "school team" : "solo"} entries have been verified for this tournament.
               </div>
             )
           ) : (

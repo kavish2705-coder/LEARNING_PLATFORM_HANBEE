@@ -120,7 +120,7 @@ export default function SchoolOverviewPage() {
                   icon={<Users size={18} />}
                   title="Active students"
                   value={overview.people.students}
-                  detail={`${overview.people.staff + overview.people.owners} school staff`}
+                  detail={overview.people.students === 1 ? "1 student enrolled" : `${overview.people.students} students enrolled`}
                 />
                 <MetricCard
                   icon={<Trophy size={18} />}

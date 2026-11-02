@@ -2,9 +2,9 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { 
+import {
   ShieldCheck, Copy, Check, Award, Trophy,
-  Flame, Zap, ArrowLeft, Sparkles,
+  Zap, ArrowLeft, Sparkles,
   MapPin
 } from "lucide-react";
 import Link from "next/link";
@@ -21,7 +21,7 @@ export default function DriverLicensePage() {
   const { xp } = useUserXp();
   const [copied, setCopied] = useState(false);
   const [team, setTeam] = useState<MyTeamFormation["my_team"]>(null);
-  const [schoolName, setSchoolName] = useState("Your School");
+  const [schoolName, setSchoolName] = useState("Independent");
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [tournament, setTournament] = useState<UpcomingTournament | null>(null);
   const [bestLapMs, setBestLapMs] = useState<number | null>(null);
@@ -47,9 +47,6 @@ export default function DriverLicensePage() {
   if (profile?.role && profile.role !== "student") {
     return null;
   }
-
-  // Dynamic Rank & Progression
-  const rankNumber = xp >= 1850 ? "#1 Rank" : xp >= 1620 ? "#2 Rank" : xp >= 1490 ? "#3 Rank" : "#4 Rank";
 
   // Interactive RC Motor Audio Synthesis
   const [isRevving, setIsRevving] = useState(false);
@@ -210,6 +207,22 @@ export default function DriverLicensePage() {
     }, 3000);
   };
 
+  // Each badge's earned state is computed from real data (a recorded lap,
+  // the team actually existing, the local practice checklist actually being
+  // complete) -- previously every badge showed "Earned" unconditionally,
+  // regardless of whether the student had done anything.
+  const practiceChecklistComplete = (() => {
+    if (typeof window === "undefined") return false;
+    try {
+      const raw = localStorage.getItem("hanbee_rc_inspection");
+      if (!raw) return false;
+      const status = JSON.parse(raw) as Record<string, boolean>;
+      return ["wheels", "body", "motor", "wiring", "remote", "battery"].every((key) => status[key]);
+    } catch {
+      return false;
+    }
+  })();
+
   const badges = [
     {
       id: "quick_lap",
@@ -218,32 +231,28 @@ export default function DriverLicensePage() {
       icon: Zap,
       color: "#38bdf8",
       bgColor: "rgba(56, 189, 248, 0.12)",
+      earned: bestLapMs !== null && bestLapMs < 14000,
     },
     {
       id: "pre_race_check",
-      name: "Pre-Race Check",
-      desc: "Checked all 6 car parts",
+      name: "Practice Checklist",
+      desc: "Checked all 6 items on your practice checklist",
       icon: ShieldCheck,
       color: "#10b981",
       bgColor: "rgba(16, 185, 129, 0.12)",
-    },
-    {
-      id: "streak",
-      name: "4-Day Streak",
-      desc: "Practiced 4 days in a row",
-      icon: Flame,
-      color: "#f97316",
-      bgColor: "rgba(249, 115, 22, 0.12)",
+      earned: practiceChecklistComplete,
     },
     {
       id: "club_driver",
-      name: "Club Driver",
-      desc: "Official Hanbee RC racer",
+      name: "Registered Racer",
+      desc: "Registered a tournament team",
       icon: Trophy,
       color: "#fbbf24",
       bgColor: "rgba(251, 191, 36, 0.12)",
+      earned: team !== null,
     },
   ];
+  const earnedCount = badges.filter((badge) => badge.earned).length;
 
   return (
     <div className={styles.licensePage}>
@@ -339,10 +348,14 @@ export default function DriverLicensePage() {
                 <div className={styles.driverInfoMeta}>
                   <div className={styles.driverNameWrap}>
                     <h2 className={styles.driverName}>{driverName}</h2>
-                    <span className={styles.statusVerifiedBadge}>● VERIFIED</span>
+                    {team?.status === "verified" ? (
+                      <span className={styles.statusVerifiedBadge}>● VERIFIED</span>
+                    ) : (
+                      <span className={styles.statusVerifiedBadge} style={{ background: "transparent", color: "var(--text-muted)" }}>● {team ? "Pending verification" : "Not registered"}</span>
+                    )}
                   </div>
                   <p className={styles.driverCallsign}>
-                    [HB-42] {teamName} • {schoolName}
+                    {teamName} • {schoolName}
                   </p>
                 </div>
               </div>
@@ -373,9 +386,9 @@ export default function DriverLicensePage() {
                   </span>
                 </div>
                 <div className={styles.statItem}>
-                  <span className={styles.statLabel}>RACE POINTS</span>
+                  <span className={styles.statLabel}>PRACTICE POINTS</span>
                   <span className={styles.statValue}>{xp.toLocaleString()} RP</span>
-                  <span className={styles.statSubBadge}>GRID TOTAL</span>
+                  <span className={styles.statSubBadge}>NOT TOURNAMENT RANKING</span>
                 </div>
               </div>
 
@@ -500,7 +513,7 @@ export default function DriverLicensePage() {
                 <span>Racer Badges & Trophies</span>
               </h3>
               <span className={styles.badgesCountBadge}>
-                4 Earned
+                {earnedCount} / {badges.length} Earned
               </span>
             </div>
 
@@ -508,9 +521,9 @@ export default function DriverLicensePage() {
               {badges.map((badge) => {
                 const IconComponent = badge.icon;
                 return (
-                  <div key={badge.id} className={styles.badgeCard}>
+                  <div key={badge.id} className={styles.badgeCard} style={{ opacity: badge.earned ? 1 : 0.55 }}>
                     <div className={styles.badgeTop}>
-                      <div 
+                      <div
                         className={styles.badgeIconWrap}
                         style={{ background: badge.bgColor, color: badge.color }}
                       >
@@ -520,10 +533,16 @@ export default function DriverLicensePage() {
                     </div>
                     <p className={styles.badgeDesc}>{badge.desc}</p>
                     <div className={styles.badgeFooter}>
-                      <span className={styles.badgeUnlockedTag}>
-                        <Check size={11} color="#10b981" />
-                        <span>Earned</span>
-                      </span>
+                      {badge.earned ? (
+                        <span className={styles.badgeUnlockedTag}>
+                          <Check size={11} color="#10b981" />
+                          <span>Earned</span>
+                        </span>
+                      ) : (
+                        <span className={styles.badgeUnlockedTag} style={{ color: "var(--text-muted)" }}>
+                          <span>Not yet</span>
+                        </span>
+                      )}
                     </div>
                   </div>
                 );

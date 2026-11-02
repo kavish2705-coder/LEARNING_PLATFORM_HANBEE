@@ -22,6 +22,7 @@ export default function ManagerDashboard() {
   const [staffApplications, setStaffApplications] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [registrationFilter, setRegistrationFilter] = useState<"all" | "pending" | "approved">("all");
 
   useEffect(() => {
     let active = true;
@@ -141,7 +142,12 @@ export default function ManagerDashboard() {
             <div className={styles.managerSectionHeader}>
               <h2 className={styles.tableTitle}>Tournament Registrations</h2>
               <div style={{ display: "flex", gap: "8px" }}>
-                <select className={styles.filterInput} style={{ background: "var(--bg-input)", border: "var(--border-subtle)", padding: "6px 12px", borderRadius: "6px", color: "var(--text-main)", fontSize: "13px" }}>
+                <select
+                  className={styles.filterInput}
+                  value={registrationFilter}
+                  onChange={(event) => setRegistrationFilter(event.target.value as "all" | "pending" | "approved")}
+                  style={{ background: "var(--bg-input)", border: "var(--border-subtle)", padding: "6px 12px", borderRadius: "6px", color: "var(--text-main)", fontSize: "13px" }}
+                >
                   <option value="all">All statuses</option>
                   <option value="pending">Pending</option>
                   <option value="approved">Approved</option>
@@ -155,22 +161,31 @@ export default function ManagerDashboard() {
                 <tr><th>Status</th><th>Count</th><th>Progress</th></tr>
               </thead>
               <tbody>
-                {Object.entries(tournament?.teams ?? {}).map(([status, count]) => {
+                {(() => {
+                  const allEntries = Object.entries(tournament?.teams ?? {});
+                  const filtered = allEntries.filter(([status]) => {
+                    if (registrationFilter === "pending") return status === "applied" || status === "payment_declared";
+                    if (registrationFilter === "approved") return status === "verified";
+                    return true;
+                  });
+                  if (allEntries.length === 0) return <tr><td colSpan={3}>No tournament teams are registered.</td></tr>;
+                  if (filtered.length === 0) return <tr><td colSpan={3}>No registrations match this filter.</td></tr>;
                   const total = tournament?.participants ?? 1;
-                  const pct = Math.min((count / total) * 100, 100);
-                  return (
-                    <tr key={status}>
-                      <td style={{ color: "var(--text-main)", textTransform: "capitalize" }}>{status.replaceAll("_", " ")}</td>
-                      <td style={{ fontWeight: "600" }}>{count}</td>
-                      <td style={{ width: "40%" }}>
-                        <div className={styles.sparkline} style={{ marginTop: 0, height: "6px" }}>
-                          <div className={styles.bar} style={{ height: "100%", width: `${pct}%`, backgroundColor: "var(--accent)" }}></div>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-                {Object.keys(tournament?.teams ?? {}).length === 0 && <tr><td colSpan={3}>No tournament teams are registered.</td></tr>}
+                  return filtered.map(([status, count]) => {
+                    const pct = Math.min((count / total) * 100, 100);
+                    return (
+                      <tr key={status}>
+                        <td style={{ color: "var(--text-main)", textTransform: "capitalize" }}>{status.replaceAll("_", " ")}</td>
+                        <td style={{ fontWeight: "600" }}>{count}</td>
+                        <td style={{ width: "40%" }}>
+                          <div className={styles.sparkline} style={{ marginTop: 0, height: "6px" }}>
+                            <div className={styles.bar} style={{ height: "100%", width: `${pct}%`, backgroundColor: "var(--accent)" }}></div>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  });
+                })()}
               </tbody>
             </table>
             </div>

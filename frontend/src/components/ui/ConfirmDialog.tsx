@@ -29,6 +29,7 @@ export default function ConfirmDialog({
       open={open}
       title={title}
       onClose={onCancel}
+      elevated
       actions={
         <>
           <button type="button" className={styles.secondaryBtn} onClick={onCancel} disabled={busy}>

@@ -2,7 +2,8 @@
 
 import { FormEvent, useCallback, useEffect, useState } from "react";
 import styles from "../../dashboard.module.css";
-import { Input, Textarea, Select } from "../ui/FormField";
+import { Input, Textarea } from "../ui/FormField";
+import Dropdown from "../ui/Dropdown";
 import { getAccountProfile } from "../../../../lib/supabaseAuth";
 import { createTournament, listTournaments, updateTournament, type TournamentRecord, type TournamentStatus } from "../../../../lib/tournamentAdminApi";
 
@@ -88,7 +89,7 @@ export default function TournamentManager() {
           <label>Venue<Input value={form.venue} onChange={(event) => setForm({ ...form, venue: event.target.value })} maxLength={240} /></label>
           <label>Starts<Input type="datetime-local" value={form.startsAt} onChange={(event) => setForm({ ...form, startsAt: event.target.value })} required /></label>
           <label>Ends<Input type="datetime-local" value={form.endsAt} onChange={(event) => setForm({ ...form, endsAt: event.target.value })} required /></label>
-          {editingId && <label>Status<Select value={form.status} onChange={(event) => setForm({ ...form, status: event.target.value as TournamentStatus })}><option value="upcoming">Upcoming</option><option value="live">Live</option><option value="completed">Completed</option></Select></label>}
+          {editingId && <label>Status<Dropdown value={form.status} onChange={(v) => setForm({ ...form, status: v as TournamentStatus })} options={[{ value: "upcoming", label: "Upcoming" }, { value: "live", label: "Live" }, { value: "completed", label: "Completed" }]} style={{ minWidth: 0 }} /></label>}
         </div>
         <label style={{ display: "block", marginTop: 12 }}>Description<Textarea value={form.description} onChange={(event) => setForm({ ...form, description: event.target.value })} maxLength={4000} rows={3} style={{ display: "block", width: "100%" }} /></label>
         <div style={{ display: "flex", gap: 10, marginTop: 14 }}>

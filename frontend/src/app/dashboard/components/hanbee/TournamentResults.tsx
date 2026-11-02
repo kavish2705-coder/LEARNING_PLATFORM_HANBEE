@@ -2,7 +2,8 @@
 
 import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 import styles from "../../dashboard.module.css";
-import { Input, Select } from "../ui/FormField";
+import { Input } from "../ui/FormField";
+import Dropdown from "../ui/Dropdown";
 import { getAccountProfile } from "../../../../lib/supabaseAuth";
 import { listTournamentRaceResults, listTournamentResults, listTournaments, listVerifiedTournamentTeams, removeTournamentResult, saveTournamentRaceResult, saveTournamentResult, type TournamentRaceResult, type TournamentRecord, type TournamentResult, type VerifiedTournamentTeam } from "../../../../lib/tournamentAdminApi";
 import { useConfirm } from "../../../../components/ui/useConfirm";
@@ -127,7 +128,7 @@ export default function TournamentResults() {
       <p style={{ color: "var(--text-muted)", marginTop: 4, marginBottom: 16 }}>Publish rankings for verified teams; students see them on the leaderboard.</p>
       <h3 className={styles.tableTitle} style={{ fontSize: 15 }}>Set team result</h3>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: 12, marginTop: 14 }}>
-        <label>Verified team<Select value={selectedTeamId} onChange={(event) => setSelectedTeamId(event.target.value)} required><option value="">Choose team</option>{teams.map((team) => <option key={team.id} value={team.id}>{tournamentById.get(team.tournament_id)?.title ?? "Tournament"} · {team.name}</option>)}</Select></label>
+        <label>Verified team<Dropdown value={selectedTeamId} onChange={setSelectedTeamId} required placeholder="Choose team" options={[{ value: "", label: "Choose team" }, ...teams.map((team) => ({ value: team.id, label: `${tournamentById.get(team.tournament_id)?.title ?? "Tournament"} · ${team.name}` }))]} style={{ minWidth: 0 }} /></label>
         <label>Rank<Input type="number" min="1" step="1" value={rank} onChange={(event) => setRank(event.target.value)} required /></label>
         <label>Points<Input type="number" min="0" step="any" value={points} onChange={(event) => setPoints(event.target.value)} required /></label>
       </div>
@@ -157,19 +158,13 @@ export default function TournamentResults() {
         Enter each participant under the same race name. Completed time is the sum of lap times; the fastest finisher wins. Enter lap times in seconds, separated by commas.
       </p>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 12, marginTop: 14 }}>
-        <label>Verified team<Select value={raceTeamId} onChange={(event) => setRaceTeamId(event.target.value)} required>
-          <option value="">Choose team</option>
-          {teams.map((team) => <option key={team.id} value={team.id}>{tournamentById.get(team.tournament_id)?.title ?? "Tournament"} · {team.name}</option>)}
-        </Select></label>
+        <label>Verified team<Dropdown value={raceTeamId} onChange={setRaceTeamId} required placeholder="Choose team" options={[{ value: "", label: "Choose team" }, ...teams.map((team) => ({ value: team.id, label: `${tournamentById.get(team.tournament_id)?.title ?? "Tournament"} · ${team.name}` }))]} style={{ minWidth: 0 }} /></label>
         <label>Race / heat name<Input list="tournament-race-names" value={raceName} onChange={(event) => setRaceName(event.target.value)} maxLength={100} placeholder="e.g. Heat 1" required />
           <datalist id="tournament-race-names">
             {[...new Set(raceResults.map((result) => result.race_name))].map((name) => <option key={name} value={name} />)}
           </datalist>
         </label>
-        <label>Race status<Select value={raceFinished ? "finished" : "dnf"} onChange={(event) => setRaceFinished(event.target.value === "finished")}>
-          <option value="finished">Finished</option>
-          <option value="dnf">Did not finish</option>
-        </Select></label>
+        <label>Race status<Dropdown value={raceFinished ? "finished" : "dnf"} onChange={(v) => setRaceFinished(v === "finished")} options={[{ value: "finished", label: "Finished" }, { value: "dnf", label: "Did not finish" }]} style={{ minWidth: 0 }} /></label>
       </div>
       <label style={{ display: "block", marginTop: 12 }}>Lap times (seconds)
         <Input value={lapTimes} onChange={(event) => setLapTimes(event.target.value)} placeholder="e.g. 12.84, 13.02, 12.67" inputMode="decimal" />
