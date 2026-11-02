@@ -65,81 +65,30 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Why it's different - glass box on photo background */}
-      <section className={styles.differentSection} id="platform">
-        {/* Background Image */}
-        <div className={styles.differentImageBg}>
-          <img
-            src="/hanbee-cars.jpg"
-            alt="Hanbee RC Racing Cars"
-            className={styles.differentImage}
-          />
-          <div className={styles.differentOverlay} />
-        </div>
-
-        {/* Centered Glass Container Box */}
-        <div className={`${styles.doersCard} ${styles.differentGrid}`} style={{ margin: "0 auto" }}>
-          <div className={styles.orbBackground} style={{ opacity: 0.35 }}></div>
-
-          <motion.div
-            initial={{ opacity: 0, y: 22 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-30px" }}
-            transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
-            style={{ position: "relative", zIndex: 2 }}
-          >
-            <span className={styles.categoryBadge}>
-              Beyond standard learning
-            </span>
-            <AnimatedHeading as="h2" className={styles.doersTitle}>An LMS built for doers.</AnimatedHeading>
-            <p className={styles.doersDesc}>
-              From mastering core engineering concepts to building and programming your own FC racing car, Hanbee bridges the gap between theory and adrenaline-pumping reality.
-            </p>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, y: 22 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-30px" }}
-            transition={{ duration: 0.65, delay: 0.08, ease: [0.16, 1, 0.3, 1] }}
-            style={{ display: "flex", flexDirection: "column", gap: "16px", position: "relative", zIndex: 2 }}
-          >
-            {[
-              {
-                n: "01",
-                t: "Led by track pros",
-                d: "Learn directly from engineering veterans who design real-world flight controllers and autonomous systems."
-              },
-              {
-                n: "02",
-                t: "Live progress telemetry",
-                d: "Monitor your learning milestones like live race telemetry — visualize your growth from novice to track-ready."
-              },
-              {
-                n: "03",
-                t: "Pit-stop mentorship",
-                d: "Get 1-on-1 guidance when debugging your RC car's code or tuning its FC for maximum speed and control."
-              },
-              {
-                n: "04",
-                t: "Code, build, race",
-                d: "Learn the theory at home, then take your skills straight to the asphalt at the Hanbee RC Cup."
-              },
-            ].map((feature) => (
-              <motion.div
-                key={feature.t}
-                className={styles.doersItem}
-                whileHover={{ x: 6, transition: { duration: 0.25, ease: [0.16, 1, 0.3, 1] } }}
-              >
-                <span className={styles.glowingNumber} style={{ minWidth: "32px", margin: 0, marginTop: "2px" }}>{feature.n}</span>
-                <div>
-                  <strong className={styles.doersItemTitle}>{feature.t}</strong>
-                  <span className={styles.doersItemDesc}>{feature.d}</span>
-                </div>
-              </motion.div>
-            ))}
-          </motion.div>
-        </div>
+      {/* Photo banner: both liveries, side by side */}
+      <section className={styles.photoBanner}>
+        <motion.div
+          className={styles.photoBannerContent}
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-30px" }}
+          transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
+        >
+          <span style={{ fontFamily: "var(--font-body)", fontSize: "var(--landing-eyebrow)", letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.75)" }}>
+            #09 · #23 · #60
+          </span>
+          <AnimatedHeading as="h2" style={{ fontFamily: "var(--font-heading)", fontSize: "var(--landing-h2)", fontWeight: 400, color: "#fff", margin: "14px 0 0", letterSpacing: "-0.02em" }}>Two liveries. One grid. Every car student-built.</AnimatedHeading>
+        </motion.div>
+        <motion.div
+          className={styles.photoBannerFrame}
+          initial={{ opacity: 0, y: 20, scale: 0.98 }}
+          whileInView={{ opacity: 1, y: 0, scale: 1 }}
+          viewport={{ once: true, margin: "-30px" }}
+          transition={{ duration: 0.7, delay: 0.08, ease: [0.16, 1, 0.3, 1] }}
+        >
+          <img src="/rc-cars-angle.png" alt="Two HANBEE RC Cup cars, black and white liveries, side by side" className={styles.photoBannerImg} />
+          <div className={styles.photoWatermarkPatch} aria-hidden="true" />
+        </motion.div>
       </section>
 
       {/* Two tracks, one platform */}
@@ -303,30 +252,81 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Photo banner: both liveries, side by side */}
-      <section className={styles.photoBanner}>
-        <motion.div
-          className={styles.photoBannerContent}
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-30px" }}
-          transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
-        >
-          <span style={{ fontFamily: "var(--font-body)", fontSize: "var(--landing-eyebrow)", letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.75)" }}>
-            #09 · #23 · #60
-          </span>
-          <AnimatedHeading as="h2" style={{ fontFamily: "var(--font-heading)", fontSize: "var(--landing-h2)", fontWeight: 400, color: "#fff", margin: "14px 0 0", letterSpacing: "-0.02em" }}>Two liveries. One grid. Every car student-built.</AnimatedHeading>
-        </motion.div>
-        <motion.div
-          className={styles.photoBannerFrame}
-          initial={{ opacity: 0, y: 20, scale: 0.98 }}
-          whileInView={{ opacity: 1, y: 0, scale: 1 }}
-          viewport={{ once: true, margin: "-30px" }}
-          transition={{ duration: 0.7, delay: 0.08, ease: [0.16, 1, 0.3, 1] }}
-        >
-          <img src="/rc-cars-angle.png" alt="Two HANBEE RC Cup cars, black and white liveries, side by side" className={styles.photoBannerImg} />
-          <div className={styles.photoWatermarkPatch} aria-hidden="true" />
-        </motion.div>
+      {/* Why it's different - glass box on photo background */}
+      <section className={styles.differentSection} id="platform">
+        {/* Background Image */}
+        <div className={styles.differentImageBg}>
+          <img
+            src="/hanbee-cars.jpg"
+            alt="Hanbee RC Racing Cars"
+            className={styles.differentImage}
+          />
+          <div className={styles.differentOverlay} />
+        </div>
+
+        {/* Centered Glass Container Box */}
+        <div className={`${styles.doersCard} ${styles.differentGrid}`} style={{ margin: "0 auto" }}>
+          <div className={styles.orbBackground} style={{ opacity: 0.35 }}></div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 22 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-30px" }}
+            transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
+            style={{ position: "relative", zIndex: 2 }}
+          >
+            <span className={styles.categoryBadge}>
+              Beyond standard learning
+            </span>
+            <AnimatedHeading as="h2" className={styles.doersTitle}>An LMS built for doers.</AnimatedHeading>
+            <p className={styles.doersDesc}>
+              From mastering core engineering concepts to building and programming your own FC racing car, Hanbee bridges the gap between theory and adrenaline-pumping reality.
+            </p>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 22 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-30px" }}
+            transition={{ duration: 0.65, delay: 0.08, ease: [0.16, 1, 0.3, 1] }}
+            style={{ display: "flex", flexDirection: "column", gap: "16px", position: "relative", zIndex: 2 }}
+          >
+            {[
+              {
+                n: "01",
+                t: "Led by track pros",
+                d: "Learn directly from engineering veterans who design real-world flight controllers and autonomous systems."
+              },
+              {
+                n: "02",
+                t: "Live progress telemetry",
+                d: "Monitor your learning milestones like live race telemetry — visualize your growth from novice to track-ready."
+              },
+              {
+                n: "03",
+                t: "Pit-stop mentorship",
+                d: "Get 1-on-1 guidance when debugging your RC car's code or tuning its FC for maximum speed and control."
+              },
+              {
+                n: "04",
+                t: "Code, build, race",
+                d: "Learn the theory at home, then take your skills straight to the asphalt at the Hanbee RC Cup."
+              },
+            ].map((feature) => (
+              <motion.div
+                key={feature.t}
+                className={styles.doersItem}
+                whileHover={{ x: 6, transition: { duration: 0.25, ease: [0.16, 1, 0.3, 1] } }}
+              >
+                <span className={styles.glowingNumber} style={{ minWidth: "32px", margin: 0, marginTop: "2px" }}>{feature.n}</span>
+                <div>
+                  <strong className={styles.doersItemTitle}>{feature.t}</strong>
+                  <span className={styles.doersItemDesc}>{feature.d}</span>
+                </div>
+              </motion.div>
+            ))}
+          </motion.div>
+        </div>
       </section>
 
       {/* For schools */}
