@@ -260,6 +260,12 @@ export default function TournamentReviewQueue() {
                 {reviewing.payment_declared ? "Declared by team" : "Not yet declared"}
               </span>
             </div>
+            {reviewing.payment_reference && (
+              <div className={local.detailRow}>
+                <span>Transaction ID / UTR</span>
+                <span style={{ fontFamily: "monospace" }}>{reviewing.payment_reference}</span>
+              </div>
+            )}
 
             <label style={{ display: "grid", gap: 6, marginTop: 16, color: "var(--text-main)", fontWeight: 600, fontSize: 13.5 }}>
               Review note {" "}<span style={{ color: "var(--text-muted)", fontWeight: 400 }}>(required when rejecting)</span>

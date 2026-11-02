@@ -150,16 +150,22 @@ export interface TournamentTeamRosterRow {
   team_id: string;
   student_id: string;
   full_name: string | null;
+  phone: string | null;
+  location: string | null;
+  is_independent: boolean | null;
 }
 
 export function listTournamentTeamRoster(tournamentId: string) {
   return authenticatedSupabaseFetch<TournamentTeamRosterRow[]>(
-    `/rest/v1/tournament_team_members?select=team_id,student_id,profiles!tournament_team_members_student_id_fkey(full_name)&tournament_id=eq.${tournamentId}`,
+    `/rest/v1/tournament_team_members?select=team_id,student_id,profiles!tournament_team_members_student_id_fkey(full_name,phone,location,is_solo)&tournament_id=eq.${tournamentId}`,
   ).then((rows) =>
-    (rows as unknown as { team_id: string; student_id: string; profiles: { full_name: string | null } | null }[]).map((row) => ({
+    (rows as unknown as { team_id: string; student_id: string; profiles: { full_name: string | null; phone: string | null; location: string | null; is_solo: boolean | null } | null }[]).map((row) => ({
       team_id: row.team_id,
       student_id: row.student_id,
       full_name: row.profiles?.full_name ?? null,
+      phone: row.profiles?.phone || null,
+      location: row.profiles?.location || null,
+      is_independent: row.profiles?.is_solo ?? null,
     })),
   );
 }

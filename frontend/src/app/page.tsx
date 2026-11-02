@@ -480,7 +480,7 @@ export default function Home() {
             },
             {
               q: "How does payment work?",
-              a: "You confirm payment with the QR code shown at checkout, then a Hanbee staff member verifies it before your entry or course enrollment is confirmed.",
+              a: "Scan the UPI QR code shown on your tournament entry page, pay, and enter the transaction ID. A Hanbee staff member verifies it before your entry is confirmed.",
             },
             {
               q: "What do I need to actually enter the tournament?",

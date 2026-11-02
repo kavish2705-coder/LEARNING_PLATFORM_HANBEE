@@ -85,6 +85,7 @@ export interface TournamentApplication {
   member_count: number;
   status: string;
   payment_declared: boolean;
+  payment_reference: string | null;
   submitted_at: string | null;
 }
 
@@ -146,8 +147,47 @@ export function createSoloTournamentEntry(tournamentId: string) {
   return rpc<string>("create_solo_team", { p_tournament: tournamentId });
 }
 
-export function applyStudentTeam(teamId: string, paymentDeclared: boolean) {
-  return rpc<null>("apply_team", { p_team: teamId, p_payment_declared: paymentDeclared });
+export function applyStudentTeam(teamId: string, paymentDeclared: boolean, paymentReference?: string) {
+  return rpc<null>("apply_team", { p_team: teamId, p_payment_declared: paymentDeclared, p_payment_reference: paymentReference?.trim() || null });
+}
+
+export interface PaymentSettings {
+  qr_image_url: string;
+  upi_id: string;
+  instructions: string;
+}
+
+// payment_settings is a public-to-authenticated singleton row (see
+// 0110_payment_qr_and_reference.sql) -- not an RPC, same precedent as
+// other simple staff-editable config reads in this codebase.
+export function fetchPaymentSettings(): Promise<PaymentSettings> {
+  return authenticatedSupabaseFetch<PaymentSettings[]>(
+    "/rest/v1/payment_settings?select=qr_image_url,upi_id,instructions&limit=1",
+  ).then((rows) => rows[0] ?? { qr_image_url: "", upi_id: "", instructions: "" });
+}
+
+// Staff/manager only (payment_settings' own RLS enforces this server-side
+// regardless). qr_image_url is a plain public URL since the bucket is
+// public -- unlike lesson-attachments, there's nothing sensitive in a QR
+// code image, so no signed-URL step is needed.
+export async function updatePaymentSettings(fields: Partial<PaymentSettings>): Promise<void> {
+  await authenticatedSupabaseFetch<unknown>("/rest/v1/payment_settings?id=eq.true", {
+    method: "PATCH",
+    headers: { Prefer: "return=minimal" },
+    body: JSON.stringify(fields),
+  });
+}
+
+export async function uploadPaymentQr(file: File): Promise<string> {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL?.replace(/\/$/, "");
+  if (!supabaseUrl) throw new Error("Supabase URL is not configured.");
+  const storagePath = `qr-${Date.now()}-${file.name}`;
+  await authenticatedSupabaseFetch<unknown>(`/storage/v1/object/payment-assets/${storagePath}`, {
+    method: "POST",
+    headers: { "Content-Type": file.type || "application/octet-stream" },
+    body: file,
+  });
+  return `${supabaseUrl}/storage/v1/object/public/payment-assets/${storagePath}`;
 }
 
 export function fetchTournamentApplicationQueue() {

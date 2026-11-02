@@ -2,7 +2,8 @@
 
 import { FormEvent, useCallback, useEffect, useState } from "react";
 import styles from "../../dashboard.module.css";
-import { Input, Select, Textarea } from "../../components/ui/FormField";
+import { Input, Textarea } from "../../components/ui/FormField";
+import Dropdown from "../../components/ui/Dropdown";
 import { authenticatedSupabaseFetch, getAccountProfile } from "../../../../lib/supabaseAuth";
 
 type Task = { id: string; title: string; description: string; priority: "low" | "medium" | "high"; status: "todo" | "in_progress" | "done"; due_date: string | null; staff_id: string; created_at: string };
@@ -89,11 +90,8 @@ export default function ManagerTasksPage() {
       <h2 className={styles.sectionTitle}>Add a task</h2>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 12, marginTop: 14 }}>
         <label>Task<Input value={title} onChange={(event) => setTitle(event.target.value)} required maxLength={180} /></label>
-        <label>Assign to<Select value={assignee} onChange={(event) => setAssignee(event.target.value)}>
-          <option value="">Myself</option>
-          {staffOptions.map((s) => <option key={s.staff_id} value={s.staff_id}>{s.full_name}</option>)}
-        </Select></label>
-        <label>Priority<Select value={priority} onChange={(event) => setPriority(event.target.value as Task["priority"])}><option value="low">Low</option><option value="medium">Medium</option><option value="high">High</option></Select></label>
+        <label>Assign to<Dropdown value={assignee} onChange={setAssignee} placeholder="Myself" options={[{ value: "", label: "Myself" }, ...staffOptions.map((s) => ({ value: s.staff_id, label: s.full_name }))]} style={{ minWidth: 0 }} /></label>
+        <label>Priority<Dropdown value={priority} onChange={(v) => setPriority(v as Task["priority"])} options={[{ value: "low", label: "Low" }, { value: "medium", label: "Medium" }, { value: "high", label: "High" }]} style={{ minWidth: 0 }} /></label>
         <label>Due date<Input type="date" value={dueDate} onChange={(event) => setDueDate(event.target.value)} /></label>
       </div>
       <label style={{ display: "block", marginTop: 12 }}>Notes<Textarea rows={2} value={description} onChange={(event) => setDescription(event.target.value)} maxLength={2000} /></label>
@@ -103,7 +101,7 @@ export default function ManagerTasksPage() {
       {tasks.map((task) => <article key={task.id} className={styles.sectionCard}>
         <div style={{ display: "flex", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
           <div><h2 className={styles.sectionTitle}>{task.title}</h2>{task.description && <p style={{ marginTop: 7, color: "var(--text-muted)" }}>{task.description}</p>}<p style={{ marginTop: 8 }}>{task.priority} priority · {task.due_date ? `Due ${new Date(`${task.due_date}T00:00:00`).toLocaleDateString()}` : "No due date"}</p></div>
-          <label>Status<Select value={task.status} disabled={saving} onChange={(event) => void updateStatus(task, event.target.value as Task["status"])}><option value="todo">To do</option><option value="in_progress">In progress</option><option value="done">Done</option></Select></label>
+          <label>Status<Dropdown value={task.status} disabled={saving} onChange={(v) => void updateStatus(task, v as Task["status"])} options={[{ value: "todo", label: "To do" }, { value: "in_progress", label: "In progress" }, { value: "done", label: "Done" }]} style={{ minWidth: 0, flex: "0 0 auto" }} /></label>
         </div>
       </article>)}
       {tasks.length === 0 && <section className={styles.sectionCard}>No tasks yet. Add one above to keep a follow-up on your list.</section>}

@@ -31,10 +31,12 @@ export interface PoolableStudent { student_id: string; full_name: string; }
 export interface OpenPoolTeam { team_id: string; team_name: string; captain_name: string | null; member_count: number; team_size: number; }
 export interface PoolJoinRequest { request_id: string; team_id: string; team_name: string; student_id: string; student_name: string; created_at: string; }
 
-export function createIndependentInvite(fullName: string, email: string): Promise<IndependentInvite> {
+export function createIndependentInvite(fullName: string, email: string, phone?: string, location?: string): Promise<IndependentInvite> {
   return rpc<IndependentInvite>("staff_create_independent_invite", {
     p_full_name: fullName.trim(),
     p_email: email.trim(),
+    p_phone: phone?.trim() || null,
+    p_location: location?.trim() || null,
   });
 }
 

@@ -99,12 +99,13 @@ export default function SettingsPage() {
 
   const { data: extra } = useQuery({
     queryKey: ["account-extra", profile?.id],
-    queryFn: () => authenticatedSupabaseFetch<{ student_id: string | null; preferred_team_name: string | null }[]>(
-      `/rest/v1/profiles?select=student_id,preferred_team_name&id=eq.${profile?.id}`,
+    queryFn: () => authenticatedSupabaseFetch<{ student_id: string | null; preferred_team_name: string | null; is_solo: boolean | null }[]>(
+      `/rest/v1/profiles?select=student_id,preferred_team_name,is_solo&id=eq.${profile?.id}`,
     ),
-    enabled: Boolean(profile?.id),
+    enabled: Boolean(profile?.id) && profile?.role === "student",
   });
   const studentId = extra?.[0]?.student_id ?? null;
+  const isIndependentStudent = extra?.[0]?.is_solo ?? false;
 
   useEffect(() => {
     if (extra?.[0]) setPreferredTeam(extra[0].preferred_team_name ?? "");
@@ -392,23 +393,27 @@ export default function SettingsPage() {
           </form>
         </section>
 
-        <section className={styles.sectionCard}>
-          <h2 className={styles.sectionTitle}>Student Details</h2>
-          <div className={styles.formGroup}>
-            <label className={styles.label} htmlFor="student-id">Student ID</label>
-            <input id="student-id" type="text" className={styles.input} value={studentId ?? "Not set yet. Your school adds it."} readOnly />
-          </div>
-          <form onSubmit={savePreferredTeam}>
-            <div className={styles.formGroup}>
-              <label className={styles.label} htmlFor="preferred-team">Preferred Team Name</label>
-              <input id="preferred-team" type="text" className={styles.input} value={preferredTeam} onChange={(e) => setPreferredTeam(e.target.value)} maxLength={60} />
-            </div>
-            <button type="submit" className={styles.saveBtn} disabled={busy !== ""}>
-              <Save size={16} />
-              <span>{busy === "profile" ? "Saving..." : "Save Team Name"}</span>
-            </button>
-          </form>
-        </section>
+        {profile?.role === "student" && (
+          <section className={styles.sectionCard}>
+            <h2 className={styles.sectionTitle}>Student Details</h2>
+            {!isIndependentStudent && (
+              <div className={styles.formGroup}>
+                <label className={styles.label} htmlFor="student-id">Student ID</label>
+                <input id="student-id" type="text" className={styles.input} value={studentId ?? "Not set yet. Your school adds it."} readOnly />
+              </div>
+            )}
+            <form onSubmit={savePreferredTeam}>
+              <div className={styles.formGroup}>
+                <label className={styles.label} htmlFor="preferred-team">Preferred Team Name</label>
+                <input id="preferred-team" type="text" className={styles.input} value={preferredTeam} onChange={(e) => setPreferredTeam(e.target.value)} maxLength={60} />
+              </div>
+              <button type="submit" className={styles.saveBtn} disabled={busy !== ""}>
+                <Save size={16} />
+                <span>{busy === "profile" ? "Saving..." : "Save Team Name"}</span>
+              </button>
+            </form>
+          </section>
+        )}
 
         <section className={styles.sectionCard}>
           <div className={styles.sectionHeaderWrap}>

@@ -17,6 +17,19 @@ import { useSessionProfile } from "../../../../lib/hooks/useSessionProfile";
 import EmptyState from "../ui/EmptyState";
 import Shimmer from "../ui/Shimmer";
 
+type RosterDriver = {
+  name: string;
+  student_id?: string;
+  // TODO: backend field — not returned by listTournamentTeamRoster yet; stubbed defensively.
+  phone?: string | null;
+  // TODO: backend field — not returned by listTournamentTeamRoster yet; stubbed defensively.
+  location?: string | null;
+  // TODO: backend field — not returned by listTournamentTeamRoster yet; stubbed defensively.
+  is_independent?: boolean | null;
+  // TODO: backend field — not returned by listTournamentTeamRoster yet; stubbed defensively.
+  school_name?: string | null;
+};
+
 type AttendanceDay = { work_date: string; status: string; clock_in: string | null; clock_out: string | null; hours: number | null };
 type StaffTask = { id: string; title: string; priority: string; status: string; due_date: string | null; done: boolean };
 
@@ -37,7 +50,7 @@ export default function HanbeeOverview() {
   const [opsError, setOpsError] = useState("");
   const [tournament, setTournament] = useState<TournamentRecord | null>(null);
   const [rows, setRows] = useState<StudentLeaderboardRow[] | null>(null);
-  const [roster, setRoster] = useState<Record<string, string[]>>({});
+  const [roster, setRoster] = useState<Record<string, RosterDriver[]>>({});
   const [standingsError, setStandingsError] = useState("");
   const [scrutineeredTeamIds, setScrutineeredTeamIds] = useState<Set<string> | null>(null);
   const [expandedTeamId, setExpandedTeamId] = useState<string | null>(null);
@@ -133,10 +146,30 @@ export default function HanbeeOverview() {
           fetchScrutineeringQueue(event.id).catch(() => null),
         ]);
         setRows(lb);
-        const grouped: Record<string, string[]> = {};
+        const grouped: Record<string, RosterDriver[]> = {};
         for (const member of rosterRows) {
           const list = grouped[member.team_id] ?? (grouped[member.team_id] = []);
-          list.push(member.full_name ?? "Unnamed driver");
+          // TODO: backend field — listTournamentTeamRoster currently returns only
+          // full_name; phone/location/is_independent/school_name are read
+          // defensively when (and if) the backend adds them.
+          const row = member as unknown as {
+            team_id: string;
+            student_id: string;
+            full_name: string | null;
+            phone?: string | null;
+            location?: string | null;
+            is_independent?: boolean | null;
+            school_name?: string | null;
+            school?: string | null;
+          };
+          list.push({
+            name: row.full_name ?? "Unnamed driver",
+            student_id: row.student_id,
+            phone: row.phone ?? null,
+            location: row.location ?? null,
+            is_independent: row.is_independent ?? null,
+            school_name: row.school_name ?? row.school ?? null,
+          });
         }
         setRoster(grouped);
         // null (not an empty set) means "scrutineering data unavailable" so
@@ -391,14 +424,34 @@ export default function HanbeeOverview() {
                             <td colSpan={7} className={styles.rosterExpandedRow}>
                               <div className={styles.driversMiniGrid}>
                                 {drivers.length > 0 ? (
-                                  drivers.map((name) => {
+                                  drivers.map((driver) => {
+                                    const name = driver.name;
                                     const initials = name.split(" ").map((w) => w[0]).slice(0, 2).join("");
+                                    const isIndependent = driver.is_independent === true;
+                                    const showPhone = Boolean(driver.phone);
+                                    const schoolLocation = [driver.school_name, driver.location].filter(Boolean).join(" · ");
                                     return (
-                                      <div key={name} className={styles.driverMiniCard}>
+                                      <div key={driver.student_id ?? name} className={styles.driverMiniCard}>
                                         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                                           <div className={styles.driverAvatar}>{initials}</div>
                                           <div style={{ flex: 1, minWidth: 0 }}>
                                             <div className={styles.driverMiniName}>{name}</div>
+                                            {showPhone && (
+                                              <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 2 }}>
+                                                {driver.phone}
+                                              </div>
+                                            )}
+                                            {isIndependent ? (
+                                              <span style={{ display: "inline-block", marginTop: 4, fontSize: 10, fontWeight: 700, padding: "2px 8px", borderRadius: 999, background: "var(--accent-subtle-bg)", color: "var(--accent-subtle-text)", border: "1px solid var(--accent-subtle-border)" }}>
+                                                Independent
+                                              </span>
+                                            ) : (
+                                              schoolLocation && (
+                                                <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 2 }}>
+                                                  {schoolLocation}
+                                                </div>
+                                              )
+                                            )}
                                           </div>
                                         </div>
                                       </div>
@@ -461,7 +514,7 @@ export default function HanbeeOverview() {
                 className={styles.linkBtn}
                 disabled={clockBusy}
                 onClick={() => void handleClockToggle()}
-                style={{ marginTop: 10, justifyContent: "center" }}
+                style={{ marginTop: "auto", justifyContent: "center" }}
               >
                 {clockBusy ? "Saving…" : data?.status === "Clocked In" ? "Clock out" : "Clock in"}
               </button>

@@ -118,7 +118,7 @@ export default function CreateIndependentStudent() {
     setError("");
     setNotice("");
     try {
-      const created = await createIndependentInvite(fullName, email);
+      const created = await createIndependentInvite(fullName, email, activeLead?.phone, activeLead?.location);
       setInvite(created);
       setNotice(`Invite created for ${fullName.trim()}.`);
       setFullName("");

@@ -2,7 +2,8 @@
 
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import styles from "../../dashboard.module.css";
-import { Input, Select } from "../ui/FormField";
+import { Input } from "../ui/FormField";
+import Dropdown from "../ui/Dropdown";
 import Shimmer from "../ui/Shimmer";
 import EmptyState from "../ui/EmptyState";
 import { CalendarDays } from "lucide-react";
@@ -102,9 +103,9 @@ export default function SchoolSchedule() {
     {error && <p role="alert" style={{ marginBottom: 12 }}>{error}</p>}{notice && <p role="status" style={{ marginBottom: 12 }}>{notice}</p>}
     <form className={styles.sectionCard} onSubmit={createEvent} style={{ marginBottom: 20 }}>
       <h2 className={styles.sectionTitle}>Add an event</h2>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(180px,1fr))", gap: 12, marginTop: 14 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(180px,1fr))", gap: 12, marginTop: 14, alignItems: "end" }}>
         <label>Title<Input value={title} onChange={(event) => setTitle(event.target.value)} required maxLength={200} /></label>
-        <label>Calendar<Select value={eventScope} onChange={(event) => setEventScope(event.target.value as "school" | "personal")}><option value="school">School</option><option value="personal">Personal</option></Select></label>
+        <label>Calendar<Dropdown value={eventScope} onChange={(v) => setEventScope(v as "school" | "personal")} options={[{ value: "school", label: "School" }, { value: "personal", label: "Personal" }]} style={{ minWidth: 0 }} /></label>
         <label>Location<Input value={location} onChange={(event) => setLocation(event.target.value)} maxLength={200} /></label>
         <label>Starts<Input type="datetime-local" value={startsAt} onChange={(event) => setStartsAt(event.target.value)} required /></label>
         <label>Ends<Input type="datetime-local" value={endsAt} onChange={(event) => setEndsAt(event.target.value)} required /></label>
@@ -113,8 +114,8 @@ export default function SchoolSchedule() {
     </form>
     <section className={styles.sectionCard}>
       <div className={styles.sectionHeader}><h2 className={styles.sectionTitle}>Calendar</h2><div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-        <Select aria-label="Calendar view" value={range} onChange={(event) => setRange(event.target.value as Range)}><option value="day">Day</option><option value="week">Week</option><option value="month">Month</option></Select>
-        <Select aria-label="Calendar scope" value={scope} onChange={(event) => setScope(event.target.value as typeof scope)}><option value="all">School and personal</option><option value="school">School only</option><option value="personal">Personal only</option></Select>
+        <Dropdown ariaLabel="Calendar view" value={range} onChange={(v) => setRange(v as Range)} options={[{ value: "day", label: "Day" }, { value: "week", label: "Week" }, { value: "month", label: "Month" }]} style={{ minWidth: 0, flex: "0 0 auto" }} />
+        <Dropdown ariaLabel="Calendar scope" value={scope} onChange={(v) => setScope(v as typeof scope)} options={[{ value: "all", label: "School and personal" }, { value: "school", label: "School only" }, { value: "personal", label: "Personal only" }]} style={{ minWidth: 0, flex: "0 0 auto" }} />
       </div></div>
       {loading ? <Shimmer rows={4} /> : visibleEvents.map((item) => <article key={item.id} style={{ padding: "15px 0", borderBottom: "1px solid var(--border-subtle)" }}>
         <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}><div><h3>{item.title}</h3><p style={{ color: "var(--text-muted)", marginTop: 5 }}>{item.org_id ? "School event" : "Personal event"}{item.location && ` · ${item.location}`}</p></div><div style={{ display: "flex", alignItems: "center", gap: 12 }}><time dateTime={item.starts_at}>{new Date(item.starts_at).toLocaleString()} – {new Date(item.ends_at).toLocaleTimeString()}</time>{canDelete(item) && <button type="button" className={styles.secondaryAction} disabled={deletingId === item.id} onClick={() => void deleteEvent(item)}>{deletingId === item.id ? "Deleting…" : "Delete"}</button>}</div></div>

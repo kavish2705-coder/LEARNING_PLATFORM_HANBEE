@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import type { CSSProperties } from "react";
 import { ChevronDown } from "lucide-react";
 import styles from "./Dropdown.module.css";
 
@@ -19,6 +20,9 @@ export default function Dropdown({
   placeholder = "Select…",
   disabled,
   required,
+  style,
+  className,
+  ariaLabel,
 }: {
   id?: string;
   value: string;
@@ -27,6 +31,9 @@ export default function Dropdown({
   placeholder?: string;
   disabled?: boolean;
   required?: boolean;
+  style?: CSSProperties;
+  className?: string;
+  ariaLabel?: string;
 }) {
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
@@ -49,7 +56,7 @@ export default function Dropdown({
   }, [open]);
 
   return (
-    <div className={styles.root} ref={rootRef}>
+    <div className={`${styles.root} ${className ?? ""}`} ref={rootRef} style={style}>
       {/* Keeps this a real, required, submittable form field for validation
           and autofill, while the visible UI below replaces its look entirely. */}
       <select
@@ -75,6 +82,7 @@ export default function Dropdown({
         onClick={() => setOpen((v) => !v)}
         aria-haspopup="listbox"
         aria-expanded={open}
+        aria-label={ariaLabel}
       >
         <span className={selected ? styles.triggerValue : styles.triggerPlaceholder}>
           {selected?.label ?? placeholder}

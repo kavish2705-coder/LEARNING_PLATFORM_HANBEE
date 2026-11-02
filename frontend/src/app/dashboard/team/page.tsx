@@ -13,6 +13,7 @@ import {
   fetchMySoloStatus,
   fetchMyTeamFormation,
   fetchMyTeamRegistrationStatus,
+  fetchPaymentSettings,
   fetchUpcomingTournament,
   inviteStudentToTeam,
   leaveStudentTeam,
@@ -21,6 +22,7 @@ import {
   type MyTeamFormation,
   type UpcomingTournament,
   type StudentTeamRegistrationStatus,
+  type PaymentSettings,
 } from "../../../lib/teamFormationApi";
 import { useSessionProfile } from "../../../lib/hooks/useSessionProfile";
 import { getRealtimeClient } from "../../../lib/realtime";
@@ -85,6 +87,8 @@ export default function MyTeamPage() {
   const [inviteeId, setInviteeId] = useState("");
   const [isSolo, setIsSolo] = useState(false);
   const [paymentDeclared, setPaymentDeclared] = useState(false);
+  const [paymentReference, setPaymentReference] = useState("");
+  const [paymentSettings, setPaymentSettings] = useState<PaymentSettings | null>(null);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -154,6 +158,12 @@ export default function MyTeamPage() {
   }, [loadPoolData, loadRegistrationStatus]);
 
   useEffect(() => { void load(); }, [load]);
+
+  useEffect(() => {
+    let active = true;
+    fetchPaymentSettings().then((settings) => { if (active) setPaymentSettings(settings); }).catch(() => {});
+    return () => { active = false; };
+  }, []);
 
   useEffect(() => {
     if (!profile?.id || !tournament?.id) return;
@@ -818,6 +828,21 @@ export default function MyTeamPage() {
               </div>
 
               <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                {paymentSettings?.qr_image_url ? (
+                  <div style={{ display: "flex", gap: 16, alignItems: "flex-start", flexWrap: "wrap" }}>
+                    {/* eslint-disable-next-line @next/next/no-img-element -- payment-assets is a public Supabase Storage bucket, not a Next-optimizable local/remote image source worth configuring */}
+                    <img src={paymentSettings.qr_image_url} alt="Payment QR code" style={{ width: 160, height: 160, borderRadius: 10, border: "1px solid var(--border-subtle)", objectFit: "contain", background: "#fff" }} />
+                    <div style={{ fontSize: 13, color: "var(--text-muted)", maxWidth: 420 }}>
+                      {paymentSettings.upi_id && <p style={{ marginBottom: 6 }}>Pay to UPI ID: <strong style={{ color: "var(--text-primary)" }}>{paymentSettings.upi_id}</strong></p>}
+                      {paymentSettings.instructions && <p>{paymentSettings.instructions}</p>}
+                    </div>
+                  </div>
+                ) : (
+                  <p role="status" style={{ fontSize: 13, color: "var(--text-muted)" }}>
+                    Payment QR isn&apos;t set up yet -- contact Hanbee staff for payment instructions before confirming.
+                  </p>
+                )}
+
                 <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, cursor: "pointer" }}>
                   <input
                     type="checkbox"
@@ -826,12 +851,27 @@ export default function MyTeamPage() {
                   />
                   I have completed the tournament payment.
                 </label>
+                {paymentDeclared && (
+                  <label style={{ display: "block", fontSize: 13 }}>
+                    UPI transaction ID / UTR
+                    <input
+                      value={paymentReference}
+                      onChange={(e) => setPaymentReference(e.target.value)}
+                      placeholder="e.g. 408812345678"
+                      maxLength={100}
+                      required
+                      disabled={busy}
+                      className={styles.textInput}
+                      style={{ display: "block", marginTop: 6 }}
+                    />
+                  </label>
+                )}
                 <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
                   <button
                     type="button"
                     className={styles.actionBtn}
-                    disabled={busy || !paymentDeclared}
-                    onClick={() => void runAction(() => applyStudentTeam(team.id, true), "Payment declared. Your solo entry is waiting for Hanbee review.")}
+                    disabled={busy || !paymentDeclared || !paymentReference.trim()}
+                    onClick={() => void runAction(async () => { await applyStudentTeam(team.id, true, paymentReference); setPaymentDeclared(false); setPaymentReference(""); }, "Payment declared. Your solo entry is waiting for Hanbee review.")}
                   >
                     Submit Paid Solo Entry
                   </button>

@@ -4,7 +4,8 @@ import { useEffect, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Search } from "lucide-react";
 import styles from "../../dashboard.module.css";
-import { Input, Select } from "../ui/FormField";
+import { Input } from "../ui/FormField";
+import Dropdown from "../ui/Dropdown";
 import Shimmer from "../ui/Shimmer";
 import { useSessionProfile } from "../../../../lib/hooks/useSessionProfile";
 import { authenticatedSupabaseFetch } from "../../../../lib/supabaseAuth";
@@ -85,11 +86,7 @@ export default function AssessmentReviewQueue() {
         <Search size={16} style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: "var(--text-muted)", pointerEvents: "none" }} />
         <Input value={search} onChange={(event) => { setSearch(event.target.value); setPage(0); }} placeholder="Search by student, email, or course…" aria-label="Search quiz submissions" style={{ paddingLeft: 36 }} />
       </div>
-      <Select value={status} onChange={(event) => { setStatus(event.target.value as typeof status); setPage(0); }} aria-label="Filter by status" style={{ maxWidth: 180 }}>
-        <option value="">All statuses</option>
-        <option value="pending">Pending</option>
-        <option value="verified">Verified</option>
-      </Select>
+      <Dropdown value={status} onChange={(v) => { setStatus(v as typeof status); setPage(0); }} ariaLabel="Filter by status" style={{ maxWidth: 180, minWidth: 0, flex: "0 0 auto" }} options={[{ value: "", label: "All statuses" }, { value: "pending", label: "Pending" }, { value: "verified", label: "Verified" }]} />
     </div>
 
     {isLoading ? <Shimmer rows={4} /> : <>
