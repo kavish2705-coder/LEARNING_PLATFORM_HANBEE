@@ -213,7 +213,17 @@ await c1.end();
 await c2.end();
 
 // Manual cleanup: these rows were committed outside any rollback-able
-// transaction, so delete them explicitly.
+// transaction, so delete them explicitly. profiles/auth.users are
+// deliberately left alone: start_pool_team/request_join_team/
+// respond_join_request above all call log_audit(), and that's a real,
+// committed audit_log row with actor_id = rc/ra/rb by the time we get
+// here. audit_log_actor_id_fkey is ON DELETE SET NULL, but
+// audit_log_immutable() (0037_backend_hardening.sql) blocks *any* change
+// to audit_log, including that cascade -- so once these accounts have
+// acted, deleting them is structurally impossible, by design (the same
+// immutability a real compliance audit trail needs). Not a bug to work
+// around; CI resets the whole local stack per run, so leftover rows here
+// cost nothing.
 await c.query("delete from tournament_team_members where team_id=$1",[raceTeam]);
 await c.query("delete from team_join_requests where team_id=$1",[raceTeam]);
 await c.query("delete from conversation_participants where conversation_id in (select id from conversations where team_id=$1)",[raceTeam]);
@@ -222,10 +232,8 @@ await c.query("delete from tournament_teams where id=$1",[raceTeam]);
 await c.query("delete from tournaments where id=$1",[raceTour]);
 await c.query("delete from organization_members where user_id in ($1,$2,$3)",[rc,ra,rb]);
 await c.query("delete from invitations where email in ('rc1-94@x.test','ra1-94@x.test','rb1-94@x.test')");
-await c.query("delete from profiles where id in ($1,$2,$3)",[rc,ra,rb]);
-await c.query("delete from auth.users where id in ($1,$2,$3)",[rc,ra,rb]);
 
-check("race setup rows cleaned up", (await one("select count(*)::int n from profiles where email like 'r%1-94@x.test'")).n===0);
+check("race setup rows cleaned up", (await one("select count(*)::int n from tournament_teams where id=$1",[raceTeam])).n===0);
 
 console.log(`${pass} passed, ${fail} failed`);
 await c.end();
