@@ -38,6 +38,37 @@ export function createIndependentInvite(fullName: string, email: string): Promis
   });
 }
 
+export interface IndependentStudentLead {
+  id: string;
+  full_name: string;
+  email: string;
+  phone: string;
+  location: string;
+  track: string;
+  message: string;
+  status: "pending" | "converted" | "dismissed";
+  created_at: string;
+}
+
+// independent_student_leads' RLS already permits staff/manager to select
+// directly (0108_independent_student_leads.sql), so this reads straight
+// from PostgREST rather than going through an RPC -- only the write side
+// (dismiss/convert) needs a SECURITY DEFINER function, since it's a
+// role-checked state transition, not a plain read.
+export function fetchIndependentStudentLeads(): Promise<IndependentStudentLead[]> {
+  return authenticatedSupabaseFetch<IndependentStudentLead[]>(
+    "/rest/v1/independent_student_leads?select=id,full_name,email,phone,location,track,message,status,created_at&status=eq.pending&order=created_at.desc",
+  );
+}
+
+export function dismissIndependentStudentLead(leadId: string): Promise<null> {
+  return rpc<null>("dismiss_independent_student_lead", { p_lead: leadId });
+}
+
+export function markIndependentStudentLeadConverted(leadId: string): Promise<null> {
+  return rpc<null>("mark_independent_student_lead_converted", { p_lead: leadId });
+}
+
 export function listIndependentStudentInvites() {
   return rpc<IndependentInviteRow[]>("list_independent_student_invites", {});
 }

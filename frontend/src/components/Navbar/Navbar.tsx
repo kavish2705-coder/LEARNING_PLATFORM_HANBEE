@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { motion } from "framer-motion";
+import { motion, useScroll, useTransform, useSpring } from "framer-motion";
 import styles from "./Navbar.module.css";
 
 const navLinks = [
@@ -13,14 +13,42 @@ const navLinks = [
 
 export default function Navbar() {
   const [activeLink, setActiveLink] = useState("Home");
+  const { scrollY } = useScroll();
+
+  // Smooth, spring-cushioned transition:
+  // - 0px to 40px: 100% transparent inside the hero
+  // - 40px to 380px: gradual, silky-smooth fade into frosted glass as user crosses the hero
+  const rawBackdropOpacity = useTransform(scrollY, [40, 360], [0, 1]);
+  const backdropOpacity = useSpring(rawBackdropOpacity, {
+    stiffness: 120,
+    damping: 24,
+    mass: 0.25,
+  });
+
+  // Subtle luxury compression: 86px at top -> 72px when scrolled
+  const rawHeight = useTransform(scrollY, [40, 360], [86, 72]);
+  const navHeight = useSpring(rawHeight, {
+    stiffness: 120,
+    damping: 24,
+    mass: 0.25,
+  });
 
   return (
     <motion.nav
       className={styles.navbar}
+      style={{ height: navHeight }}
       initial={{ y: -24, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
     >
+      {/* Hardware-composited frosted glass backdrop:
+          Using spring-driven opacity on a dedicated GPU layer avoids
+          browser blur recalculation jank and delivers 120fps buttery smoothness */}
+      <motion.div
+        className={styles.navBackdrop}
+        style={{ opacity: backdropOpacity }}
+      />
+
       <div className={styles.navContent}>
         {/* Logo */}
         <motion.a

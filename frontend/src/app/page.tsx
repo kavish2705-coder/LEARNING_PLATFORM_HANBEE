@@ -1,6 +1,7 @@
 "use client";
 
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useState } from "react";
+import IndependentStudentModal from "@/components/IndependentStudentModal/IndependentStudentModal";
 import { useScroll, useTransform, motion } from "framer-motion";
 import Navbar from "@/components/Navbar/Navbar";
 import Hero from "@/components/Hero/Hero";
@@ -13,6 +14,7 @@ const tickerItems = ["BUILD THE FLIGHT CONTROLLER", "CODE IT YOURSELF", "RACE AT
 
 export default function Home() {
   const { scrollY } = useScroll();
+  const [isStudentModalOpen, setIsStudentModalOpen] = useState(false);
   const schoolVideoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
@@ -49,7 +51,7 @@ export default function Home() {
       <Navbar />
 
       {/* Hero section */}
-      <Hero />
+      <Hero onOpenStudentModal={() => setIsStudentModalOpen(true)} />
 
       {/* Moving ticker strip - breaks straight into the hero's bottom edge */}
       <div className={styles.marqueeWrap} style={{ position: "relative", zIndex: 10 }}>
@@ -80,10 +82,10 @@ export default function Home() {
           <div className={styles.orbBackground} style={{ opacity: 0.35 }}></div>
 
           <motion.div
-            initial={{ opacity: 0, x: -30 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true, margin: "-100px" }}
-            transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+            initial={{ opacity: 0, y: 22 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-30px" }}
+            transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
             style={{ position: "relative", zIndex: 2 }}
           >
             <span className={styles.categoryBadge}>
@@ -96,10 +98,10 @@ export default function Home() {
           </motion.div>
 
           <motion.div
-            initial={{ opacity: 0, x: 30 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true, margin: "-100px" }}
-            transition={{ duration: 0.7, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
+            initial={{ opacity: 0, y: 22 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-30px" }}
+            transition={{ duration: 0.65, delay: 0.08, ease: [0.16, 1, 0.3, 1] }}
             style={{ display: "flex", flexDirection: "column", gap: "16px", position: "relative", zIndex: 2 }}
           >
             {[
@@ -153,13 +155,22 @@ export default function Home() {
           overflow: "hidden",
         }}
       >
+        {/* Background Track Image */}
+        <div className={styles.coursesImageBg}>
+          <img
+            src="/courses-track-bg.jpg"
+            alt="Hanbee RC Racing Circuit"
+            className={styles.coursesImage}
+          />
+          <div className={styles.coursesOverlay} />
+        </div>
         <div className={styles.ambientWrap}><AmbientSwarm /></div>
         <div style={{ maxWidth: "1200px", margin: "0 auto", position: "relative", zIndex: 1 }}>
           <motion.div
-            initial={{ opacity: 0, y: 30 }}
+            initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-100px" }}
-            transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+            viewport={{ once: true, margin: "-30px" }}
+            transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
             style={{ textAlign: "center", maxWidth: "680px", margin: "0 auto 72px" }}
           >
             <span style={{ fontFamily: "var(--font-body)", fontSize: "var(--landing-eyebrow)", letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.68)" }}>
@@ -192,8 +203,8 @@ export default function Home() {
                   padding: "40px",
                 }}
               >
-                <div className={styles.orbBackground}></div>
-                <span style={{ position: "relative", zIndex: 2, fontFamily: "var(--font-body)", fontSize: "12px", letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--landing-accent)", textShadow: "0 0 10px color-mix(in srgb, var(--landing-accent) 40%, transparent)" }}>
+
+                <span style={{ position: "relative", zIndex: 2, fontFamily: "var(--font-body)", fontSize: "12px", letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--landing-accent)" }}>
                   {track.tag}
                 </span>
                 <h3 style={{ position: "relative", zIndex: 2, fontFamily: "var(--font-heading)", fontSize: "26px", fontWeight: 400, color: "#fff", margin: "14px 0 12px" }}>
@@ -218,10 +229,10 @@ export default function Home() {
 
           <div style={{ marginTop: "72px" }}>
             <motion.p
-              initial={{ opacity: 0, y: 16 }}
+              initial={{ opacity: 0, y: 14 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-40px" }}
-              transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+              viewport={{ once: true, margin: "-30px" }}
+              transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
               style={{ fontFamily: "var(--font-body)", fontSize: "var(--landing-eyebrow)", letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.68)", marginBottom: "20px" }}
             >
               Inside the RC track
@@ -266,10 +277,10 @@ export default function Home() {
       >
         <div className={styles.buildGrid}>
           <motion.div
-            initial={{ opacity: 0, x: -30 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true, margin: "-100px" }}
-            transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-30px" }}
+            transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
           >
             <span style={{ fontFamily: "var(--font-body)", fontSize: "var(--landing-eyebrow)", letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.68)" }}>
               Every part, labeled
@@ -282,10 +293,10 @@ export default function Home() {
 
           <motion.div
             className={styles.buildImageFrame}
-            initial={{ opacity: 0, scale: 0.96 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            viewport={{ once: true, margin: "-80px" }}
-            transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+            initial={{ opacity: 0, y: 20, scale: 0.98 }}
+            whileInView={{ opacity: 1, y: 0, scale: 1 }}
+            viewport={{ once: true, margin: "-30px" }}
+            transition={{ duration: 0.7, delay: 0.08, ease: [0.16, 1, 0.3, 1] }}
           >
             <img src="/rc-car-exploded.png" alt="HANBEE RC car with chassis, wing, and brake components labeled" />
           </motion.div>
@@ -296,10 +307,10 @@ export default function Home() {
       <section className={styles.photoBanner}>
         <motion.div
           className={styles.photoBannerContent}
-          initial={{ opacity: 0, y: 24 }}
+          initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-80px" }}
-          transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+          viewport={{ once: true, margin: "-30px" }}
+          transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
         >
           <span style={{ fontFamily: "var(--font-body)", fontSize: "var(--landing-eyebrow)", letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.75)" }}>
             #09 · #23 · #60
@@ -308,10 +319,10 @@ export default function Home() {
         </motion.div>
         <motion.div
           className={styles.photoBannerFrame}
-          initial={{ opacity: 0, scale: 0.96 }}
-          whileInView={{ opacity: 1, scale: 1 }}
-          viewport={{ once: true, margin: "-80px" }}
-          transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+          initial={{ opacity: 0, y: 20, scale: 0.98 }}
+          whileInView={{ opacity: 1, y: 0, scale: 1 }}
+          viewport={{ once: true, margin: "-30px" }}
+          transition={{ duration: 0.7, delay: 0.08, ease: [0.16, 1, 0.3, 1] }}
         >
           <img src="/rc-cars-angle.png" alt="Two HANBEE RC Cup cars, black and white liveries, side by side" className={styles.photoBannerImg} />
           <div className={styles.photoWatermarkPatch} aria-hidden="true" />
@@ -337,10 +348,10 @@ export default function Home() {
         <div className={`${styles.schoolCard} ${styles.schoolGrid}`} style={{ margin: "0 auto" }}>
           <div className={styles.orbBackground} style={{ opacity: 0.35 }}></div>
           <motion.div
-            initial={{ opacity: 0, x: -30 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true, margin: "-100px" }}
-            transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+            initial={{ opacity: 0, y: 22 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-30px" }}
+            transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
             style={{ position: "relative", zIndex: 2 }}
           >
             <span style={{ fontFamily: "var(--font-body)", fontSize: "var(--landing-eyebrow)", letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.6)" }}>
@@ -364,20 +375,20 @@ export default function Home() {
 
           <motion.div
             className={styles.schoolVisualFrame}
-            initial={{ opacity: 0, scale: 0.96 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            viewport={{ once: true, margin: "-60px" }}
-            transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+            initial={{ opacity: 0, y: 22, scale: 0.98 }}
+            whileInView={{ opacity: 1, y: 0, scale: 1 }}
+            viewport={{ once: true, margin: "-30px" }}
+            transition={{ duration: 0.65, delay: 0.08, ease: [0.16, 1, 0.3, 1] }}
             style={{ position: "relative", zIndex: 2 }}
           >
             <img src="/rc-cars-topdown.png" alt="Both HANBEE RC Cup cars viewed from above" />
           </motion.div>
 
           <motion.ol
-            initial={{ opacity: 0, x: 30 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true, margin: "-100px" }}
-            transition={{ duration: 0.7, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
+            initial={{ opacity: 0, y: 22 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-30px" }}
+            transition={{ duration: 0.65, delay: 0.14, ease: [0.16, 1, 0.3, 1] }}
             style={{ display: "flex", flexDirection: "column", gap: "16px", position: "relative", zIndex: 2 }}
           >
             {[
@@ -410,7 +421,7 @@ export default function Home() {
           zIndex: 10,
           backgroundColor: "var(--landing-surface-4)",
           backgroundImage:
-            "linear-gradient(rgba(30, 30, 42, 0.72), rgba(32, 32, 46, 0.85)), radial-gradient(ellipse 60% 70% at 50% 100%, color-mix(in srgb, var(--landing-accent) 26%, transparent), transparent 65%), url('/rc-car-macro.png')",
+            "linear-gradient(rgba(17, 18, 26, 0.72), rgba(19, 20, 28, 0.85)), radial-gradient(ellipse 60% 70% at 50% 100%, color-mix(in srgb, var(--landing-accent) 28%, transparent), transparent 65%), url('/rc-car-macro.png')",
           backgroundSize: "cover, cover, cover",
           backgroundPosition: "center, center, center 30%",
           backgroundRepeat: "no-repeat",
@@ -419,10 +430,10 @@ export default function Home() {
         }}
       >
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
+          initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-100px" }}
-          transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+          viewport={{ once: true, margin: "-30px" }}
+          transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
           style={{ maxWidth: "800px", margin: "0 auto", textAlign: "center" }}
         >
           <span style={{ fontFamily: "var(--font-body)", fontSize: "var(--landing-eyebrow)", letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.68)" }}>
@@ -452,10 +463,10 @@ export default function Home() {
         <div className={styles.ambientWrap}><AmbientSwarm /></div>
         <div style={{ maxWidth: "820px", margin: "0 auto", position: "relative", zIndex: 1 }}>
           <motion.p
-            initial={{ opacity: 0, y: 16 }}
+            initial={{ opacity: 0, y: 14 }}
             whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-60px" }}
-            transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+            viewport={{ once: true, margin: "-30px" }}
+            transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
             style={{ fontFamily: "var(--font-body)", fontSize: "var(--landing-eyebrow)", letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.68)", textAlign: "center", marginBottom: "16px" }}
           >
             Questions
@@ -483,10 +494,10 @@ export default function Home() {
             <motion.details
               key={item.q}
               className={styles.faqItem}
-              initial={{ opacity: 0, y: 16 }}
+              initial={{ opacity: 0, y: 14 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-40px" }}
-              transition={{ duration: 0.5, delay: i * 0.06, ease: [0.16, 1, 0.3, 1] }}
+              viewport={{ once: true, margin: "-20px" }}
+              transition={{ duration: 0.5, delay: Math.min(i * 0.04, 0.16), ease: [0.16, 1, 0.3, 1] }}
               style={{
                 borderBottom: "1px solid rgba(255,255,255,0.08)",
                 padding: "22px 0",
@@ -535,6 +546,11 @@ export default function Home() {
           © {new Date().getFullYear()} Hanbee. All rights reserved.
         </div>
       </footer>
+
+      <IndependentStudentModal
+        isOpen={isStudentModalOpen}
+        onClose={() => setIsStudentModalOpen(false)}
+      />
     </main>
   );
 }

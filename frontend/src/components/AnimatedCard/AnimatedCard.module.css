@@ -1,33 +1,13 @@
 /* Deliberately no background/border/radius here -- this is a motion-only
-   wrapper. Visual styling (the glass card look) stays owned by whichever
-   caller-supplied className (e.g. page.module.css's .glassCard) is passed
-   in, so tilt/glare behavior composes with it instead of fighting it. */
+   wrapper. Visual styling stays owned by caller-supplied className (e.g. .glassCard). */
 .card {
   position: relative;
   overflow: hidden;
   transform-style: preserve-3d;
 }
 
-.glare {
-  position: absolute;
-  width: 220px;
-  height: 220px;
-  margin-left: -110px;
-  margin-top: -110px;
-  border-radius: 50%;
-  background: radial-gradient(circle, var(--landing-accent-glow) 0%, transparent 70%);
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.3s ease;
-  z-index: 0;
-}
-
-.card:hover .glare {
-  opacity: 1;
-}
-
 .content {
   position: relative;
   z-index: 2;
-  transform: translateZ(20px);
+  transform: translateZ(12px);
 }

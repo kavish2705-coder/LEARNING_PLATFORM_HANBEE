@@ -118,14 +118,14 @@ img {
      amber inline, so nothing traced back to one accent or one background
      scale -- that's what produced the "mismatched theme" look across
      sections. One accent, one 5-step surface scale, one type scale. */
-  --landing-accent: #c9782f;
-  --landing-accent-glow: rgba(201, 120, 47, 0.28);
-  --landing-surface-1: #17171f; /* darkest -- banners, photo backdrops */
-  --landing-surface-2: #1c1c26; /* base section background */
-  --landing-surface-3: #22222c; /* alternating section background */
-  --landing-surface-4: #262636; /* raised panels within a section */
+  --landing-accent: #e58a2b;
+  --landing-accent-glow: rgba(229, 138, 43, 0.35);
+  --landing-surface-1: #0c0d12; /* deepest warm obsidian backdrop */
+  --landing-surface-2: #111218; /* base section background - rich, warm, inviting */
+  --landing-surface-3: #161720; /* alternating section background */
+  --landing-surface-4: #1c1d28; /* raised panels within a section */
   --landing-card-bg: rgba(255, 255, 255, 0.055);
-  --landing-card-border: rgba(255, 255, 255, 0.12);
+  --landing-card-border: rgba(255, 255, 255, 0.16);
   --landing-radius-card: 24px;
   --landing-radius-photo: 22px;
   --landing-h1: clamp(34px, 4.4vw, 56px);
