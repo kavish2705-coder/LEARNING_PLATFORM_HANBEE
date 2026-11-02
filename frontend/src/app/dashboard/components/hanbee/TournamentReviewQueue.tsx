@@ -8,6 +8,7 @@ import {
   decideTournamentApplication,
   fetchTournamentApplicationQueue,
   getTeamRoster,
+  markPaymentReceived,
   type TeamRosterMember,
   type TournamentApplication,
 } from "../../../../lib/teamFormationApi";
@@ -15,7 +16,11 @@ import Modal from "../../../../components/ui/Modal";
 import modalStyles from "../../../../components/ui/Modal.module.css";
 import { useConfirm } from "../../../../components/ui/useConfirm";
 
-type FilterTab = "all" | "ready" | "waiting";
+type FilterTab = "pending" | "ready" | "waiting" | "reviewed";
+
+function isPending(row: TournamentApplication) {
+  return row.status === "applied" || row.status === "payment_declared";
+}
 
 function relativeTime(iso: string | null): string {
   if (!iso) return "—";
@@ -36,11 +41,13 @@ export default function TournamentReviewQueue() {
   const [busyId, setBusyId] = useState("");
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
-  const [filter, setFilter] = useState<FilterTab>("all");
+  const [filter, setFilter] = useState<FilterTab>("pending");
   const [search, setSearch] = useState("");
 
   const [reviewing, setReviewing] = useState<TournamentApplication | null>(null);
   const [decisionNote, setDecisionNote] = useState("");
+  const [markPaymentRef, setMarkPaymentRef] = useState("");
+  const [markingPayment, setMarkingPayment] = useState(false);
   const [roster, setRoster] = useState<TeamRosterMember[] | null>(null);
   const [rosterLoading, setRosterLoading] = useState(false);
   const [rosterError, setRosterError] = useState("");
@@ -64,23 +71,33 @@ export default function TournamentReviewQueue() {
   useEffect(() => { void load(); }, [load]);
 
   const counts = useMemo(() => {
-    const ready = rows.filter((row) => row.payment_declared).length;
-    return { total: rows.length, ready, missing: rows.length - ready };
+    const pending = rows.filter(isPending);
+    const ready = pending.filter((row) => row.payment_declared).length;
+    return {
+      pending: pending.length,
+      ready,
+      missing: pending.length - ready,
+      reviewed: rows.length - pending.length,
+    };
   }, [rows]);
 
   const filteredRows = useMemo(() => {
     const term = search.trim().toLowerCase();
     return rows.filter((row) => {
+      const pending = isPending(row);
+      if (filter === "reviewed" ? pending : !pending) return false;
       if (filter === "ready" && !row.payment_declared) return false;
       if (filter === "waiting" && row.payment_declared) return false;
-      if (!term) return true;
-      return row.team_name.toLowerCase().includes(term) || (row.school_name ?? "").toLowerCase().includes(term);
+      return !term || row.team_name.toLowerCase().includes(term) ||
+        (row.school_name ?? "").toLowerCase().includes(term) ||
+        (row.captain_name ?? "").toLowerCase().includes(term);
     });
   }, [rows, filter, search]);
 
   function openReview(row: TournamentApplication) {
     setReviewing(row);
     setDecisionNote("");
+    setMarkPaymentRef("");
     setRoster(null);
     setRosterError("");
     setRosterLoading(true);
@@ -120,6 +137,23 @@ export default function TournamentReviewQueue() {
     }
   }
 
+  async function handleMarkPaymentReceived() {
+    if (!reviewing) return;
+    setMarkingPayment(true);
+    setError("");
+    setNotice("");
+    try {
+      await markPaymentReceived(reviewing.team_id, markPaymentRef);
+      setNotice(`Payment recorded for ${reviewing.team_name}.`);
+      await load();
+      setReviewing((current) => current && { ...current, status: "payment_declared", payment_declared: true, payment_reference: markPaymentRef.trim() || current.payment_reference });
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "We couldn't record this payment.");
+    } finally {
+      setMarkingPayment(false);
+    }
+  }
+
   return (
     <section>
       {dialog}
@@ -129,21 +163,23 @@ export default function TournamentReviewQueue() {
         <div className={styles.sectionHeader}>
           <div>
             <h2 className={styles.tableTitle}>Tournament entry review</h2>
-            <p style={{ color: "var(--text-muted)", marginTop: 4 }}>Verify payment declarations and approve school teams or solo entries.</p>
+            <p style={{ color: "var(--text-muted)", marginTop: 4 }}>Review payment declarations. Completed decisions remain available in Reviewed.</p>
           </div>
         </div>
 
         <div className={local.chipRow}>
-          <span className={local.chip}>Needs review <strong>{counts.total}</strong></span>
+          <span className={local.chip}>Needs review <strong>{counts.pending}</strong></span>
           <span className={`${local.chip} ${local.chipReady}`}>Payment declared <strong>{counts.ready}</strong></span>
           <span className={`${local.chip} ${local.chipMissing}`}>Payment missing <strong>{counts.missing}</strong></span>
+          <span className={local.chip}>Reviewed <strong>{counts.reviewed}</strong></span>
         </div>
 
         <div className={local.toolbar}>
           <div className={local.toolbarTabs} role="tablist" aria-label="Filter entries">
-            <button type="button" role="tab" aria-selected={filter === "all"} className={`${styles.filterBtn} ${filter === "all" ? styles.filterBtnActive : ""}`} onClick={() => setFilter("all")}>All</button>
+            <button type="button" role="tab" aria-selected={filter === "pending"} className={`${styles.filterBtn} ${filter === "pending" ? styles.filterBtnActive : ""}`} onClick={() => setFilter("pending")}>Needs review</button>
             <button type="button" role="tab" aria-selected={filter === "ready"} className={`${styles.filterBtn} ${filter === "ready" ? styles.filterBtnActive : ""}`} onClick={() => setFilter("ready")}>Ready to verify</button>
             <button type="button" role="tab" aria-selected={filter === "waiting"} className={`${styles.filterBtn} ${filter === "waiting" ? styles.filterBtnActive : ""}`} onClick={() => setFilter("waiting")}>Waiting for payment</button>
+            <button type="button" role="tab" aria-selected={filter === "reviewed"} className={`${styles.filterBtn} ${filter === "reviewed" ? styles.filterBtnActive : ""}`} onClick={() => setFilter("reviewed")}>Reviewed</button>
           </div>
           <input
             type="search"
@@ -158,9 +194,11 @@ export default function TournamentReviewQueue() {
         {loading ? (
           <p role="status" style={{ marginTop: 16, color: "var(--text-muted)" }}>Loading tournament applications…</p>
         ) : rows.length === 0 ? (
-          <p style={{ marginTop: 16, color: "var(--text-muted)" }}>No tournament entries are waiting for review.</p>
+          <p style={{ marginTop: 16, color: "var(--text-muted)" }}>No tournament entries are waiting for review or have a completed decision.</p>
         ) : filteredRows.length === 0 ? (
-          <p style={{ marginTop: 16, color: "var(--text-muted)" }}>No entries match this filter.</p>
+          <p style={{ marginTop: 16, color: "var(--text-muted)" }}>
+            {filter === "reviewed" ? "No completed entry decisions yet." : filter === "pending" ? "No entries are waiting for review." : "No entries match this filter."}
+          </p>
         ) : (
           <>
             <div className={`${styles.tableContainer} ${local.desktopOnly}`} style={{ marginTop: 16 }}>
@@ -189,7 +227,13 @@ export default function TournamentReviewQueue() {
                         </span>
                       </td>
                       <td>
-                        <button type="button" className={styles.filterBtn} style={{ padding: "6px 12px", fontSize: "12px" }} onClick={() => openReview(row)}>Review →</button>
+                        {isPending(row) ? (
+                          <button type="button" className={styles.filterBtn} style={{ padding: "6px 12px", fontSize: "12px" }} onClick={() => openReview(row)}>Review →</button>
+                        ) : (
+                          <span className={`${local.decisionLabel} ${row.status === "verified" ? local.decisionApproved : local.decisionRejected}`}>
+                            {row.status === "verified" ? "Verified" : "Rejected"}
+                          </span>
+                        )}
                       </td>
                     </tr>
                   ))}
@@ -211,7 +255,13 @@ export default function TournamentReviewQueue() {
                   </div>
                   <div className={local.entryCardRow}>
                     <span className={local.ageText}>Submitted {relativeTime(row.submitted_at)}</span>
-                    <button type="button" className={styles.filterBtn} style={{ padding: "6px 12px", fontSize: "12px" }} onClick={() => openReview(row)}>Review →</button>
+                    {isPending(row) ? (
+                      <button type="button" className={styles.filterBtn} style={{ padding: "6px 12px", fontSize: "12px" }} onClick={() => openReview(row)}>Review →</button>
+                    ) : (
+                      <span className={`${local.decisionLabel} ${row.status === "verified" ? local.decisionApproved : local.decisionRejected}`}>
+                        {row.status === "verified" ? "Verified" : "Rejected"}
+                      </span>
+                    )}
                   </div>
                 </div>
               ))}
@@ -264,6 +314,33 @@ export default function TournamentReviewQueue() {
               <div className={local.detailRow}>
                 <span>Transaction ID / UTR</span>
                 <span style={{ fontFamily: "monospace" }}>{reviewing.payment_reference}</span>
+              </div>
+            )}
+
+            {!reviewing.payment_declared && (
+              <div style={{ marginTop: 14, padding: 12, border: "1px solid var(--border-subtle)", borderRadius: 10 }}>
+                <p style={{ fontSize: 12.5, color: "var(--text-muted)", marginBottom: 8 }}>
+                  This entry never went through self-service payment (e.g. a pool team, or an older entry). If you&apos;ve confirmed payment yourself, record it here before verifying.
+                </p>
+                <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                  <input
+                    value={markPaymentRef}
+                    onChange={(event) => setMarkPaymentRef(event.target.value)}
+                    placeholder="Reference (optional)"
+                    maxLength={100}
+                    disabled={markingPayment}
+                    className={local.searchInput}
+                    style={{ flex: "1 1 180px", maxWidth: "none" }}
+                  />
+                  <button
+                    type="button"
+                    className={styles.filterBtn}
+                    disabled={markingPayment}
+                    onClick={() => void handleMarkPaymentReceived()}
+                  >
+                    {markingPayment ? "Saving…" : "Mark payment received"}
+                  </button>
+                </div>
               </div>
             )}
 

@@ -76,6 +76,19 @@
   color: var(--color-warning);
 }
 
+.decisionLabel {
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.decisionApproved {
+  color: var(--color-success);
+}
+
+.decisionRejected {
+  color: var(--color-danger);
+}
+
 /* Desktop table / mobile card toggle -- no existing pattern in this
    codebase to reuse (every other table just horizontal-scrolls), so this
    is a new split: same row data rendered twice, CSS picks which shows. */

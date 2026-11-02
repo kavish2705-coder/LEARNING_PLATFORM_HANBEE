@@ -355,11 +355,29 @@ export default function MyTeamPage() {
               <div className={registrationStyles.statusCardHeader}><CheckCircle2 size={14} /> Payment review</div>
               <div className={registrationStyles.statusCardValue}>
                 <span className={`${registrationStyles.statusChip} ${registrationStatus.team.status === "verified" ? registrationStyles.statusChipSuccess : registrationStatus.team.status === "rejected" ? registrationStyles.statusChipDanger : registrationStyles.statusChipWarning}`}>
-                  {registrationStatus.team.status === "verified" ? "Verified" : registrationStatus.team.status === "rejected" ? "Rejected" : "Awaiting review"}
+                  {registrationStatus.team.status === "verified"
+                    ? "Verified"
+                    : registrationStatus.team.status === "rejected"
+                      ? "Rejected"
+                      : registrationStatus.team.status === "payment_declared"
+                        ? "Awaiting Hanbee review"
+                        : registrationStatus.team.status === "applied"
+                          ? "Payment not declared"
+                          : "Not submitted"}
                 </span>
               </div>
               {registrationStatus.team.status === "rejected" && registrationStatus.team.review_note && <p className={registrationStyles.statusCardMeta}>{registrationStatus.team.review_note}</p>}
-              {registrationStatus.team.status !== "rejected" && <p className={registrationStyles.statusCardMeta}>Entry payment decision from Hanbee staff.</p>}
+              <p className={registrationStyles.statusCardMeta}>
+                {registrationStatus.team.status === "verified"
+                  ? "Entry payment approved by Hanbee staff. Car inspection is tracked separately."
+                  : registrationStatus.team.status === "rejected"
+                    ? "Entry payment decision from Hanbee staff."
+                    : registrationStatus.team.status === "payment_declared"
+                      ? "Entry payment decision from Hanbee staff. Passing car inspection does not approve payment."
+                      : registrationStatus.team.status === "applied"
+                        ? "Payment has not been declared yet. Hanbee staff can review the entry after payment is submitted."
+                        : "Submit your entry and payment details for Hanbee staff review."}
+              </p>
             </div>
             <div className={registrationStyles.statusCard}>
               <div className={registrationStyles.statusCardHeader}><ShieldCheck size={14} /> Car inspection</div>

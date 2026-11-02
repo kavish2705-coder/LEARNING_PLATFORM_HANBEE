@@ -105,10 +105,16 @@ export default function SchoolStudents() {
     return active.filter((i) => (i.email ?? i.username ?? "").toLowerCase().includes(query));
   }, [invitations, inviteSearch]);
 
+  // email is dropped from the link itself -- the signup page fetches it
+  // (and the invitee's name) server-side via the token instead of carrying
+  // it in plain text (0115_invite_link_privacy.sql). invite_username stays
+  // inline for username-based invites since it's functionally required
+  // there (there's no email to validate the account against), not just
+  // display.
   const origin = typeof window !== "undefined" ? window.location.origin : "";
   const inviteUrl = (invitation: Invitation) =>
     invitation.email
-      ? `${origin}/signup?invite_token=${encodeURIComponent(invitation.token)}&email=${encodeURIComponent(invitation.email)}`
+      ? `${origin}/signup?invite_token=${encodeURIComponent(invitation.token)}`
       : `${origin}/signup?invite_token=${encodeURIComponent(invitation.token)}&invite_username=${encodeURIComponent(invitation.username ?? "")}`;
   const usernameInviteLink = (token: string, username: string) =>
     `${origin}/signup?invite_token=${encodeURIComponent(token)}&invite_username=${encodeURIComponent(username)}`;

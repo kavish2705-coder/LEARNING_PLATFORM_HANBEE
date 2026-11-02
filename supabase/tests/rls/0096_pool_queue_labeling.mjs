@@ -85,6 +85,9 @@ let n1 = (await one("select count(*)::int n from notifications where user_id=$1 
 let n2 = (await one("select count(*)::int n from notifications where user_id=$1 and kind='team_rejected'",[pk2])).n;
 check("the pool team's creator (pk1) gets a rejection notification", n1 === 1, n1);
 check("a non-creator pool member (pk2) also gets a rejection notification", n2 === 1, n2);
+await asUser(jamie);
+rows = (await c.query("select team_id, status from tournament_application_queue()")).rows;
+check("reviewed pool entry remains visible in the staff queue", rows.some(x => x.team_id === poolTeam && x.status === "rejected"), JSON.stringify(rows));
 
 // -----------------------------------------------------------------------
 // Step 3: school team rejection is unaffected -- only created_by notified.

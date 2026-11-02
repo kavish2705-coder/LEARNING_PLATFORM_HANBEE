@@ -124,7 +124,7 @@ await asUser(a1); r=await tryq("select decide_team($1,'verified')",[teamA]); che
 await asAnon(); r=await tryq("select decide_team($1,'verified')",[teamA]); check("anon cannot decide",!!r.e);
 await asUser(jamie); r=await tryq("select decide_team($1,'bogus')",[teamA]); check("bad decision refused",!!r.e);
 r=await tryq("select decide_team($1,'verified')",[teamA]); check("Hanbee staff verifies team A",ok(r));
-await asUser(morgan); r=await tryq("select decide_team($1,'rejected')",[teamB]); check("manager rejects team B",ok(r));
+await asUser(morgan); r=await tryq("select decide_team($1,'rejected')",[teamB]); check("manager rejects team B",ok(r),r.e?.message);
 await asUser(jamie); r=await tryq("select decide_team($1,'verified')",[teamB]); check("cannot decide twice",!!r.e);
 r=await tryq("select decide_team($1,'verified')",[teamA2]); check("cannot decide a draft",!!r.e);
 await asUser(staffA); check("school A sees verified status", (await one("select status s from tournament_teams where id=$1",[teamA])).s==="verified");
@@ -164,17 +164,20 @@ r=await tryq("select add_team_member($1,$2)",[soloTeam,solo2]); check("solo cann
 await asUser(a1); r=await tryq("select create_solo_team($1)",[T2]); check("school student cannot create solo team",!!r.e);
 await asUser(staffA); r=await tryq("select create_solo_team($1)",[T2]); check("school staff cannot create solo team",!!r.e);
 await asUser(solo2); r=await tryq("select apply_team($1,true)",[soloTeam]); check("other solo cannot apply someone else's team",!!r.e);
-await asUser(solo); r=await tryq("select apply_team($1,true)",[soloTeam]); check("solo applies own team",ok(r));
+await asUser(solo); r=await tryq("select apply_team($1,true)",[soloTeam]); check("solo payment requires a reference",!!r.e && r.e.message.includes("UPI transaction ID"));
+r=await tryq("select apply_team($1,true,$2)",[soloTeam,"UTR-SOLO-TEST"]); check("solo applies own team",ok(r),r.e?.message);
 await asUser(jamie); r=await tryq("select decide_team($1,'verified')",[soloTeam]); check("Hanbee verifies solo team",ok(r),r.e?.message); if(!r.e) check("solo team status is verified",(await one("select status s from tournament_teams where id=$1",[soloTeam])).s==="verified");
 await asUser(solo2); check("solo2 does not see solo's team", await cnt("select count(*)::int n from tournament_teams")===0);
 
 // --- courses
-await asUser(a1); r=await tryq("select apply_for_course($1,true) a",[course]); check("school student applies for course",ok(r),r.e?.message); const app1=r.r?.rows[0]?.a;
-r=await tryq("select apply_for_course($1,true)",[course]); check("duplicate application refused",!!r.e);
+await asUser(a1); r=await tryq("select apply_for_course($1,true) a",[course]); check("course payment requires a reference",!!r.e && r.e.message.includes("UPI transaction ID"));
+r=await tryq("select apply_for_course($1,true,$2) a",[course,"UTR-SCHOOL-TEST"]); check("school student applies for course",ok(r),r.e?.message); const app1=r.r?.rows[0]?.a;
+r=await tryq("select apply_for_course($1,true,$2)",[course,"UTR-DUPLICATE-TEST"]); check("duplicate application refused",!!r.e);
 r=await tryq("select apply_for_course($1,true)",[draftCourse]); check("unpublished course refused",!!r.e);
 r=await tryq("update applications set status='verified' where id=$1",[app1]); check("direct application update blocked",!!r.e);
 r=await tryq("insert into applications (course_id,applicant_id,status) values ($1,$2,'verified')",[draftCourse,a1]); check("direct application insert blocked",!!r.e);
-await asUser(solo2); r=await tryq("select apply_for_course($1,true) a",[course]); check("solo applies for course",ok(r),r.e?.message); const app2=r.r?.rows[0]?.a;
+await asUser(solo2); r=await tryq("select apply_for_course($1,true) a",[course]); check("solo course payment requires a reference",!!r.e && r.e.message.includes("UPI transaction ID"));
+r=await tryq("select apply_for_course($1,true,$2) a",[course,"UTR-SOLO-COURSE-TEST"]); check("solo applies for course",ok(r),r.e?.message); const app2=r.r?.rows[0]?.a;
 await asUser(a3); r=await tryq("select apply_for_course($1,true)",[course]); check("suspended student cannot apply",!!r.e);
 await asUser(staffA); check("school A sees own student's application (read-only)", await cnt("select count(*)::int n from applications")===1 && await cnt("select count(*)::int n from list_course_applications()")===1);
 r=await tryq("update applications set status='verified'",[]); check("school staff cannot update applications",!!r.e);
@@ -184,7 +187,7 @@ await asUser(a1); check("student sees own application only", await cnt("select c
 await asUser(b1); check("other student sees none", await cnt("select count(*)::int n from applications")===0);
 await asUser(jamie); check("Hanbee staff sees all applications", await cnt("select count(*)::int n from applications")===2+baseApp);
 r=await tryq("select decide_course_application($1,'verified',null)",[app1]); check("verify needs a section",!!r.e);
-r=await tryq("select decide_course_application($1,'verified',$2)",[app1,section]); check("Hanbee staff verifies course application",ok(r));
+r=await tryq("select decide_course_application($1,'verified',$2)",[app1,section]); check("Hanbee staff verifies course application",ok(r),r.e?.message);
 await asOwner(); check("enrollment created", await cnt("select count(*)::int n from enrollments where student_id=$1 and section_id=$2 and status='active'",[a1,section])===1);
 await asUser(a1); check("student sees enrollment", await cnt("select count(*)::int n from enrollments where section_id=$1",[section])===1);
 check("org_id_at_join stored on application", (await one("select org_id_at_join o from applications where id=$1",[app1])).o===orgA);

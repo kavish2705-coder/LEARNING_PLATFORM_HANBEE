@@ -151,6 +151,15 @@ export function applyStudentTeam(teamId: string, paymentDeclared: boolean, payme
   return rpc<null>("apply_team", { p_team: teamId, p_payment_declared: paymentDeclared, p_payment_reference: paymentReference?.trim() || null });
 }
 
+// Staff-only escape hatch: some entries (pool teams, older entries) never
+// go through the self-service QR+reference flow at all, so staff need a
+// way to record payment themselves before they can verify. Only valid
+// while the entry is still 'applied' (not yet declared) -- see
+// 0113_staff_mark_payment_received.sql.
+export function markPaymentReceived(teamId: string, reference?: string) {
+  return rpc<null>("staff_mark_payment_received", { p_team: teamId, p_reference: reference?.trim() || null });
+}
+
 export interface PaymentSettings {
   qr_image_url: string;
   upi_id: string;

@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useState, type FormEvent } from "react";
+import { Suspense, useEffect, useState, type FormEvent } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
@@ -11,6 +11,7 @@ import {
   signInWithProvider,
   writeStoredSession,
   toSupabaseSession,
+  fetchInvitePreview,
 } from "../../lib/supabaseAuth";
 
 function SignupForm() {
@@ -30,8 +31,34 @@ function SignupForm() {
   const invited = Boolean(inviteToken || joinToken);
   const usernameInvite = Boolean(inviteToken && inviteUsername);
 
+  // Signup links now carry only invite_token, not full_name/email in plain
+  // text (see 0115_invite_link_privacy.sql) -- fetch them server-side,
+  // token-gated, instead. The searchParams fallback is only for any
+  // already-shared legacy links that still have them inline.
   const [fullName, setFullName] = useState(() => searchParams.get("full_name") || "");
   const [email, setEmail] = useState(() => searchParams.get("email") || "");
+  const [inviteEmailKnown, setInviteEmailKnown] = useState(() => Boolean(searchParams.get("email")));
+
+  useEffect(() => {
+    if (!inviteToken || searchParams.get("email")) return;
+    let active = true;
+    fetchInvitePreview(inviteToken)
+      .then((preview) => {
+        if (!active) return;
+        if (preview.full_name) setFullName(preview.full_name);
+        if (preview.email) {
+          setEmail(preview.email);
+          setInviteEmailKnown(true);
+        }
+      })
+      .catch(() => {
+        // Invite preview failed (expired/invalid token) -- leave the form
+        // blank rather than block signup; the real validation happens
+        // server-side against the token when the account is created.
+      });
+    return () => { active = false; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [inviteToken]);
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -42,7 +69,7 @@ function SignupForm() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
 
-  const emailLocked = invited && Boolean(searchParams.get("email"));
+  const emailLocked = invited && inviteEmailKnown;
 
   function validatePassword(value: string): string | null {
     if (value.length < 8) return "Password must be at least 8 characters.";
