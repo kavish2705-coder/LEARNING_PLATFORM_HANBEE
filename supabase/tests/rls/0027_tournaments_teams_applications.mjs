@@ -124,7 +124,7 @@ await asUser(a1); r=await tryq("select decide_team($1,'verified')",[teamA]); che
 await asAnon(); r=await tryq("select decide_team($1,'verified')",[teamA]); check("anon cannot decide",!!r.e);
 await asUser(jamie); r=await tryq("select decide_team($1,'bogus')",[teamA]); check("bad decision refused",!!r.e);
 r=await tryq("select decide_team($1,'verified')",[teamA]); check("Hanbee staff verifies team A",ok(r));
-await asUser(morgan); r=await tryq("select decide_team($1,'rejected')",[teamB]); check("manager rejects team B",ok(r),r.e?.message);
+await asUser(morgan); r=await tryq("select decide_team($1,'rejected',$2)",[teamB,"rls test rejection"]); check("manager rejects team B",ok(r),r.e?.message);
 await asUser(jamie); r=await tryq("select decide_team($1,'verified')",[teamB]); check("cannot decide twice",!!r.e);
 r=await tryq("select decide_team($1,'verified')",[teamA2]); check("cannot decide a draft",!!r.e);
 await asUser(staffA); check("school A sees verified status", (await one("select status s from tournament_teams where id=$1",[teamA])).s==="verified");
