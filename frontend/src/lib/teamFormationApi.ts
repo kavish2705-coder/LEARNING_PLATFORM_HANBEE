@@ -104,15 +104,25 @@ async function rpc<T>(functionName: string, args: Record<string, unknown>): Prom
 }
 
 export async function fetchUpcomingTournament(): Promise<UpcomingTournament | null> {
+  const rows = await fetchUpcomingTournaments();
+  return rows[0] ?? null;
+}
+
+// Every tournament-entry RPC (create_solo_team, start_pool_team,
+// student_start_team, apply_team, ...) is already scoped by p_tournament,
+// so a student being on a team for one tournament never blocks them from
+// entering a different one -- the old single-tournament limit() here was
+// purely a frontend assumption, not a backend one. Used by the My Team
+// page's tournament picker; every other caller of fetchUpcomingTournament
+// only ever needed "the next one" and is unaffected by this addition.
+export async function fetchUpcomingTournaments(): Promise<UpcomingTournament[]> {
   const params = new URLSearchParams({
     select: "id,title,starts_at,venue,team_size",
     status: "eq.upcoming",
     starts_at: `gte.${new Date().toISOString()}`,
     order: "starts_at.asc",
-    limit: "1",
   });
-  const rows = await authenticatedSupabaseFetch<UpcomingTournament[]>(`/rest/v1/tournaments?${params}`);
-  return rows[0] ?? null;
+  return authenticatedSupabaseFetch<UpcomingTournament[]>(`/rest/v1/tournaments?${params}`);
 }
 
 export async function fetchMyOrganizationId(): Promise<string | null> {
