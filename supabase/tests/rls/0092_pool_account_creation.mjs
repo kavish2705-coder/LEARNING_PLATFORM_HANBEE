@@ -32,7 +32,11 @@ check("anonymous cannot call staff_create_independent_invite", !!r.e, r.e?.messa
 await asUser(jamie);
 r = await tryq("select staff_create_independent_invite('Road Kid','rk3@x.test') v");
 check("Hanbee staff can call staff_create_independent_invite", !r.e, r.e?.message);
-const invId = r.r.rows[0].v;
+// staff_create_independent_invite() now returns jsonb ({id, token,
+// full_name, email, expires_at} -- see 0110_payment_qr_and_reference.sql),
+// not a bare uuid, so the frontend's IndependentInvite type can carry the
+// token/expiry straight back without a second round trip.
+const invId = r.r.rows[0].v.id;
 check("it returns the invitation's uuid", typeof invId === "string" && invId.length === 36, invId);
 
 await asOwner();
