@@ -66,7 +66,11 @@ export default function DriverLicensePage() {
     const timer = setInterval(() => {
       getUpiPaymentStatus(upiPayment.id)
         .then((p) => {
-          setUpiPayment(p);
+          // The status-poll endpoint deliberately omits `qr` (regenerating
+          // that SVG on every 4s poll would be wasted work) -- merge the
+          // status fields in instead of replacing the whole object, or the
+          // QR vanishes the moment the first poll lands.
+          setUpiPayment((current) => (current ? { ...current, ...p, qr: current.qr } : p));
           if (p.status === "paid") void loadLicense();
         })
         .catch(() => {});
@@ -90,7 +94,7 @@ export default function DriverLicensePage() {
         setLicenseError("That UTR has already been used for another payment.");
       } else {
         const p = await getUpiPaymentStatus(upiPayment.id);
-        setUpiPayment(p);
+        setUpiPayment((current) => (current ? { ...current, ...p, qr: current.qr } : p));
         if (p.status === "paid") await loadLicense();
       }
     } catch (reason) {
@@ -107,7 +111,7 @@ export default function DriverLicensePage() {
     try {
       await simulateUpiPayment(upiPayment.id);
       const p = await getUpiPaymentStatus(upiPayment.id);
-      setUpiPayment(p);
+      setUpiPayment((current) => (current ? { ...current, ...p, qr: current.qr } : p));
       if (p.status === "paid") await loadLicense();
     } catch (reason) {
       setLicenseError(reason instanceof Error ? reason.message : "We couldn't simulate this payment.");
@@ -410,6 +414,24 @@ export default function DriverLicensePage() {
           {upiPayment?.status === "paid" ? (
             <p role="status" style={{ fontSize: 14, color: "var(--color-success)", marginTop: 8 }}>
               Payment confirmed — activating your license…
+            </p>
+          ) : upiPayment?.status === "expired" ? (
+            <div style={{ marginTop: 12 }}>
+              <p role="alert" style={{ fontSize: 14, color: "var(--color-danger)" }}>
+                This payment window expired before we received it. No charge was made -- start a new one below.
+              </p>
+              <button
+                type="button"
+                disabled={licenseBusy}
+                onClick={() => { setUpiPayment(null); setPaymentReference(""); setLicenseError(""); }}
+                style={{ marginTop: 10, padding: "9px 20px", borderRadius: 8, fontWeight: 600, fontSize: 14, border: "none", background: "var(--color-primary)", color: "var(--color-primary-text)", cursor: "pointer" }}
+              >
+                Start New Payment
+              </button>
+            </div>
+          ) : upiPayment?.status === "underpaid" ? (
+            <p role="alert" style={{ fontSize: 14, color: "var(--color-danger)", marginTop: 8 }}>
+              We received a payment of ₹{upiPayment.paidAmount} but ₹{upiPayment.payAmount} was expected. This needs a Hanbee staff member to review it manually -- contact them with your payment reference.
             </p>
           ) : upiPayment ? (
             <div style={{ display: "flex", flexDirection: "column", gap: 12, marginTop: 12 }}>

@@ -14,6 +14,7 @@ export interface PublicUpiPayment {
   qr?: string;
   expiresAt: string;
   utr: string | null;
+  paidAmount: number | null;
   testMode?: boolean;
 }
 
