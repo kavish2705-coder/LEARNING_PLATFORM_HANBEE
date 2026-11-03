@@ -1,3 +1,5 @@
+import { humanizeError } from "./humanizeError";
+
 export type HanbeeRole = "student" | "school_staff" | "staff" | "manager";
 
 export interface SupabaseSession {
@@ -44,7 +46,8 @@ async function readError(response: Response, fallback: string) {
   } catch {
     // Supabase can return an empty body for upstream errors.
   }
-  return body.message || body.msg || body.error_description || body.error || fallback;
+  const raw = body.message || body.msg || body.error_description || body.error || fallback;
+  return humanizeError(raw);
 }
 
 async function supabaseFetch<T>(path: string, init: RequestInit = {}): Promise<T> {
