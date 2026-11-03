@@ -3,8 +3,9 @@
 import { useEffect, useRef, useState } from "react";
 import { useQuery, useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import styles from "./chat.module.css";
-import { Send, Search, ChevronLeft, User, Users, Inbox } from "lucide-react";
+import { Send, Search, ChevronLeft, User, Users, Inbox, Plus } from "lucide-react";
 import {
+  createGroupConversation,
   fetchChatContacts,
   fetchChatConversations,
   fetchChatMessages,
@@ -18,6 +19,8 @@ import { readStoredSession } from "../../../lib/supabaseAuth";
 import { getRealtimeClient } from "../../../lib/realtime";
 import { fetchChatReadReceipts } from "../../../lib/messagingApi";
 import { useSessionProfile } from "../../../lib/hooks/useSessionProfile";
+import Modal from "../../../components/ui/Modal";
+import modalStyles from "../../../components/ui/Modal.module.css";
 
 function dayKey(value: string) {
   return new Date(value).toDateString();
@@ -152,6 +155,30 @@ export default function ChatPage() {
     onError: (reason) => setError(reason instanceof Error ? reason.message : "You can't start a conversation with this person."),
   });
 
+  const [newGroupOpen, setNewGroupOpen] = useState(false);
+  const [newGroupTitle, setNewGroupTitle] = useState("");
+  const [newGroupMemberIds, setNewGroupMemberIds] = useState<string[]>([]);
+  const [newGroupError, setNewGroupError] = useState("");
+
+  const createGroup = useMutation({
+    mutationFn: () => createGroupConversation(newGroupTitle, newGroupMemberIds),
+    onSuccess: async (conversationId) => {
+      await queryClient.invalidateQueries({ queryKey: ["chat-conversations"] });
+      setNewGroupOpen(false);
+      setNewGroupTitle("");
+      setNewGroupMemberIds([]);
+      setNewGroupError("");
+      setChatTab("group");
+      setActiveConversationId(conversationId);
+      setMobileView("chat");
+    },
+    onError: (reason) => setNewGroupError(reason instanceof Error ? reason.message : "We couldn't create this group."),
+  });
+
+  function toggleGroupMember(userId: string) {
+    setNewGroupMemberIds((current) => current.includes(userId) ? current.filter((id) => id !== userId) : [...current, userId]);
+  }
+
   const sendMessage = useMutation({
     mutationFn: (body: string) => sendChatMessage(activeConversationId, body),
     onSuccess: () => {
@@ -173,7 +200,14 @@ export default function ChatPage() {
     if (!myRole || !theirRole) return true;
     switch (myRole) {
       case "manager": return theirRole === "staff" || theirRole === "school_staff";
-      case "student": return theirRole === "staff" || theirRole === "school_staff";
+      // chat_relation_dir() on the backend is the real gate here -- it only
+      // returns non-null for student<->student when both sides are
+      // independent ("pool_student" relation), so widening this to include
+      // "student" can't leak school-student-to-school-student or
+      // independent-to-school-student pairs the backend wouldn't allow;
+      // it was just hiding the independent<->independent case the backend
+      // already supports.
+      case "student": return theirRole === "staff" || theirRole === "school_staff" || theirRole === "student";
       case "staff": return theirRole === "student" || theirRole === "manager";
       case "school_staff": return theirRole === "student" || theirRole === "manager";
       default: return true;
@@ -327,6 +361,17 @@ export default function ChatPage() {
 
           {chatTab === "group" && (
             <>
+              <div style={{ padding: "12px 20px 4px" }}>
+                <button
+                  type="button"
+                  className={styles.contactItem}
+                  style={{ justifyContent: "center", gap: 8, border: "1px dashed var(--border-subtle)", borderRadius: 10 }}
+                  onClick={() => setNewGroupOpen(true)}
+                >
+                  <Plus size={16} aria-hidden="true" />
+                  New group
+                </button>
+              </div>
               {groupConversations.map((conv) => {
                 const contactName = conv.title ?? "Group chat";
                 const isSelected = activeConversationId === conv.id;
@@ -490,6 +535,59 @@ export default function ChatPage() {
           </div>
         )}
       </div>
+
+      <Modal
+        open={newGroupOpen}
+        title="New group"
+        onClose={() => { setNewGroupOpen(false); setNewGroupError(""); }}
+        actions={
+          <>
+            <button type="button" className={modalStyles.secondaryBtn} disabled={createGroup.isPending} onClick={() => setNewGroupOpen(false)}>
+              Cancel
+            </button>
+            <button
+              type="button"
+              className={modalStyles.primaryBtn}
+              disabled={createGroup.isPending || !newGroupTitle.trim() || newGroupMemberIds.length === 0}
+              onClick={() => createGroup.mutate()}
+            >
+              {createGroup.isPending ? "Creating…" : "Create group"}
+            </button>
+          </>
+        }
+      >
+        {newGroupError && <p role="alert" style={{ marginBottom: 12 }}>{newGroupError}</p>}
+        <label style={{ display: "block", marginBottom: 14 }}>
+          Group name
+          <input
+            value={newGroupTitle}
+            onChange={(event) => setNewGroupTitle(event.target.value)}
+            placeholder="e.g. Pit Crew"
+            maxLength={60}
+            disabled={createGroup.isPending}
+            className={styles.searchInput}
+            style={{ display: "block", marginTop: 6, width: "100%" }}
+          />
+        </label>
+        <p style={{ fontSize: 12.5, color: "var(--text-muted)", marginBottom: 8 }}>
+          Add people you can already message directly:
+        </p>
+        <div style={{ maxHeight: 260, overflowY: "auto", display: "flex", flexDirection: "column", gap: 4 }}>
+          {contactList.length === 0 && <p style={{ color: "var(--text-muted)", fontSize: 13 }}>No contacts available to add yet.</p>}
+          {contactList.map((contact) => (
+            <label key={contact.user_id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "6px 4px", cursor: "pointer" }}>
+              <input
+                type="checkbox"
+                checked={newGroupMemberIds.includes(contact.user_id)}
+                onChange={() => toggleGroupMember(contact.user_id)}
+                disabled={createGroup.isPending}
+              />
+              <span>{contact.full_name}</span>
+              <span style={{ fontSize: 12, color: "var(--text-muted)" }}>{contact.relation.replaceAll("_", " ")}</span>
+            </label>
+          ))}
+        </div>
+      </Modal>
     </div>
   );
 }

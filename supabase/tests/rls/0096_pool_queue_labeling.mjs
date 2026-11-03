@@ -77,7 +77,7 @@ check("the school team is labeled with its org name", schoolRow?.participant_lab
 // -----------------------------------------------------------------------
 await c.query("delete from notifications where user_id in ($1,$2)",[pk1,pk2]);
 await asUser(jamie);
-r = await tryq("select decide_team($1,'rejected')",[poolTeam]);
+r = await tryq("select decide_team($1,'rejected',$2)",[poolTeam,"rls test rejection"]);
 check("staff rejects the pool team", !r.e, r.e?.message);
 
 await asOwner();
@@ -85,6 +85,9 @@ let n1 = (await one("select count(*)::int n from notifications where user_id=$1 
 let n2 = (await one("select count(*)::int n from notifications where user_id=$1 and kind='team_rejected'",[pk2])).n;
 check("the pool team's creator (pk1) gets a rejection notification", n1 === 1, n1);
 check("a non-creator pool member (pk2) also gets a rejection notification", n2 === 1, n2);
+await asUser(jamie);
+rows = (await c.query("select team_id, status from tournament_application_queue()")).rows;
+check("reviewed pool entry remains visible in the staff queue", rows.some(x => x.team_id === poolTeam && x.status === "rejected"), JSON.stringify(rows));
 
 // -----------------------------------------------------------------------
 // Step 3: school team rejection is unaffected -- only created_by notified.
@@ -92,7 +95,7 @@ check("a non-creator pool member (pk2) also gets a rejection notification", n2 =
 await c.query("delete from notifications where user_id in ($1,$2)",[S1,ownerA]);
 let schoolCreatedBy = (await one("select created_by from tournament_teams where id=$1",[schoolTeam])).created_by;
 await asUser(jamie);
-r = await tryq("select decide_team($1,'rejected')",[schoolTeam]);
+r = await tryq("select decide_team($1,'rejected',$2)",[schoolTeam,"rls test rejection"]);
 check("staff rejects the school team", !r.e, r.e?.message);
 
 await asOwner();

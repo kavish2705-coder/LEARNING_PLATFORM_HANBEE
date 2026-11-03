@@ -17,8 +17,12 @@ import {
   type IndependentStudentLead,
 } from "../../../../lib/poolApi";
 
+// invite_token alone -- the signup page fetches the invitee's name/email
+// itself via the same token (0115_invite_link_privacy.sql) instead of
+// carrying them in plain text in a link that gets forwarded, logged, and
+// screenshotted.
 function buildSignupLink(invite: IndependentInvite): string {
-  const params = new URLSearchParams({ invite_token: invite.token, email: invite.email, full_name: invite.full_name });
+  const params = new URLSearchParams({ invite_token: invite.token });
   return `${window.location.origin}/signup?${params.toString()}`;
 }
 

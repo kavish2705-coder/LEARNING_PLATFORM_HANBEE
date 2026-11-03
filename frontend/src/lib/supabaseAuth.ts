@@ -66,6 +66,16 @@ async function supabaseFetch<T>(path: string, init: RequestInit = {}): Promise<T
   return JSON.parse(text) as T;
 }
 
+// Signup links carry only invite_token now (not email/full_name in plain
+// text -- see 0115_invite_link_privacy.sql) so the signup form fetches the
+// invitee's name/email itself, token-gated, instead of trusting the URL.
+export async function fetchInvitePreview(token: string): Promise<{ full_name: string | null; email: string | null }> {
+  return supabaseFetch<{ full_name: string | null; email: string | null }>("/rest/v1/rpc/invite_preview", {
+    method: "POST",
+    body: JSON.stringify({ p_token: token }),
+  });
+}
+
 export async function checkManagerExists(): Promise<boolean> {
   return supabaseFetch<boolean>("/rest/v1/rpc/manager_exists", { method: "POST", body: JSON.stringify({}) });
 }

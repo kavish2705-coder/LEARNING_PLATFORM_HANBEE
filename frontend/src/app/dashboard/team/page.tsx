@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useCallback, useEffect, useState, useMemo } from "react";
+import { FormEvent, useCallback, useEffect, useRef, useState, useMemo } from "react";
 import { Users, ShieldCheck, CheckCircle2, AlertCircle, UserPlus, RefreshCw, Trophy, XCircle, AlertTriangle } from "lucide-react";
 import styles from "./team.module.css";
 import registrationStyles from "./registrationStatus.module.css";
@@ -14,7 +14,7 @@ import {
   fetchMyTeamFormation,
   fetchMyTeamRegistrationStatus,
   fetchPaymentSettings,
-  fetchUpcomingTournament,
+  fetchUpcomingTournaments,
   inviteStudentToTeam,
   leaveStudentTeam,
   startStudentTeam,
@@ -81,7 +81,19 @@ function errorMessage(reason: unknown, fallback: string) {
 export default function MyTeamPage() {
   const { data: profile } = useSessionProfile();
 
-  const [tournament, setTournament] = useState<UpcomingTournament | null>(null);
+  const [tournaments, setTournaments] = useState<UpcomingTournament[]>([]);
+  const [selectedTournamentId, setSelectedTournamentId] = useState("");
+  const tournament = tournaments.find((t) => t.id === selectedTournamentId) ?? tournaments[0] ?? null;
+  // load() is called by every action via runAction (e.g. after creating a
+  // solo entry) and must not be redefined on every tournament switch --
+  // redefining it would re-run the mount effect and refetch the whole
+  // tournament list on every switch. So selectedTournamentId isn't in
+  // load's own dependency array, which means its closure would otherwise
+  // go stale and reset the selection back to whatever it was when load
+  // was first created. This ref is the fix: load always reads the latest
+  // selection through it instead of through its own stale closure.
+  const selectedTournamentIdRef = useRef(selectedTournamentId);
+  selectedTournamentIdRef.current = selectedTournamentId;
   const [formation, setFormation] = useState<MyTeamFormation | null>(null);
   const [teamName, setTeamName] = useState("");
   const [inviteeId, setInviteeId] = useState("");
@@ -133,29 +145,59 @@ export default function MyTeamPage() {
     }
   }, []);
 
+  // Loads the team/registration/pool data for one specific tournament --
+  // shared by the initial load and by switching tournaments in the picker,
+  // since both need to refresh the same per-tournament state.
+  const loadTournamentData = useCallback(async (tournamentId: string, solo: boolean) => {
+    const nextFormation = await fetchMyTeamFormation(tournamentId);
+    setFormation(nextFormation);
+    await loadRegistrationStatus(tournamentId);
+    await loadPoolData(tournamentId, solo && !nextFormation.school_id);
+  }, [loadPoolData, loadRegistrationStatus]);
+
   // Load team data from backend
   const load = useCallback(async () => {
     setLoading(true);
     setError("");
     try {
-      const [upcoming, solo] = await Promise.all([fetchUpcomingTournament(), fetchMySoloStatus()]);
-       setTournament(upcoming);
-       setIsSolo(solo);
-       if (!upcoming) {
-         setFormation(null);
-         setRegistrationStatus(null);
-       } else {
-         const nextFormation = await fetchMyTeamFormation(upcoming.id);
-         setFormation(nextFormation);
-         await loadRegistrationStatus(upcoming.id);
-         await loadPoolData(upcoming.id, solo && !nextFormation.school_id);
-       }
+      const [upcoming, solo] = await Promise.all([fetchUpcomingTournaments(), fetchMySoloStatus()]);
+      setTournaments(upcoming);
+      setIsSolo(solo);
+      // Keep the student's current selection across a refresh when it's
+      // still a valid upcoming tournament; otherwise default to the
+      // soonest one (upcoming is already sorted by starts_at). Reads the
+      // ref, not the selectedTournamentId closure variable above -- see
+      // the ref's own comment for why.
+      const currentSelection = selectedTournamentIdRef.current;
+      const stillValid = upcoming.some((t) => t.id === currentSelection);
+      const targetId = stillValid ? currentSelection : (upcoming[0]?.id ?? "");
+      if (targetId !== currentSelection) setSelectedTournamentId(targetId);
+      if (!targetId) {
+        setFormation(null);
+        setRegistrationStatus(null);
+      } else {
+        await loadTournamentData(targetId, solo);
+      }
     } catch (loadError) {
       setError(errorMessage(loadError, "Couldn't load your team. Please refresh and try again."));
     } finally {
       setLoading(false);
     }
-  }, [loadPoolData, loadRegistrationStatus]);
+  }, [loadTournamentData]);
+
+  async function switchTournament(tournamentId: string) {
+    if (!tournamentId || tournamentId === selectedTournamentId) return;
+    setSelectedTournamentId(tournamentId);
+    setLoading(true);
+    setError("");
+    try {
+      await loadTournamentData(tournamentId, isSolo);
+    } catch (switchError) {
+      setError(errorMessage(switchError, "Couldn't load that tournament. Please try again."));
+    } finally {
+      setLoading(false);
+    }
+  }
 
   useEffect(() => { void load(); }, [load]);
 
@@ -273,6 +315,24 @@ export default function MyTeamPage() {
 
   return (
     <div className={styles.teamPage}>
+      {/* Tournament picker -- only shown once there's actually more than
+          one open tournament to choose between; with a single upcoming
+          tournament (the common case) this renders nothing and the page
+          behaves exactly as it did before. */}
+      {tournaments.length > 1 && (
+        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16, flexWrap: "wrap" }}>
+          <span style={{ fontSize: 13, color: "var(--text-muted)" }}>Tournament:</span>
+          <Dropdown
+            id="tournament-picker"
+            value={selectedTournamentId}
+            onChange={(id) => void switchTournament(id)}
+            disabled={loading || busy}
+            options={tournaments.map((t) => ({ value: t.id, label: `${t.title} · ${new Date(t.starts_at).toLocaleDateString()}` }))}
+            style={{ minWidth: 260 }}
+          />
+        </div>
+      )}
+
       {/* Hero Team Banner */}
       <div className={styles.heroBanner}>
         <div className={styles.heroLeft}>
@@ -355,11 +415,29 @@ export default function MyTeamPage() {
               <div className={registrationStyles.statusCardHeader}><CheckCircle2 size={14} /> Payment review</div>
               <div className={registrationStyles.statusCardValue}>
                 <span className={`${registrationStyles.statusChip} ${registrationStatus.team.status === "verified" ? registrationStyles.statusChipSuccess : registrationStatus.team.status === "rejected" ? registrationStyles.statusChipDanger : registrationStyles.statusChipWarning}`}>
-                  {registrationStatus.team.status === "verified" ? "Verified" : registrationStatus.team.status === "rejected" ? "Rejected" : "Awaiting review"}
+                  {registrationStatus.team.status === "verified"
+                    ? "Verified"
+                    : registrationStatus.team.status === "rejected"
+                      ? "Rejected"
+                      : registrationStatus.team.status === "payment_declared"
+                        ? "Awaiting Hanbee review"
+                        : registrationStatus.team.status === "applied"
+                          ? "Payment not declared"
+                          : "Not submitted"}
                 </span>
               </div>
               {registrationStatus.team.status === "rejected" && registrationStatus.team.review_note && <p className={registrationStyles.statusCardMeta}>{registrationStatus.team.review_note}</p>}
-              {registrationStatus.team.status !== "rejected" && <p className={registrationStyles.statusCardMeta}>Entry payment decision from Hanbee staff.</p>}
+              <p className={registrationStyles.statusCardMeta}>
+                {registrationStatus.team.status === "verified"
+                  ? "Entry payment approved by Hanbee staff. Car inspection is tracked separately."
+                  : registrationStatus.team.status === "rejected"
+                    ? "Entry payment decision from Hanbee staff."
+                    : registrationStatus.team.status === "payment_declared"
+                      ? "Entry payment decision from Hanbee staff. Passing car inspection does not approve payment."
+                      : registrationStatus.team.status === "applied"
+                        ? "Payment has not been declared yet. Hanbee staff can review the entry after payment is submitted."
+                        : "Submit your entry and payment details for Hanbee staff review."}
+              </p>
             </div>
             <div className={registrationStyles.statusCard}>
               <div className={registrationStyles.statusCardHeader}><ShieldCheck size={14} /> Car inspection</div>
@@ -828,6 +906,9 @@ export default function MyTeamPage() {
               </div>
 
               <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                {tournament?.entry_fee_amount != null && (
+                  <p style={{ fontSize: 15 }}>Entry fee: <strong style={{ color: "var(--text-primary)" }}>₹{tournament.entry_fee_amount}</strong></p>
+                )}
                 {paymentSettings?.qr_image_url ? (
                   <div style={{ display: "flex", gap: 16, alignItems: "flex-start", flexWrap: "wrap" }}>
                     {/* eslint-disable-next-line @next/next/no-img-element -- payment-assets is a public Supabase Storage bucket, not a Next-optimizable local/remote image source worth configuring */}
