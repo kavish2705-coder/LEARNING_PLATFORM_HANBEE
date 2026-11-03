@@ -1,3 +1,4 @@
+import path from "path";
 import type { NextConfig } from "next";
 
 // S13 (docs/SECURITY_PLAN.md): security headers. CSP is Report-Only for now —
@@ -42,6 +43,7 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  outputFileTracingRoot: path.join(__dirname),
   async headers() {
     return [
       {
