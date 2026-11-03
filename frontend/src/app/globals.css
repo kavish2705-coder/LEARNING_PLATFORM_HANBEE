@@ -1,6 +1,20 @@
-@import url('https://fonts.googleapis.com/css2?family=Afacad:ital,wght@0,400..700;1,400..700&display=swap');
+/* @import must be the first rule in the stylesheet (only @charset/@layer
+   may precede it) -- it was previously placed after @font-face, which
+   silently made the browser ignore it entirely. */
+@import url('https://fonts.googleapis.com/css2?family=Afacad:wght@400;500;700&family=Inter:wght@300;400;500&family=Oranienbaum&family=Rajdhani:wght@500;600;700&family=JetBrains+Mono:wght@400;600&family=Manrope:wght@500;600;700;800&display=swap');
 
-/* Local Fallback & High-Performance Self-Hosted @font-face for Afacad */
+@font-face {
+  font-family: 'Deltha';
+  src: url('/fonts/Deltha.otf') format('opentype'),
+    url('/fonts/Deltha.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Self-hosted fallback for the Kavish landing page (/page.tsx), used there
+   via an inline --font-heading override scoped to that page's <main> so the
+   rest of the app keeps its existing --font-heading (Rajdhani). */
 @font-face {
   font-family: 'Afacad';
   src: url('/fonts/Afacad-Regular.woff2') format('woff2');
@@ -17,15 +31,6 @@
   font-display: swap;
 }
 
-@font-face {
-  font-family: 'Deltha';
-  src: url('/fonts/Deltha.otf') format('opentype'),
-    url('/fonts/Deltha.ttf') format('truetype');
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-
 /* ===== CSS RESET ===== */
 *,
 *::before,
@@ -39,7 +44,6 @@ html {
   scroll-behavior: smooth;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  font-family: 'Afacad', sans-serif;
 }
 
 body {
@@ -48,10 +52,6 @@ body {
   color: #ffffff;
   overflow-x: hidden;
   min-height: 100vh;
-}
-
-input, button, select, textarea {
-  font-family: 'Afacad', sans-serif;
 }
 
 a {
@@ -82,20 +82,64 @@ img {
 :root {
   /* Fonts */
   --font-logo: 'Deltha', 'Cormorant Garamond', serif;
-  --font-heading: 'Afacad', sans-serif;
+  /* Rajdhani: a technical, slightly condensed grotesk built for
+     dashboard/HUD contexts -- fits the paddock/grid/telemetry
+     vocabulary used throughout this app. Deliberately not Outfit,
+     which is the most common heading face in generated SaaS
+     dashboards and was making every page read as templated. */
+  --font-heading: 'Rajdhani', 'Outfit', sans-serif;
   --font-body: 'Afacad', sans-serif;
-  --font-accent: 'Afacad', sans-serif;
+  --font-accent: 'Inter', sans-serif;
+  /* Telemetry numbers (lap times, XP, serials) previously used the
+     bare `monospace` keyword, which renders as whatever generic
+     monospace font each OS ships -- inconsistent and unstyled-looking.
+     JetBrains Mono gives those numbers the same deliberate, technical
+     character as the rest of the UI. */
+  --font-mono: 'JetBrains Mono', 'SFMono-Regular', Consolas, monospace;
+  /* Large hero moments only (the "Good morning" greeting, etc.) -- clean
+     and modern without being a generic SaaS default, and without
+     Rajdhani's technical-label character stretched too large. */
+  --font-display: 'Manrope', var(--font-heading);
 
   /* Colors */
   --color-bg: #0a0a0a;
   --color-text-white: #ffffff;
   --color-text-dark: rgba(0, 0, 0, 0.8);
-  --color-text-heading: rgba(0, 0, 0, 0.55);
+  --color-text-heading: rgba(0, 0, 0, 0.55); /* More semi-transparent */
   --color-tagline: rgb(53, 45, 39);
   --color-subtitle: rgb(30, 18, 8);
   --color-cta-text: rgb(63, 58, 58);
   --color-signin: #d9d9d9;
   --color-icon-muted: rgb(161, 155, 155);
+
+  /* Landing page (/page.tsx) tokens -- prefixed so they never collide with
+     the dashboard's own theme.css tokens. Previously every section on the
+     landing page hardcoded its own near-black hex and its own shade of
+     amber inline, so nothing traced back to one accent or one background
+     scale -- that's what produced the "mismatched theme" look across
+     sections. One accent, one 5-step surface scale, one type scale. */
+  --landing-accent: #e58a2b;
+  --landing-accent-glow: rgba(229, 138, 43, 0.35);
+  --landing-surface-1: #0c0d12; /* deepest warm obsidian backdrop */
+  --landing-surface-2: #111218; /* base section background - rich, warm, inviting */
+  --landing-surface-3: #161720; /* alternating section background */
+  --landing-surface-4: #1c1d28; /* raised panels within a section */
+  --landing-card-bg: rgba(255, 255, 255, 0.055);
+  --landing-card-border: rgba(255, 255, 255, 0.16);
+  --landing-radius-card: 24px;
+  --landing-radius-photo: 22px;
+  --landing-h1: clamp(34px, 4.4vw, 56px);
+  --landing-h2: clamp(28px, 3.4vw, 42px);
+  --landing-h3: clamp(20px, 2vw, 26px);
+  --landing-eyebrow: 13px;
+
+  /* Motion -- one easing curve, one duration scale, shared by
+     AnimatedHeading and AnimatedCard instead of each landing section
+     hand-picking its own spring/duration (the old code had 6+ different
+     transition configs for what was visually the same "fade up" move). */
+  --landing-ease: cubic-bezier(0.19, 1, 0.22, 1);
+  --landing-motion-fast: 0.35s;
+  --landing-motion-section: 0.7s;
 
   /* Glass */
   --glass-bg: rgba(30, 28, 28, 0.51);

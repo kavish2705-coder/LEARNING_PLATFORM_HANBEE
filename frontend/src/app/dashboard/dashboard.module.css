@@ -23,6 +23,174 @@
   line-height: var(--ui-leading-tight);
 }
 
+.managerPageHeader {
+  gap: 18px;
+  padding: 22px 28px;
+  margin-bottom: 20px;
+}
+
+.managerEyebrow {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--accent-subtle-text);
+  font-size: var(--ui-caption);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.managerPageTitle {
+  font-size: clamp(1.75rem, 3vw, 2.25rem);
+}
+
+.managerAttentionLinks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.managerMetricsGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-4);
+  margin-bottom: 24px;
+}
+
+.managerMetricsGrid .metricCard {
+  min-height: 148px;
+}
+
+.managerMetricsGrid .metricSubtext {
+  margin-bottom: 0;
+}
+
+.managerTableWrap {
+  width: 100%;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+}
+
+.managerSectionCard {
+  padding: 24px;
+}
+
+.managerSectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.managerSectionSubtitle {
+  margin: 5px 0 0;
+  color: var(--text-muted);
+  font-size: var(--ui-caption);
+}
+
+.managerStaffGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 290px), 1fr));
+  gap: 14px;
+}
+
+.managerStaffCard {
+  min-width: 0;
+  padding: 18px;
+  border: 1px solid color-mix(in srgb, var(--text-main) 8%, transparent);
+  border-radius: var(--radius-card);
+  background: color-mix(in srgb, var(--bg-card) 78%, var(--bg-page));
+}
+
+.managerStaffCardHeader,
+.managerStaffIdentity {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+
+.managerStaffCardHeader {
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.managerStaffIdentity {
+  gap: 10px;
+}
+
+.managerStaffAvatar {
+  display: grid;
+  width: 38px;
+  height: 38px;
+  flex: 0 0 38px;
+  place-items: center;
+  border: 1px solid var(--accent-subtle-border);
+  border-radius: 50%;
+  background: var(--accent-subtle-bg);
+  color: var(--accent-subtle-text);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.managerStaffName {
+  overflow: hidden;
+  margin: 0;
+  color: var(--text-main);
+  font-size: 14px;
+  font-weight: 650;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.managerStaffStats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 18px;
+}
+
+.managerStaffStats > div {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.managerStaffStats span {
+  color: var(--text-muted);
+  font-size: 11px;
+  line-height: 1.3;
+}
+
+.managerStaffStats strong {
+  color: var(--text-main);
+  font-family: var(--font-mono);
+  font-size: 18px;
+  font-variant-numeric: tabular-nums;
+}
+
+.managerStaffLastSeen {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 16px 0 0;
+  padding-top: 12px;
+  border-top: 1px solid color-mix(in srgb, var(--text-main) 8%, transparent);
+  color: var(--text-muted);
+  font-size: 11px;
+}
+
+.managerStaffLastSeen time {
+  color: var(--text-main);
+  text-align: right;
+}
+
+.managerEmptyState {
+  margin: 0;
+  padding: 20px 4px;
+  color: var(--text-muted);
+}
+
 .pageSubtitle {
   font-size: var(--ui-body);
   color: var(--text-muted);
@@ -75,7 +243,7 @@
 }
 
 .metricLabel {
-  font-size: 13.5px;
+  font-size: 13px;
   font-weight: 500;
   color: var(--text-muted);
 }
@@ -104,7 +272,7 @@
 .metricValue {
   font-size: clamp(24px, 2vw, 30px);
   font-weight: 600;
-  font-family: monospace;
+  font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.01em;
   margin-bottom: 4px;
@@ -119,6 +287,72 @@
   font-size: 12px;
   color: var(--text-muted);
   margin-bottom: 16px;
+}
+
+/* Hero stat row: one lead number carries the visual weight, the rest sit
+   as compact supporting stats beside it -- instead of N identical tiles. */
+.heroStatCard {
+  display: flex;
+  align-items: stretch;
+  gap: 32px;
+  flex-wrap: wrap;
+  margin-bottom: 22px;
+}
+
+.heroStatMain {
+  flex: 0 0 auto;
+  min-width: 180px;
+}
+
+.heroStatValue {
+  font-family: var(--font-mono);
+  font-size: clamp(42px, 5vw, 56px);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+  line-height: 1;
+  margin: 10px 0 8px;
+  color: var(--text-main);
+}
+
+.heroStatDivider {
+  width: 1px;
+  background: var(--border-elevated);
+  flex: 0 0 1px;
+  align-self: stretch;
+}
+
+.heroStatSide {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 20px;
+  align-content: center;
+}
+
+.compactStat {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.compactStatValue {
+  font-family: var(--font-mono);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text-main);
+  line-height: 1.1;
+}
+
+@media (max-width: 640px) {
+  .heroStatCard {
+    flex-direction: column;
+    gap: 20px;
+  }
+  .heroStatDivider {
+    width: 100%;
+    height: 1px;
+  }
 }
 
 .sparkline {
@@ -256,6 +490,13 @@
 
 .badgeUpcoming { background: var(--bg-input); color: var(--accent); }
 .badgeCompleted { background: transparent; color: var(--text-muted); border: var(--border-subtle); }
+
+.badgeProposed { background: rgba(245, 158, 11, 0.12); color: var(--color-warning); }
+.badgeApproved { background: rgba(16, 185, 129, 0.12); color: var(--color-success); }
+.badgeChanges { background: rgba(239, 68, 68, 0.12); color: var(--color-danger); }
+
+.badgeHealthy { background: rgba(16, 185, 129, 0.12); color: var(--color-success); }
+.badgeAttention { background: rgba(245, 158, 11, 0.12); color: var(--color-warning); }
 
 /* Quick Actions */
 .quickActions {
@@ -487,6 +728,7 @@
 }
 
 .iconHeading h2 {
+  font-family: var(--font-heading);
   font-size: var(--ui-title);
   font-weight: 600;
 }
@@ -700,6 +942,7 @@
 }
 
 .achievementTitle {
+  font-family: var(--font-heading);
   font-size: var(--ui-title);
   font-weight: 600;
   line-height: var(--ui-leading-tight);
@@ -754,6 +997,7 @@
 
 .emptyOverviewTitle {
   margin-bottom: var(--space-2);
+  font-family: var(--font-heading);
   font-size: var(--ui-heading);
   font-weight: 600;
 }
@@ -792,6 +1036,7 @@
 
 .heroTitle {
   margin-top: var(--space-2);
+  font-family: var(--font-heading);
   font-size: var(--ui-heading);
   font-weight: 600;
 }
@@ -962,7 +1207,105 @@
   animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
+  position: relative;
+  overflow: hidden;
 }
+
+/* Shared "circuit line" accent -- the same top-border treatment used on
+   the student Tournament Hub's cards, so school_staff pages read as part
+   of the same product instead of a generic admin-panel bolted on. */
+.sectionCard::before,
+.metricCard::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--color-primary), transparent);
+  opacity: 0.7;
+}
+
+/* ===== Asymmetric split layout: a wider primary column (the real content)
+   beside a narrower secondary rail (compact summary), instead of stacking
+   equal-weight cards top to bottom. ===== */
+.splitLayout {
+  display: grid;
+  grid-template-columns: 1.6fr 1fr;
+  gap: 22px;
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .splitLayout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.sideRail {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  position: sticky;
+  top: 24px;
+}
+
+.railSummaryCard {
+  background: var(--bg-card);
+  border: 1px solid color-mix(in srgb, var(--text-main) 6%, transparent);
+  border-radius: var(--radius-card);
+  padding: 20px;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.railStat {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border-elevated);
+}
+
+.railStat:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.railStat:first-child {
+  padding-top: 0;
+}
+
+.railStatLabel {
+  font-size: 12.5px;
+  color: var(--text-muted);
+}
+
+.railStatValue {
+  font-family: var(--font-mono);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-main);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Status-rail cards: a colored left bar instead of the generic top line,
+   so an item's review state reads at a glance without reading its badge. */
+.statusRailCard {
+  background: var(--bg-card);
+  border: 1px solid color-mix(in srgb, var(--text-main) 6%, transparent);
+  border-left: 4px solid var(--border-elevated);
+  border-radius: var(--radius-card);
+  padding: 20px 24px;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  transition: border-color 0.2s ease;
+}
+
+.statusRailWarning { border-left-color: var(--color-warning); }
+.statusRailSuccess { border-left-color: var(--color-success); }
+.statusRailDanger { border-left-color: var(--color-danger); }
 
 @media (max-width: 720px) {
   .metricsRow {
@@ -1017,6 +1360,43 @@
 @media (max-width: 600px) {
   .metricsGrid {
     grid-template-columns: 1fr;
+  }
+
+  .managerMetricsGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .managerPageHeader {
+    padding: 20px;
+    margin-bottom: 16px;
+  }
+
+  .managerAttentionLinks {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .managerSectionCard {
+    padding: 18px;
+  }
+
+  .managerSectionHeader {
+    align-items: flex-start;
+    flex-direction: column;
+    margin-bottom: 16px;
+  }
+
+  .managerStaffGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .managerStaffLastSeen {
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .managerStaffLastSeen time {
+    text-align: left;
   }
 }
 

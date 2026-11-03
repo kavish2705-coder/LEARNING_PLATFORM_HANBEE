@@ -2,28 +2,29 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { 
-  ShieldCheck, Check, Award, Trophy, 
-  Flame, Zap, ArrowLeft, Sparkles, 
-  CheckCircle2, Radio, MapPin, Pencil
+import {
+  ShieldCheck, Copy, Check, Award, Trophy,
+  Zap, ArrowLeft, Sparkles,
+  MapPin
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import styles from "./license.module.css";
 import { useSessionProfile } from "../../../lib/hooks/useSessionProfile";
+import { useUserXp } from "../../../lib/hooks/useUserXp";
 import { fetchUpcomingTournament, fetchMyTeamFormation, fetchMySchool, type MyTeamFormation, type UpcomingTournament } from "../../../lib/teamFormationApi";
-import { readStoredSession } from "../../../lib/supabaseAuth";
+import { getStudentLeaderboard } from "../../../lib/tournamentAdminApi";
 
 export default function DriverLicensePage() {
   const router = useRouter();
   const { data: profile } = useSessionProfile();
+  const { xp } = useUserXp();
+  const [copied, setCopied] = useState(false);
   const [team, setTeam] = useState<MyTeamFormation["my_team"]>(null);
-  const [schoolName, setSchoolName] = useState("Your School");
+  const [schoolName, setSchoolName] = useState("Independent");
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [tournament, setTournament] = useState<UpcomingTournament | null>(null);
-  const [phone, setPhone] = useState("+91 98765 43210");
-  const [isEditingPhone, setIsEditingPhone] = useState(false);
-  const [phoneInput, setPhoneInput] = useState("+91 98765 43210");
+  const [bestLapMs, setBestLapMs] = useState<number | null>(null);
   const [timeLeft, setTimeLeft] = useState({
     days: 0,
     hours: 0,
@@ -46,6 +47,66 @@ export default function DriverLicensePage() {
   if (profile?.role && profile.role !== "student") {
     return null;
   }
+
+  // Interactive RC Motor Audio Synthesis
+  const [isRevving, setIsRevving] = useState(false);
+  const [rpm, setRpm] = useState(1400);
+
+  const playRcMotorRev = () => {
+    if (typeof window === "undefined") return;
+    try {
+      const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+      if (!AudioCtx) return;
+      const ctx = new AudioCtx();
+      if (ctx.state === "suspended") {
+        void ctx.resume();
+      }
+      const now = ctx.currentTime;
+
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      const filter = ctx.createBiquadFilter();
+
+      osc.type = "sawtooth";
+      filter.type = "lowpass";
+      filter.frequency.setValueAtTime(3200, now);
+
+      // Realistic electric RC motor whine (idle rev -> peak launch -> shift -> idle)
+      osc.frequency.setValueAtTime(320, now);
+      osc.frequency.exponentialRampToValueAtTime(1850, now + 0.35);
+      osc.frequency.setValueAtTime(1400, now + 0.42);
+      osc.frequency.exponentialRampToValueAtTime(2200, now + 0.85);
+      osc.frequency.exponentialRampToValueAtTime(280, now + 1.4);
+
+      gain.gain.setValueAtTime(0.01, now);
+      gain.gain.linearRampToValueAtTime(0.18, now + 0.08);
+      gain.gain.setValueAtTime(0.18, now + 0.9);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 1.45);
+
+      osc.connect(filter);
+      filter.connect(gain);
+      gain.connect(ctx.destination);
+
+      osc.start(now);
+      osc.stop(now + 1.45);
+    } catch {
+      // Graceful fallback if audio permissions are blocked
+    }
+  };
+
+  const handleRevMotor = () => {
+    if (isRevving) return;
+    setIsRevving(true);
+    playRcMotorRev();
+    setRpm(18650);
+
+    setTimeout(() => setRpm(14200), 400);
+    setTimeout(() => setRpm(19800), 800);
+    setTimeout(() => {
+      setRpm(1400);
+      setIsRevving(false);
+    }, 1450);
+  };
 
   // 3D Holographic Card Interactive Physics
   const [tilt, setTilt] = useState({ rotateX: 0, rotateY: 0 });
@@ -73,32 +134,14 @@ export default function DriverLicensePage() {
   };
 
   const driverName = profile?.full_name || "Student";
+  const driverInitials = driverName
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((part: string) => part[0])
+    .join("")
+    .toUpperCase() || "ST";
   const teamName = team?.name || "No team yet";
-
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const savedPhone = localStorage.getItem("hanbee_student_phone");
-      if (savedPhone) {
-        setPhone(savedPhone);
-        setPhoneInput(savedPhone);
-      } else {
-        try {
-          const session = readStoredSession();
-          const metaPhone = (session?.user?.user_metadata as Record<string, unknown> | undefined)?.phone;
-          const directPhone = (session?.user as Record<string, unknown> | undefined)?.phone;
-          if (typeof metaPhone === "string" && metaPhone.trim()) {
-            setPhone(metaPhone.trim());
-            setPhoneInput(metaPhone.trim());
-          } else if (typeof directPhone === "string" && directPhone.trim()) {
-            setPhone(directPhone.trim());
-            setPhoneInput(directPhone.trim());
-          }
-        } catch {
-          // ignore
-        }
-      }
-    }
-  }, []);
+  const serialNumber = profile?.id ? `HB-${profile.id.slice(0, 8).toUpperCase()}` : "HB-PENDING";
 
   useEffect(() => {
     let active = true;
@@ -113,6 +156,13 @@ export default function DriverLicensePage() {
           setTournament(tournamentData);
           const formation = await fetchMyTeamFormation(tournamentData.id);
           if (active) setTeam(formation.my_team);
+          try {
+            const rows = await getStudentLeaderboard(tournamentData.id);
+            const mine = rows.find((row) => row.is_current_user);
+            if (active && mine) setBestLapMs(mine.average_lap_time_ms);
+          } catch {
+            // No leaderboard entry yet -- bestLapMs stays null
+          }
         }
       } catch {
         // Fallback team and school names are used
@@ -123,10 +173,13 @@ export default function DriverLicensePage() {
   }, []);
 
   useEffect(() => {
+    if (!tournament) {
+      setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+      return;
+    }
+    const startsAt = tournament.starts_at;
     function calculateTimeLeft() {
-      const targetTime = tournament?.starts_at 
-        ? new Date(tournament.starts_at).getTime()
-        : new Date("2026-10-24T10:00:00+05:30").getTime();
+      const targetTime = new Date(startsAt).getTime();
       const diff = Math.max(0, targetTime - Date.now());
       return {
         days: Math.floor(diff / (1000 * 60 * 60 * 24)),
@@ -142,6 +195,34 @@ export default function DriverLicensePage() {
     return () => clearInterval(timer);
   }, [tournament?.starts_at]);
 
+  const handleCopySerial = () => {
+    if (typeof navigator !== "undefined" && navigator.clipboard) {
+      void navigator.clipboard.writeText(serialNumber);
+    }
+    setCopied(true);
+    setToastMessage(`✓ Copied Driver License ID: ${serialNumber}`);
+    setTimeout(() => {
+      setCopied(false);
+      setToastMessage(null);
+    }, 3000);
+  };
+
+  // Each badge's earned state is computed from real data (a recorded lap,
+  // the team actually existing, the local practice checklist actually being
+  // complete) -- previously every badge showed "Earned" unconditionally,
+  // regardless of whether the student had done anything.
+  const practiceChecklistComplete = (() => {
+    if (typeof window === "undefined") return false;
+    try {
+      const raw = localStorage.getItem("hanbee_rc_inspection");
+      if (!raw) return false;
+      const status = JSON.parse(raw) as Record<string, boolean>;
+      return ["wheels", "body", "motor", "wiring", "remote", "battery"].every((key) => status[key]);
+    } catch {
+      return false;
+    }
+  })();
+
   const badges = [
     {
       id: "quick_lap",
@@ -150,32 +231,28 @@ export default function DriverLicensePage() {
       icon: Zap,
       color: "#38bdf8",
       bgColor: "rgba(56, 189, 248, 0.12)",
+      earned: bestLapMs !== null && bestLapMs < 14000,
     },
     {
       id: "pre_race_check",
-      name: "Pre-Race Check",
-      desc: "Checked all 6 car parts",
+      name: "Practice Checklist",
+      desc: "Checked all 6 items on your practice checklist",
       icon: ShieldCheck,
       color: "#10b981",
       bgColor: "rgba(16, 185, 129, 0.12)",
-    },
-    {
-      id: "streak",
-      name: "4-Day Streak",
-      desc: "Practiced 4 days in a row",
-      icon: Flame,
-      color: "#f97316",
-      bgColor: "rgba(249, 115, 22, 0.12)",
+      earned: practiceChecklistComplete,
     },
     {
       id: "club_driver",
-      name: "Club Driver",
-      desc: "Official Hanbee RC racer",
+      name: "Registered Racer",
+      desc: "Registered a tournament team",
       icon: Trophy,
       color: "#fbbf24",
       bgColor: "rgba(251, 191, 36, 0.12)",
+      earned: team !== null,
     },
   ];
+  const earnedCount = badges.filter((badge) => badge.earned).length;
 
   return (
     <div className={styles.licensePage}>
@@ -198,14 +275,22 @@ export default function DriverLicensePage() {
       <header className={styles.pageHeader}>
         <div className={styles.headerLeft}>
           <h1 className={styles.pageTitle}>
-            Student ID Card
+            Student Driver License
           </h1>
           <p className={styles.pageSubtitle}>
-            Official student credentials, enrolled school, and team info.
+            Your official RC racing pass, school team, and practice stats.
           </p>
         </div>
 
         <div className={styles.headerActions}>
+          <button 
+            type="button" 
+            className={styles.actionBtnSecondary}
+            onClick={handleCopySerial}
+          >
+            {copied ? <Check size={14} color="#10b981" /> : <Copy size={14} />}
+            <span>{copied ? "Copied ID" : "Copy License ID"}</span>
+          </button>
           <Link href="/dashboard" className={styles.actionBtnPrimary}>
             <ArrowLeft size={14} />
             <span>Race Overview</span>
@@ -243,118 +328,130 @@ export default function DriverLicensePage() {
                 }}
               />
 
-              {/* Simplified ID Card Header */}
-              <div className={styles.simpleIdHeader}>
-                <span className={styles.simpleIdTitle}>STUDENT ID CARD</span>
+              {/* Card Header */}
+              <div className={styles.cardHeader}>
+                <div className={styles.cardFederationTitle}>
+                  <ShieldCheck size={15} color="#7dd3e8" />
+                  <span>HANBEE RACING CLUB // RC SERIES</span>
+                </div>
+                <div className={styles.licenseSuperBadge}>
+                  RACER PASS
+                </div>
               </div>
 
-              {/* Simplified Details (Only Name, School Name, Team Name, Phone Number) */}
-              <div className={styles.simpleIdFields}>
-                <div className={styles.simpleIdField}>
-                  <span className={styles.simpleIdLabel}>Name</span>
-                  <span className={styles.simpleIdNameVal}>{driverName}</span>
+              {/* Driver Profile */}
+              <div className={styles.driverRow}>
+                <div className={styles.avatarContainer}>
+                  {driverInitials}
                 </div>
 
-                <div className={styles.simpleIdField}>
-                  <span className={styles.simpleIdLabel}>School Name</span>
-                  <span className={styles.simpleIdVal}>{schoolName}</span>
+                <div className={styles.driverInfoMeta}>
+                  <div className={styles.driverNameWrap}>
+                    <h2 className={styles.driverName}>{driverName}</h2>
+                    {team?.status === "verified" ? (
+                      <span className={styles.statusVerifiedBadge}>● VERIFIED</span>
+                    ) : (
+                      <span className={styles.statusVerifiedBadge} style={{ background: "transparent", color: "var(--text-muted)" }}>● {team ? "Pending verification" : "Not registered"}</span>
+                    )}
+                  </div>
+                  <p className={styles.driverCallsign}>
+                    {teamName} • {schoolName}
+                  </p>
+                </div>
+              </div>
+
+              {/* Gold Smart Chip & Superlicense Class Row */}
+              <div className={styles.chipRow}>
+                <div className={styles.smartChip} title="2.4GHz Telemetry RFID Microchip">
+                  <div className={styles.smartChipInner}>
+                    <div className={styles.smartChipLineH} />
+                    <div className={styles.smartChipLineV} />
+                  </div>
+                </div>
+                <div className={styles.licenseClassBadge}>
+                  <Zap size={12} color="#7dd3e8" />
+                  <span>CLASS-A SUPERLICENSE // 4WD RC BUGGY</span>
+                </div>
+              </div>
+
+              {/* Telemetry Matrix -- only tiles with real data behind them */}
+              <div className={styles.statsMatrix}>
+                <div className={styles.statItem}>
+                  <span className={styles.statLabel}>BEST LAP</span>
+                  <span className={`${styles.statValue} ${styles.statValueAccent}`}>
+                    {bestLapMs === null ? "—" : `${(bestLapMs / 1000).toFixed(2)}s`}
+                  </span>
+                  <span className={`${styles.statSubBadge} ${styles.statSubPurple}`}>
+                    {bestLapMs === null ? "NOT RECORDED YET" : "AVG RECORDED LAP"}
+                  </span>
+                </div>
+                <div className={styles.statItem}>
+                  <span className={styles.statLabel}>PRACTICE POINTS</span>
+                  <span className={styles.statValue}>{xp.toLocaleString()} RP</span>
+                  <span className={styles.statSubBadge}>NOT TOURNAMENT RANKING</span>
+                </div>
+              </div>
+
+              {/* Interactive Cockpit RC Throttle Console (Replaces Loading Bar!) */}
+              <div className={`${styles.throttleConsole} ${isRevving ? styles.throttleConsoleRevving : ""}`}>
+                <div className={styles.throttleLeft}>
+                  <div className={styles.throttleMetaRow}>
+                    <span className={styles.throttleLabel}>RC Motor RPM:</span>
+                    <span className={`${styles.throttleRpmVal} ${isRevving ? styles.throttleRpmValActive : ""}`}>
+                      {rpm.toLocaleString()} RPM {isRevving ? "⚡ BOOST" : "• IDLE"}
+                    </span>
+                  </div>
+                  <div className={styles.tachometerTrack}>
+                    <div 
+                      className={styles.tachometerFill}
+                      style={{ width: `${Math.min(100, Math.max(8, (rpm / 20000) * 100))}%` }}
+                    />
+                  </div>
                 </div>
 
-                <div className={styles.simpleIdField}>
-                  <span className={styles.simpleIdLabel}>Team Name</span>
-                  <span className={styles.simpleIdVal}>{teamName}</span>
+                <button
+                  type="button"
+                  className={`${styles.revThrottleBtn} ${isRevving ? styles.revThrottleBtnActive : ""}`}
+                  onClick={handleRevMotor}
+                  disabled={isRevving}
+                  title="Click to test your RC car electric motor sound!"
+                >
+                  <Zap size={13} />
+                  <span>{isRevving ? "REVVED UP!" : "🏎️ Test Throttle"}</span>
+                </button>
+              </div>
+
+              {/* Driver Signature Stamp */}
+              <div className={styles.signatureRow}>
+                <span className={styles.signatureLabel}>Driver Signature:</span>
+                <span className={styles.signatureText}>{driverName}</span>
+                <span className={styles.statusVerifiedBadge} style={{ fontSize: 9 }}>FIA-RC // SEALED</span>
+              </div>
+
+              {/* Footer Barcode */}
+              <div className={styles.cardFooter}>
+                <div className={styles.barcodeArea}>
+                  <div className={styles.barcodeBar} style={{ width: 2 }} />
+                  <div className={styles.barcodeBar} style={{ width: 4 }} />
+                  <div className={styles.barcodeBar} style={{ width: 1 }} />
+                  <div className={styles.barcodeBar} style={{ width: 3 }} />
+                  <div className={styles.barcodeBar} style={{ width: 5 }} />
+                  <div className={styles.barcodeBar} style={{ width: 2 }} />
+                  <div className={styles.barcodeBar} style={{ width: 1 }} />
+                  <div className={styles.barcodeBar} style={{ width: 4 }} />
+                  <span className={styles.licenseSerial}>{serialNumber}</span>
                 </div>
 
-                <div className={styles.simpleIdField}>
-                  <span className={styles.simpleIdLabel}>Phone Number</span>
-                  {isEditingPhone ? (
-                    <form 
-                      onSubmit={(e) => {
-                        e.preventDefault();
-                        const trimmed = phoneInput.trim() || "+91 98765 43210";
-                        setPhone(trimmed);
-                        setIsEditingPhone(false);
-                        if (typeof window !== "undefined") {
-                          localStorage.setItem("hanbee_student_phone", trimmed);
-                        }
-                        setToastMessage("✓ Phone number updated");
-                        setTimeout(() => setToastMessage(null), 3000);
-                      }}
-                      style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 4, flexWrap: "wrap" }}
-                    >
-                      <input 
-                        type="tel"
-                        value={phoneInput}
-                        onChange={(e) => setPhoneInput(e.target.value)}
-                        className={styles.phoneInput}
-                        autoFocus
-                      />
-                      <button type="submit" className={styles.phoneSaveBtn}>Save</button>
-                      <button type="button" onClick={() => setIsEditingPhone(false)} className={styles.phoneCancelBtn}>Cancel</button>
-                    </form>
-                  ) : (
-                    <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 2 }}>
-                      <span className={styles.simpleIdVal}>{phone}</span>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setPhoneInput(phone);
-                          setIsEditingPhone(true);
-                        }}
-                        className={styles.phoneEditBtn}
-                        title="Edit phone number"
-                      >
-                        <Pencil size={13} />
-                      </button>
-                    </div>
-                  )}
+                <div className={styles.officialBadge}>
+                  <span>OFFICIAL PASS</span>
                 </div>
               </div>
             </motion.div>
           </div>
 
-          {/* RC Car & Race Info Card */}
-          <div className={styles.infoCard}>
-            <div className={styles.cardHeaderWithAction}>
-              <h3 className={styles.cardTitle}>
-                <Radio size={18} color="#7dd3e8" />
-                <span>RC Car & Race Info</span>
-              </h3>
-            </div>
-
-            <div className={styles.registryList}>
-              <div className={styles.registryRow}>
-                <span className={styles.registryLabel}>Car Model</span>
-                <span className={styles.registryVal}>4WD RC Buggy</span>
-              </div>
-              <div className={styles.registryRow}>
-                <span className={styles.registryLabel}>Remote Link</span>
-                <span className={styles.registryStatusOk}>
-                  <CheckCircle2 size={13} />
-                  <span>2.4GHz Connected</span>
-                </span>
-              </div>
-              <div className={styles.registryRow}>
-                <span className={styles.registryLabel}>Car Status</span>
-                <span className={styles.registryStatusOk}>
-                  <CheckCircle2 size={13} />
-                  <span>Checked & Ready to Drive</span>
-                </span>
-              </div>
-              <div className={styles.registryRow}>
-                <span className={styles.registryLabel}>Registered Team</span>
-                <span className={styles.registryVal}>{teamName}</span>
-              </div>
-              <div className={styles.registryRow}>
-                <span className={styles.registryLabel}>Track Location</span>
-                <span className={styles.registryVal}>Hanbee Track, Chennai</span>
-              </div>
-            </div>
-
-            <Link href="/dashboard" className={styles.returnPaddockLink}>
-              <span>Back to Race Track & Hub →</span>
-            </Link>
-          </div>
+          <Link href="/dashboard" className={styles.returnPaddockLink}>
+            <span>Back to Race Track & Hub →</span>
+          </Link>
         </div>
 
         {/* Right Column: Next Race Countdown & Badges */}
@@ -362,42 +459,50 @@ export default function DriverLicensePage() {
           
           {/* Next Race Countdown Card */}
           <div className={styles.countdownCard}>
-            <div className={styles.countdownHeader}>
-              <div className={styles.countdownTitleWrap}>
-                <div className={styles.countdownIconWrap}>
-                  <Trophy size={16} />
-                </div>
-                <div>
-                  <h3 className={styles.countdownTitle}>{tournament?.title || "Hanbee RC Cup 2026"}</h3>
-                  <div className={styles.countdownLocationWrap}>
-                    <MapPin size={12} color="var(--text-muted)" />
-                    <span className={styles.countdownTrack}>Hanbee Track, Chennai</span>
+            {tournament ? (
+              <>
+                <div className={styles.countdownHeader}>
+                  <div className={styles.countdownTitleWrap}>
+                    <div className={styles.countdownIconWrap}>
+                      <Trophy size={16} />
+                    </div>
+                    <div>
+                      <h3 className={styles.countdownTitle}>{tournament.title}</h3>
+                      <div className={styles.countdownLocationWrap}>
+                        <MapPin size={12} color="var(--text-muted)" />
+                        <span className={styles.countdownTrack}>{tournament.venue || "Venue to be announced"}</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </div>
 
-            <div className={styles.timerGrid}>
-              <div className={styles.timerSegment}>
-                <span className={styles.timerNumber}>{String(timeLeft.days).padStart(2, "0")}</span>
-                <span className={styles.timerLabel}>DAYS</span>
-              </div>
-              <div className={styles.timerColon}>:</div>
-              <div className={styles.timerSegment}>
-                <span className={styles.timerNumber}>{String(timeLeft.hours).padStart(2, "0")}</span>
-                <span className={styles.timerLabel}>HOURS</span>
-              </div>
-              <div className={styles.timerColon}>:</div>
-              <div className={styles.timerSegment}>
-                <span className={styles.timerNumber}>{String(timeLeft.minutes).padStart(2, "0")}</span>
-                <span className={styles.timerLabel}>MINUTES</span>
-              </div>
-              <div className={styles.timerColon}>:</div>
-              <div className={styles.timerSegment}>
-                <span className={styles.timerNumber}>{String(timeLeft.seconds).padStart(2, "0")}</span>
-                <span className={styles.timerLabel}>SECONDS</span>
-              </div>
-            </div>
+                <div className={styles.timerGrid}>
+                  <div className={styles.timerSegment}>
+                    <span className={styles.timerNumber}>{String(timeLeft.days).padStart(2, "0")}</span>
+                    <span className={styles.timerLabel}>DAYS</span>
+                  </div>
+                  <div className={styles.timerColon}>:</div>
+                  <div className={styles.timerSegment}>
+                    <span className={styles.timerNumber}>{String(timeLeft.hours).padStart(2, "0")}</span>
+                    <span className={styles.timerLabel}>HOURS</span>
+                  </div>
+                  <div className={styles.timerColon}>:</div>
+                  <div className={styles.timerSegment}>
+                    <span className={styles.timerNumber}>{String(timeLeft.minutes).padStart(2, "0")}</span>
+                    <span className={styles.timerLabel}>MINUTES</span>
+                  </div>
+                  <div className={styles.timerColon}>:</div>
+                  <div className={styles.timerSegment}>
+                    <span className={styles.timerNumber}>{String(timeLeft.seconds).padStart(2, "0")}</span>
+                    <span className={styles.timerLabel}>SECONDS</span>
+                  </div>
+                </div>
+              </>
+            ) : (
+              <p style={{ color: "var(--text-muted)", textAlign: "center", padding: "12px 0" }}>
+                No upcoming races scheduled. Check back later.
+              </p>
+            )}
           </div>
 
           {/* Racer Badges & Trophies */}
@@ -408,7 +513,7 @@ export default function DriverLicensePage() {
                 <span>Racer Badges & Trophies</span>
               </h3>
               <span className={styles.badgesCountBadge}>
-                4 Earned
+                {earnedCount} / {badges.length} Earned
               </span>
             </div>
 
@@ -416,9 +521,9 @@ export default function DriverLicensePage() {
               {badges.map((badge) => {
                 const IconComponent = badge.icon;
                 return (
-                  <div key={badge.id} className={styles.badgeCard}>
+                  <div key={badge.id} className={styles.badgeCard} style={{ opacity: badge.earned ? 1 : 0.55 }}>
                     <div className={styles.badgeTop}>
-                      <div 
+                      <div
                         className={styles.badgeIconWrap}
                         style={{ background: badge.bgColor, color: badge.color }}
                       >
@@ -428,10 +533,16 @@ export default function DriverLicensePage() {
                     </div>
                     <p className={styles.badgeDesc}>{badge.desc}</p>
                     <div className={styles.badgeFooter}>
-                      <span className={styles.badgeUnlockedTag}>
-                        <Check size={11} color="#10b981" />
-                        <span>Earned</span>
-                      </span>
+                      {badge.earned ? (
+                        <span className={styles.badgeUnlockedTag}>
+                          <Check size={11} color="#10b981" />
+                          <span>Earned</span>
+                        </span>
+                      ) : (
+                        <span className={styles.badgeUnlockedTag} style={{ color: "var(--text-muted)" }}>
+                          <span>Not yet</span>
+                        </span>
+                      )}
                     </div>
                   </div>
                 );

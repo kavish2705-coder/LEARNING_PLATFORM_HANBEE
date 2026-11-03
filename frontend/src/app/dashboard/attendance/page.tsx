@@ -2,8 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { Clock } from "lucide-react";
 import styles from "./attendance.module.css";
 import Shimmer from "../components/ui/Shimmer";
+import EmptyState from "../components/ui/EmptyState";
 import { authenticatedSupabaseFetch } from "../../../lib/supabaseAuth";
 
 type Session = {
@@ -73,7 +75,13 @@ export default function AttendancePage() {
         <h2 className={styles.historyTitle}>Attendance History</h2>
         {error && <p role="alert">{error instanceof Error ? error.message : "We couldn't load your attendance."}</p>}
         {isLoading && <Shimmer rows={4} />}
-        {!isLoading && !error && rows.length === 0 && <p>No attendance recorded yet.</p>}
+        {!isLoading && !error && rows.length === 0 && (
+          <EmptyState
+            icon={<Clock size={22} />}
+            title="No attendance recorded yet"
+            description="Your session history will show up here once you clock in for the first time."
+          />
+        )}
         {rows.length > 0 && (
           <table className={styles.dataTable}>
             <thead>
@@ -89,9 +97,9 @@ export default function AttendancePage() {
               {rows.map((row) => (
                 <tr key={row.id}>
                   <td>{new Date(row.login_at).toLocaleDateString()}</td>
-                  <td style={{ fontFamily: "monospace" }}>{new Date(row.login_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</td>
-                  <td style={{ fontFamily: "monospace" }}>{row.last_heartbeat_at ? new Date(row.last_heartbeat_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "—"}</td>
-                  <td style={{ fontFamily: "monospace", color: "var(--text-muted)" }}>{formatDuration(row.login_at, row.last_heartbeat_at ?? row.ended_at)}</td>
+                  <td style={{ fontFamily: "var(--font-mono)" }}>{new Date(row.login_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</td>
+                  <td style={{ fontFamily: "var(--font-mono)" }}>{row.last_heartbeat_at ? new Date(row.last_heartbeat_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "—"}</td>
+                  <td style={{ fontFamily: "var(--font-mono)", color: "var(--text-muted)" }}>{formatDuration(row.login_at, row.last_heartbeat_at ?? row.ended_at)}</td>
                   <td>{row.status.replaceAll("_", " ")}</td>
                 </tr>
               ))}

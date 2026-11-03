@@ -6,7 +6,7 @@ import styles from "./login.module.css";
 import { Suspense, useState, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useRole, Role } from "../RoleContext";
-import { AUTH_SESSION_KEY, signInWithPassword, signUpWithPassword, signInWithProvider, requestPasswordReset, type SupabaseSession, type HanbeeRole } from "../../lib/supabaseAuth";
+import { AUTH_SESSION_KEY, signInWithPassword, signInStudent, signUpWithPassword, signInWithProvider, requestPasswordReset, checkManagerExists, type SupabaseSession, type HanbeeRole } from "../../lib/supabaseAuth";
 
 function LoginContent() {
   const searchParams = useSearchParams();
@@ -29,7 +29,18 @@ function LoginContent() {
   useEffect(() => {
     if (activeRole !== "School" && activeRole !== "Staff" && activeRole !== "Manager") setIsLogin(true);
   }, [activeRole]);
-  
+
+  const [managerExists, setManagerExists] = useState<boolean | null>(null);
+  useEffect(() => {
+    checkManagerExists()
+      .then(setManagerExists)
+      .catch(() => setManagerExists(true)); // fail safe: hide manager signup if we can't confirm
+  }, []);
+
+  useEffect(() => {
+    if (activeRole === "Manager" && managerExists) setIsLogin(true);
+  }, [activeRole, managerExists]);
+
   const { setRole } = useRole();
   const router = useRouter();
 
@@ -103,10 +114,10 @@ function LoginContent() {
     if (process.env.NODE_ENV === "development" && password === "password" && isLogin) {
       const e = email.trim().toLowerCase();
       let dummyRole: HanbeeRole | null = null;
-      if (e === "student@hanbee.in" || e === "student" || e === "ava@student.edu" || activeRole === "Student") dummyRole = "student";
-      else if (e === "staff@hanbee.in" || e === "staff") dummyRole = "staff";
-      else if (e === "manager@hanbee.in" || e === "manager") dummyRole = "manager";
-      else if (e === "school@hanbee.in" || e === "school") dummyRole = "school_staff";
+      if (e === "student@hanbee.in") dummyRole = "student";
+      else if (e === "staff@hanbee.in") dummyRole = "staff";
+      else if (e === "manager@hanbee.in") dummyRole = "manager";
+      else if (e === "school@hanbee.in") dummyRole = "school_staff";
 
       if (dummyRole) {
         const fakeSession = {
@@ -149,17 +160,9 @@ function LoginContent() {
         return;
       }
 
-      const loginIdentifier = email.trim();
-      let result;
-      try {
-        result = await signInWithPassword(loginIdentifier, password);
-      } catch (initialErr) {
-        if (!loginIdentifier.includes("@") && activeRole === "Student") {
-          result = await signInWithPassword(`${loginIdentifier.toLowerCase()}@student.hanbee.in`, password);
-        } else {
-          throw initialErr;
-        }
-      }
+      const result = activeRole === "Student"
+        ? await signInStudent(email.trim(), password)
+        : await signInWithPassword(email.trim(), password);
       window.localStorage.setItem(AUTH_SESSION_KEY, JSON.stringify(result.session));
       finishLogin(result.role);
     } catch (reason) {
@@ -183,11 +186,12 @@ function LoginContent() {
     }
   };
 
+
   const getPrimaryPlaceholder = () => {
     if (activeRole === "Staff") return "Email / Staff ID";
     if (activeRole === "Manager") return "Email / Manager ID";
     if (activeRole === "School") return "Email / School Admin ID";
-    return "Username / Email / Student ID";
+    return "Username or Email";
   };
 
   return (
@@ -257,7 +261,7 @@ function LoginContent() {
           >
             Sign In
           </button>
-          {(activeRole === "School" || activeRole === "Staff" || activeRole === "Manager") && (
+          {(activeRole === "School" || activeRole === "Staff" || (activeRole === "Manager" && !managerExists)) && (
             <button
               className={`${styles.tabBtn} ${!isLogin ? styles.tabBtnActive : ''}`}
               onClick={() => setIsLogin(false)}
@@ -308,11 +312,12 @@ function LoginContent() {
 
           <div className={styles.formGroup}>
             <input
-              type={isLogin ? "text" : "email"}
+              type={activeRole === "Student" ? "text" : "email"}
               className={styles.input}
               placeholder={getPrimaryPlaceholder()}
               value={email}
               onChange={(event) => setEmail(event.target.value)}
+              autoCapitalize="none"
               required
             />
           </div>

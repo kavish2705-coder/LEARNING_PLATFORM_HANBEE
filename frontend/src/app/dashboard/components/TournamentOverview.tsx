@@ -1,24 +1,26 @@
 "use client";
 
-import { useEffect, useState, Fragment } from "react";
+import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   Trophy, CalendarDays, MapPin, Users, Zap, 
   Radio, CheckCircle2, RotateCw, Award, Sparkles, 
-  ChevronRight, ChevronDown, ChevronUp, Flag, Activity, Cpu, 
-  Layers, Compass, Disc, Gamepad2, BatteryCharging, Wrench, IdCard, Gauge, Clock
+  ChevronRight, Flag, Activity, Cpu, 
+  Layers, Compass, Disc, Gamepad2, BatteryCharging, Wrench, IdCard
 } from "lucide-react";
 import Link from "next/link";
 import styles from "./TournamentOverview.module.css";
+import EmptyState from "./ui/EmptyState";
+import Shimmer from "./ui/Shimmer";
 import { fetchUpcomingTournament, fetchMyTeamFormation, fetchMySchool, type MyTeamFormation, type UpcomingTournament } from "../../../lib/teamFormationApi";
-import { getLeaderboard } from "../../../lib/tournamentAdminApi";
+import { getStudentLeaderboard, type StudentLeaderboardRow } from "../../../lib/tournamentAdminApi";
 import { useSessionProfile } from "../../../lib/hooks/useSessionProfile";
 import { useUserXp } from "../../../lib/hooks/useUserXp";
 
 export default function TournamentOverview() {
   const [tournament, setTournament] = useState<UpcomingTournament | null>(null);
   const [team, setTeam] = useState<MyTeamFormation["my_team"]>(null);
-  const [schoolName, setSchoolName] = useState("Delhi Tech Academy");
+  const [schoolName, setSchoolName] = useState("");
   const [teamHref, setTeamHref] = useState("/dashboard/team");
   const [canManageTeam, setCanManageTeam] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -87,62 +89,41 @@ export default function TournamentOverview() {
       } catch {}
     }
     return {
-      wheels: false,
-      body: false,
-      motor: false,
+      wheels: true,
+      body: true,
+      motor: true,
       wiring: false,
       remote: false,
       battery: false,
     };
   });
 
-  const [expandedTeamId, setExpandedTeamId] = useState<string | null>(null);
+  const [leaderboardRows, setLeaderboardRows] = useState<StudentLeaderboardRow[]>([]);
 
-  const [realLeaderboard, setRealLeaderboard] = useState<Array<{
-    id: string;
-    name: string;
-    school: string;
-    car: string;
-    bestLap: string;
-    avgLap?: string;
-    topSpeed: string;
-    readiness: number;
-    points: number;
-    status: string;
-    statusType: string;
-    isUserTeam: boolean;
-    winRate?: string;
-    motorSpec?: string;
-    batterySpec?: string;
-    chassis?: string;
-    members?: Array<{ name: string; role: string; isCaptain?: boolean }>;
-  }> | null>(null);
-
-  // Dynamic Countdown to Next Tournament (Driven strictly by live tournament data)
-  const [timeLeft, setTimeLeft] = useState<{
-    days: number;
-    hours: number;
-    minutes: number;
-    seconds: number;
-  } | null>(null);
+  // Dynamic Countdown to Next Tournament
+  const [timeLeft, setTimeLeft] = useState({
+    days: 0,
+    hours: 0,
+    minutes: 0,
+    seconds: 0,
+  });
 
   useEffect(() => {
-    if (!tournament?.starts_at) {
-      setTimeLeft(null);
+    if (!tournament) {
+      setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0 });
       return;
     }
-
+    const startsAt = tournament.starts_at;
     function calculateTimeLeft() {
-      const targetTime = new Date(tournament!.starts_at).getTime();
+      const targetTime = new Date(startsAt).getTime();
       const diff = Math.max(0, targetTime - Date.now());
       return {
         days: Math.floor(diff / (1000 * 60 * 60 * 24)),
         hours: Math.floor((diff / (1000 * 60 * 60)) % 24),
-        minutes: Math.floor((diff / (1000 * 60)) % 60),
+        minutes: Math.floor((diff / 1000 / 60) % 60),
         seconds: Math.floor((diff / 1000) % 60),
       };
     }
-
     setTimeLeft(calculateTimeLeft());
     const timer = setInterval(() => {
       setTimeLeft(calculateTimeLeft());
@@ -173,24 +154,11 @@ export default function TournamentOverview() {
         }
         if (event) {
           try {
-            const lbRows = await getLeaderboard(event.id);
-            if (active && Array.isArray(lbRows) && lbRows.length > 0) {
-              setRealLeaderboard(lbRows.map((r) => ({
-                id: r.team_id,
-                name: r.team_name,
-                school: r.school_name || "Registered School",
-                car: "RC Race Buggy",
-                bestLap: "12.50s",
-                topSpeed: "24.0 km/h",
-                readiness: 100,
-                points: r.points,
-                status: "Official Entry",
-                statusType: "active",
-                isUserTeam: false,
-              })));
-            }
+            const rows = await getStudentLeaderboard(event.id);
+            if (active && Array.isArray(rows)) setLeaderboardRows(rows);
           } catch {
-            // Live leaderboard not populated yet; benchmark simulation will be used
+            // Leaderboard not available yet (e.g. no verified entries) -- the
+            // empty-state below handles this; nothing fabricated as a stand-in.
           }
         }
       } catch (reason) {
@@ -233,8 +201,8 @@ export default function TournamentOverview() {
       addXpTask(`insp_${id}`, 15, `${name}: Good Condition`);
       const passed = Object.values(updated).filter(Boolean).length;
       if (passed === 6) {
-        setToastMessage(`🏎️ Pre-Race Pit Inspection 100% Complete! Car is cleared for the track! (+50 XP)`);
-        addXpTask("insp_all_bonus", 50, "Full Pre-Race Paddock Clearance");
+        setToastMessage(`🏎️ Practice checklist 100% complete! (+50 XP)`);
+        addXpTask("insp_all_bonus", 50, "Practice Checklist Complete");
       } else {
         setToastMessage(`✓ ${name}: Passed / Good Condition (+15 XP)`);
       }
@@ -264,8 +232,8 @@ export default function TournamentOverview() {
     Object.keys(allPassed).forEach((key) => {
       addXpTask(`insp_${key}`, 15, `${key}: Passed`);
     });
-    addXpTask("insp_all_bonus", 50, "Full Pre-Race Paddock Clearance");
-    setToastMessage(`🎉 All 6 Self-Checklist Items Passed! Full Race Readiness (+50 XP Bonus)`);
+    addXpTask("insp_all_bonus", 50, "Practice Checklist Complete");
+    setToastMessage(`🎉 All 6 items checked on your practice checklist (+50 XP)`);
     setTimeout(() => setToastMessage(null), 3500);
   };
 
@@ -295,214 +263,41 @@ export default function TournamentOverview() {
   const passedCount = inspectionItems.filter((i) => inspectionStatus[i.id]).length;
   const readinessScore = Math.round((passedCount / inspectionItems.length) * 100);
 
-  const driverName = profile?.full_name || "Alex Mitchell";
-  const driverInitials = driverName.split(/\s+/).slice(0, 2).map((n: string) => n[0]).join("").toUpperCase() || "AM";
-  const teamName = team?.name || "Vortex Racing";
 
-  // Benchmark Teams with Rich Roster & Telemetry
-  const baseDummyTeams = [
-    {
-      id: "team_redline",
-      name: "Team Redline Apex",
-      school: "St. Xavier Tech",
-      car: "Redline RC Buggy (4WD)",
-      bestLap: "11.42s",
-      avgLap: "11.85s",
-      topSpeed: "26.8 km/h",
-      readiness: 100,
-      points: 1850,
-      status: "On Track",
-      statusType: "active",
-      isUserTeam: false,
-      winRate: "4 / 5 Podiums (80%)",
-      motorSpec: "Brushless 4200KV • 45A ESC",
-      batterySpec: "2S LiPo 1500mAh 30C",
-      chassis: "4WD Carbon/Polymer • 760g",
-      members: [
-        { name: "Rohan V.", role: "Team Captain & Lead Driver", isCaptain: true },
-        { name: "Aarav P.", role: "Telemetry & Electronics Lead", isCaptain: false },
-        { name: "Zara K.", role: "Pit Crew & Chassis Mechanic", isCaptain: false },
-      ],
-    },
-    {
-      id: "team_cyberdrift",
-      name: "CyberDrift FC",
-      school: "Modern Academy",
-      car: "Blue Thunder RC 16X",
-      bestLap: "11.89s",
-      avgLap: "12.18s",
-      topSpeed: "25.4 km/h",
-      readiness: 100,
-      points: 1620,
-      status: "Pit Ready",
-      statusType: "active",
-      isUserTeam: false,
-      winRate: "3 / 5 Podiums (60%)",
-      motorSpec: "Brushless 3900KV • 40A ESC",
-      batterySpec: "2S LiPo 1400mAh 25C",
-      chassis: "Shaft-Driven 4WD • 775g",
-      members: [
-        { name: "Maya T.", role: "Lead Driver & Strategist", isCaptain: true },
-        { name: "Elena S.", role: "Battery & Motor Tech", isCaptain: false },
-        { name: "Liam N.", role: "Lap Analysis & Sensor Lead", isCaptain: false },
-      ],
-    },
-    {
-      id: "team_torquecraft",
-      name: "TorqueCraft Racing",
-      school: "DPS Engineering",
-      car: "Turbo Racer Buggy",
-      bestLap: "12.15s",
-      avgLap: "12.42s",
-      topSpeed: "24.6 km/h",
-      readiness: 100,
-      points: 1490,
-      status: "Pit Ready",
-      statusType: "active",
-      isUserTeam: false,
-      winRate: "2 / 5 Podiums (40%)",
-      motorSpec: "Modified 540 Brushed • 35A ESC",
-      batterySpec: "7.2V NiMH 1800mAh Pack",
-      chassis: "Reinforced Buggy Plate • 810g",
-      members: [
-        { name: "David C.", role: "Squad Captain & Driver", isCaptain: true },
-        { name: "Nathan R.", role: "Gearbox & Suspension Tech", isCaptain: false },
-      ],
-    },
-    {
-      id: "team_neon",
-      name: "Neon Drift Squad",
-      school: "Greenwood High",
-      car: "Neon Cruiser 4WD",
-      bestLap: "13.05s",
-      avgLap: "13.38s",
-      topSpeed: "23.2 km/h",
-      readiness: 83,
-      points: 1340,
-      status: "Tuning",
-      statusType: "tuning",
-      isUserTeam: false,
-      winRate: "1 / 4 Podiums (25%)",
-      motorSpec: "Brushless 3300KV • 30A ESC",
-      batterySpec: "2S LiPo 1300mAh 20C",
-      chassis: "High-Clearance 4x4 • 785g",
-      members: [
-        { name: "Priya S.", role: "Lead Pilot", isCaptain: true },
-        { name: "Marcus B.", role: "Radio Telemetry Lead", isCaptain: false },
-      ],
-    },
-    {
-      id: "team_falcon",
-      name: "Falcon Aero RC",
-      school: "National Public School",
-      car: "Aero Storm Buggy",
-      bestLap: "13.22s",
-      avgLap: "13.55s",
-      topSpeed: "22.8 km/h",
-      readiness: 100,
-      points: 1280,
-      status: "Pit Ready",
-      statusType: "active",
-      isUserTeam: false,
-      winRate: "1 / 5 Podiums (20%)",
-      motorSpec: "Brushed 380 High-Torque",
-      batterySpec: "7.4V Li-ion 1200mAh",
-      chassis: "Aero Composite Frame • 770g",
-      members: [
-        { name: "Oliver G.", role: "Team Pilot", isCaptain: true },
-        { name: "Sophia D.", role: "Aerodynamics & Wing Tuning", isCaptain: false },
-      ],
-    },
-    {
-      id: "team_hyperspark",
-      name: "HyperSpark Racing",
-      school: "Oakridge Tech",
-      car: "Spark Runner 1:16",
-      bestLap: "13.58s",
-      avgLap: "13.92s",
-      topSpeed: "22.1 km/h",
-      readiness: 67,
-      points: 1190,
-      status: "Battery Check",
-      statusType: "tuning",
-      isUserTeam: false,
-      winRate: "0 / 3 Podiums",
-      motorSpec: "Stock 390 Brushed Motor",
-      batterySpec: "6.0V NiMH 1100mAh",
-      chassis: "Molded Tub Chassis • 795g",
-      members: [
-        { name: "Daniel K.", role: "Lead Driver", isCaptain: true },
-        { name: "Chloe M.", role: "Battery Charging Tech", isCaptain: false },
-      ],
-    },
-    {
-      id: "team_apex",
-      name: "Apex Predators",
-      school: "Bishop Cotton",
-      car: "Predator RC 4x4",
-      bestLap: "13.91s",
-      avgLap: "14.20s",
-      topSpeed: "21.5 km/h",
-      readiness: 83,
-      points: 1050,
-      status: "In Paddock",
-      statusType: "paddock",
-      isUserTeam: false,
-      winRate: "0 / 2 Podiums",
-      motorSpec: "Standard 380 Motor",
-      batterySpec: "7.4V 1000mAh LiPo",
-      chassis: "4WD Dual Differential • 820g",
-      members: [
-        { name: "Aryan T.", role: "Driver", isCaptain: true },
-        { name: "Ananya B.", role: "Pit Lane Coordinator", isCaptain: false },
-      ],
-    },
-  ];
+  // Real standings only -- no invented opponents or placeholder stats.
+  // Entries without a submitted rank (rank === null) sort last, per the
+  // get_student_leaderboard RPC's own ordering.
+  const allRankedTeams = leaderboardRows.map((row) => ({
+    id: row.team_id,
+    name: row.team_name,
+    school: row.school_name ?? "Solo entry",
+    points: row.points,
+    rank: row.rank,
+    avgLapMs: row.average_lap_time_ms,
+    races: row.matches_participated,
+    isUserTeam: row.is_current_user,
+  }));
 
-  const userSquad = {
-    id: "user_squad",
-    name: teamName,
-    school: schoolName,
-    car: "Thunder RC 4WD Buggy",
-    bestLap: "12.84s",
-    avgLap: "13.15s",
-    topSpeed: "23.9 km/h",
-    readiness: readinessScore,
-    points: xp,
-    status: readinessScore === 100 ? "Ready to Drive" : "Inspecting",
-    statusType: readinessScore === 100 ? "active" : "tuning",
-    isUserTeam: true,
-    winRate: `${Math.min(5, Math.max(1, Math.floor(xp / 350)))} / 5 Events Logged`,
-    motorSpec: "High-Torque 380 Motor • 30A Waterproof ESC",
-    batterySpec: "7.4V 1200mAh Li-ion Pack",
-    chassis: "4WD High-Clearance Buggy Chassis • 790g",
-    members: team && team.members && team.members.length > 0
-      ? team.members.map((m) => ({
-          name: m.name,
-          role: m.is_captain ? "Team Captain & Driver" : "Co-Driver & Pit Crew",
-          isCaptain: m.is_captain,
-        }))
-      : [
-          { name: driverName, role: "Team Captain & Driver", isCaptain: true },
-          { name: "Open Slot", role: "Invite Classmate from Squad Hub", isCaptain: false },
-        ],
-  };
+  const fieldSize = leaderboardRows[0]?.field_size ?? 0;
+  const userEntry = allRankedTeams.find((t) => t.isUserTeam) ?? null;
+  const userRank = userEntry?.rank ?? null;
+  const teamAhead = userRank ? allRankedTeams.find((t) => t.rank === userRank - 1) : undefined;
+  const ptsBehind = teamAhead && userEntry ? Math.max(0, teamAhead.points - userEntry.points) : 0;
 
-  const isSimulated = !realLeaderboard || realLeaderboard.length === 0;
-
-  const allRankedTeams = (isSimulated
-    ? [...baseDummyTeams, userSquad]
-    : realLeaderboard.map((t) => ({ ...t, isUserTeam: team ? t.id === team.id : t.id === "user_squad" }))
-  )
-    .sort((a, b) => b.points - a.points)
-    .map((t, idx) => ({ ...t, rank: idx + 1 }));
-
-  const userRank = allRankedTeams.find((t) => t.isUserTeam)?.rank ?? 4;
-  const teamAhead = allRankedTeams.find((t) => t.rank === userRank - 1);
-  const ptsBehind = teamAhead ? Math.max(0, teamAhead.points - xp) : 0;
+  function formatLapTime(ms: number | null) {
+    return ms === null ? "—" : `${(ms / 1000).toFixed(2)}s`;
+  }
   const currentHour = new Date().getHours();
   const timeGreeting = currentHour < 12 ? "Good morning" : currentHour < 17 ? "Good afternoon" : "Good evening";
   const studentName = profile?.full_name ? profile.full_name.split(" ")[0] : "Driver";
+
+  if (loading || profileLoading) {
+    return (
+      <div className={styles.tournamentHub}>
+        <Shimmer variant="cards" count={4} />
+      </div>
+    );
+  }
 
   return (
     <div className={styles.tournamentHub}>
@@ -554,22 +349,35 @@ export default function TournamentOverview() {
       <div className={styles.teamPerformanceStrip}>
         <div className={styles.perfItem}>
           <span className={styles.perfLabel}>ACTIVE TEAM</span>
-          <span className={styles.perfValue}>{team?.name || "Vortex Racing"} ({schoolName || "Delhi Tech Academy"})</span>
+          <span className={styles.perfValue}>
+            {team?.name ? (schoolName ? `${team.name} (${schoolName})` : team.name) : "No team yet"}
+          </span>
+          {!team && (
+            <Link href={teamHref} style={{ color: "var(--accent-subtle-text)", fontSize: 13, fontWeight: 600, textDecoration: "none" }}>
+              Register your team →
+            </Link>
+          )}
         </div>
         <div className={styles.perfItem}>
           <span className={styles.perfLabel}>PADDOCK STANDING</span>
           <span className={styles.perfValue} style={{ color: userRank === 1 ? "#f59e0b" : "var(--accent-subtle-text)" }}>
-            {userRank === 1 ? "Rank #1 (Championship Lead)" : `Rank #${userRank} (${ptsBehind > 0 ? `${ptsBehind} pts behind P${userRank - 1}` : "Chasing Podium"})`}
+            {userRank === null
+              ? "Not ranked yet"
+              : userRank === 1
+              ? "Rank #1 (Championship Lead)"
+              : `Rank #${userRank} of ${fieldSize} (${ptsBehind > 0 ? `${ptsBehind} pts behind P${userRank - 1}` : "Chasing Podium"})`}
           </span>
         </div>
         <div className={styles.perfItem}>
-          <span className={styles.perfLabel}>AVERAGE LAP</span>
-          <span className={styles.perfValue} style={{ color: "var(--accent-subtle-text)" }}>12.84s</span>
+          <span className={styles.perfLabel}>BEST QUALIFYING LAP</span>
+          <span className={styles.perfValue} style={{ color: "var(--accent-subtle-text)" }}>
+            {formatLapTime(userEntry?.avgLapMs ?? null)}
+          </span>
         </div>
         <div className={styles.perfItem}>
-          <span className={styles.perfLabel}>PRE-RACE READINESS</span>
+          <span className={styles.perfLabel}>PRACTICE READINESS</span>
           <span className={styles.perfValue} style={{ color: readinessScore === 100 ? "#10b981" : "#7dd3e8" }}>
-            {readinessScore}% {readinessScore === 100 ? "· Track Ready" : "· In Inspection"}
+            {readinessScore}% {readinessScore === 100 ? "· Checklist Done" : "· In Progress"}
           </span>
         </div>
       </div>
@@ -584,166 +392,125 @@ export default function TournamentOverview() {
       {/* ===== Section: Podium, Rivalry & Live Grid Standings ===== */}
       <section className={styles.standingsSection}>
         <div className={styles.cardHeaderTitle}>
-          <div className={styles.hubTitle} style={{ fontSize: "20px" }}>
+          <div className={styles.sectionGroupTitle}>
             <Award size={22} color="#fbbf24" />
             <span>Active Grid Standings & Top 3 Podium</span>
           </div>
           <Link href="/dashboard/leaderboard" style={{ fontSize: "13px", color: "var(--accent-subtle-text)", textDecoration: "none", display: "flex", alignItems: "center", gap: 4 }}>
-            <span>Full Standings (8 Teams)</span>
+            <span>Full Standings ({fieldSize} {fieldSize === 1 ? "Team" : "Teams"})</span>
             <ChevronRight size={14} />
           </Link>
         </div>
 
-        {/* 3D-styled Dynamic Podium */}
-        <div className={styles.podiumRow}>
-          {/* Gold - P1 */}
-          <motion.div 
-            className={`${styles.podiumCard} ${styles.podiumCardGold}`}
-            whileHover={{ y: -5, scale: 1.02 }}
-            transition={{ type: "spring", stiffness: 350, damping: 22 }}
-          >
-            <div className={`${styles.podiumRank} ${styles.podiumRankGold}`}>1</div>
-            <div className={styles.podiumDetails}>
-              <h4>
-                {allRankedTeams[0].name}
-                {allRankedTeams[0].isUserTeam && (
-                  <span className={styles.userSquadTag} style={{ marginLeft: 6 }}>YOUR SQUAD</span>
-                )}
-              </h4>
-              <p>{allRankedTeams[0].school} • {allRankedTeams[0].car}</p>
-            </div>
-            <div className={styles.podiumPts} style={{ color: "#fbbf24" }}>{allRankedTeams[0].points.toLocaleString()} pts</div>
-          </motion.div>
-
-          {/* Silver - P2 */}
-          <motion.div 
-            className={`${styles.podiumCard} ${styles.podiumCardSilver}`}
-            whileHover={{ y: -5, scale: 1.02 }}
-            transition={{ type: "spring", stiffness: 350, damping: 22 }}
-          >
-            <div className={`${styles.podiumRank} ${styles.podiumRankSilver}`}>2</div>
-            <div className={styles.podiumDetails}>
-              <h4>
-                {allRankedTeams[1].name}
-                {allRankedTeams[1].isUserTeam && (
-                  <span className={styles.userSquadTag} style={{ marginLeft: 6 }}>YOUR SQUAD</span>
-                )}
-              </h4>
-              <p>{allRankedTeams[1].school} • {allRankedTeams[1].car}</p>
-            </div>
-            <div className={styles.podiumPts} style={{ color: "#9ca3af" }}>{allRankedTeams[1].points.toLocaleString()} pts</div>
-          </motion.div>
-
-          {/* Bronze - P3 */}
-          <motion.div 
-            className={`${styles.podiumCard} ${styles.podiumCardBronze}`}
-            whileHover={{ y: -5, scale: 1.02 }}
-            transition={{ type: "spring", stiffness: 350, damping: 22 }}
-          >
-            <div className={`${styles.podiumRank} ${styles.podiumRankBronze}`}>3</div>
-            <div className={styles.podiumDetails}>
-              <h4>
-                {allRankedTeams[2].name}
-                {allRankedTeams[2].isUserTeam && (
-                  <span className={styles.userSquadTag} style={{ marginLeft: 6 }}>YOUR SQUAD</span>
-                )}
-              </h4>
-              <p>{allRankedTeams[2].school} • {allRankedTeams[2].car}</p>
-            </div>
-            <div className={styles.podiumPts} style={{ color: "#f59e0b" }}>{allRankedTeams[2].points.toLocaleString()} pts</div>
-          </motion.div>
-        </div>
-
-        {/* Dynamic Rivalry Indicator */}
-        <div className={styles.rivalryBar}>
-          <div className={styles.rivalryLeft}>
-            <Flag size={18} color="var(--accent-subtle-text)" />
-            <span>
-              Your Squad: <strong>#{userRank} {teamName}</strong> ({xp.toLocaleString()} XP)
-            </span>
-            <span style={{ opacity: 0.4 }}>|</span>
-            <span style={{ fontSize: "13px", opacity: 0.9 }}>
-              {userRank === 1 ? (
-                <span>👑 <strong>Championship Leader!</strong> Defend your P1 grid position!</span>
-              ) : userRank <= 3 ? (
-                <span>🎉 <strong>Podium Position Secured!</strong> Only <strong>{ptsBehind} XP behind #{userRank - 1} [{teamAhead?.name}]</strong> for the next position!</span>
-              ) : (
-                <span>Only <strong>{ptsBehind} XP behind #{userRank - 1} [{teamAhead?.name}]</strong>! Complete pit tasks or checks to climb the podium!</span>
-              )}
-            </span>
-          </div>
-
-          <div className={styles.rivalryDelta}>
-            {userRank === 1 ? "P1 LEADER" : `GAP: -${ptsBehind} XP`}
-          </div>
-        </div>
-
-        {/* Mobile Swipe Hint */}
-        <div className={styles.mobileSwipeHint}>
-          ← Swipe table horizontally to inspect lap times & telemetry →
-        </div>
-
-        {/* Full Grid Standings & Team Telemetry Table */}
-        <div className={styles.standingsTableContainer}>
-          <table className={styles.standingsTable}>
-            <thead className={styles.standingsThead}>
-              <tr>
-                <th>Grid Pos</th>
-                <th>Team</th>
-                <th>School</th>
-                <th>Best Lap</th>
-                <th>Top Speed</th>
-                <th style={{ textAlign: "right" }}>Total Points</th>
-              </tr>
-            </thead>
-            <tbody>
-              {allRankedTeams.map((t) => {
-                const isExpanded = expandedTeamId === t.id;
+        {allRankedTeams.length === 0 ? (
+          <EmptyState
+            icon={<Trophy size={22} />}
+            title="No verified entries yet"
+            description="Standings appear here once teams are verified for this tournament."
+          />
+        ) : (
+          <>
+            {/* 3D-styled Dynamic Podium */}
+            <div className={styles.podiumRow}>
+              {([
+                { rankLabel: "1", cardClass: styles.podiumCardGold, rankClass: styles.podiumRankGold, ptsColor: "#fbbf24" },
+                { rankLabel: "2", cardClass: styles.podiumCardSilver, rankClass: styles.podiumRankSilver, ptsColor: "#9ca3af" },
+                { rankLabel: "3", cardClass: styles.podiumCardBronze, rankClass: styles.podiumRankBronze, ptsColor: "#f59e0b" },
+              ] as const).map((slot, idx) => {
+                const t = allRankedTeams[idx];
+                if (!t) return null;
                 return (
-                  <Fragment key={t.id}>
-                    <tr 
-                      className={`${styles.standingsRow} ${t.isUserTeam ? styles.standingsUserRow : ""} ${isExpanded ? styles.standingsRowActive : ""}`}
-                      onClick={() => setExpandedTeamId(isExpanded ? null : t.id)}
-                      role="button"
-                      tabIndex={0}
-                      aria-expanded={isExpanded}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter" || e.key === " ") {
-                          e.preventDefault();
-                          setExpandedTeamId(isExpanded ? null : t.id);
-                        }
-                      }}
-                      title="Click to view team member roster & telemetry specs"
+                  <motion.div
+                    key={t.id}
+                    className={`${styles.podiumCard} ${slot.cardClass}`}
+                    whileHover={{ y: -5, scale: 1.02 }}
+                    transition={{ type: "spring", stiffness: 350, damping: 22 }}
+                  >
+                    <div className={`${styles.podiumRank} ${slot.rankClass}`}>{slot.rankLabel}</div>
+                    <div className={styles.podiumDetails}>
+                      <h4>
+                        {t.name}
+                        {t.isUserTeam && (
+                          <span className={styles.userSquadTag} style={{ marginLeft: 6 }}>YOUR SQUAD</span>
+                        )}
+                      </h4>
+                      <p>{t.school}</p>
+                    </div>
+                    <div className={styles.podiumPts} style={{ color: slot.ptsColor }}>{t.points.toLocaleString()} pts</div>
+                  </motion.div>
+                );
+              })}
+            </div>
+
+            {/* Dynamic Rivalry Indicator */}
+            {userEntry && (
+              <div className={styles.rivalryBar}>
+                <div className={styles.rivalryLeft}>
+                  <Flag size={18} color="var(--accent-subtle-text)" />
+                  <span>
+                    Your Squad: <strong>#{userRank ?? "—"} {userEntry.name}</strong> ({userEntry.points.toLocaleString()} pts)
+                  </span>
+                  <span style={{ opacity: 0.4 }}>|</span>
+                  <span style={{ fontSize: "13px", opacity: 0.9 }}>
+                    {userRank === 1 ? (
+                      <span>👑 <strong>Championship Leader!</strong> Defend your P1 grid position!</span>
+                    ) : userRank !== null && teamAhead ? (
+                      userRank <= 3 ? (
+                        <span>🎉 <strong>Podium Position Secured!</strong> Only <strong>{ptsBehind} pts behind #{userRank - 1} [{teamAhead.name}]</strong> for the next position!</span>
+                      ) : (
+                        <span>Only <strong>{ptsBehind} pts behind #{userRank - 1} [{teamAhead.name}]</strong>! Keep racing to climb the podium!</span>
+                      )
+                    ) : (
+                      <span>Submit a result to join the ranked standings.</span>
+                    )}
+                  </span>
+                </div>
+
+                <div className={styles.rivalryDelta}>
+                  {userRank === 1 ? "P1 LEADER" : teamAhead ? `GAP: -${ptsBehind} pts` : "UNRANKED"}
+                </div>
+              </div>
+            )}
+
+            {/* Mobile Swipe Hint */}
+            <div className={styles.mobileSwipeHint}>
+              ← Swipe table horizontally to inspect lap times & telemetry →
+            </div>
+
+            {/* Full Grid Standings Table */}
+            <div className={styles.standingsTableContainer}>
+              <table className={styles.standingsTable}>
+                <thead className={styles.standingsThead}>
+                  <tr>
+                    <th>Grid Pos</th>
+                    <th>Team</th>
+                    <th>School</th>
+                    <th>Avg Lap</th>
+                    <th>Races</th>
+                    <th style={{ textAlign: "right" }}>Total Points</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {allRankedTeams.map((t) => (
+                    <tr
+                      key={t.id}
+                      className={`${styles.standingsRow} ${t.isUserTeam ? styles.standingsUserRow : ""}`}
                     >
                       <td className={styles.standingsCell}>
-                        <div 
+                        <div
                           className={`${styles.standingsRankBadge} ${
-                            t.rank === 1 ? styles.rankP1 : 
-                            t.rank === 2 ? styles.rankP2 : 
-                            t.rank === 3 ? styles.rankP3 : 
+                            t.rank === 1 ? styles.rankP1 :
+                            t.rank === 2 ? styles.rankP2 :
+                            t.rank === 3 ? styles.rankP3 :
                             styles.rankOther
                           }`}
                         >
-                          #{t.rank}
+                          {t.rank === null ? "—" : `#${t.rank}`}
                         </div>
                       </td>
                       <td className={styles.standingsCell}>
                         <div className={styles.teamMetaTitle}>
-                          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                            <span>{t.name}</span>
-                            <span 
-                              className={styles.expandChevronIcon} 
-                              style={{ 
-                                display: "inline-flex", 
-                                alignItems: "center", 
-                                color: isExpanded ? "var(--accent)" : "var(--text-muted)",
-                                transform: isExpanded ? "rotate(180deg)" : "rotate(0deg)",
-                                transition: "transform 0.2s ease, color 0.2s ease",
-                              }}
-                            >
-                              <ChevronDown size={14} />
-                            </span>
-                          </div>
+                          <span>{t.name}</span>
                           {t.isUserTeam && (
                             <span className={styles.userSquadTag}>YOUR SQUAD • LIVE</span>
                           )}
@@ -753,10 +520,10 @@ export default function TournamentOverview() {
                         <span className={styles.teamSchoolText}>{t.school}</span>
                       </td>
                       <td className={styles.standingsCell}>
-                        <span className={styles.lapTimeBadge}>{t.bestLap}</span>
+                        <span className={styles.lapTimeBadge}>{formatLapTime(t.avgLapMs)}</span>
                       </td>
                       <td className={styles.standingsCell}>
-                        <span className={styles.speedBadge}>{t.topSpeed}</span>
+                        <span className={styles.speedBadge}>{t.races}</span>
                       </td>
                       <td className={styles.standingsCell}>
                         <div className={styles.teamPointsBadge}>
@@ -764,114 +531,23 @@ export default function TournamentOverview() {
                         </div>
                       </td>
                     </tr>
-
-                    {/* Accordion Dropdown: Team Members & Extended Telemetry */}
-                    {isExpanded && (
-                      <tr className={styles.expandedDetailsRow}>
-                        <td colSpan={6} className={styles.expandedDetailsCell}>
-                          <div className={styles.expandedDropdownCard}>
-                            <div className={styles.expandedHeader}>
-                              <div className={styles.expandedHeaderLeft}>
-                                <div className={styles.expandedCarBadge}>
-                                  <Activity size={13} />
-                                  <span>{t.car || "4WD Racing Buggy"}</span>
-                                </div>
-                                <span className={styles.expandedSchoolMeta}>• {t.school}</span>
-                              </div>
-                              <div className={styles.expandedWinPill}>
-                                <Trophy size={13} color="#f59e0b" />
-                                <span>{t.winRate || "3 / 5 Podiums"}</span>
-                              </div>
-                            </div>
-
-                            <div className={styles.expandedGrid}>
-                              {/* Column 1: Team Members / Roster */}
-                              <div className={styles.expandedColRoster}>
-                                <div className={styles.expandedSectionLabel}>
-                                  <Users size={13} />
-                                  <span>TEAM MEMBERS & ROSTER</span>
-                                </div>
-                                <div className={styles.memberCardList}>
-                                  {(t.members && t.members.length > 0 ? t.members : [
-                                    { name: "Team Pilot", role: "Lead Driver", isCaptain: true },
-                                    { name: "Pit Technician", role: "Telemetry & Battery", isCaptain: false }
-                                  ]).map((m, mIdx) => {
-                                    const initials = m.name.split(/\s+/).slice(0, 2).map((w: string) => w[0]).join("").toUpperCase();
-                                    return (
-                                      <div key={mIdx} className={styles.memberCardItem}>
-                                        <div className={`${styles.memberAvatar} ${m.isCaptain ? styles.memberAvatarCaptain : ""}`}>
-                                          {initials || "TM"}
-                                        </div>
-                                        <div className={styles.memberInfo}>
-                                          <div className={styles.memberNameRow}>
-                                            <span className={styles.memberName}>{m.name}</span>
-                                            {m.isCaptain && <span className={styles.captainPill}>CAPTAIN</span>}
-                                          </div>
-                                          <span className={styles.memberRole}>{m.role}</span>
-                                        </div>
-                                      </div>
-                                    );
-                                  })}
-                                </div>
-                              </div>
-
-                              {/* Column 2: Telemetry & Hardware Specs */}
-                              <div className={styles.expandedColTelemetry}>
-                                <div className={styles.expandedSectionLabel}>
-                                  <Zap size={13} />
-                                  <span>TELEMETRY & HARDWARE SPECS</span>
-                                </div>
-                                <div className={styles.telemetrySpecsGrid}>
-                                  <div className={styles.specItem}>
-                                    <span className={styles.specLabel}>BEST LAP</span>
-                                    <span className={styles.specValueHighlight}>{t.bestLap}</span>
-                                  </div>
-                                  <div className={styles.specItem}>
-                                    <span className={styles.specLabel}>AVG LAP</span>
-                                    <span className={styles.specValue}>{t.avgLap || "12.05s"}</span>
-                                  </div>
-                                  <div className={styles.specItem}>
-                                    <span className={styles.specLabel}>TOP VELOCITY</span>
-                                    <span className={styles.specValue}>{t.topSpeed}</span>
-                                  </div>
-                                  <div className={styles.specItem}>
-                                    <span className={styles.specLabel}>READINESS</span>
-                                    <span className={styles.specValue} style={{ color: t.readiness === 100 ? "#10b981" : "#f59e0b" }}>
-                                      {t.readiness}% {t.readiness === 100 ? "Ready" : "Tuning"}
-                                    </span>
-                                  </div>
-                                  <div className={styles.specItemWide}>
-                                    <span className={styles.specLabel}>POWERTRAIN & MOTOR</span>
-                                    <span className={styles.specValueSmall}>{t.motorSpec || "Brushless 4200KV • 45A ESC"}</span>
-                                  </div>
-                                  <div className={styles.specItemWide}>
-                                    <span className={styles.specLabel}>BATTERY & CHASSIS</span>
-                                    <span className={styles.specValueSmall}>{t.batterySpec || "2S LiPo 1500mAh"} • {t.chassis || "4WD Buggy Chassis"}</span>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </td>
-                      </tr>
-                    )}
-                  </Fragment>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
+        )}
       </section>
 
-      {/* ===== Self-Checklist & Practice Tasks ===== */}
+      {/* ===== Car Safety Check & Practice Tasks ===== */}
       <div className={styles.sectionHeaderWrap}>
         <div className={styles.sectionHeaderLeft}>
-          <h3 className={styles.sectionGroupTitle}>Self-Checklist & Practice Tasks</h3>
+          <h3 className={styles.sectionGroupTitle}>Practice Checklist & Bounties</h3>
         </div>
         <div className={styles.sectionStatusPill}>
           {passedCount === 6 ? (
             <span className={styles.paddockClearedPill}>
-              <CheckCircle2 size={13} /> READY TO DRIVE
+              <CheckCircle2 size={13} /> CHECKLIST DONE
             </span>
           ) : (
             <span className={styles.paddockActionPill}>
@@ -880,16 +556,20 @@ export default function TournamentOverview() {
           )}
         </div>
       </div>
+      <p style={{ margin: "-8px 0 16px", fontSize: 13, color: "var(--text-muted)" }}>
+        This is your own practice checklist, not the official race inspection. For your team&apos;s real scrutineering
+        result, see <Link href={teamHref} style={{ color: "var(--accent-subtle-text)" }}>My Team</Link>.
+      </p>
 
       {/* ===== Middle Grid: Telemetry Readiness & Daily Bounties ===== */}
       <div className={styles.middleGrid}>
 
-        {/* Self-Checklist (Active Workstation) */}
+        {/* RC Car Pre-Race Hardware Inspection (Active Workstation) */}
         <div className={`${styles.telemetryCard} ${styles.activeWorkshopCard}`}>
           <div className={styles.cardHeaderTitle}>
             <div className={styles.telemetryHeading}>
               <Wrench size={18} color="#7dd3e8" />
-              <span>Self-Checklist</span>
+              <span>Personal Practice Checklist</span>
             </div>
             <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
               {passedCount === 6 ? (
@@ -913,7 +593,7 @@ export default function TournamentOverview() {
                   <span>Pass All</span>
                 </button>
               )}
-              <span style={{ fontSize: "11px", color: "var(--text-muted)", fontFamily: "monospace" }}>
+              <span style={{ fontSize: "11px", color: "var(--text-muted)", fontFamily: "var(--font-mono)" }}>
                 {passedCount}/6 CHECKED
               </span>
             </div>
@@ -933,15 +613,15 @@ export default function TournamentOverview() {
             <div className={styles.readinessDetails}>
               <h4>
                 {readinessScore === 100
-                  ? "Car Condition: 100% (Ready to Drive!)"
+                  ? "Practice checklist: 100% complete"
                   : readinessScore >= 50
-                  ? `Car Condition: Good (${readinessScore}%)`
-                  : `Car Condition: Checking (${readinessScore}%)`}
+                  ? `Practice checklist: Good (${readinessScore}%)`
+                  : `Practice checklist: In progress (${readinessScore}%)`}
               </h4>
               <p>
                 {readinessScore === 100
-                  ? "All 6 parts checked and approved by student. Car is good to go!"
-                  : `${6 - passedCount} part(s) left to check before driving.`}
+                  ? "All 6 parts self-checked. This doesn't replace staff scrutineering."
+                  : `${6 - passedCount} part(s) left on your personal checklist.`}
               </p>
             </div>
           </div>
@@ -1077,38 +757,36 @@ export default function TournamentOverview() {
 
       <div className={styles.grandPrixCard}>
         {tournament ? (
-          <div>
-            <div className={styles.eventMeta}>
-              <div>
-                <h2 className={styles.eventTitle}>
-                  {tournament.title}
-                </h2>
-                <div className={styles.eventCircuit}>
-                  <Compass size={14} color="#7dd3e8" />
-                  <span>{tournament.venue || "Official Tournament Circuit"}</span>
+          <>
+            <div>
+              <div className={styles.eventMeta}>
+                <div>
+                  <h2 className={styles.eventTitle}>{tournament.title}</h2>
+                  <div className={styles.eventCircuit}>
+                    <Compass size={14} color="#7dd3e8" />
+                    <span>{tournament.venue || "Venue to be announced"}</span>
+                  </div>
+                </div>
+
+                <div style={{ fontFamily: "var(--font-mono)", fontSize: "12px", color: "var(--text-muted)" }}>
+                  <div><CalendarDays size={13} style={{ display: "inline", marginRight: 4 }} /> {new Date(tournament.starts_at).toLocaleDateString([], { month: "short", day: "numeric", year: "numeric" })}</div>
+                  <div>{new Date(tournament.starts_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</div>
                 </div>
               </div>
 
-              <div style={{ fontFamily: "monospace", fontSize: "12px", color: "var(--text-muted)" }}>
-                <div><CalendarDays size={13} style={{ display: "inline", marginRight: 4 }} /> {new Date(tournament.starts_at).toLocaleDateString([], { month: "short", day: "numeric", year: "numeric" })}</div>
-                <div>{new Date(tournament.starts_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</div>
+              {/* F1 5-Light Start Gantry */}
+              <div className={styles.f1Gantry}>
+                {[1, 2, 3, 4, 5].map((light) => (
+                  <div key={light} className={styles.f1LightHousing}>
+                    <div
+                      className={styles.f1LightRed}
+                      style={{ animationDelay: `${light * 0.18}s` }}
+                    />
+                  </div>
+                ))}
               </div>
-            </div>
 
-            {/* F1 5-Light Start Gantry */}
-            <div className={styles.f1Gantry}>
-              {[1, 2, 3, 4, 5].map((light) => (
-                <div key={light} className={styles.f1LightHousing}>
-                  <div 
-                    className={styles.f1LightRed} 
-                    style={{ animationDelay: `${light * 0.18}s` }} 
-                  />
-                </div>
-              ))}
-            </div>
-
-            {/* Live Countdown Display */}
-            {timeLeft ? (
+              {/* Live Countdown Display */}
               <div className={styles.countdownGrid}>
                 <div className={styles.countdownBox}>
                   <span className={styles.countdownDigit}>{String(timeLeft.days).padStart(2, "0")}</span>
@@ -1127,38 +805,28 @@ export default function TournamentOverview() {
                   <span className={styles.countdownUnit}>Seconds</span>
                 </div>
               </div>
-            ) : (
-              <div style={{ textAlign: "center", padding: "16px 0", color: "var(--text-muted)", fontSize: "14px" }}>
-                Tournament in progress or scheduled start reached.
-              </div>
-            )}
-          </div>
-        ) : (
-          <div style={{ textAlign: "center", padding: "28px 16px" }}>
-            <Compass size={32} color="var(--accent-subtle-text)" style={{ margin: "0 auto 10px", opacity: 0.85 }} />
-            <h2 className={styles.eventTitle} style={{ fontSize: "18px", marginBottom: "6px" }}>
-              No Upcoming Tournaments Scheduled
-            </h2>
-            <p style={{ color: "var(--text-muted)", fontSize: "13.5px", maxWidth: "460px", margin: "0 auto", lineHeight: 1.5 }}>
-              Official tournament dates, venues, and live countdowns will appear here as soon as the next championship round is announced.
-            </p>
-          </div>
-        )}
+            </div>
 
-        <div className={styles.countdownActions}>
-          <Link href="/dashboard/license" className={styles.licenseActionBtn}>
-            <IdCard size={15} />
-            <span>Driver License</span>
-          </Link>
-          <Link href={teamHref} className={styles.paddockBtn}>
-            <Users size={15} />
-            <span>{team ? "Manage Race Team" : "Register Race Team"}</span>
-          </Link>
-          <Link href="/dashboard/leaderboard" className={styles.gridBtn}>
-            <Flag size={15} />
-            <span>Live Grid Standings</span>
-          </Link>
-        </div>
+            <div className={styles.countdownActions}>
+              <Link href="/dashboard/license" className={styles.licenseActionBtn}>
+                <IdCard size={15} />
+                <span>Driver License</span>
+              </Link>
+              <Link href={teamHref} className={styles.paddockBtn}>
+                <Users size={15} />
+                <span>{team ? "Manage Race Team" : "Register Race Team"}</span>
+              </Link>
+              <Link href="/dashboard/leaderboard" className={styles.gridBtn}>
+                <Flag size={15} />
+                <span>Live Grid Standings</span>
+              </Link>
+            </div>
+          </>
+        ) : (
+          <p style={{ color: "var(--text-muted)", textAlign: "center", padding: "24px 0" }}>
+            No upcoming races scheduled. Check back later.
+          </p>
+        )}
       </div>
 
     </div>

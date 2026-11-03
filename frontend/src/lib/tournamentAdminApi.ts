@@ -11,6 +11,7 @@ export interface TournamentRecord {
   venue: string;
   status: TournamentStatus;
   team_size: number;
+  entry_fee_amount: number | null;
 }
 
 export interface VerifiedTournamentTeam {
@@ -64,7 +65,26 @@ async function rpc<T>(name: string, args: Record<string, unknown>) {
 
 export function listTournaments() {
   return authenticatedSupabaseFetch<TournamentRecord[]>(
-    "/rest/v1/tournaments?select=id,title,description,starts_at,ends_at,venue,status,team_size&order=starts_at.desc",
+    "/rest/v1/tournaments?select=id,title,description,starts_at,ends_at,venue,status,team_size,entry_fee_amount&order=starts_at.desc",
+  );
+}
+
+// Single source of truth for "which tournament does a staff screen open on
+// by default" -- previously My Space, Leaderboard, and Scrutineering each
+// picked differently (live-first, completed-first, upcoming-first), so a
+// staff member could click from one live-tournament screen into another
+// screen silently showing a different tournament. live beats upcoming beats
+// completed beats whatever's first.
+export function pickActiveTournament<T extends Pick<TournamentRecord, "id" | "status">>(
+  tournaments: T[] | null | undefined,
+): T | null {
+  const list = tournaments ?? [];
+  return (
+    list.find((item) => item.status === "live") ??
+    list.find((item) => item.status === "upcoming") ??
+    list.find((item) => item.status === "completed") ??
+    list[0] ??
+    null
   );
 }
 
@@ -75,6 +95,7 @@ export function createTournament(input: Omit<TournamentRecord, "id" | "status" |
     p_starts_at: input.starts_at,
     p_ends_at: input.ends_at,
     p_venue: input.venue,
+    p_entry_fee_amount: input.entry_fee_amount,
   });
 }
 
@@ -87,6 +108,7 @@ export function updateTournament(input: TournamentRecord) {
     p_ends_at: input.ends_at,
     p_venue: input.venue,
     p_status: input.status,
+    p_entry_fee_amount: input.entry_fee_amount,
   });
 }
 
@@ -125,6 +147,30 @@ export function getLeaderboard(tournamentId: string) {
 
 export function getStudentLeaderboard(tournamentId: string) {
   return rpc<StudentLeaderboardRow[]>("get_student_leaderboard", { p_tournament: tournamentId });
+}
+
+export interface TournamentTeamRosterRow {
+  team_id: string;
+  student_id: string;
+  full_name: string | null;
+  phone: string | null;
+  location: string | null;
+  is_independent: boolean | null;
+}
+
+export function listTournamentTeamRoster(tournamentId: string) {
+  return authenticatedSupabaseFetch<TournamentTeamRosterRow[]>(
+    `/rest/v1/tournament_team_members?select=team_id,student_id,profiles!tournament_team_members_student_id_fkey(full_name,phone,location,is_solo)&tournament_id=eq.${tournamentId}`,
+  ).then((rows) =>
+    (rows as unknown as { team_id: string; student_id: string; profiles: { full_name: string | null; phone: string | null; location: string | null; is_solo: boolean | null } | null }[]).map((row) => ({
+      team_id: row.team_id,
+      student_id: row.student_id,
+      full_name: row.profiles?.full_name ?? null,
+      phone: row.profiles?.phone || null,
+      location: row.profiles?.location || null,
+      is_independent: row.profiles?.is_solo ?? null,
+    })),
+  );
 }
 
 export function listTournamentRaceResults() {

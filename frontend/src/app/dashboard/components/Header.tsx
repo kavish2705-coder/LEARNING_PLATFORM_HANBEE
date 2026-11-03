@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useQuery } from "@tanstack/react-query";
 import { Menu, Zap, ChevronRight, Settings, LogOut, Award, ShieldCheck } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import styles from "../layout.module.css";
@@ -10,8 +11,10 @@ import NotificationBell from "./NotificationBell";
 import SearchBar from "./SearchBar";
 import { useSessionProfile } from "../../../lib/hooks/useSessionProfile";
 import { useUserXp } from "../../../lib/hooks/useUserXp";
-import { useMode } from "../ModeContext";
 import { readStoredSession, signOut } from "../../../lib/supabaseAuth";
+import { fetchCourseContent } from "../../../lib/coursesApi";
+
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 const ROLE_LABEL: Record<string, string> = {
   student: "Student",
@@ -44,6 +47,7 @@ const PAGE_TITLES: Record<string, string> = {
   "/dashboard/hanbee/schools": "Schools",
   "/dashboard/hanbee/courses": "Courses",
   "/dashboard/hanbee/tournament": "Tournament Entries",
+  "/dashboard/hanbee/scrutineering": "Scrutineering",
   "/dashboard/hanbee/applications": "Applications",
   "/dashboard/hanbee/assessment-reviews": "Quiz Reviews",
   "/dashboard/hanbee/schedule": "Schedule",
@@ -60,9 +64,14 @@ const PAGE_TITLES: Record<string, string> = {
   "/dashboard/manager/chat": "Chat",
 };
 
-export default function Header({ toggleMobileMenu }: { toggleMobileMenu?: () => void }) {
+export default function Header({
+  toggleMobileMenu,
+  mobileMenuOpen = false,
+}: {
+  toggleMobileMenu?: () => void;
+  mobileMenuOpen?: boolean;
+}) {
   const pathname = usePathname();
-  const { mode } = useMode();
   const { data: profile } = useSessionProfile();
   const { xp, isGaining, lastGained } = useUserXp();
   const name = profile?.full_name ?? "";
@@ -71,6 +80,15 @@ export default function Header({ toggleMobileMenu }: { toggleMobileMenu?: () => 
 
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const profileMenuRef = useRef<HTMLDivElement>(null);
+
+  const courseIdSegment = pathname.match(/^\/dashboard\/courses\/([^/]+)$/)?.[1];
+  const isCourseDetailRoute = Boolean(courseIdSegment && UUID_PATTERN.test(courseIdSegment));
+  const { data: activeCourse } = useQuery({
+    queryKey: ["course-content", courseIdSegment],
+    queryFn: () => fetchCourseContent(courseIdSegment!),
+    enabled: isCourseDetailRoute,
+    staleTime: 60_000,
+  });
 
   useEffect(() => {
     if (!profileMenuOpen) return;
@@ -101,11 +119,15 @@ export default function Header({ toggleMobileMenu }: { toggleMobileMenu?: () => 
   const getPageTitle = () => {
     if (pathname === "/dashboard") {
       if (profile?.role === "student") {
-        return mode === "tournament" ? "Track Hub" : "Learning Hub";
+        // Learning is hidden until it's ready (see Sidebar.tsx) -- the
+        // root page always renders the tournament overview now, so the
+        // title must match regardless of mode.
+        return "Track Hub";
       }
       return "Overview";
     }
     if (PAGE_TITLES[pathname]) return PAGE_TITLES[pathname];
+    if (isCourseDetailRoute) return activeCourse?.title ?? "Course";
     const segment = pathname.split("/").filter(Boolean).pop();
     if (!segment) return "Overview";
     return segment.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
@@ -114,7 +136,14 @@ export default function Header({ toggleMobileMenu }: { toggleMobileMenu?: () => 
   return (
     <header className={styles.header}>
       <div className={styles.headerLeft}>
-        <button className={styles.mobileMenuBtn} onClick={toggleMobileMenu} aria-label="Toggle Menu">
+        <button
+          type="button"
+          className={styles.mobileMenuBtn}
+          onClick={toggleMobileMenu}
+          aria-label={mobileMenuOpen ? "Close navigation menu" : "Open navigation menu"}
+          aria-expanded={mobileMenuOpen}
+          aria-controls="dashboard-sidebar"
+        >
           <Menu size={24} />
         </button>
 
@@ -164,7 +193,7 @@ export default function Header({ toggleMobileMenu }: { toggleMobileMenu?: () => 
                     color: "#fff",
                     fontSize: "11px",
                     fontWeight: 800,
-                    fontFamily: "monospace",
+                    fontFamily: "var(--font-mono)",
                     padding: "2px 8px",
                     borderRadius: "999px",
                     whiteSpace: "nowrap",

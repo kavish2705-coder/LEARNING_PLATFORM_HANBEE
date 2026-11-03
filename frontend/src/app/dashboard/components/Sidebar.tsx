@@ -3,14 +3,11 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { 
-  LayoutDashboard, BookOpen, Clock, Bell, Settings, Trophy, 
-  Users, MessageSquare, Bot, School, CalendarDays, ClipboardList, 
-  UserCheck, LogOut, ClipboardCheck, Activity, IdCard, Search
+  LayoutDashboard, BookOpen, Clock, Bell, Settings, Trophy,
+  Users, MessageSquare, School, CalendarDays, ClipboardList,
+  UserCheck, LogOut, ClipboardCheck, Activity, IdCard, UserPlus, ShieldCheck
 } from "lucide-react";
 import styles from "../layout.module.css";
-import ModeSwitcher from "./ModeSwitcher";
-
-import { useMode } from "../ModeContext";
 import { readStoredSession, signOut, type AccountProfile } from "../../../lib/supabaseAuth";
 import { useSessionProfile } from "../../../lib/hooks/useSessionProfile";
 
@@ -19,16 +16,6 @@ const studentTournamentMenu = [
   { name: "Driver License", href: "/dashboard/license", icon: IdCard },
   { name: "Leaderboard", href: "/dashboard/leaderboard", icon: Trophy },
   { name: "My Team", href: "/dashboard/team", icon: Users },
-  { name: "Announcements", href: "/dashboard/announcements", icon: Bell },
-  { name: "Chat", href: "/dashboard/chat", icon: MessageSquare },
-  { name: "Settings", href: "/dashboard/settings", icon: Settings },
-];
-const studentLearningMenu = [
-  { name: "Overview", href: "/dashboard", icon: LayoutDashboard },
-  { name: "My Courses", href: "/dashboard/courses", icon: BookOpen },
-  { name: "Certificates", href: "/dashboard/certificate", icon: Trophy },
-  { name: "AI Assistant", href: "/dashboard/ai-assistant", icon: Bot },
-  { name: "Live Attendance", href: "/dashboard/attendance", icon: Clock },
   { name: "Announcements", href: "/dashboard/announcements", icon: Bell },
   { name: "Chat", href: "/dashboard/chat", icon: MessageSquare },
   { name: "Settings", href: "/dashboard/settings", icon: Settings },
@@ -50,6 +37,8 @@ const staffMenu = [
   { name: "Schools", href: "/dashboard/hanbee/schools", icon: School },
   { name: "Courses", href: "/dashboard/hanbee/courses", icon: BookOpen },
   { name: "Tournament entries", href: "/dashboard/hanbee/tournament", icon: Users },
+  { name: "Scrutineering", href: "/dashboard/hanbee/scrutineering", icon: ShieldCheck },
+  { name: "Independent students", href: "/dashboard/hanbee/independent-students", icon: UserPlus },
   { name: "Applications", href: "/dashboard/hanbee/applications", icon: ClipboardList },
   { name: "Quiz reviews", href: "/dashboard/hanbee/assessment-reviews", icon: ClipboardCheck },
   { name: "Schedule", href: "/dashboard/hanbee/schedule", icon: CalendarDays },
@@ -68,6 +57,8 @@ const managerMenu = [
   { name: "Course applications", href: "/dashboard/hanbee/applications", icon: ClipboardList },
   { name: "Quiz reviews", href: "/dashboard/hanbee/assessment-reviews", icon: ClipboardCheck },
   { name: "Tournament entries", href: "/dashboard/hanbee/tournament", icon: Users },
+  { name: "Scrutineering", href: "/dashboard/hanbee/scrutineering", icon: ShieldCheck },
+  { name: "Independent students", href: "/dashboard/hanbee/independent-students", icon: UserPlus },
   { name: "Hanbee staff", href: "/dashboard/manager/hanbee-staff", icon: Users },
   { name: "Tasks", href: "/dashboard/manager/tasks", icon: ClipboardList },
   { name: "Schedule", href: "/dashboard/hanbee/schedule", icon: CalendarDays },
@@ -88,18 +79,22 @@ export default function Sidebar({
   setIsMobileMenuOpen?: (val: boolean) => void; 
 }) {
   const pathname = usePathname();
-  const { mode } = useMode();
   const { data: profile } = useSessionProfile();
 
   const activeRole = profile?.role ?? "student";
         
+  // Learning (Courses/Certificates/AI Assistant/Attendance) isn't ready for
+  // real students yet -- see LearningComingSoon.tsx. Rather than advertise
+  // nav items that dead-end behind that gate, students only ever get the
+  // tournament menu; the mode switcher (which exists to flip into the
+  // learning menu) is hidden for the same reason, just below.
   const items = activeRole === "school_staff"
     ? schoolMenu
     : activeRole === "staff"
       ? staffMenu
       : activeRole === "manager"
         ? managerMenu
-        : mode === "tournament" ? studentTournamentMenu : studentLearningMenu;
+        : studentTournamentMenu;
 
   const displayName = profile?.full_name ?? "";
   const initials = displayName.split(/\s+/).slice(0, 2).map((part: string) => part[0]).join("").toUpperCase();
@@ -118,34 +113,20 @@ export default function Sidebar({
     <>
       {/* Mobile overlay */}
       {isMobileMenuOpen && (
-        <div 
-          className={styles.sidebarOverlay} 
+        <button
+          type="button"
+          className={styles.sidebarOverlay}
           onClick={() => setIsMobileMenuOpen?.(false)}
+          aria-label="Close navigation menu"
         />
       )}
       
-      <aside className={`${styles.sidebar} ${isMobileMenuOpen ? styles.sidebarOpen : ""}`}>
+      <aside id="dashboard-sidebar" className={`${styles.sidebar} ${isMobileMenuOpen ? styles.sidebarOpen : ""}`}>
         <div className={styles.logo}>
-          HANBEE
+          <span className={styles.logoMark} role="img" aria-label="Hanbee" />
         </div>
         
-        {profile?.role === "student" && <ModeSwitcher />}
-
-        <button
-          type="button"
-          className={styles.mobileSidebarSearchBtn}
-          onClick={() => {
-            setIsMobileMenuOpen?.(false);
-            window.dispatchEvent(new CustomEvent("hanbee:open-search"));
-          }}
-          aria-label="Search Hanbee Platform"
-        >
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <Search size={15} />
-            <span>Search...</span>
-          </div>
-          <kbd className={styles.mobileSidebarSearchKbd}>Ctrl K</kbd>
-        </button>
+        {/* ModeSwitcher hidden for students until Learning is ready -- see note above items. */}
 
         <nav className={styles.navMenu}>
           {items.map((item) => {
@@ -187,4 +168,3 @@ export default function Sidebar({
     </>
   );
 }
-

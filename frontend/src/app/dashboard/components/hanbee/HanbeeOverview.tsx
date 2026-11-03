@@ -2,218 +2,74 @@
 
 import React, { useCallback, useEffect, useState, useMemo } from "react";
 import Link from "next/link";
-import { 
-  Clock, TrendingUp, CheckCircle, AlertTriangle, Trophy, 
-  Users, Radio, Activity, Flag, ShieldCheck, ChevronRight, 
-  ExternalLink, Disc, Eye, ChevronDown, ChevronUp, Wrench, 
-  Sparkles, CalendarDays, BookOpen, GraduationCap, Award, FileText, CheckCheck
+import {
+  Clock, TrendingUp, CheckCircle, AlertTriangle, Trophy,
+  Users, Radio, Activity, Flag, ShieldCheck, ChevronRight,
+  ExternalLink, Disc, Eye, ChevronDown, ChevronUp, Wrench,
+  Sparkles, CalendarDays
 } from "lucide-react";
 import styles from "./HanbeeOverview.module.css";
 import { authenticatedSupabaseFetch, getAccountProfile } from "../../../../lib/supabaseAuth";
-import { listTournaments, listVerifiedTournamentTeams, listTournamentResults, getLeaderboard } from "../../../../lib/tournamentAdminApi";
-import { fetchUpcomingTournament, type UpcomingTournament } from "../../../../lib/teamFormationApi";
+import { listTournaments, getStudentLeaderboard, listTournamentTeamRoster, pickActiveTournament } from "../../../../lib/tournamentAdminApi";
+import type { StudentLeaderboardRow, TournamentRecord } from "../../../../lib/tournamentAdminApi";
+import { fetchScrutineeringQueue } from "../../../../lib/teamFormationApi";
+import { useSessionProfile } from "../../../../lib/hooks/useSessionProfile";
+import EmptyState from "../ui/EmptyState";
+import Shimmer from "../ui/Shimmer";
+
+type RosterDriver = {
+  name: string;
+  student_id?: string;
+  // TODO: backend field — not returned by listTournamentTeamRoster yet; stubbed defensively.
+  phone?: string | null;
+  // TODO: backend field — not returned by listTournamentTeamRoster yet; stubbed defensively.
+  location?: string | null;
+  // TODO: backend field — not returned by listTournamentTeamRoster yet; stubbed defensively.
+  is_independent?: boolean | null;
+  // TODO: backend field — not returned by listTournamentTeamRoster yet; stubbed defensively.
+  school_name?: string | null;
+};
 
 type AttendanceDay = { work_date: string; status: string; clock_in: string | null; clock_out: string | null; hours: number | null };
 type StaffTask = { id: string; title: string; priority: string; status: string; due_date: string | null; done: boolean };
 
 interface HanbeeData {
   status: string;
-  hoursWorked: { today: number; last7Days: number[]; totalHours: number };
+  hoursWorked: { today: number | null; totalHours: number };
   personalTasks: { id: string; title: string; priority: string; status: string; dueDate: string | null }[];
   needsAttention: { id: string; message: string }[];
 }
 
-interface StaffTeamScore {
-  id: string;
-  rank: number;
-  team_name: string;
-  school_name: string;
-  car: string;
-  lap: string;
-  speed: string;
-  points: number;
-  member_count: number;
-  max_members: number;
-  status: "verified" | "pending_scrutineering";
-  drivers: {
-    name: string;
-    role: string;
-    bestLap: string;
-    isCaptain?: boolean;
-  }[];
-}
-
-interface LearningCourseSummary {
-  id: string;
-  title: string;
-  description: string;
-  moduleCount: number;
-  lessonCount: number;
-  enrolledStudents: number;
-  passRate: string;
-  status: "published" | "draft";
+function formatLapTime(milliseconds: number | null) {
+  return milliseconds === null ? "--" : `${(milliseconds / 1000).toFixed(2)}s`;
 }
 
 export default function HanbeeOverview() {
-  const [activeTab, setActiveTab] = useState<"scores" | "learning" | "operations">("scores");
+  const { data: profile } = useSessionProfile();
   const [data, setData] = useState<HanbeeData | null>(null);
-  const [tournament, setTournament] = useState<UpcomingTournament | null>(null);
-  const [dbTeams, setDbTeams] = useState<StaffTeamScore[] | null>(null);
-  const [courses, setCourses] = useState<LearningCourseSummary[] | null>(null);
-  const [expandedTeamId, setExpandedTeamId] = useState<string | null>("t1");
+  const [opsError, setOpsError] = useState("");
+  const [tournament, setTournament] = useState<TournamentRecord | null>(null);
+  const [rows, setRows] = useState<StudentLeaderboardRow[] | null>(null);
+  const [roster, setRoster] = useState<Record<string, RosterDriver[]>>({});
+  const [standingsError, setStandingsError] = useState("");
+  const [scrutineeredTeamIds, setScrutineeredTeamIds] = useState<Set<string> | null>(null);
+  const [expandedTeamId, setExpandedTeamId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [updatingTaskId, setUpdatingTaskId] = useState("");
+  const [clockBusy, setClockBusy] = useState(false);
+  const [clockError, setClockError] = useState("");
 
-  const fallbackCourses: LearningCourseSummary[] = useMemo(() => [
-    {
-      id: "c-1",
-      title: "RC Aerodynamics & Chassis Tuning",
-      description: "Master high-speed downforce, wing trim angles, roll centers, and shock damping dynamics for 4WD RC Buggies.",
-      moduleCount: 8,
-      lessonCount: 24,
-      enrolledStudents: 142,
-      passRate: "94.2%",
-      status: "published",
-    },
-    {
-      id: "c-2",
-      title: "Telemetry Systems & 2.4GHz Electronics",
-      description: "In-depth guide to brushless ESC programming, FHSS receiver binding, optical lap triggers, and live telemetry logging.",
-      moduleCount: 6,
-      lessonCount: 18,
-      enrolledStudents: 118,
-      passRate: "88.5%",
-      status: "published",
-    },
-    {
-      id: "c-3",
-      title: "LiPo Battery Safety & Pre-Grid Scrutineering",
-      description: "Official scrutineering protocols: 2S voltage thresholds, IR balancing, charging paddocks, and emergency cut-offs.",
-      moduleCount: 4,
-      lessonCount: 12,
-      enrolledStudents: 175,
-      passRate: "98.1%",
-      status: "published",
-    },
-    {
-      id: "c-4",
-      title: "Race Dynamics, Pit Stops & Team Strategy",
-      description: "Driver stint rotations, tire compound selection, track temperature strategy, and telemetry communication.",
-      moduleCount: 5,
-      lessonCount: 15,
-      enrolledStudents: 96,
-      passRate: "91.0%",
-      status: "published",
-    },
-  ], []);
-
-  // Active Tournament Grid Demo Teams & Scores for Staff View
-  const liveTeamsList: StaffTeamScore[] = useMemo(() => [
-    {
-      id: "t1",
-      rank: 1,
-      team_name: "Team Redline Apex",
-      school_name: "St. Xavier Tech",
-      car: "Redline RC Buggy (4WD)",
-      lap: "11.42s",
-      speed: "26.8 km/h",
-      points: 1850,
-      member_count: 4,
-      max_members: 5,
-      status: "verified",
-      drivers: [
-        { name: "Aryan Sharma", role: "Lead Driver / Captain", bestLap: "11.42s", isCaptain: true },
-        { name: "Rohan Varma", role: "Telemetry & Pit Strategist", bestLap: "11.76s" },
-        { name: "Aarav Patel", role: "Hardware & Motor Specialist", bestLap: "12.05s" },
-        { name: "Priya Sharma", role: "Aerodynamics & Trim Engineer", bestLap: "12.32s" },
-      ],
-    },
-    {
-      id: "t2",
-      rank: 2,
-      team_name: "Vortex Racing",
-      school_name: "Delhi Tech Academy",
-      car: "Thunder RC 4WD Buggy",
-      lap: "11.68s",
-      speed: "26.1 km/h",
-      points: 1720,
-      member_count: 5,
-      max_members: 5,
-      status: "verified",
-      drivers: [
-        { name: "Aditya Nair", role: "Lead Driver / Captain", bestLap: "11.68s", isCaptain: true },
-        { name: "Sameer Joshi", role: "Telemetry Specialist", bestLap: "11.85s" },
-        { name: "Kabir Roy", role: "Motor Technician", bestLap: "12.10s" },
-        { name: "Rhea Sen", role: "Pit Strategist", bestLap: "12.24s" },
-        { name: "Tanya Iyer", role: "Reserve Driver", bestLap: "12.45s" },
-      ],
-    },
-    {
-      id: "t3",
-      rank: 3,
-      team_name: "CyberDrift FC",
-      school_name: "Modern Academy",
-      car: "Blue Thunder RC 16X",
-      lap: "11.89s",
-      speed: "25.4 km/h",
-      points: 1620,
-      member_count: 3,
-      max_members: 5,
-      status: "verified",
-      drivers: [
-        { name: "Devansh Rao", role: "Lead Driver / Captain", bestLap: "11.89s", isCaptain: true },
-        { name: "Nikhil Verma", role: "Steering & Trim", bestLap: "12.12s" },
-        { name: "Meera Das", role: "Telemetry Engineer", bestLap: "12.30s" },
-      ],
-    },
-    {
-      id: "t4",
-      rank: 4,
-      team_name: "TorqueCraft Racing",
-      school_name: "DPS Engineering",
-      car: "Turbo Racer Buggy",
-      lap: "12.15s",
-      speed: "24.6 km/h",
-      points: 1490,
-      member_count: 4,
-      max_members: 5,
-      status: "pending_scrutineering",
-      drivers: [
-        { name: "Siddharth Bose", role: "Lead Driver / Captain", bestLap: "12.15s", isCaptain: true },
-        { name: "Ananya Mehta", role: "Pit Crew", bestLap: "12.40s" },
-        { name: "Varun Shah", role: "Motor Technician", bestLap: "12.55s" },
-        { name: "Ishan Paul", role: "Trim Specialist", bestLap: "12.70s" },
-      ],
-    },
-    {
-      id: "t5",
-      rank: 5,
-      team_name: "Neon Drift Squad",
-      school_name: "Greenwood High",
-      car: "Neon Cruiser 4WD",
-      lap: "12.40s",
-      speed: "24.1 km/h",
-      points: 1340,
-      member_count: 2,
-      max_members: 5,
-      status: "verified",
-      drivers: [
-        { name: "Kunal Gupta", role: "Lead Driver / Captain", bestLap: "12.40s", isCaptain: true },
-        { name: "Deepak Soni", role: "Telemetry Engineer", bestLap: "12.65s" },
-      ],
-    },
-  ], []);
-
-  const fetchData = useCallback(async () => {
+  // Separate from fetchStandings: attendance/tasks and tournament
+  // standings are independent sections with independent failure modes, and
+  // each needs to show "couldn't load" rather than silently becoming "zero."
+  const fetchOps = useCallback(async () => {
+    setOpsError("");
     try {
-      const profile = await getAccountProfile();
-      if (profile.role !== "staff" && profile.role !== "manager") {
-        // Allow demo viewing if testing locally
-      }
+      await getAccountProfile();
       const taskQuery = new URLSearchParams({ select: "id,title,priority,status,due_date,done", order: "due_date.asc.nullslast" });
       const [attendance, tasks] = await Promise.all([
-        authenticatedSupabaseFetch<AttendanceDay[]>("/rest/v1/rpc/staff_attendance", { method: "POST", body: JSON.stringify({}) }).catch(() => []),
-        authenticatedSupabaseFetch<StaffTask[]>("/rest/v1/staff_tasks?" + taskQuery.toString()).catch(() => []),
+        authenticatedSupabaseFetch<AttendanceDay[]>("/rest/v1/rpc/staff_attendance", { method: "POST", body: JSON.stringify({}) }),
+        authenticatedSupabaseFetch<StaffTask[]>("/rest/v1/staff_tasks?" + taskQuery.toString()),
       ]);
       const now = new Date();
       const todayKey = now.toISOString().slice(0, 10);
@@ -230,130 +86,144 @@ export default function HanbeeOverview() {
       }));
 
       setData({
-        status: today?.clock_in && !today.clock_out ? "Clocked In" : "Active On Shift",
-        hoursWorked: { today: today?.hours ?? 4.5, last7Days: [6, 7, 7.5, 6.5, 5, 0, 4.5], totalHours: weeklyHours || 36.5 },
-        personalTasks: mappedTasks.length > 0 ? mappedTasks : [
-          { id: "tk1", title: "Verify Bay 3 Scrutineering for TorqueCraft Racing", priority: "high", status: "in_progress", dueDate: "Today" },
-          { id: "tk2", title: "Audit LiPo battery charging logs (max 8.40V safety check)", priority: "high", status: "pending", dueDate: "Today" },
-          { id: "tk3", title: "Review St. Xavier Tech student team application", priority: "medium", status: "done", dueDate: "Yesterday" },
-        ],
-        needsAttention: [{ id: "att-1", message: "TorqueCraft Racing requires voltage inspection before Qualifying Heat 1" }],
+        status: today?.clock_in && !today.clock_out ? "Clocked In" : "Off shift",
+        hoursWorked: { today: today?.hours ?? null, totalHours: weeklyHours },
+        personalTasks: mappedTasks,
+        needsAttention: [],
       });
-
-      // Fetch live tournament and verified teams if available in database
-      try {
-        const [event, verified] = await Promise.all([
-          fetchUpcomingTournament().catch(() => null),
-          listVerifiedTournamentTeams().catch(() => []),
-        ]);
-        if (event) {
-          setTournament(event);
-          const lb = await getLeaderboard(event.id).catch(() => []);
-          if (Array.isArray(lb) && lb.length > 0) {
-            setDbTeams(lb.map((row, idx) => {
-              const matchedFallback = liveTeamsList.find(t => t.team_name.toLowerCase() === row.team_name.toLowerCase()) || liveTeamsList[idx % liveTeamsList.length];
-              return {
-                id: row.team_id,
-                rank: row.rank || idx + 1,
-                team_name: row.team_name,
-                school_name: row.school_name || "Registered School",
-                car: matchedFallback?.car || "RC 4WD Buggy",
-                lap: row.notes?.includes("s") ? row.notes : (matchedFallback?.lap || "--"),
-                speed: matchedFallback?.speed || "25.0 km/h",
-                points: row.points || 0,
-                member_count: matchedFallback?.member_count || 4,
-                max_members: 5,
-                status: "verified" as const,
-                drivers: matchedFallback?.drivers || [],
-              };
-            }));
-          } else if (Array.isArray(verified) && verified.length > 0) {
-            setDbTeams(verified.map((v, idx) => {
-              const matchedFallback = liveTeamsList.find(t => t.team_name.toLowerCase() === v.name.toLowerCase()) || liveTeamsList[idx % liveTeamsList.length];
-              return {
-                id: v.id,
-                rank: idx + 1,
-                team_name: v.name,
-                school_name: "Verified Academy",
-                car: matchedFallback?.car || "Thunder RC 4WD Buggy",
-                lap: matchedFallback?.lap || "--",
-                speed: matchedFallback?.speed || "25.0 km/h",
-                points: 1000 - idx * 50,
-                member_count: matchedFallback?.member_count || 4,
-                max_members: 5,
-                status: "verified" as const,
-                drivers: matchedFallback?.drivers || [],
-              };
-            }));
-          }
-        }
-        // Fetch courses if available in database
-        try {
-          const dbCourses = await authenticatedSupabaseFetch<{ id: string; title: string; description: string; status: string }[]>("/rest/v1/courses?select=id,title,description,status&order=created_at.desc").catch(() => []);
-          if (Array.isArray(dbCourses) && dbCourses.length > 0) {
-            setCourses(dbCourses.map((c, idx) => {
-              const fallback = fallbackCourses[idx % fallbackCourses.length];
-              return {
-                id: c.id,
-                title: c.title,
-                description: c.description || fallback.description,
-                moduleCount: fallback.moduleCount,
-                lessonCount: fallback.lessonCount,
-                enrolledStudents: fallback.enrolledStudents,
-                passRate: fallback.passRate,
-                status: (c.status === "published" ? "published" : "draft") as "published" | "draft",
-              };
-            }));
-          }
-        } catch {
-          // Keep fallback
-        }
-      } catch {
-        // Fallback to simulated liveTeamsList if database is empty/unseeded
-      }
-    } catch {
-      // Fallback data
-      setData({
-        status: "Active On Shift",
-        hoursWorked: { today: 4.5, last7Days: [6, 7, 7.5, 6.5, 5, 0, 4.5], totalHours: 36.5 },
-        personalTasks: [
-          { id: "tk1", title: "Verify Bay 3 Scrutineering for TorqueCraft Racing", priority: "high", status: "in_progress", dueDate: "Today" },
-          { id: "tk2", title: "Audit LiPo battery charging logs (max 8.40V safety check)", priority: "high", status: "pending", dueDate: "Today" },
-          { id: "tk3", title: "Review St. Xavier Tech student team application", priority: "medium", status: "done", dueDate: "Yesterday" },
-        ],
-        needsAttention: [{ id: "att-1", message: "TorqueCraft Racing requires voltage inspection before Qualifying Heat 1" }],
-      });
+    } catch (reason) {
+      setData(null);
+      setOpsError(reason instanceof Error ? reason.message : "Couldn't load your shift and task data.");
     }
-  }, [fallbackCourses, liveTeamsList]);
+  }, []);
+
+  // RLS already allows a staff member to update their own staff_tasks row
+  // (staff_id = auth.uid()) -- the gap was purely that My Space rendered
+  // status as a read-only badge with no control to actually change it.
+  async function updateTaskStatus(taskId: string, status: "todo" | "in_progress" | "done") {
+    setUpdatingTaskId(taskId);
+    try {
+      await authenticatedSupabaseFetch(`/rest/v1/staff_tasks?id=eq.${encodeURIComponent(taskId)}`, {
+        method: "PATCH",
+        headers: { Prefer: "return=minimal" },
+        body: JSON.stringify({ status }),
+      });
+      await fetchOps();
+    } catch {
+      // fetchOps will leave the previous status visible; no silent fake success.
+    } finally {
+      setUpdatingTaskId("");
+    }
+  }
+
+  async function handleClockToggle() {
+    setClockBusy(true);
+    setClockError("");
+    try {
+      if (data?.status === "Clocked In") {
+        await authenticatedSupabaseFetch("/rest/v1/rpc/clock_out", { method: "POST", body: "{}" });
+      } else {
+        await authenticatedSupabaseFetch("/rest/v1/rpc/clock_in", { method: "POST", body: "{}" });
+      }
+      await fetchOps();
+    } catch (reason) {
+      setClockError(reason instanceof Error ? reason.message : "We couldn't update your clock status.");
+    } finally {
+      setClockBusy(false);
+    }
+  }
+
+  const fetchStandings = useCallback(async () => {
+    setStandingsError("");
+    try {
+      const tournaments = await listTournaments();
+      const event = pickActiveTournament(tournaments);
+      setTournament(event);
+      if (event?.id) {
+        const [lb, rosterRows, scrutineeringRows] = await Promise.all([
+          getStudentLeaderboard(event.id),
+          listTournamentTeamRoster(event.id),
+          fetchScrutineeringQueue(event.id).catch(() => null),
+        ]);
+        setRows(lb);
+        const grouped: Record<string, RosterDriver[]> = {};
+        for (const member of rosterRows) {
+          const list = grouped[member.team_id] ?? (grouped[member.team_id] = []);
+          // TODO: backend field — listTournamentTeamRoster currently returns only
+          // full_name; phone/location/is_independent/school_name are read
+          // defensively when (and if) the backend adds them.
+          const row = member as unknown as {
+            team_id: string;
+            student_id: string;
+            full_name: string | null;
+            phone?: string | null;
+            location?: string | null;
+            is_independent?: boolean | null;
+            school_name?: string | null;
+            school?: string | null;
+          };
+          list.push({
+            name: row.full_name ?? "Unnamed driver",
+            student_id: row.student_id,
+            phone: row.phone ?? null,
+            location: row.location ?? null,
+            is_independent: row.is_independent ?? null,
+            school_name: row.school_name ?? row.school ?? null,
+          });
+        }
+        setRoster(grouped);
+        // null (not an empty set) means "scrutineering data unavailable" so
+        // the metric can say so instead of showing a false zero.
+        setScrutineeredTeamIds(
+          scrutineeringRows ? new Set(scrutineeringRows.filter((row) => row.scrutineering_status === "passed").map((row) => row.team_id)) : null,
+        );
+      } else {
+        setRows([]);
+        setRoster({});
+        setScrutineeredTeamIds(new Set());
+      }
+    } catch (reason) {
+      setRows(null);
+      setStandingsError(reason instanceof Error ? reason.message : "Couldn't load tournament standings.");
+    }
+  }, []);
 
   useEffect(() => {
     let mounted = true;
     const load = async () => {
       setLoading(true);
-      setError(null);
-      await fetchData();
+      await Promise.all([fetchOps(), fetchStandings()]);
       if (mounted) setLoading(false);
     };
     void load();
     return () => { mounted = false; };
-  }, [fetchData]);
+  }, [fetchOps, fetchStandings]);
 
   const toggleExpandTeam = (id: string) => {
     setExpandedTeamId((prev) => (prev === id ? null : id));
   };
 
-  const teamsToDisplay = dbTeams && dbTeams.length > 0 ? dbTeams : liveTeamsList;
-  const coursesList = courses && courses.length > 0 ? courses : fallbackCourses;
+  const teamsToDisplay = rows ?? [];
   const totalSquads = teamsToDisplay.length;
-  const totalDrivers = useMemo(() => teamsToDisplay.reduce((acc, t) => acc + (t.member_count || t.drivers?.length || 0), 0), [teamsToDisplay]);
-  const bestSessionLap = useMemo(() => {
-    const validLaps = teamsToDisplay.map(t => t.lap).filter(lap => lap && lap !== "--");
-    return validLaps.length ? [...validLaps].sort()[0] : "--";
+  const scrutineeredCount = useMemo(
+    () => (scrutineeredTeamIds ? teamsToDisplay.filter((row) => scrutineeredTeamIds.has(row.team_id)).length : null),
+    [teamsToDisplay, scrutineeredTeamIds],
+  );
+  const scrutineeredDrivers = useMemo(
+    () =>
+      scrutineeredTeamIds
+        ? teamsToDisplay.reduce((acc, row) => acc + (scrutineeredTeamIds.has(row.team_id) ? roster[row.team_id]?.length ?? 0 : 0), 0)
+        : null,
+    [teamsToDisplay, roster, scrutineeredTeamIds],
+  );
+  const bestAverageLap = useMemo(() => {
+    const laps = teamsToDisplay.map((row) => row.average_lap_time_ms).filter((ms): ms is number => ms !== null);
+    return laps.length ? formatLapTime(Math.min(...laps)) : "--";
   }, [teamsToDisplay]);
+  const firstName = profile?.full_name.trim().split(/\s+/)[0];
 
   return (
     <div className={styles.container}>
-      {/* Top Header linking Staff and Student Tournament Operations */}
       <header className={styles.pageHeader}>
         <div className={styles.headerLeft}>
           <div className={styles.roleTag}>
@@ -361,10 +231,10 @@ export default function HanbeeOverview() {
             Hanbee Staff Operations
           </div>
           <h1 className={styles.pageTitle}>
-            Tournament Control & Team Standings
+            Welcome back{firstName ? `, ${firstName}` : ""}
           </h1>
           <p className={styles.pageSubtitle}>
-            Real-time synchronization with Student Tournament Track, School Teams & Circuit Telemetry.
+            Tournament Control & Team Standings. Real-time synchronization with Student Tournament Track, School Teams & Circuit Telemetry.
           </p>
         </div>
 
@@ -374,60 +244,54 @@ export default function HanbeeOverview() {
             Live Student Grid
             <ExternalLink size={13} />
           </Link>
-          <Link href="/dashboard/hanbee/tournament" className={styles.linkBtn}>
+          <Link href={tournament ? `/dashboard/hanbee/scrutineering?tournament=${encodeURIComponent(tournament.id)}` : "/dashboard/hanbee/scrutineering"} className={styles.linkBtn}>
             <Users size={15} />
             Scrutineering Queue
           </Link>
         </div>
       </header>
 
-      {/* Mode / Tab Switcher */}
-      <div className={styles.tabBar}>
-        <button
-          type="button"
-          className={`${styles.tabBtn} ${activeTab === "scores" ? styles.tabBtnActive : ""}`}
-          onClick={() => setActiveTab("scores")}
-        >
-          <Trophy size={16} />
-          Tournament Overview & Team Scores
-        </button>
-        <button
-          type="button"
-          className={`${styles.tabBtn} ${activeTab === "learning" ? styles.tabBtnActive : ""}`}
-          onClick={() => setActiveTab("learning")}
-        >
-          <BookOpen size={16} />
-          Learning & Course Overview
-        </button>
-        <button
-          type="button"
-          className={`${styles.tabBtn} ${activeTab === "operations" ? styles.tabBtnActive : ""}`}
-          onClick={() => setActiveTab("operations")}
-        >
-          <Clock size={16} />
-          Staff Operations & Tasks
-        </button>
-      </div>
-
-      {/* TAB 1: Tournament Overview & Team Scores */}
-      {activeTab === "scores" && (
-        <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
-          {/* Live Circuit & Event Telemetry Hero */}
+      {loading ? <Shimmer rows={5} /> : (
+        <div className={styles.overviewSections}>
+          <section className={styles.dashboardSection}>
+            <div className={styles.dashboardSectionHeading}>
+              <div>
+                <h2>Tournament overview</h2>
+                <p>Standings and team performance.</p>
+              </div>
+              <Trophy size={19} aria-hidden="true" />
+            </div>
+            {standingsError ? (
+              <EmptyState
+                icon={<AlertTriangle size={22} />}
+                title="Unable to load tournament standings"
+                description={standingsError}
+                actionLabel="Retry"
+                onAction={() => void fetchStandings()}
+              />
+            ) : !tournament ? (
+              <EmptyState
+                icon={<Trophy size={22} />}
+                title="No tournaments yet"
+                description="Tournament standings will appear here once a tournament is scheduled."
+              />
+            ) : (
+            <div className={styles.scoreSectionContent}>
           <div className={styles.circuitHero}>
             <div className={styles.circuitTopRow}>
               <div className={styles.circuitTitleGroup}>
                 <div className={styles.circuitTitle}>
                   <Flag size={20} color="var(--accent-subtle-text)" />
-                  {tournament?.title || "National RC Buggy Championship — Round 1 Alpha"}
+                  {tournament.title}
                 </div>
                 <p className={styles.circuitDesc}>
-                  {tournament?.venue ? `${tournament.venue} · Live RFID Loop · 2.4GHz Active` : "Main Track (450m Circuit) · Live RFID Loop · 2.4GHz FHSS Ch 4 Active"}
+                  {tournament.venue || "Venue not set"}
                 </p>
               </div>
 
               <span className={styles.liveBadge}>
                 <Radio size={12} style={{ animation: "pulse 1.5s infinite" }} />
-                CIRCUIT TELEMETRY LIVE
+                {tournament.status === "live" ? "LIVE" : tournament.status?.toUpperCase?.() ?? "SCHEDULED"}
               </span>
             </div>
 
@@ -438,7 +302,7 @@ export default function HanbeeOverview() {
                 </div>
                 <div className={styles.metricMeta}>
                   <span className={styles.metricCategory}>PARTICIPATION</span>
-                  <span className={styles.metricTitle}>Registered Squads</span>
+                  <span className={styles.metricTitle}>Payment Verified Squads</span>
                   <span className={styles.metricValue}>{totalSquads} Teams</span>
                 </div>
               </div>
@@ -448,9 +312,14 @@ export default function HanbeeOverview() {
                   <ShieldCheck size={18} />
                 </div>
                 <div className={styles.metricMeta}>
-                  <span className={styles.metricCategory} style={{ color: "#10b981" }}>SCRUTINEERED</span>
-                  <span className={styles.metricTitle}>Active Drivers</span>
-                  <span className={styles.metricValue}>{totalDrivers} Drivers</span>
+                  <span className={styles.metricCategory} style={{ color: "#10b981" }}>SCRUTINEERING</span>
+                  <span className={styles.metricTitle}>Race-Eligible Drivers</span>
+                  <span className={styles.metricValue}>
+                    {scrutineeredDrivers === null ? "—" : `${scrutineeredDrivers} Drivers`}
+                  </span>
+                  {scrutineeredCount !== null && (
+                    <span style={{ fontSize: 11, color: "var(--text-muted)" }}>{scrutineeredCount} of {totalSquads} squads passed</span>
+                  )}
                 </div>
               </div>
 
@@ -459,26 +328,14 @@ export default function HanbeeOverview() {
                   <Sparkles size={18} />
                 </div>
                 <div className={styles.metricMeta}>
-                  <span className={styles.metricCategory} style={{ color: "#a855f7" }}>CIRCUIT PACE</span>
-                  <span className={styles.metricTitle}>Session Fast Lap</span>
-                  <span className={styles.metricValue} style={{ color: "#a855f7" }}>{bestSessionLap}</span>
-                </div>
-              </div>
-
-              <div className={styles.metricBox}>
-                <div className={styles.metricIcon} style={{ color: "#f59e0b", background: "rgba(245, 158, 11, 0.12)", borderColor: "rgba(245, 158, 11, 0.3)" }}>
-                  <Activity size={18} />
-                </div>
-                <div className={styles.metricMeta}>
-                  <span className={styles.metricCategory} style={{ color: "#f59e0b" }}>CIRCUIT STATUS</span>
-                  <span className={styles.metricTitle}>Track Condition</span>
-                  <span className={styles.metricValue}>28°C · Dry</span>
+                  <span className={styles.metricCategory} style={{ color: "#a855f7" }}>PACE BENCHMARK</span>
+                  <span className={styles.metricTitle}>Best Average Lap</span>
+                  <span className={styles.metricValue} style={{ color: "#a855f7" }}>{bestAverageLap}</span>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Live Teams & Scores Leaderboard Table */}
           <div className={styles.tableCard}>
             <div className={styles.tableHeaderRow}>
               <div>
@@ -487,7 +344,7 @@ export default function HanbeeOverview() {
                   Live Team Standings & Telemetry Scores
                 </h2>
                 <span className={styles.tableSubtitle}>
-                  Live synchronized grid matching the Student Dashboard. Click any team to inspect driver roster (1–5 members).
+                  Synchronized with the student dashboard. Click any team to inspect its driver roster.
                 </span>
               </div>
 
@@ -497,6 +354,13 @@ export default function HanbeeOverview() {
               </Link>
             </div>
 
+            {teamsToDisplay.length === 0 ? (
+              <EmptyState
+                icon={<Users size={20} />}
+                title="No payment-verified entries yet"
+                description="Teams appear here once their tournament entry payment is verified. Race-day eligibility is tracked separately under Scrutineering."
+              />
+            ) : (
             <div className={styles.tableWrapper}>
               <table className={styles.dataTable}>
                 <thead>
@@ -505,53 +369,48 @@ export default function HanbeeOverview() {
                     <th>Team</th>
                     <th>School</th>
                     <th>Roster Size</th>
-                    <th>Best Lap</th>
+                    <th>Avg Lap</th>
                     <th>Points</th>
-                    <th>Scrutineering</th>
                     <th>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {teamsToDisplay.map((team) => {
-                    const isExpanded = expandedTeamId === team.id;
+                    const isExpanded = expandedTeamId === team.team_id;
                     const rankClass = team.rank === 1 ? styles.rankP1 : team.rank === 2 ? styles.rankP2 : team.rank === 3 ? styles.rankP3 : styles.rankOther;
+                    const drivers = roster[team.team_id] ?? [];
 
                     return (
-                      <React.Fragment key={team.id}>
+                      <React.Fragment key={team.team_id}>
                         <tr>
                           <td>
                             <span className={`${styles.rankBadge} ${rankClass}`}>
-                              P{team.rank}
+                              {team.rank === null ? "--" : `P${team.rank}`}
                             </span>
                           </td>
                           <td>
                             <span className={styles.teamNameText}>{team.team_name}</span>
                           </td>
                           <td>
-                            <span className={styles.schoolText}>{team.school_name}</span>
+                            <span className={styles.schoolText}>{team.school_name ?? "Solo entry"}</span>
                           </td>
                           <td>
                             <span className={styles.capacityPill}>
                               <Users size={12} />
-                              {team.member_count} / {team.max_members}
+                              {drivers.length}
                             </span>
                           </td>
                           <td>
-                            <span className={styles.lapTimeText}>{team.lap}</span>
+                            <span className={styles.lapTimeText}>{formatLapTime(team.average_lap_time_ms)}</span>
                           </td>
                           <td>
                             <span className={styles.pointsText}>{team.points.toLocaleString()} pts</span>
                           </td>
                           <td>
-                            <span className={`${styles.statusPill} ${team.status === "verified" ? styles.statusVerified : styles.statusPending}`}>
-                              {team.status === "verified" ? "Passed · Grid Ready" : "Bay 3 Scrutineering"}
-                            </span>
-                          </td>
-                          <td>
                             <button
                               type="button"
                               className={styles.expandBtn}
-                              onClick={() => toggleExpandTeam(team.id)}
+                              onClick={() => toggleExpandTeam(team.team_id)}
                             >
                               <Eye size={13} />
                               {isExpanded ? "Hide Roster" : "Inspect Roster"}
@@ -562,38 +421,45 @@ export default function HanbeeOverview() {
 
                         {isExpanded && (
                           <tr className={styles.rosterExpandedTr}>
-                            <td colSpan={8} className={styles.rosterExpandedRow}>
-                              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
-                                <span style={{ fontSize: 12, fontWeight: 700, fontFamily: "monospace", color: "var(--accent-subtle-text)", textTransform: "uppercase" }}>
-                                  Registered Driver Telemetry (1 to 5 Members):
-                                </span>
-                                <span style={{ fontSize: 11, color: "var(--text-muted)" }}>
-                                  All driver entries verified by Hanbee Track RFID Transponder #42
-                                </span>
-                              </div>
-
+                            <td colSpan={7} className={styles.rosterExpandedRow}>
                               <div className={styles.driversMiniGrid}>
-                                {team.drivers && team.drivers.length > 0 ? (
-                                  team.drivers.map((driver) => {
-                                    const initials = driver.name.split(" ").map(w => w[0]).slice(0, 2).join("");
+                                {drivers.length > 0 ? (
+                                  drivers.map((driver) => {
+                                    const name = driver.name;
+                                    const initials = name.split(" ").map((w) => w[0]).slice(0, 2).join("");
+                                    const isIndependent = driver.is_independent === true;
+                                    const showPhone = Boolean(driver.phone);
+                                    const schoolLocation = [driver.school_name, driver.location].filter(Boolean).join(" · ");
                                     return (
-                                      <div key={driver.name} className={styles.driverMiniCard}>
+                                      <div key={driver.student_id ?? name} className={styles.driverMiniCard}>
                                         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                                           <div className={styles.driverAvatar}>{initials}</div>
                                           <div style={{ flex: 1, minWidth: 0 }}>
-                                            <div className={styles.driverMiniName}>
-                                              {driver.name} {driver.isCaptain && <span style={{ color: "#f59e0b", fontSize: 10 }}>★</span>}
-                                            </div>
-                                            <div className={styles.driverMiniRole}>{driver.role}</div>
+                                            <div className={styles.driverMiniName}>{name}</div>
+                                            {showPhone && (
+                                              <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 2 }}>
+                                                {driver.phone}
+                                              </div>
+                                            )}
+                                            {isIndependent ? (
+                                              <span style={{ display: "inline-block", marginTop: 4, fontSize: 10, fontWeight: 700, padding: "2px 8px", borderRadius: 999, background: "var(--accent-subtle-bg)", color: "var(--accent-subtle-text)", border: "1px solid var(--accent-subtle-border)" }}>
+                                                Independent
+                                              </span>
+                                            ) : (
+                                              schoolLocation && (
+                                                <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 2 }}>
+                                                  {schoolLocation}
+                                                </div>
+                                              )
+                                            )}
                                           </div>
                                         </div>
-                                        <div className={styles.driverMiniLap}>Best Lap: {driver.bestLap}</div>
                                       </div>
                                     );
                                   })
                                 ) : (
                                   <div style={{ color: "var(--text-muted)", fontSize: 12, padding: "8px 0" }}>
-                                    Driver roster telemetry awaiting live transponder heat qualification.
+                                    No drivers registered to this team yet.
                                   </div>
                                 )}
                               </div>
@@ -606,155 +472,30 @@ export default function HanbeeOverview() {
                 </tbody>
               </table>
             </div>
+            )}
           </div>
         </div>
-      )}
+            )}
+          </section>
 
-      {/* TAB 2: Learning & Course Overview */}
-      {activeTab === "learning" && (
-        <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
-          {/* Learning Metrics Hero */}
-          <div className={styles.learningHero}>
-            <div className={styles.circuitTopRow}>
-              <div className={styles.circuitTitleGroup}>
-                <div className={styles.circuitTitle}>
-                  <GraduationCap size={22} color="var(--color-primary)" />
-                  Hanbee STEM & Racing Academy Curriculum
-                </div>
-                <p className={styles.circuitDesc}>
-                  Core learning modules, technical certifications, and track safety protocols for student racers and teams.
-                </p>
-              </div>
-
-              <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-                <Link href="/dashboard/hanbee/courses" className={`${styles.linkBtn} ${styles.primaryLinkBtn}`}>
-                  <BookOpen size={15} />
-                  Manage Course Catalog
-                </Link>
-                <Link href="/dashboard/hanbee/applications" className={styles.linkBtn}>
-                  <FileText size={15} />
-                  Review Applications
-                </Link>
-              </div>
-            </div>
-
-            <div className={styles.circuitMetrics}>
-              <div className={styles.metricBox}>
-                <div className={styles.metricIcon} style={{ color: "#0284c7", background: "rgba(2, 132, 199, 0.12)", borderColor: "rgba(2, 132, 199, 0.3)" }}>
-                  <Users size={18} />
-                </div>
-                <div className={styles.metricMeta}>
-                  <span className={styles.metricCategory} style={{ color: "#0284c7" }}>ENROLLMENTS</span>
-                  <span className={styles.metricTitle}>Active Students</span>
-                  <span className={styles.metricValue}>531 Enrolled</span>
-                </div>
-              </div>
-
-              <div className={styles.metricBox}>
-                <div className={styles.metricIcon} style={{ color: "#10b981", background: "rgba(16, 185, 129, 0.12)", borderColor: "rgba(16, 185, 129, 0.3)" }}>
-                  <BookOpen size={18} />
-                </div>
-                <div className={styles.metricMeta}>
-                  <span className={styles.metricCategory} style={{ color: "#10b981" }}>CURRICULUM</span>
-                  <span className={styles.metricTitle}>Published Courses</span>
-                  <span className={styles.metricValue}>{coursesList.length} Active Courses</span>
-                </div>
-              </div>
-
-              <div className={styles.metricBox}>
-                <div className={styles.metricIcon} style={{ color: "#a855f7", background: "rgba(168, 85, 247, 0.12)", borderColor: "rgba(168, 85, 247, 0.3)" }}>
-                  <Award size={18} />
-                </div>
-                <div className={styles.metricMeta}>
-                  <span className={styles.metricCategory} style={{ color: "#a855f7" }}>PERFORMANCE</span>
-                  <span className={styles.metricTitle}>Quiz Success Rate</span>
-                  <span className={styles.metricValue} style={{ color: "#a855f7" }}>93.8% Pass</span>
-                </div>
-              </div>
-
-              <div className={styles.metricBox}>
-                <div className={styles.metricIcon} style={{ color: "#f59e0b", background: "rgba(245, 158, 11, 0.12)", borderColor: "rgba(245, 158, 11, 0.3)" }}>
-                  <CheckCheck size={18} />
-                </div>
-                <div className={styles.metricMeta}>
-                  <span className={styles.metricCategory} style={{ color: "#f59e0b" }}>LESSON PROGRESS</span>
-                  <span className={styles.metricTitle}>Completed Modules</span>
-                  <span className={styles.metricValue}>1,280 Lessons</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Courses Grid */}
-          <div className={styles.tableCard}>
-            <div className={styles.tableHeaderRow}>
+          <section className={styles.dashboardSection}>
+            <div className={styles.dashboardSectionHeading}>
               <div>
-                <h2 className={styles.tableTitle}>
-                  <BookOpen size={18} color="var(--accent-subtle-text)" />
-                  Active Courses & Lesson Modules
-                </h2>
-                <span className={styles.tableSubtitle}>
-                  Published STEM curricula for RC engineering, circuit telemetry, and driver certification.
-                </span>
+                <h2>Staff operations</h2>
+                <p>Your shift, weekly hours, and assigned tasks.</p>
               </div>
-              <Link href="/dashboard/hanbee/courses" className={styles.linkBtn}>
-                <Sparkles size={14} />
-                + Create New Course
-              </Link>
+              <Clock size={19} aria-hidden="true" />
             </div>
-
-            <div className={styles.coursesGrid}>
-              {coursesList.map((course) => (
-                <div key={course.id} className={styles.courseCard}>
-                  <div className={styles.courseCardTop}>
-                    <h3 className={styles.courseTitle}>{course.title}</h3>
-                    <span className={`${styles.statusPill} ${styles.statusVerified}`}>
-                      {course.status === "published" ? "Published" : "Draft"}
-                    </span>
-                  </div>
-
-                  <p className={styles.courseDesc}>{course.description}</p>
-
-                  <div className={styles.courseStatsRow}>
-                    <span className={styles.courseStatItem}>
-                      <BookOpen size={13} /> {course.moduleCount} modules ({course.lessonCount} lessons)
-                    </span>
-                    <span className={styles.courseStatItem}>
-                      <Users size={13} /> {course.enrolledStudents} students
-                    </span>
-                    <span className={styles.courseStatItem} style={{ color: "#10b981", marginLeft: "auto" }}>
-                      ★ {course.passRate}
-                    </span>
-                  </div>
-
-                  <div className={styles.courseActionRow}>
-                    <Link
-                      href={`/dashboard/hanbee/courses/${course.id}/edit`}
-                      className={`${styles.linkBtn} ${styles.primaryLinkBtn}`}
-                      style={{ flex: 1, justifyContent: "center" }}
-                    >
-                      Manage Lessons & Attachments
-                    </Link>
-                    <Link
-                      href="/dashboard/hanbee/applications"
-                      className={styles.linkBtn}
-                      style={{ padding: "8px 12px" }}
-                      title="View Student Enrollments"
-                    >
-                      <Users size={14} />
-                    </Link>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* TAB 3: Staff Operations & Tasks */}
-      {activeTab === "operations" && (
-        <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
-          {/* Time & Attendance Summary */}
+          {opsError ? (
+            <EmptyState
+              icon={<AlertTriangle size={22} />}
+              title="Unable to load your shift and task data"
+              description={opsError}
+              actionLabel="Retry"
+              onAction={() => void fetchOps()}
+            />
+          ) : (
+          <>
           <div className={styles.staffOpsRow}>
             <div className={styles.opsCard}>
               <div className={styles.opsHeader}>
@@ -762,12 +503,22 @@ export default function HanbeeOverview() {
                 Shift Hours Today
               </div>
               <div className={styles.hoursDisplay}>
-                <span className={styles.bigHours}>{data?.hoursWorked.today ?? 4.5}h</span>
+                <span className={styles.bigHours}>{data?.hoursWorked.today !== null && data?.hoursWorked.today !== undefined ? `${data.hoursWorked.today}h` : "--"}</span>
                 <span className={styles.hoursSub}>worked today</span>
               </div>
               <div style={{ fontSize: 12, color: "#10b981", fontWeight: 600 }}>
-                ● Status: {data?.status ?? "Active On Shift"}
+                ● Status: {data?.status ?? "Off shift"}
               </div>
+              <button
+                type="button"
+                className={styles.linkBtn}
+                disabled={clockBusy}
+                onClick={() => void handleClockToggle()}
+                style={{ marginTop: "auto", justifyContent: "center" }}
+              >
+                {clockBusy ? "Saving…" : data?.status === "Clocked In" ? "Clock out" : "Clock in"}
+              </button>
+              {clockError && <div style={{ fontSize: 11, color: "#ef4444", marginTop: 6 }}>{clockError}</div>}
             </div>
 
             <div className={styles.opsCard}>
@@ -776,7 +527,7 @@ export default function HanbeeOverview() {
                 Weekly Hours Total
               </div>
               <div className={styles.hoursDisplay}>
-                <span className={styles.bigHours}>{data?.hoursWorked.totalHours ?? 36.5}h</span>
+                <span className={styles.bigHours}>{data?.hoursWorked.totalHours ?? 0}h</span>
                 <span className={styles.hoursSub}>last 7 days</span>
               </div>
               <div style={{ fontSize: 12, color: "var(--text-muted)" }}>
@@ -786,19 +537,29 @@ export default function HanbeeOverview() {
 
             <div className={styles.opsCard}>
               <div className={styles.opsHeader}>
-                <AlertTriangle size={20} color={data?.needsAttention.length ? "#f59e0b" : "#10b981"} />
+                <AlertTriangle size={20} color={scrutineeredCount !== null && totalSquads - scrutineeredCount > 0 ? "#f59e0b" : "#10b981"} />
                 Scrutineering Alert
               </div>
               <div style={{ fontSize: 14, color: "var(--text-main)", fontWeight: 500 }}>
-                {data?.needsAttention[0]?.message ?? "All registered squads have completed scrutineering."}
+                {standingsError
+                  ? "Couldn't load scrutineering status."
+                  : scrutineeredCount === null
+                  ? "No tournament selected yet."
+                  : totalSquads - scrutineeredCount > 0
+                  ? `${totalSquads - scrutineeredCount} squad${totalSquads - scrutineeredCount === 1 ? "" : "s"} still need inspection.`
+                  : totalSquads > 0
+                  ? "All payment-verified squads have passed scrutineering."
+                  : "No scrutineering alerts right now."}
               </div>
-              <Link href="/dashboard/hanbee/tournament" style={{ fontSize: 12, color: "var(--accent-subtle-text)", textDecoration: "none", marginTop: "auto" }}>
+              <Link
+                href={tournament ? `/dashboard/hanbee/scrutineering?tournament=${encodeURIComponent(tournament.id)}` : "/dashboard/hanbee/scrutineering"}
+                style={{ fontSize: 12, color: "var(--accent-subtle-text)", textDecoration: "none", marginTop: "auto" }}
+              >
                 Open Inspection Queue →
               </Link>
             </div>
           </div>
 
-          {/* Personal Staff Tasks Table */}
           <div className={styles.tableCard}>
             <div className={styles.tableHeaderRow}>
               <div>
@@ -812,6 +573,13 @@ export default function HanbeeOverview() {
               </div>
             </div>
 
+            {(data?.personalTasks.length ?? 0) === 0 ? (
+              <EmptyState
+                icon={<CheckCircle size={20} />}
+                title="No tasks assigned"
+                description="Tasks assigned to you will show up here."
+              />
+            ) : (
             <div className={styles.tableWrapper}>
               <table className={styles.dataTable}>
                 <thead>
@@ -829,7 +597,7 @@ export default function HanbeeOverview() {
                       <td>
                         <span
                           style={{
-                            fontFamily: "monospace",
+                            fontFamily: "var(--font-mono)",
                             fontSize: 10,
                             fontWeight: 700,
                             padding: "3px 8px",
@@ -844,9 +612,12 @@ export default function HanbeeOverview() {
                         </span>
                       </td>
                       <td>
-                        <span
+                        <select
+                          value={task.status}
+                          disabled={updatingTaskId === task.id}
+                          onChange={(event) => void updateTaskStatus(task.id, event.target.value as "todo" | "in_progress" | "done")}
                           style={{
-                            fontFamily: "monospace",
+                            fontFamily: "var(--font-mono)",
                             fontSize: 10,
                             fontWeight: 700,
                             padding: "3px 8px",
@@ -857,16 +628,22 @@ export default function HanbeeOverview() {
                             border: task.status === "done" ? "1px solid rgba(16, 185, 129, 0.4)" : "1px solid rgba(245, 158, 11, 0.3)",
                           }}
                         >
-                          {task.status === "done" ? "Completed" : task.status.replace("_", " ")}
-                        </span>
+                          <option value="todo">To do</option>
+                          <option value="in_progress">In progress</option>
+                          <option value="done">Completed</option>
+                        </select>
                       </td>
-                      <td>{task.dueDate}</td>
+                      <td>{task.dueDate ?? "--"}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
+            )}
           </div>
+          </>
+          )}
+          </section>
         </div>
       )}
     </div>

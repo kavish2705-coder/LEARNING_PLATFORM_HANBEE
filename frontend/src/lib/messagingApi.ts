@@ -90,6 +90,13 @@ export async function startDirectConversation(otherUserId: string) {
   return rpc<string>("start_conversation_with", { other_user_id: otherUserId });
 }
 
+// Any user can start a group with people chat_contacts() already allows
+// them to message (same chat_relation_dir gate, re-checked server-side) --
+// not only team-formation byproducts. See 0118_create_group_conversation.sql.
+export async function createGroupConversation(title: string, memberIds: string[]) {
+  return rpc<string>("create_group_conversation", { p_title: title.trim(), p_member_ids: memberIds });
+}
+
 export async function sendChatMessage(conversationId: string, body: string) {
   return authenticatedSupabaseFetch<unknown>("/rest/v1/messages", {
     method: "POST",

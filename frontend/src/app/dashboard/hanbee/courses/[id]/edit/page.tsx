@@ -4,7 +4,8 @@ import { FormEvent, useCallback, useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import styles from "../../../../dashboard.module.css";
-import { Input, Select, Textarea } from "../../../../components/ui/FormField";
+import { Input, Textarea } from "../../../../components/ui/FormField";
+import Dropdown from "../../../../components/ui/Dropdown";
 import Shimmer from "../../../../components/ui/Shimmer";
 import { useConfirm } from "../../../../../../components/ui/useConfirm";
 import { authenticatedSupabaseFetch, getAccountProfile } from "../../../../../../lib/supabaseAuth";
@@ -328,10 +329,7 @@ export default function EditCoursePage() {
                   </label>
                   <label>
                     Type
-                    <Select value={draft.contentType} onChange={(e) => setLessonDraft((prev) => ({ ...prev, [mod.id]: { ...draft, contentType: e.target.value as Lesson["content_type"] } }))}>
-                      <option value="video">Video</option>
-                      <option value="document">Notes (document)</option>
-                    </Select>
+                    <Dropdown value={draft.contentType} onChange={(v) => setLessonDraft((prev) => ({ ...prev, [mod.id]: { ...draft, contentType: v as Lesson["content_type"] } }))} options={[{ value: "video", label: "Video" }, { value: "document", label: "Notes (document)" }]} style={{ minWidth: 0 }} />
                   </label>
                 </div>
                 {draft.contentType === "video" ? (

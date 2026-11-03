@@ -1,0 +1,9 @@
+.wordClip {
+  display: inline-block;
+  vertical-align: baseline;
+}
+
+.word {
+  display: inline-block;
+  will-change: transform, opacity;
+}

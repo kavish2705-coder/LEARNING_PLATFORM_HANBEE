@@ -3,17 +3,18 @@
 import { useEffect, useState } from "react";
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { 
-  BookOpen, CalendarDays, ChevronRight, GraduationCap, 
-  Trophy, Users, MapPin, Bell 
+import {
+  BookOpen, CalendarDays, ChevronRight, GraduationCap,
+  Trophy, Users, MapPin, Bell
 } from "lucide-react";
 import styles from "./SchoolOverview.module.css";
+import EmptyState from "../ui/EmptyState";
 import { fetchMyOrganizationId } from "../../../../lib/teamFormationApi";
-import { 
-  fetchSchoolCourseParticipation, 
-  fetchSchoolOverview, 
-  type SchoolCourseRow, 
-  type SchoolOverview 
+import {
+  fetchSchoolCourseParticipation,
+  fetchSchoolOverview,
+  type SchoolCourseRow,
+  type SchoolOverview
 } from "../../../../lib/schoolAdminApi";
 import { useSessionProfile } from "../../../../lib/hooks/useSessionProfile";
 
@@ -32,18 +33,14 @@ export default function SchoolOverviewPage() {
     async function load() {
       try {
         const orgId = await fetchMyOrganizationId();
-        if (!orgId) {
-          if (!active) return;
-          setError("Your account is not linked to an active school.");
-          return;
-        }
+        if (!orgId) throw new Error("Your account is not linked to an active school.");
         const [summary, participation] = await Promise.all([
-          fetchSchoolOverview(orgId), 
-          fetchSchoolCourseParticipation(orgId)
+          fetchSchoolOverview(orgId),
+          fetchSchoolCourseParticipation(orgId),
         ]);
         if (!active) return;
         setOverview(summary);
-        setCourses(participation ?? []);
+        setCourses(participation);
       } catch (reason: unknown) {
         if (!active) return;
         setError(reason instanceof Error ? reason.message : "We couldn't load your school overview.");
@@ -90,24 +87,24 @@ export default function SchoolOverviewPage() {
           {/* ===== Glider Mode Switcher (Aligned with Student Dashboard) ===== */}
           <div className={styles.tabSwitcherWrap}>
             <div className={styles.modeSwitcherContainer} role="tablist" aria-label="School dashboard view">
-              <div 
-                className={styles.modeSwitcherGlider} 
-                style={{ transform: tab === "tournament" ? "translateX(0%)" : "translateX(100%)" }} 
+              <div
+                className={styles.modeSwitcherGlider}
+                style={{ transform: tab === "tournament" ? "translateX(0%)" : "translateX(100%)" }}
               />
-              <button 
-                type="button" 
-                role="tab" 
-                aria-selected={tab === "tournament"} 
-                className={`${styles.modeOption} ${tab === "tournament" ? styles.modeOptionActive : ""}`} 
+              <button
+                type="button"
+                role="tab"
+                aria-selected={tab === "tournament"}
+                className={`${styles.modeOption} ${tab === "tournament" ? styles.modeOptionActive : ""}`}
                 onClick={() => setTab("tournament")}
               >
                 <Trophy size={16} /> Tournament
               </button>
-              <button 
-                type="button" 
-                role="tab" 
-                aria-selected={tab === "learning"} 
-                className={`${styles.modeOption} ${tab === "learning" ? styles.modeOptionActive : ""}`} 
+              <button
+                type="button"
+                role="tab"
+                aria-selected={tab === "learning"}
+                className={`${styles.modeOption} ${tab === "learning" ? styles.modeOptionActive : ""}`}
                 onClick={() => setTab("learning")}
               >
                 <BookOpen size={16} /> Learning
@@ -119,29 +116,29 @@ export default function SchoolOverviewPage() {
             <>
               {/* ===== Tournament Metrics Grid ===== */}
               <div className={styles.metricsGrid}>
-                <MetricCard 
-                  icon={<Users size={18} />} 
-                  title="Active students" 
-                  value={overview.people.students} 
-                  detail={`${overview.people.staff + overview.people.owners} school staff`} 
+                <MetricCard
+                  icon={<Users size={18} />}
+                  title="Active students"
+                  value={overview.people.students}
+                  detail={overview.people.students === 1 ? "1 student enrolled" : `${overview.people.students} students enrolled`}
                 />
-                <MetricCard 
-                  icon={<Trophy size={18} />} 
-                  title="Teams" 
-                  value={overview.tournament.teams_total} 
-                  detail={`${overview.tournament.participants} student participants`} 
+                <MetricCard
+                  icon={<Trophy size={18} />}
+                  title="Teams"
+                  value={overview.tournament.teams_total}
+                  detail={`${overview.tournament.participants} student participants`}
                 />
-                <MetricCard 
-                  icon={<GraduationCap size={18} />} 
-                  title="Pending invitations" 
-                  value={overview.people.pending_invites} 
-                  detail="Student invitations still open" 
+                <MetricCard
+                  icon={<GraduationCap size={18} />}
+                  title="Pending invitations"
+                  value={overview.people.pending_invites}
+                  detail="Student invitations still open"
                 />
-                <MetricCard 
-                  icon={<CalendarDays size={18} />} 
-                  title="Best tournament rank" 
-                  value={overview.tournament.best_rank ?? "—"} 
-                  detail="Across your school's results" 
+                <MetricCard
+                  icon={<CalendarDays size={18} />}
+                  title="Best tournament rank"
+                  value={overview.tournament.best_rank ?? "—"}
+                  detail="Across your school's results"
                 />
               </div>
 
@@ -161,7 +158,7 @@ export default function SchoolOverviewPage() {
                   <div className={styles.eventCardInner}>
                     <div className={styles.eventMetaList}>
                       <span className={styles.eventMetaItem}>
-                        <CalendarDays size={15} color="#7dd3e8" /> 
+                        <CalendarDays size={15} color="#7dd3e8" />
                         {new Date(overview.tournament.next_tournament.starts_at).toLocaleDateString([], {
                           weekday: "short",
                           month: "short",
@@ -197,46 +194,53 @@ export default function SchoolOverviewPage() {
                     Open team page <ChevronRight size={15} />
                   </Link>
                 </div>
-                <div className={styles.teamsStatusGrid}>
-                  {Object.entries(overview.tournament.teams_by_status ?? {}).map(([status, count]) => (
-                    <div key={status} className={styles.teamStatusCard}>
-                      <span className={styles.teamStatusName}>{status.replaceAll("_", " ")}</span>
-                      <span className={styles.teamStatusCount}>{count}</span>
-                    </div>
-                  ))}
-                  {Object.keys(overview.tournament.teams_by_status ?? {}).length === 0 && (
-                    <p style={{ color: "var(--text-muted)", margin: 0 }}>No teams have been formed yet.</p>
-                  )}
-                </div>
+                {Object.keys(overview.tournament.teams_by_status ?? {}).length === 0 ? (
+                  <EmptyState
+                    icon={<Trophy size={22} />}
+                    title="No teams formed yet"
+                    description="Once a student captain registers a team for the next tournament, its review status will appear here."
+                    actionLabel="Manage teams"
+                    actionHref="/dashboard/school/teams"
+                  />
+                ) : (
+                  <div className={styles.teamsStatusGrid}>
+                    {Object.entries(overview.tournament.teams_by_status ?? {}).map(([status, count]) => (
+                      <div key={status} className={styles.teamStatusCard}>
+                        <span className={styles.teamStatusName}>{status.replaceAll("_", " ")}</span>
+                        <span className={styles.teamStatusCount}>{count}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </section>
             </>
           ) : (
             <>
               {/* ===== Learning Metrics Grid ===== */}
               <div className={styles.metricsGrid}>
-                <MetricCard 
-                  icon={<GraduationCap size={18} />} 
-                  title="Students enrolled" 
-                  value={overview.lms.students_enrolled} 
-                  detail="Participating in courses" 
+                <MetricCard
+                  icon={<GraduationCap size={18} />}
+                  title="Students enrolled"
+                  value={overview.lms.students_enrolled}
+                  detail="Participating in courses"
                 />
-                <MetricCard 
-                  icon={<BookOpen size={18} />} 
-                  title="Active enrollments" 
-                  value={overview.lms.enrollments} 
-                  detail="Across all school courses" 
+                <MetricCard
+                  icon={<BookOpen size={18} />}
+                  title="Active enrollments"
+                  value={overview.lms.enrollments}
+                  detail="Across all school courses"
                 />
-                <MetricCard 
-                  icon={<Trophy size={18} />} 
-                  title="Lessons completed" 
-                  value={overview.lms.lessons_completed} 
-                  detail="Combined school progress" 
+                <MetricCard
+                  icon={<Trophy size={18} />}
+                  title="Lessons completed"
+                  value={overview.lms.lessons_completed}
+                  detail="Combined school progress"
                 />
-                <MetricCard 
-                  icon={<Users size={18} />} 
-                  title="Average completion" 
-                  value={`${overview.lms.avg_completion_pct}%`} 
-                  detail="For active enrollments" 
+                <MetricCard
+                  icon={<Users size={18} />}
+                  title="Average completion"
+                  value={`${overview.lms.avg_completion_pct}%`}
+                  detail="For active enrollments"
                 />
               </div>
 
@@ -248,7 +252,13 @@ export default function SchoolOverviewPage() {
                     View courses <ChevronRight size={15} />
                   </Link>
                 </div>
-                {courses.length > 0 ? (
+                {courses.length === 0 ? (
+                  <EmptyState
+                    icon={<BookOpen size={22} />}
+                    title="No course activity yet"
+                    description="Once your students enroll and start their first lesson, course progress will show up here."
+                  />
+                ) : (
                   <div className={styles.tableContainer}>
                     <table className={styles.dataTable}>
                       <thead>
@@ -266,9 +276,9 @@ export default function SchoolOverviewPage() {
                             <td>
                               <div className={styles.progressWrap}>
                                 <div className={styles.progressBarTrack}>
-                                  <div 
-                                    className={styles.progressBarFill} 
-                                    style={{ width: `${Math.max(0, Math.min(100, course.avg_completion_pct))}%` }} 
+                                  <div
+                                    className={styles.progressBarFill}
+                                    style={{ width: `${Math.max(0, Math.min(100, course.avg_completion_pct))}%` }}
                                   />
                                 </div>
                                 <span>{course.avg_completion_pct}%</span>
@@ -278,10 +288,6 @@ export default function SchoolOverviewPage() {
                         ))}
                       </tbody>
                     </table>
-                  </div>
-                ) : (
-                  <div style={{ textAlign: "center", padding: "36px 16px", color: "var(--text-muted)" }}>
-                    <p style={{ margin: 0, fontSize: "14px" }}>No school students are enrolled in a course yet.</p>
                   </div>
                 )}
               </section>
@@ -347,4 +353,3 @@ function MetricCard({ icon, title, value, detail }: { icon?: ReactNode; title: s
     </article>
   );
 }
-

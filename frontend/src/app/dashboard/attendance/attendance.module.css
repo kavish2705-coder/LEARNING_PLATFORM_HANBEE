@@ -29,7 +29,7 @@
 
 .timeDisplay {
   font-size: 64px;
-  font-family: monospace;
+  font-family: var(--font-mono);
   font-weight: 500;
   letter-spacing: 2px;
   color: var(--text-main);
@@ -101,8 +101,9 @@
 }
 
 .historyTitle {
-  font-size: 18px;
-  font-weight: 500;
+  font-family: var(--font-heading);
+  font-size: 19px;
+  font-weight: 600;
   margin-bottom: 24px;
 }
 

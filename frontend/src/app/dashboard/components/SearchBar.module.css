@@ -9,8 +9,7 @@
   border-radius: 10px;
   padding: 0 12px;
   height: 36px;
-  width: clamp(200px, 18vw, 260px);
-  min-width: 180px;
+  width: clamp(160px, 18vw, 250px);
   cursor: pointer;
   user-select: none;
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
@@ -64,7 +63,7 @@
   display: inline-flex;
   align-items: center;
   padding: 2px 6px;
-  font-family: monospace;
+  font-family: var(--font-mono);
   font-size: 10px;
   font-weight: 600;
   color: var(--text-muted);
@@ -177,7 +176,7 @@
 }
 
 .escBadge {
-  font-family: monospace;
+  font-family: var(--font-mono);
   font-size: 10px;
   font-weight: 700;
   color: var(--text-muted);
@@ -328,7 +327,7 @@
   padding: 9px 18px;
   border-top: 1px solid rgba(255, 255, 255, 0.06);
   font-size: 11px;
-  font-family: monospace;
+  font-family: var(--font-mono);
   color: var(--text-muted);
   background: #14151b;
 }
@@ -356,39 +355,3 @@
   background: rgba(0, 0, 0, 0.06);
   border-color: rgba(0, 0, 0, 0.1);
 }
-
-@media (max-width: 768px) {
-  .searchTrigger {
-    width: 36px;
-    height: 36px;
-    min-width: 36px;
-    padding: 0;
-    justify-content: center;
-    border-radius: 10px;
-    flex-shrink: 0;
-  }
-
-  .searchTriggerLeft {
-    justify-content: center;
-    gap: 0;
-  }
-
-  .searchPlaceholder,
-  .kbdBadge {
-    display: none;
-  }
-
-  .paletteBackdrop {
-    padding: 24px 12px 16px;
-    align-items: flex-start;
-  }
-
-  .paletteCard {
-    max-height: calc(100vh - 48px);
-  }
-
-  .paletteResults {
-    max-height: calc(100vh - 160px);
-  }
-}
-

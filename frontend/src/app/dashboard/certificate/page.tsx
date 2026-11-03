@@ -65,10 +65,10 @@ export default function CertificatePage() {
                 </div>
               </div>
               <div style={{ textAlign: "right" }}>
-                <span style={{ fontSize: 11, fontFamily: "monospace", letterSpacing: "1px", color: "var(--text-muted)", display: "block" }}>
+                <span style={{ fontSize: 11, fontFamily: "var(--font-mono)", letterSpacing: "1px", color: "var(--text-muted)", display: "block" }}>
                   CERTIFICATE SERIAL
                 </span>
-                <span style={{ fontFamily: "monospace", fontSize: 14, fontWeight: 700, color: "var(--color-primary)" }}>
+                <span style={{ fontFamily: "var(--font-mono)", fontSize: 14, fontWeight: 700, color: "var(--color-primary)" }}>
                   {certificate.serial}
                 </span>
               </div>

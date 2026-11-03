@@ -3,16 +3,17 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
-import { AlertCircle, RotateCw } from "lucide-react";
+import { BookOpen } from "lucide-react";
 import styles from "./courses.module.css";
 import Shimmer from "../components/ui/Shimmer";
+import EmptyState from "../components/ui/EmptyState";
 import { fetchMyCourses } from "../../../lib/coursesApi";
 
 const TABS = ["All Courses", "In Progress", "Completed"] as const;
 
 export default function CoursesPage() {
   const [activeTab, setActiveTab] = useState<(typeof TABS)[number]>("All Courses");
-  const { data: courses, isLoading, error, refetch } = useQuery({
+  const { data: courses, isLoading, error } = useQuery({
     queryKey: ["my-courses"],
     queryFn: fetchMyCourses,
   });
@@ -44,41 +45,7 @@ export default function CoursesPage() {
         ))}
       </div>
 
-      {error && (
-        <div
-          role="alert"
-          style={{
-            background: "var(--bg-card)",
-            border: "1px solid rgba(239, 68, 68, 0.3)",
-            borderRadius: "14px",
-            padding: "36px 20px",
-            textAlign: "center",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            gap: "8px",
-            margin: "20px 0",
-          }}
-        >
-          <div style={{ display: "inline-flex", padding: 12, borderRadius: "50%", background: "rgba(239, 68, 68, 0.12)", color: "#ef4444", marginBottom: 4 }}>
-            <AlertCircle size={28} />
-          </div>
-          <h2 style={{ fontSize: "18px", fontWeight: 700, margin: 0, color: "var(--text-primary)" }}>
-            Unable to Load Courses
-          </h2>
-          <p style={{ color: "var(--text-muted)", fontSize: "14px", margin: 0, maxWidth: 440 }}>
-            {error instanceof Error ? error.message : "We couldn't load your courses."}
-          </p>
-          <button
-            type="button"
-            onClick={() => void refetch()}
-            className={styles.courseActionBtn}
-            style={{ marginTop: 12, width: "auto", display: "inline-flex", alignItems: "center", gap: 8, padding: "8px 18px" }}
-          >
-            <RotateCw size={15} /> Try Again
-          </button>
-        </div>
-      )}
+      {error && <p role="alert">{error instanceof Error ? error.message : "We couldn't load your courses."}</p>}
       {isLoading && <Shimmer rows={3} />}
 
       <div className={styles.coursesGrid}>
@@ -120,9 +87,11 @@ export default function CoursesPage() {
       </div>
 
       {!isLoading && !error && filtered.length === 0 && (
-        <div style={{ textAlign: "center", color: "var(--text-muted)", padding: "40px 0" }}>
-          No courses found for this filter.
-        </div>
+        <EmptyState
+          icon={<BookOpen size={22} />}
+          title="No courses found"
+          description="Nothing matches this filter yet. Try a different tab or check back once a course is assigned."
+        />
       )}
     </div>
   );

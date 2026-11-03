@@ -2,6 +2,12 @@ import { connect } from "./_db.mjs";
 const c = await connect();
 const id = async e => (await c.query("select id from profiles where email=$1",[e])).rows[0].id;
 const jamie=await id("jamie@hanbeelms.edu"), morgan=await id("morgan@hanbeelms.edu"), info=await id("info@hanbee.in");
+// ava@student.edu: a pre-existing independent (is_solo) seed account, unrelated to this
+// test's own fixtures. Since migration 0095, "solo" (this test's org_id-null student,
+// created below) and ava are both independent students and so get a pool_student
+// relation from chat_relation_dir -- include ava explicitly rather than let her show up
+// as an unexplained extra contact.
+const ava = await id("ava@student.edu");
 let pass=0, fail=0; const check=(n,ok,x="")=>{(ok?pass++:fail++);console.log(ok?"PASS":"FAIL",n,ok?"":x)};
 const asUser = async (u) => { await c.query("reset role"); await c.query("set local role authenticated"); await c.query("select set_config('request.jwt.claims',$1,true)",[JSON.stringify({sub:u,role:"authenticated"})]); };
 const asOwner = async () => { await c.query("reset role"); await c.query("select set_config('request.jwt.claims','',true)"); };
@@ -59,7 +65,7 @@ check("staff join as admin, students as member", m.t==="admin" && m.s==="member"
 check("solo student is in no group", (await one("select count(*)::int n from conversation_participants where user_id=$1",[solo])).n===0);
 
 // ---- contact matrix
-const N = {ownerA,ownerB,sA1,sA2,sB1,teacherA,solo,hs2,jamie,morgan,info};
+const N = {ownerA,ownerB,sA1,sA2,sB1,teacherA,solo,hs2,jamie,morgan,info,ava};
 const names = Object.fromEntries(Object.entries(N).map(([k,v])=>[v,k]));
 const allowed = [[sA1,ownerA],[sA1,teacherA],[sA1,hs2],[solo,hs2],[teacherA,sA1],[teacherA,sA2],[teacherA,ownerA],[teacherA,jamie],[teacherA,morgan],[ownerA,sA1],[ownerA,jamie],[ownerA,morgan],[hs2,sA1],[hs2,ownerA],[hs2,jamie],[hs2,morgan],[hs2,solo],[jamie,ownerA],[jamie,hs2],[jamie,morgan],[morgan,sA1],[morgan,solo],[morgan,ownerB],[morgan,teacherA],[ownerB,jamie],[sB1,ownerB]];
 const refused = [[sA1,sA2],[sA1,sB1],[sA1,ownerB],[sA1,jamie],[sA1,morgan],[sA1,solo],[sA1,info],[sB1,hs2],[sB1,ownerA],[solo,jamie],[solo,ownerA],[solo,sA1],[solo,morgan],[teacherA,sB1],[teacherA,ownerB],[ownerA,sB1],[ownerA,ownerB],[ownerA,solo],[jamie,sA1],[jamie,teacherA],[jamie,solo],[jamie,sB1],[hs2,teacherA],[hs2,sB1],[hs2,sA2],[sA2,hs2],[sA1,sA1]];
@@ -83,7 +89,7 @@ check("no refused pair gains rights through chat_can_message", bad.length===0, b
 const contactsOf = async u => { await asUser(u); return new Set((await c.query("select user_id from chat_contacts()")).rows.map(r=>names[r.user_id]||r.user_id)); };
 const setEq = (s, arr)=> s.size===arr.length && arr.every(x=>s.has(x));
 let cs = await contactsOf(sA1); check("student contacts: school owner, school staff, own-course Hanbee staff only", setEq(cs,["ownerA","teacherA","hs2"]), [...cs].join());
-cs = await contactsOf(solo); check("solo student contacts: course owner only", setEq(cs,["hs2"]), [...cs].join());
+cs = await contactsOf(solo); check("solo student contacts: course owner + other independent students (pool chat, 0095)", setEq(cs,["hs2","ava"]), [...cs].join());
 cs = await contactsOf(sB1); check("student with dropped enrollment: only own school staff", setEq(cs,["ownerB"]), [...cs].join());
 cs = await contactsOf(teacherA); check("school staff contacts: own school + all Hanbee staff + managers, nobody from school B", ["ownerA","sA1","sA2","jamie","hs2","info","morgan"].every(x=>cs.has(x)) && !["ownerB","sB1"].some(x=>cs.has(x)) && !cs.has("solo"), [...cs].join());
 cs = await contactsOf(hs2); { const exp=["sA1","solo","ownerA","ownerB","jamie","info","morgan"]; const forb=Object.values(names).filter(n=>!exp.includes(n)); check("Hanbee staff contacts: own course students, school owners, staff, managers", exp.every(x=>cs.has(x)) && !forb.some(x=>cs.has(x)), [...cs].join()); }

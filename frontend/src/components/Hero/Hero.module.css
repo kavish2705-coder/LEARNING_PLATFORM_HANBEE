@@ -17,7 +17,7 @@
   bottom: -10vh;
   z-index: 0;
   overflow: hidden;
-  background-color: #161620;
+  background-color: #0b0c10;
 }
 
 .bgVideo {
@@ -25,54 +25,23 @@
   height: 100%;
   object-fit: cover;
   object-position: center;
-  filter: brightness(1.05) contrast(1.04);
-  background-color: #161620;
+  filter: brightness(1.06) contrast(1.03) saturate(1.08);
+  background-color: #0b0c10;
 }
 
-/* Background Image Fallback */
-.bgImage {
-  display: none;
-}
-
-
-/* Animated Glowing Orb */
-.glowingOrb {
-  position: absolute;
-  top: 10%;
-  left: 40%;
-  width: 50vw;
-  height: 50vw;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(157, 82, 20, 0.22) 0%, rgba(139, 92, 246, 0.14) 35%, transparent 70%);
-  filter: blur(80px);
-  z-index: 1;
-  animation: floatOrb 12s ease-in-out infinite alternate;
-  pointer-events: none;
-}
-
-@keyframes floatOrb {
-  0% {
-    transform: translate(0, 0) scale(1);
-  }
-
-  100% {
-    transform: translate(-80px, 60px) scale(1.1);
-  }
-}
-
-/* Gradient Overlay - darker on left for text readability and smooth transition to next section */
+/* Gradient Overlay - smooth read-through to background */
 .overlay {
   position: absolute;
   inset: 0;
   background:
     linear-gradient(to right,
-      rgba(12, 14, 20, 0.38) 0%,
-      rgba(14, 16, 24, 0.14) 45%,
+      rgba(10, 11, 16, 0.50) 0%,
+      rgba(10, 11, 16, 0.18) 48%,
       transparent 100%),
     linear-gradient(to bottom,
-      rgba(15, 16, 22, 0.15) 0%,
-      transparent 35%,
-      rgba(26, 27, 36, 0.78) 100%);
+      rgba(10, 11, 16, 0.20) 0%,
+      transparent 45%,
+      var(--landing-surface-2, #111218) 100%);
   z-index: 2;
   pointer-events: none;
 }
@@ -82,79 +51,50 @@
   position: relative;
   z-index: 5;
   padding-left: 40px;
-  padding-top: calc(var(--nav-height) + 12vh);
+  padding-right: 40px;
+  padding-top: calc(var(--nav-height, 84px) + 10vh);
   width: 100%;
+  max-width: 1200px;
 }
 
-/* Tagline - Stretched Panoramic Typography (GTA 6 Sunset) */
+/* Tagline - Disciplined Single Accent */
 .tagline {
   display: inline-flex;
   align-items: center;
-  gap: 16px;
+  gap: 10px;
   font-family: var(--font-body);
-  font-size: 12.5px;
-  font-weight: 500;
-  letter-spacing: 0.38em;
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.94);
+  color: #ffffff;
   margin-bottom: 24px;
-  padding: 0;
-  background: transparent;
-  border: none;
-  box-shadow: none;
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
-}
-
-.taglineLine {
-  display: inline-block;
-  width: 44px;
-  height: 1.5px;
-  background: linear-gradient(90deg, transparent, #7c3aed 25%, #d946ef 55%, #fb7185 80%, #facc15 100%);
-  box-shadow: 0 0 10px rgba(244, 63, 94, 0.75);
-  border-radius: 2px;
-}
-
-.taglineLineRight {
-  display: inline-block;
-  width: 44px;
-  height: 1.5px;
-  background: linear-gradient(90deg, #facc15 0%, #f97316 25%, #fb7185 55%, #7c3aed 80%, transparent 100%);
-  box-shadow: 0 0 10px rgba(244, 63, 94, 0.75);
-  border-radius: 2px;
-}
-
-.taglineWord {
-  display: inline-block;
-  background: linear-gradient(135deg, #fef08a 0%, #facc15 20%, #f97316 42%, #fb7185 64%, #d946ef 84%, #8b5cf6 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  filter: drop-shadow(0 0 16px rgba(244, 63, 94, 0.35));
-  transition: all 0.3s ease;
+  padding: 6px 16px;
+  border-radius: 9999px;
+  background: rgba(229, 138, 43, 0.12);
+  border: 1px solid rgba(229, 138, 43, 0.38);
+  box-shadow: 0 0 20px rgba(229, 138, 43, 0.20);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 .taglineDot {
-  display: inline-block;
-  width: 5px;
-  height: 5px;
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
-  background: #facc15;
-  box-shadow:
-    0 0 8px #facc15,
-    0 0 16px #f97316,
-    0 0 24px #d946ef;
-  margin: 0 2px;
+  background: var(--landing-accent, #e58a2b);
+  box-shadow: 0 0 10px var(--landing-accent, #e58a2b);
 }
+
 /* Heading */
 .heading {
   font-family: var(--font-heading);
-  font-size: clamp(50px, 6.5vw, 84px);
+  font-size: clamp(40px, 5.8vw, 76px);
   font-weight: 500;
   letter-spacing: -1.5px;
   color: #ffffff;
-  line-height: 1.05;
-  margin-bottom: 32px;
-  text-shadow: 0 0 40px rgba(255, 255, 255, 0.3), 0 0 80px rgba(157, 82, 20, 0.15);
+  line-height: 1.08;
+  margin-bottom: 24px;
 }
 
 .headingLine {
@@ -163,71 +103,63 @@
 
 /* Subtitle */
 .subtitle {
-  font-family: var(--font-accent);
-  font-size: clamp(16px, 2vw, 20px);
-  font-weight: 300;
-  color: rgba(255, 255, 255, 0.85);
+  font-family: var(--font-body);
+  font-size: clamp(16px, 1.8vw, 19px);
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.88);
   line-height: 1.6;
-  margin-bottom: 40px;
-  max-width: 750px;
+  margin-bottom: 36px;
+  max-width: 680px;
 }
 
-/* CTA Buttons Group */
+/* CTA Group */
 .ctaGroup {
   display: flex;
   align-items: center;
-  flex-wrap: wrap;
   gap: 16px;
+  flex-wrap: wrap;
 }
 
-/* CTA Button */
-/* CTA Button - Primary (Start Learning) - Clean Edge Fixed */
+/* Primary CTA Button: Filled with warm vibrant accent */
 .ctaButton {
   display: inline-flex;
   align-items: center;
   gap: 10px;
   font-family: var(--font-body);
   font-size: 14.5px;
-  font-weight: 500;
-  color: #ffffff;
-
-  /* Polished Liquid Glass with Flawless Uniform Edge */
-  background: rgba(255, 255, 255, 0.055);
-  border: 1px solid rgba(255, 255, 255, 0.24);
+  font-weight: 600;
+  color: #0b0c10;
+  background: var(--landing-accent, #e58a2b);
+  border: 1px solid var(--landing-accent, #e58a2b);
   box-shadow:
-    0 8px 28px rgba(0, 0, 0, 0.28),
-    inset 0 1px 1.5px rgba(255, 255, 255, 0.5),
-    inset 0 -1px 1px rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(20px) saturate(140%);
-  -webkit-backdrop-filter: blur(20px) saturate(140%);
+    0 8px 28px rgba(229, 138, 43, 0.40),
+    0 2px 8px rgba(0, 0, 0, 0.25);
   padding: 12px 28px;
   border-radius: 50px;
   text-decoration: none;
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: all 0.25s ease;
   cursor: pointer;
-  outline: none;
 }
 
 .ctaButton:hover {
-  background: rgba(255, 255, 255, 0.12);
-  border-color: rgba(255, 255, 255, 0.45);
+  background: color-mix(in srgb, var(--landing-accent, #e58a2b) 85%, white);
   box-shadow:
-    0 12px 36px rgba(0, 0, 0, 0.38),
-    0 0 24px rgba(255, 255, 255, 0.2),
-    inset 0 1px 2px rgba(255, 255, 255, 0.7);
+    0 12px 34px rgba(229, 138, 43, 0.52),
+    0 4px 12px rgba(0, 0, 0, 0.3);
+  transform: translateY(-1px);
 }
 
 .ctaButton svg {
-  transition: transform 0.3s ease;
-  width: 14px;
-  height: 14px;
+  transition: transform 0.25s ease;
+  width: 13px;
+  height: 13px;
 }
 
 .ctaButton:hover svg {
-  transform: translateX(4px);
+  transform: translateX(3px);
 }
 
-/* Secondary CTA Button: Independent Student (GTA 6 Sunset Glass) */
+/* Secondary CTA Button: Outlined liquid glass */
 .secondaryCtaButton {
   display: inline-flex;
   align-items: center;
@@ -235,82 +167,128 @@
   font-family: var(--font-body);
   font-size: 14.5px;
   font-weight: 500;
-  color: #fde047;
-
-  /* Frosted Glass with Violet -> Magenta -> Coral -> Orange -> Yellow Sunset Highlights */
-  background: linear-gradient(135deg, rgba(124, 58, 237, 0.12) 0%, rgba(217, 70, 239, 0.10) 40%, rgba(249, 115, 22, 0.08) 100%);
-  border: 1px solid rgba(251, 113, 133, 0.38);
-  border-top-color: rgba(250, 204, 21, 0.65);
-  box-shadow:
-    0 8px 24px rgba(0, 0, 0, 0.25),
-    0 0 24px rgba(244, 63, 94, 0.22),
-    0 0 14px rgba(124, 58, 237, 0.18),
-    inset 0 1px 2px rgba(254, 240, 138, 0.5),
-    inset 0 -1px 2px rgba(217, 70, 239, 0.15);
-  backdrop-filter: blur(24px) saturate(140%) brightness(1.15);
-  -webkit-backdrop-filter: blur(24px) saturate(140%) brightness(1.15);
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-top-color: rgba(255, 255, 255, 0.3);
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.25);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
   padding: 12px 26px;
   border-radius: 50px;
   text-decoration: none;
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: all 0.25s ease;
   cursor: pointer;
-  outline: none;
 }
 
 .secondaryCtaButton:hover {
-  background: linear-gradient(135deg, rgba(124, 58, 237, 0.22) 0%, rgba(217, 70, 239, 0.20) 40%, rgba(249, 115, 22, 0.16) 100%);
-  color: #ffffff;
-  border-color: rgba(250, 204, 21, 0.85);
-  box-shadow:
-    0 12px 34px rgba(0, 0, 0, 0.35),
-    0 0 36px rgba(244, 63, 94, 0.45),
-    0 0 20px rgba(250, 204, 21, 0.35),
-    inset 0 1px 3px rgba(254, 240, 138, 0.7);
+  background: rgba(255, 255, 255, 0.09);
+  border-color: var(--landing-accent, #e58a2b);
+  color: var(--landing-accent, #e58a2b);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 24px rgba(229, 138, 43, 0.25);
 }
 
 .secondaryCtaButton svg {
-  transition: transform 0.3s ease;
-  width: 14px;
-  height: 14px;
-  stroke: #facc15;
+  transition: transform 0.25s ease;
+  width: 13px;
+  height: 13px;
 }
 
 .secondaryCtaButton:hover svg {
-  transform: translateX(4px);
-  stroke: #ffffff;
+  transform: translateX(3px);
 }
 
-/* ===== Responsive ===== */
+/* Secondary path text link */
+.independentLink {
+  display: block;
+  margin-top: 18px;
+  margin-left: 2px;
+  font-family: var(--font-body);
+  font-size: 13.5px;
+  color: rgba(255, 255, 255, 0.65);
+  background: none;
+  border: none;
+  padding: 0;
+  text-decoration: none;
+  cursor: pointer;
+  transition: color 0.25s ease;
+}
+
+.independentLink:hover {
+  color: var(--landing-accent, #c9782f);
+}
+
+/* ===== Responsive & 390px Viewport QA ===== */
 @media (max-width: 1024px) {
   .content {
-    padding-left: 48px;
-    padding-top: calc(var(--nav-height) + 8vh);
+    padding-left: 32px;
+    padding-right: 32px;
+    padding-top: calc(var(--nav-height, 84px) + 6vh);
   }
 }
 
 @media (max-width: 768px) {
-  .tagline {
-    font-size: 11px;
-    letter-spacing: 0.24em;
-    gap: 10px;
-    margin-bottom: 18px;
+  .hero {
+    min-height: 640px;
+    height: auto;
+    padding-bottom: 80px;
   }
 
-  .taglineLine,
-  .taglineLineRight {
-    width: 22px;
-  }
   .content {
-    padding-left: 24px;
-    padding-top: calc(var(--nav-height) + 40px);
+    padding-left: 20px;
+    padding-right: 20px;
+    padding-top: calc(var(--nav-height, 84px) + 24px);
   }
 
   .heading {
-    font-size: clamp(32px, 8vw, 48px);
+    font-size: clamp(32px, 8vw, 46px);
     margin-bottom: 16px;
+    letter-spacing: -1px;
   }
 
   .subtitle {
+    margin-bottom: 28px;
+  }
+}
+
+/* 390px (and narrow phone) viewport QA */
+@media (max-width: 420px) {
+  .content {
+    padding-left: 16px;
+    padding-right: 16px;
+    padding-top: calc(var(--nav-height, 64px) + 20px);
+  }
+
+  .heading {
+    font-size: 32px;
+    line-height: 1.12;
+  }
+
+  .subtitle {
+    font-size: 14.5px;
+    line-height: 1.55;
     margin-bottom: 24px;
+  }
+
+  .ctaGroup {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+    width: 100%;
+  }
+
+  .ctaButton,
+  .secondaryCtaButton {
+    width: 100%;
+    justify-content: center;
+    padding: 12px 18px;
+    font-size: 14px;
+  }
+
+  .independentLink {
+    text-align: center;
+    font-size: 13px;
+    margin-top: 14px;
   }
 }

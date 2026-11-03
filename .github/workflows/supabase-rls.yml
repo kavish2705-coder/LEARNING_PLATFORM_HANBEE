@@ -51,16 +51,6 @@ jobs:
       - name: Create test_support_* helper functions the RLS suites depend on
         run: node supabase/tests/create-ci-test-support-functions.mjs
 
-      - name: Dump Postgres/auth logs on failure
-        if: failure()
-        run: |
-          docker ps -a
-          for name in $(docker ps -a --format '{{.Names}}' | grep -iE 'auth|_db_'); do
-            echo "::group::docker logs $name"
-            docker logs "$name" 2>&1 | tail -300
-            echo "::endgroup::"
-          done
-
       - name: Run all RLS suites
         shell: bash
         run: |
@@ -74,5 +64,25 @@ jobs:
               echo "::error::${test_file} reported failed assertions or no summary"
               exit 1
             fi
+            echo "::endgroup::"
+          done
+
+      # This must come AFTER "Run all RLS suites", not before it -- `if:
+      # failure()` only looks at steps earlier in the job. Positioned before
+      # the RLS run (its original spot), this step's failure check could
+      # only ever catch a failure in setup/seeding, so every RLS-suite
+      # failure (the actual common case) produced zero diagnostic output --
+      # exactly what happened investigating the 0096 crash that led to this
+      # fix: three separate live reproductions of its full logic against
+      # staging all succeeded, pointing at something CI-environment-
+      # specific (resource limits, a flaky container) that only these logs
+      # can actually show.
+      - name: Dump Postgres/auth logs on failure
+        if: failure()
+        run: |
+          docker ps -a
+          for name in $(docker ps -a --format '{{.Names}}' | grep -iE 'auth|_db_'); do
+            echo "::group::docker logs $name"
+            docker logs "$name" 2>&1 | tail -300
             echo "::endgroup::"
           done

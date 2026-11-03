@@ -47,7 +47,9 @@
 
 .coursesGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  /* auto-fit (not auto-fill) collapses unused tracks instead of reserving
+     them, so 1-2 enrolled courses don't leave big empty gaps beside them. */
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 24px;
 }
 
@@ -110,8 +112,9 @@
 }
 
 .courseTitle {
-  font-size: 16px;
-  font-weight: 500;
+  font-family: var(--font-heading);
+  font-size: 17px;
+  font-weight: 600;
   margin-bottom: 8px;
   line-height: 1.4;
   height: 44px;

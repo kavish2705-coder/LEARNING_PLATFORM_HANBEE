@@ -1,0 +1,13 @@
+/* Deliberately no background/border/radius here -- this is a motion-only
+   wrapper. Visual styling stays owned by caller-supplied className (e.g. .glassCard). */
+.card {
+  position: relative;
+  overflow: hidden;
+  transform-style: preserve-3d;
+}
+
+.content {
+  position: relative;
+  z-index: 2;
+  transform: translateZ(12px);
+}

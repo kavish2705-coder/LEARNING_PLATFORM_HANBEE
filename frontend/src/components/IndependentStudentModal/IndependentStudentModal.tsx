@@ -10,34 +10,31 @@ interface IndependentStudentModalProps {
 }
 
 const locations = [
-  { id: "Chennai", label: "Chennai", hub: "Base Paddock" },
-  { id: "Chengalpattu", label: "Chengalpattu", hub: "Circuit Hub" },
-  { id: "Kanchipuram", label: "Kanchipuram", hub: "Regional" },
-  { id: "Coimbatore", label: "Coimbatore", hub: "Regional" },
-  { id: "Other", label: "Other City", hub: "Direct Delivery" },
+  { id: "Chennai", label: "Chennai" },
+  { id: "Chengalpattu", label: "Chengalpattu" },
+  { id: "Kanchipuram", label: "Kanchipuram" },
+  { id: "Coimbatore", label: "Coimbatore" },
+  { id: "Other", label: "Other city" },
 ];
 
 const trackOptions = [
   {
-    id: "RC Tournament & Flight Controller (Hardware + Code)",
-    title: "RC Cup Hardware Track",
-    badge: "Hardware + Firmware",
-    desc: "Build, solder & flash your flight controller, tune the chassis, and race at the Hanbee RC Cup.",
-    tag: "PHYSICAL CAR + RACING",
+    id: "Tournament Track (Hardware & Code)",
+    title: "Tournament Track",
+    badge: "Hardware",
+    desc: "Build and program your RC car's flight controller, tune the chassis, and race solo at the Hanbee RC Cup.",
   },
   {
-    id: "LMS Software Track (Java · DSA · React)",
-    title: "Software & Core CS Track",
-    badge: "Software + Telemetry",
-    desc: "Master Java, DSA, system design, and build real-time telemetry dashboards for racing.",
-    tag: "FULL STACK + SYSTEMS",
+    id: "Classroom Track (Java · DSA · React)",
+    title: "Classroom Track",
+    badge: "Software",
+    desc: "Structured courses in Java, data structures, and React with self-paced lessons and auto-graded checks.",
   },
   {
-    id: "Full Immersion (Both Hardware & Software)",
-    title: "Dual Immersion Track",
-    badge: "Full Paddock Access",
-    desc: "The complete engineering experience: assemble the car hardware and master the entire software stack.",
-    tag: "COMPLETE EXPERIENCE",
+    id: "Both Tracks (Tournament + Classroom)",
+    title: "Both Tracks",
+    badge: "Full Access",
+    desc: "Build and race the car in the tournament, plus complete access to all classroom coding courses.",
   },
 ];
 
@@ -84,13 +81,14 @@ export default function IndependentStudentModal({ isOpen, onClose }: Independent
       });
 
       if (!res.ok) {
-        console.warn("Server responded with error, falling back locally.");
+        const body = await res.json().catch(() => null);
+        setError(body?.error || "We couldn't save your application. Please try again.");
+        return;
       }
 
       setSubmitted(true);
     } catch (err) {
-      console.warn("Local network error, proceeding with success UI:", err);
-      setSubmitted(true);
+      setError("We couldn't reach the server. Check your connection and try again.");
     } finally {
       setSubmitting(false);
     }
@@ -148,34 +146,33 @@ export default function IndependentStudentModal({ isOpen, onClose }: Independent
             {submitted ? (
               <div className={styles.successState}>
                 <div className={styles.successFlagWrap}>
-                  <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#facc15" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" />
-                    <line x1="4" y1="22" x2="4" y2="15" />
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--landing-accent)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="20 6 9 17 4 12" />
                   </svg>
                 </div>
-                <div className={styles.successEyebrow}>PADDOCK ENTRY CONFIRMED</div>
-                <h3 className={styles.successTitle}>You&apos;re on the Solo Grid.</h3>
+                <div className={styles.successEyebrow}>APPLICATION RECEIVED</div>
+                <h3 className={styles.successTitle}>Thank you, {fullName}</h3>
                 <p className={styles.successDesc}>
-                  Thanks, <strong>{fullName}</strong>. We&apos;ve registered your independent entry for{" "}
+                  We&apos;ve recorded your application for{" "}
                   <strong>{location === "Other" && customLocation ? customLocation : location}</strong>.
                 </p>
                 <div className={styles.successNextStep}>
                   <div className={styles.nextStepItem}>
                     <span className={styles.nextStepDot} />
-                    <span>Hardware kit dispatch & curriculum access will be confirmed to <strong>{email}</strong>.</span>
+                    <span>We&apos;ll send course information and kit details to <strong>{email}</strong>.</span>
                   </div>
                   <div className={styles.nextStepItem}>
                     <span className={styles.nextStepDot} />
-                    <span>Track mentors will send WhatsApp briefing & local pit-stop schedules to <strong>{phone}</strong>.</span>
+                    <span>Our team will message you on WhatsApp at <strong>{phone}</strong> to confirm your onboarding.</span>
                   </div>
                 </div>
                 <button
                   type="button"
                   className={styles.submitBtn}
                   onClick={handleResetAndClose}
-                  style={{ marginTop: "28px" }}
+                  style={{ marginTop: "24px" }}
                 >
-                  Return to Platform
+                  Back to Home
                 </button>
               </div>
             ) : (
@@ -184,11 +181,11 @@ export default function IndependentStudentModal({ isOpen, onClose }: Independent
                 <div className={styles.header}>
                   <div className={styles.telemetryTag}>
                     <span className={styles.livePulse} />
-                    <span>SOLO DRIVER ENTRY · 2026 SEASON</span>
+                    <span>Independent Student</span>
                   </div>
-                  <h2 className={styles.title}>Build. Code. Race Solo.</h2>
+                  <h2 className={styles.title}>Apply as a Solo Student</h2>
                   <p className={styles.subtitle}>
-                    No school team required. Receive your hardware kit directly, tune your firmware with veteran engineers, and compete at the Hanbee RC Cup.
+                    You don&apos;t need a school team to join. Build your car, take the courses, and compete on your own at the Hanbee RC Cup.
                   </p>
                 </div>
 
@@ -197,7 +194,7 @@ export default function IndependentStudentModal({ isOpen, onClose }: Independent
                   <div className={styles.fieldGrid}>
                     <div className={styles.fieldGroup}>
                       <label className={styles.label}>
-                        <span>FULL NAME</span>
+                        <span>Full Name</span>
                         <span className={styles.requiredDot}>•</span>
                       </label>
                       <input
@@ -213,7 +210,7 @@ export default function IndependentStudentModal({ isOpen, onClose }: Independent
 
                     <div className={styles.fieldGroup}>
                       <label className={styles.label}>
-                        <span>PHONE / WHATSAPP</span>
+                        <span>Phone / WhatsApp</span>
                         <span className={styles.requiredDot}>•</span>
                       </label>
                       <input
@@ -229,7 +226,7 @@ export default function IndependentStudentModal({ isOpen, onClose }: Independent
 
                   <div className={styles.fieldGroup}>
                     <label className={styles.label}>
-                      <span>EMAIL ADDRESS</span>
+                      <span>Email Address</span>
                       <span className={styles.requiredDot}>•</span>
                     </label>
                     <input
@@ -242,10 +239,10 @@ export default function IndependentStudentModal({ isOpen, onClose }: Independent
                     />
                   </div>
 
-                  {/* Track Selection Cards (Human, Interactive, No Clunky Native Select) */}
+                  {/* Track Selection */}
                   <div className={styles.fieldGroup}>
                     <div className={styles.label}>
-                      <span>SELECT YOUR TRACK</span>
+                      <span>Select Track</span>
                       <span className={styles.subLabel}>Choose your focus area</span>
                     </div>
 
@@ -278,11 +275,11 @@ export default function IndependentStudentModal({ isOpen, onClose }: Independent
                     </div>
                   </div>
 
-                  {/* Location Hub Selector */}
+                  {/* Location Selector */}
                   <div className={styles.fieldGroup}>
                     <div className={styles.label}>
-                      <span>LOCATION / TRACK HUB</span>
-                      <span className={styles.subLabel}>Kit distribution & pit-stops</span>
+                      <span>Location</span>
+                      <span className={styles.subLabel}>Where are you based?</span>
                     </div>
 
                     <div className={styles.locationGrid}>
@@ -296,7 +293,6 @@ export default function IndependentStudentModal({ isOpen, onClose }: Independent
                             onClick={() => setLocation(loc.id)}
                           >
                             <span className={styles.locationName}>{loc.label}</span>
-                            <span className={styles.locationHub}>{loc.hub}</span>
                           </button>
                         );
                       })}
@@ -312,7 +308,7 @@ export default function IndependentStudentModal({ isOpen, onClose }: Independent
                         <input
                           type="text"
                           className={styles.input}
-                          placeholder="Enter your city or district in Tamil Nadu"
+                          placeholder="Enter your city or district"
                           value={customLocation}
                           onChange={(e) => setCustomLocation(e.target.value)}
                           required
@@ -321,15 +317,15 @@ export default function IndependentStudentModal({ isOpen, onClose }: Independent
                     )}
                   </div>
 
-                  {/* Optional Background / Questions */}
+                  {/* Optional Notes / Questions */}
                   <div className={styles.fieldGroup}>
                     <label className={styles.label}>
-                      <span>EXPERIENCE & GOALS (OPTIONAL)</span>
+                      <span>Notes or questions (Optional)</span>
                     </label>
                     <textarea
                       className={styles.textarea}
                       rows={2}
-                      placeholder="Prior RC or coding experience, or questions for our race engineers..."
+                      placeholder="Any questions for the team, or previous coding / RC experience..."
                       value={message}
                       onChange={(e) => setMessage(e.target.value)}
                     />
@@ -337,14 +333,14 @@ export default function IndependentStudentModal({ isOpen, onClose }: Independent
 
                   {error && <div className={styles.errorBox}>{error}</div>}
 
-                  {/* Actions & Trust Line */}
+                  {/* Submit & Trust Note */}
                   <div className={styles.actionWrap}>
                     <button
                       type="submit"
                       className={styles.submitBtn}
                       disabled={submitting}
                     >
-                      <span>{submitting ? "Securing Entry..." : "Submit Registration"}</span>
+                      <span>{submitting ? "Submitting application..." : "Submit Application"}</span>
                       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                         <line x1="5" y1="12" x2="19" y2="12" />
                         <polyline points="12 5 19 12 12 19" />
@@ -353,12 +349,10 @@ export default function IndependentStudentModal({ isOpen, onClose }: Independent
 
                     <div className={styles.trustFooter}>
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <rect x="1" y="3" width="15" height="13" />
-                        <polygon points="16 8 20 8 23 11 23 16 16 16 16 8" />
-                        <circle cx="5.5" cy="18.5" r="2.5" />
-                        <circle cx="18.5" cy="18.5" r="2.5" />
+                        <circle cx="12" cy="12" r="10" />
+                        <polyline points="12 6 12 12 16 14" />
                       </svg>
-                      <span>Direct hardware kit shipping · Hands-on track pit-stops in Chennai & Chengalpattu</span>
+                      <span>Our team will review your application and contact you on WhatsApp/email with next steps.</span>
                     </div>
                   </div>
                 </form>

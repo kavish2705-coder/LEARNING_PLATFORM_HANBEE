@@ -1,8 +1,9 @@
 "use client";
 
 import { FormEvent, useEffect, useState, useMemo } from "react";
-import { Edit3 } from "lucide-react";
+import { Edit3, Bell } from "lucide-react";
 import styles from "./announcements.module.css";
+import EmptyState from "../components/ui/EmptyState";
 import { useSessionProfile } from "../../../lib/hooks/useSessionProfile";
 import { fetchMyOrganizationId } from "../../../lib/teamFormationApi";
 import { 
@@ -29,7 +30,6 @@ interface EnrichedAnnouncement {
   categoryLabel: string;
   priority: "critical" | "standard";
   timeLabel: string;
-  acknowledgedCount: number;
 }
 
 export default function AnnouncementsPage() {
@@ -147,89 +147,26 @@ export default function AnnouncementsPage() {
     });
   };
 
-  // Enriched announcements list with high-octane fallback items
+  // Real announcements only -- no invented bulletins when the org has none.
   const enrichedList: EnrichedAnnouncement[] = useMemo(() => {
-    if (announcements.length > 0) {
-      return announcements.map((row) => {
-        const author = authors.get(row.author_id);
-        const isMgr = author?.role === "manager";
-        const isSchool = author?.role === "school_staff";
-        return {
-          id: row.id,
-          title: row.title,
-          body: row.body,
-          audience: row.audience,
-          authorName: author?.full_name || "Tournament Official",
-          authorRole: isMgr ? "Race Director" : isSchool ? "School Staff" : "Hanbee Staff",
-          authorRoleBadge: isMgr ? "badgeDirector" : isSchool ? "badgeSchool" : "badgeStaff",
-          category: isSchool ? "school" : row.title.toLowerCase().includes("lipo") || row.title.toLowerCase().includes("tech") ? "technical" : "tournament",
-          categoryLabel: isSchool ? "School Notice" : "Official Directive",
-          priority: "standard",
-          timeLabel: new Date(row.created_at).toLocaleDateString([], { month: "short", day: "numeric" }),
-          acknowledgedCount: 24,
-        };
-      });
-    }
-
-    // Default realistic tournament directives
-    return [
-      {
-        id: "bulletin-1",
-        title: "National RC Grand Prix: Circuit Layout & Transponder Frequencies Released",
-        body: "The official 450m circuit blueprint for Round 1 is now published. All RC Buggies must sync their transponders to Ch 4 (2.4GHz FHSS). Practice grid slots will open 30 minutes before qualifying heats.",
-        audience: "all",
-        authorName: "Vikram Singhania",
-        authorRole: "Race Director",
-        authorRoleBadge: "badgeDirector",
-        category: "tournament",
-        categoryLabel: "Tournament Directive",
-        priority: "critical",
-        timeLabel: "Today · 10:30 AM",
-        acknowledgedCount: 42,
-      },
-      {
-        id: "bulletin-2",
-        title: "LiPo Battery Safety & Pre-Grid Voltage Limits (Max 8.40V)",
-        body: "Technical Scrutineering Notice: All 2S LiPo battery packs must not exceed 8.40V at pit lane entry. Battery charging is strictly confined to safety bags in the designated charging paddock.",
-        audience: "all",
-        authorName: "Marcus Vance",
-        authorRole: "Chief Scrutineer",
-        authorRoleBadge: "badgeStaff",
-        category: "technical",
-        categoryLabel: "Technical Bulletin",
-        priority: "critical",
-        timeLabel: "Yesterday · 4:15 PM",
-        acknowledgedCount: 38,
-      },
-      {
-        id: "bulletin-3",
-        title: "Squad Formation Guidelines: 1 to 5 Drivers Permitted per Team",
-        body: "In accordance with updated tournament regulations, teams are officially approved with anywhere between 1 and 5 registered drivers. Solo racers will compete in designated individual qualifier heats.",
-        audience: "all",
-        authorName: "Hanbee Tournament Committee",
-        authorRole: "Hanbee Staff",
-        authorRoleBadge: "badgeStaff",
-        category: "tournament",
-        categoryLabel: "Rule Update",
+    return announcements.map((row) => {
+      const author = authors.get(row.author_id);
+      const isMgr = author?.role === "manager";
+      const isSchool = author?.role === "school_staff";
+      return {
+        id: row.id,
+        title: row.title,
+        body: row.body,
+        audience: row.audience,
+        authorName: author?.full_name || "Tournament Official",
+        authorRole: isMgr ? "Race Director" : isSchool ? "School Staff" : "Hanbee Staff",
+        authorRoleBadge: isMgr ? "badgeDirector" : isSchool ? "badgeSchool" : "badgeStaff",
+        category: isSchool ? "school" : row.title.toLowerCase().includes("lipo") || row.title.toLowerCase().includes("tech") ? "technical" : "tournament",
+        categoryLabel: isSchool ? "School Notice" : "Official Directive",
         priority: "standard",
-        timeLabel: "Oct 11 · 2:00 PM",
-        acknowledgedCount: 65,
-      },
-      {
-        id: "bulletin-4",
-        title: "St. Xavier Tech: Paddock Timetable & School Lab Practice Access",
-        body: "The STEM workshop and test track will remain open daily from 3:30 PM to 6:00 PM for squad telemetry testing and steering trim adjustments. School passes are required at entry.",
-        audience: "student",
-        authorName: "Dr. A. Kulkarni",
-        authorRole: "School Headmaster",
-        authorRoleBadge: "badgeSchool",
-        category: "school",
-        categoryLabel: "School Notice",
-        priority: "standard",
-        timeLabel: "Oct 10 · 9:00 AM",
-        acknowledgedCount: 29,
-      },
-    ];
+        timeLabel: new Date(row.created_at).toLocaleDateString([], { month: "short", day: "numeric" }),
+      };
+    });
   }, [announcements, authors]);
 
   const filteredBulletins = useMemo(() => {
@@ -313,9 +250,9 @@ export default function AnnouncementsPage() {
                 className={styles.inputField}
                 style={{ width: "auto" }}
               >
-                <option value="all">All Members (Staff & Drivers)</option>
-                <option value="student">Drivers & Students Only</option>
-                <option value="staff">Staff Members Only</option>
+                <option value="all">Audience: All Drivers & Staff</option>
+                <option value="student">Audience: Students Only</option>
+                <option value="staff">Audience: Staff Only</option>
               </select>
 
               <button type="submit" disabled={busy} className={styles.submitBtn}>
@@ -342,7 +279,11 @@ export default function AnnouncementsPage() {
 
       {/* Announcements List */}
       {!loading && filteredBulletins.length === 0 && (
-        <p style={{ color: "var(--text-muted)", padding: "28px 0", textAlign: "center" }}>No announcements to show.</p>
+        <EmptyState
+          icon={<Bell size={22} />}
+          title="No announcements yet"
+          description="School and tournament updates will show up here as soon as they're posted."
+        />
       )}
       <div className={styles.announcementsList}>
         {filteredBulletins.map((item) => {
@@ -354,7 +295,7 @@ export default function AnnouncementsPage() {
               className={styles.announcementCard}
             >
               {/* Top Meta Bar */}
-              <div className={styles.cardMetaBar} style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <div className={styles.cardMetaBar}>
                 <div className={styles.metaLeft}>
                   <span className={styles.categoryName}>
                     {item.category === "technical" 
@@ -365,22 +306,6 @@ export default function AnnouncementsPage() {
                   </span>
                   <span className={styles.metaDot}>•</span>
                   <span className={styles.timeText}>{item.timeLabel}</span>
-                </div>
-                <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
-                  <span 
-                    style={{
-                      fontSize: 11,
-                      fontWeight: 700,
-                      textTransform: "uppercase",
-                      padding: "2px 8px",
-                      borderRadius: 6,
-                      background: item.audience === "staff" ? "rgba(168, 85, 247, 0.15)" : item.audience === "student" ? "rgba(2, 132, 199, 0.15)" : "rgba(16, 185, 129, 0.15)",
-                      color: item.audience === "staff" ? "#a855f7" : item.audience === "student" ? "#0284c7" : "#10b981",
-                      border: item.audience === "staff" ? "1px solid rgba(168, 85, 247, 0.3)" : item.audience === "student" ? "1px solid rgba(2, 132, 199, 0.3)" : "1px solid rgba(16, 185, 129, 0.3)",
-                    }}
-                  >
-                    {item.audience === "staff" ? "Staff" : item.audience === "student" ? "Drivers" : "All Members"}
-                  </span>
                 </div>
               </div>
 

@@ -236,13 +236,6 @@ export default function SearchBar() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isOpen]);
 
-  // Listen for external open triggers (e.g. mobile menu toggle)
-  useEffect(() => {
-    const handleOpen = () => setIsOpen(true);
-    window.addEventListener("hanbee:open-search", handleOpen);
-    return () => window.removeEventListener("hanbee:open-search", handleOpen);
-  }, []);
-
   // Reset selected index when filtered results change
   useEffect(() => {
     setSelectedIndex(0);

@@ -21,17 +21,21 @@
   --elevation-modal: 0 24px 64px color-mix(in srgb, var(--text-main) 22%, transparent);
   display: flex;
   height: 100vh;
+  height: 100dvh;
   background-color: var(--bg-page);
   background-image: var(--bg-page-image);
   color: var(--text-main);
-  font-family: 'Afacad', sans-serif;
+  font-family: var(--font-body);
   overflow: hidden;
   transition: background-color 0.5s ease, color 0.5s ease;
 }
 
 /* Sidebar with Claymorphism */
 .sidebar {
-  width: 260px;
+  width: 248px;
+  height: 100%;
+  max-height: 100vh;
+  max-height: 100dvh;
   background: var(--bg-card);
   box-shadow: var(--clay-shadow-subtle);
   display: flex;
@@ -43,15 +47,31 @@
   transition: background-color 0.5s ease, box-shadow 0.5s ease;
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
 }
 
 .logo {
-  font-family: var(--font-logo);
-  font-size: 24px;
-  font-weight: 400;
   margin-bottom: var(--space-12);
   padding: 0 12px;
-  letter-spacing: 2px;
+}
+
+/* Real logo asset, masked with the theme's text color so it stays
+   readable across Dark/Light/Personalized without a second light-mode
+   asset -- the mask only uses the PNG's alpha channel, not its color. */
+.logoMark {
+  display: block;
+  width: 150px;
+  height: 18px;
+  background-color: var(--text-main);
+  -webkit-mask-image: url("/brand/hanbee-logo.png");
+  mask-image: url("/brand/hanbee-logo.png");
+  -webkit-mask-size: contain;
+  mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: left center;
+  mask-position: left center;
 }
 
 .logoHighlight {
@@ -63,7 +83,7 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-1);
-  flex: 1;
+  flex: 1 0 auto;
 }
 
 .navLink {
@@ -71,7 +91,8 @@
   display: flex;
   align-items: center;
   gap: var(--space-3);
-  padding: 11px var(--space-4);
+  min-height: 42px;
+  padding: 10px var(--space-4);
   border-radius: var(--radius-control);
   color: var(--text-muted);
   text-decoration: none;
@@ -83,17 +104,32 @@
 .navLink:hover:not(.navLinkActive) {
   background: color-mix(in srgb, var(--color-primary) 8%, var(--bg-card));
   color: var(--text-main);
+  transform: translateX(2px);
 }
 
 .navLinkActive {
-  background: color-mix(in srgb, var(--color-primary) 14%, var(--bg-card));
+  background: color-mix(in srgb, var(--color-primary) 12%, var(--bg-card));
+  /* Not var(--color-primary): in the Personalized theme that token IS the
+     user's raw chosen color, lightness included. When they pick a dark
+     lightness, this text and the color-mix background above both trend
+     toward that same darkness, collapsing contrast to ~1:1. accent-subtle-text
+     is pinned to a fixed, always-light value in every theme (including
+     Personalized, where it keeps the user's hue but fixes lightness at
+     70%), so it stays readable regardless of what the user picked. */
   color: var(--accent-subtle-text);
-  box-shadow: inset 3px 0 0 var(--accent-subtle-text);
+  box-shadow: inset 3px 0 0 var(--color-primary), 0 1px 3px color-mix(in srgb, var(--text-main) 6%, transparent);
   font-weight: 600;
 }
 
 .navLinkActive:hover {
-  background: color-mix(in srgb, var(--color-primary) 19%, var(--bg-card));
+  background: color-mix(in srgb, var(--color-primary) 16%, var(--bg-card));
+}
+
+.navLink:focus-visible,
+.signOutButton:focus-visible,
+.mobileMenuBtn:focus-visible {
+  outline: 2px solid var(--accent-subtle-text);
+  outline-offset: 2px;
 }
 
 .navIcon {
@@ -173,11 +209,12 @@
 
 /* Top Header */
 .header {
-  height: 72px;
+  height: 68px;
+  min-height: 68px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 32px;
+  padding: 0 28px;
   background: var(--bg-page);
   border-bottom: 1px solid var(--border-subtle);
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
@@ -189,7 +226,8 @@
 .headerLeft {
   display: flex;
   align-items: center;
-  gap: 20px;
+  gap: 16px;
+  min-width: 0;
 }
 
 .breadcrumbNav {
@@ -303,7 +341,7 @@
 .headerRight {
   display: flex;
   align-items: center;
-  gap: 20px;
+  gap: 16px;
 }
 
 .headerXpPill {
@@ -315,7 +353,7 @@
   padding: 6px 14px;
   border-radius: 999px;
   text-decoration: none;
-  font-family: monospace;
+  font-family: var(--font-mono);
   font-size: 13px;
   font-weight: 700;
   color: var(--accent-subtle-text);
@@ -503,7 +541,7 @@
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  font-family: monospace;
+  font-family: var(--font-mono);
   font-size: 10.5px;
   font-weight: 700;
   text-transform: uppercase;
@@ -577,6 +615,8 @@
   flex: 1;
   overflow-y: auto;
   padding: 24px 32px;
+  min-width: 0;
+  overscroll-behavior-y: contain;
 }
 
 /* Scrollbar styles */
@@ -608,13 +648,6 @@
 
 .modeOption {
   flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  background: transparent;
-  border: none;
-  font-family: inherit;
   text-align: center;
   padding: 8px 0;
   font-size: 13px;
@@ -625,17 +658,10 @@
   transition: all 0.3s ease;
   z-index: 2;
   position: relative;
-  user-select: none;
-}
-
-.modeOption:focus-visible {
-  outline: 2px solid var(--accent-subtle-text);
-  outline-offset: 2px;
 }
 
 .modeOptionActive {
   color: var(--color-primary-text);
-  font-weight: 600;
 }
 
 .modeSwitcherGlider {
@@ -659,6 +685,12 @@
   cursor: pointer;
   padding: 8px;
   margin-right: 12px;
+  border-radius: 10px;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.mobileMenuBtn:hover {
+  background: color-mix(in srgb, var(--color-primary) 10%, var(--bg-card));
 }
 
 .greetingWrapper {
@@ -673,14 +705,23 @@
   background-color: rgba(0, 0, 0, 0.5);
   backdrop-filter: blur(4px);
   z-index: 15;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  cursor: pointer;
+  appearance: none;
 }
 
-.mobileSidebarSearchBtn {
-  display: none;
+@media (max-width: 1024px) {
+  .searchBar {
+    width: 200px;
+  }
 }
 
 @media (max-width: 768px) {
   .sidebar {
+    width: min(292px, 86vw);
     position: fixed;
     top: 0;
     bottom: 0;
@@ -739,40 +780,8 @@
     max-width: 110px;
   }
 
-  .mobileSidebarSearchBtn {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 8px;
-    background: var(--bg-card);
-    border: 1px solid var(--border-color, rgba(255, 255, 255, 0.1));
-    border-radius: 10px;
-    padding: 9px 12px;
-    margin-bottom: 14px;
-    color: var(--text-muted);
-    font-size: 13px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    width: 100%;
-    font-family: inherit;
-    box-shadow: var(--clay-shadow-active);
-  }
-
-  .mobileSidebarSearchBtn:hover {
-    color: var(--text-main);
-    border-color: var(--color-primary);
-    background: var(--bg-card-hover);
-  }
-
-  .mobileSidebarSearchKbd {
-    font-family: monospace;
-    font-size: 10px;
-    padding: 2px 6px;
-    border-radius: 4px;
-    background: rgba(255, 255, 255, 0.08);
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    color: var(--text-muted);
+  .searchBar {
+    display: none;
   }
 
   .headerRight {
@@ -831,3 +840,11 @@
   }
 }
 
+@media (prefers-reduced-motion: reduce) {
+  .navLink,
+  .sidebar,
+  .header,
+  .mobileMenuBtn {
+    transition-duration: 0.01ms;
+  }
+}

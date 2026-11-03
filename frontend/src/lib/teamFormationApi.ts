@@ -65,6 +65,7 @@ export interface UpcomingTournament {
   starts_at: string;
   venue: string | null;
   team_size: number;
+  entry_fee_amount: number | null;
 }
 
 export interface TeamSlotStatus {
@@ -85,7 +86,15 @@ export interface TournamentApplication {
   member_count: number;
   status: string;
   payment_declared: boolean;
+  payment_reference: string | null;
   submitted_at: string | null;
+}
+
+export interface TeamRosterMember {
+  student_id: string;
+  full_name: string | null;
+  org_id_at_join: string | null;
+  joined_at: string;
 }
 
 async function rpc<T>(functionName: string, args: Record<string, unknown>): Promise<T> {
@@ -96,14 +105,25 @@ async function rpc<T>(functionName: string, args: Record<string, unknown>): Prom
 }
 
 export async function fetchUpcomingTournament(): Promise<UpcomingTournament | null> {
-  const params = new URLSearchParams({
-    select: "id,title,starts_at,venue,team_size",
-    status: "eq.upcoming",
-    order: "starts_at.asc",
-    limit: "1",
-  });
-  const rows = await authenticatedSupabaseFetch<UpcomingTournament[]>(`/rest/v1/tournaments?${params}`);
+  const rows = await fetchUpcomingTournaments();
   return rows[0] ?? null;
+}
+
+// Every tournament-entry RPC (create_solo_team, start_pool_team,
+// student_start_team, apply_team, ...) is already scoped by p_tournament,
+// so a student being on a team for one tournament never blocks them from
+// entering a different one -- the old single-tournament limit() here was
+// purely a frontend assumption, not a backend one. Used by the My Team
+// page's tournament picker; every other caller of fetchUpcomingTournament
+// only ever needed "the next one" and is unaffected by this addition.
+export async function fetchUpcomingTournaments(): Promise<UpcomingTournament[]> {
+  const params = new URLSearchParams({
+    select: "id,title,starts_at,venue,team_size,entry_fee_amount",
+    status: "eq.upcoming",
+    starts_at: `gte.${new Date().toISOString()}`,
+    order: "starts_at.asc",
+  });
+  return authenticatedSupabaseFetch<UpcomingTournament[]>(`/rest/v1/tournaments?${params}`);
 }
 
 export async function fetchMyOrganizationId(): Promise<string | null> {
@@ -138,16 +158,199 @@ export function createSoloTournamentEntry(tournamentId: string) {
   return rpc<string>("create_solo_team", { p_tournament: tournamentId });
 }
 
-export function applyStudentTeam(teamId: string, paymentDeclared: boolean) {
-  return rpc<null>("apply_team", { p_team: teamId, p_payment_declared: paymentDeclared });
+export function applyStudentTeam(teamId: string, paymentDeclared: boolean, paymentReference?: string) {
+  return rpc<null>("apply_team", { p_team: teamId, p_payment_declared: paymentDeclared, p_payment_reference: paymentReference?.trim() || null });
+}
+
+// Staff-only escape hatch: some entries (pool teams, older entries) never
+// go through the self-service QR+reference flow at all, so staff need a
+// way to record payment themselves before they can verify. Only valid
+// while the entry is still 'applied' (not yet declared) -- see
+// 0113_staff_mark_payment_received.sql.
+export function markPaymentReceived(teamId: string, reference?: string) {
+  return rpc<null>("staff_mark_payment_received", { p_team: teamId, p_reference: reference?.trim() || null });
+}
+
+export interface PaymentSettings {
+  qr_image_url: string;
+  upi_id: string;
+  instructions: string;
+}
+
+// payment_settings is a public-to-authenticated singleton row (see
+// 0110_payment_qr_and_reference.sql) -- not an RPC, same precedent as
+// other simple staff-editable config reads in this codebase.
+export function fetchPaymentSettings(): Promise<PaymentSettings> {
+  return authenticatedSupabaseFetch<PaymentSettings[]>(
+    "/rest/v1/payment_settings?select=qr_image_url,upi_id,instructions&limit=1",
+  ).then((rows) => rows[0] ?? { qr_image_url: "", upi_id: "", instructions: "" });
+}
+
+// Staff/manager only (payment_settings' own RLS enforces this server-side
+// regardless). qr_image_url is a plain public URL since the bucket is
+// public -- unlike lesson-attachments, there's nothing sensitive in a QR
+// code image, so no signed-URL step is needed.
+export async function updatePaymentSettings(fields: Partial<PaymentSettings>): Promise<void> {
+  await authenticatedSupabaseFetch<unknown>("/rest/v1/payment_settings?id=eq.true", {
+    method: "PATCH",
+    headers: { Prefer: "return=minimal" },
+    body: JSON.stringify(fields),
+  });
+}
+
+export async function uploadPaymentQr(file: File): Promise<string> {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL?.replace(/\/$/, "");
+  if (!supabaseUrl) throw new Error("Supabase URL is not configured.");
+  const storagePath = `qr-${Date.now()}-${file.name}`;
+  await authenticatedSupabaseFetch<unknown>(`/storage/v1/object/payment-assets/${storagePath}`, {
+    method: "POST",
+    headers: { "Content-Type": file.type || "application/octet-stream" },
+    body: file,
+  });
+  return `${supabaseUrl}/storage/v1/object/public/payment-assets/${storagePath}`;
 }
 
 export function fetchTournamentApplicationQueue() {
   return rpc<TournamentApplication[]>("tournament_application_queue", {});
 }
 
-export function decideTournamentApplication(teamId: string, decision: "verified" | "rejected") {
-  return rpc<null>("decide_team", { p_team: teamId, p_decision: decision });
+export function decideTournamentApplication(teamId: string, decision: "verified" | "rejected", note?: string) {
+  return rpc<null>("decide_team", { p_team: teamId, p_decision: decision, p_note: note?.trim() || null });
+}
+
+export function getTeamRoster(teamId: string) {
+  return rpc<TeamRosterMember[]>("get_team_roster", { p_team: teamId });
+}
+
+export type ScrutineeringStatus = "pending" | "passed" | "failed";
+export type ScrutineeringItemResult = "pass" | "fail" | "not_checked";
+
+export interface ScrutineeringQueueRow {
+  team_id: string;
+  team_name: string;
+  school_name: string | null;
+  captain_name: string | null;
+  payment_status: TeamStatus;
+  scrutineering_status: ScrutineeringStatus;
+  eligible: boolean;
+  checked_by_name: string | null;
+  checked_at: string | null;
+  notes: string | null;
+}
+
+export interface ScrutineeringChecklistItem {
+  key: string;
+  label?: string;
+  result: ScrutineeringItemResult;
+  note?: string | null;
+}
+
+export interface ScrutineeringInspection {
+  status: ScrutineeringStatus;
+  items: ScrutineeringChecklistItem[];
+  notes: string | null;
+  checked_at?: string | null;
+  updated_at: string | null;
+}
+
+export interface ScrutineeringHistoryEntry {
+  status: ScrutineeringStatus;
+  notes: string | null;
+  items: ScrutineeringChecklistItem[];
+  checked_by_name: string | null;
+  checked_at: string;
+}
+
+export interface TeamEligibility {
+  payment_verified: boolean;
+  scrutineering_status: ScrutineeringStatus;
+  eligible: boolean;
+}
+
+export interface StudentRegistrationChecklistItem {
+  key: string;
+  result: ScrutineeringItemResult;
+  note: string | null;
+}
+
+export interface StudentRegistrationHistoryEntry {
+  status: ScrutineeringStatus;
+  notes: string | null;
+  items: StudentRegistrationChecklistItem[];
+  checked_at: string;
+}
+
+export interface StudentRaceResult {
+  race_name: string;
+  finished: boolean;
+  finish_time_ms: number | null;
+  lap_count: number;
+  average_lap_time_ms: number | null;
+}
+
+export type StudentTeamRegistrationStatus = {
+  tournament: { id: string; title: string; status: string };
+  team: {
+    id: string;
+    name: string;
+    status: TeamStatus;
+    payment_verified: boolean;
+    review_note: string | null;
+    decided_at: string | null;
+  };
+  scrutineering: {
+    status: ScrutineeringStatus;
+    notes: string | null;
+    checked_at: string | null;
+    items: StudentRegistrationChecklistItem[];
+    history: StudentRegistrationHistoryEntry[];
+  };
+  eligible: boolean;
+  result: null | { rank: number; points: number; notes: string };
+  race_results: StudentRaceResult[];
+} | {
+  tournament: { id: string; title: string; status: string };
+  team: null;
+  scrutineering: null;
+  eligible: false;
+  result: null;
+  race_results: StudentRaceResult[];
+};
+
+export function fetchScrutineeringQueue(tournamentId: string) {
+  return rpc<ScrutineeringQueueRow[]>("list_scrutineering_queue", { p_tournament: tournamentId });
+}
+
+export function getScrutineeringInspection(teamId: string) {
+  return rpc<ScrutineeringInspection>("get_scrutineering_inspection", { p_team: teamId });
+}
+
+export function fetchScrutineeringHistory(teamId: string) {
+  return rpc<ScrutineeringHistoryEntry[]>("get_scrutineering_history", { p_team: teamId });
+}
+
+export function submitScrutineeringInspection(
+  teamId: string,
+  status: ScrutineeringStatus,
+  items: ScrutineeringChecklistItem[],
+  notes: string | null,
+  expectedUpdatedAt: string | null,
+) {
+  return rpc<TeamEligibility>("submit_scrutineering_inspection", {
+    p_team: teamId,
+    p_status: status,
+    p_items: items.map((item) => ({ key: item.key, result: item.result, note: item.note ?? null })),
+    p_notes: notes,
+    p_expected_updated_at: expectedUpdatedAt,
+  });
+}
+
+export function fetchTeamEligibility(teamId: string) {
+  return rpc<TeamEligibility>("team_eligibility", { p_team: teamId });
+}
+
+export function fetchMyTeamRegistrationStatus(tournamentId: string) {
+  return rpc<StudentTeamRegistrationStatus>("get_my_team_registration_status", { p_tournament: tournamentId });
 }
 
 export function fetchMyTeamFormation(tournamentId: string) {
@@ -220,11 +423,14 @@ export interface MySchoolInfo {
   member_status: string;
 }
 
+// my_school() never throws for "no school" -- it's a plain select with no
+// role check, so a student with no organization_members row just gets an
+// empty result set. A previous version of this function swallowed every
+// error (network, auth, 500) into the same null as "no school," which made
+// a real failure indistinguishable from a legitimate empty state. Letting
+// a genuine error propagate lets callers surface it instead of silently
+// showing "no school" for a reason that has nothing to do with schools.
 export async function fetchMySchool(): Promise<MySchoolInfo | null> {
-  try {
-    const rows = await authenticatedSupabaseFetch<MySchoolInfo[]>("/rest/v1/rpc/my_school");
-    return rows[0] ?? null;
-  } catch {
-    return null;
-  }
+  const rows = await authenticatedSupabaseFetch<MySchoolInfo[]>("/rest/v1/rpc/my_school");
+  return rows[0] ?? null;
 }

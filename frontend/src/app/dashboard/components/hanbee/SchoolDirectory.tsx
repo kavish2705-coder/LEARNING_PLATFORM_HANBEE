@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
-import { Search, Building2, Users, Trophy, ExternalLink } from "lucide-react";
+import { Search } from "lucide-react";
 import styles from "../../dashboard.module.css";
 import { Input } from "../ui/FormField";
 import Shimmer from "../ui/Shimmer";
@@ -71,75 +71,17 @@ export default function SchoolDirectory({ detailPath }: { detailPath: string }) 
             <table className={styles.dataTable}>
               <thead><tr><th>School</th><th>Status</th><th>Owner</th><th>Students</th><th>Teams</th><th>Actions</th></tr></thead>
               <tbody>
-                {rows.map((school) => {
-                  const isActive = school.status === "active" || school.status === "verified";
-                  return (
-                    <tr key={school.org_id}>
-                      <td className={styles.cellHighlight}>
-                        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                          <div style={{ width: 34, height: 34, borderRadius: 8, background: "var(--accent-subtle-bg)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--color-primary)", flexShrink: 0 }}>
-                            <Building2 size={18} />
-                          </div>
-                          <div>
-                            <span style={{ fontWeight: 600, color: "var(--text-main)", display: "block" }}>{school.name}</span>
-                            <span style={{ fontSize: 11, color: "var(--text-muted)" }}>ID: {school.org_id.slice(0, 8)}...</span>
-                          </div>
-                        </div>
-                      </td>
-                      <td>
-                        {isActive ? (
-                          <span style={{ padding: "4px 12px", borderRadius: 9999, fontSize: 12, fontWeight: 600, background: "rgba(16, 185, 129, 0.15)", color: "#10b981", border: "1px solid rgba(16, 185, 129, 0.3)", display: "inline-flex", alignItems: "center", gap: 4 }}>
-                            ✓ Active
-                          </span>
-                        ) : (
-                          <span style={{ padding: "4px 12px", borderRadius: 9999, fontSize: 12, fontWeight: 600, background: "rgba(245, 158, 11, 0.15)", color: "#f59e0b", border: "1px solid rgba(245, 158, 11, 0.3)", display: "inline-flex", alignItems: "center", gap: 4 }}>
-                            ● Pending
-                          </span>
-                        )}
-                      </td>
-                      <td>
-                        <span style={{ fontWeight: 500, color: "var(--text-main)" }}>{school.owner_name ?? "Institutional Head"}</span>
-                        <br />
-                        <span style={{ fontSize: 12, color: "var(--text-muted)" }}>{school.owner_email}</span>
-                      </td>
-                      <td>
-                        <span style={{ display: "inline-flex", alignItems: "center", gap: 6, fontWeight: 600, color: "var(--text-main)" }}>
-                          <Users size={14} color="var(--accent-subtle-text)" />
-                          {school.students}
-                        </span>
-                      </td>
-                      <td>
-                        <span style={{ display: "inline-flex", alignItems: "center", gap: 6, fontWeight: 600, color: "var(--text-main)" }}>
-                          <Trophy size={14} color="#f59e0b" />
-                          {school.teams}
-                        </span>
-                      </td>
-                      <td>
-                        <Link 
-                          href={`${detailPath}?id=${encodeURIComponent(school.org_id)}`}
-                          style={{
-                            display: "inline-flex",
-                            alignItems: "center",
-                            gap: 6,
-                            padding: "6px 14px",
-                            borderRadius: "8px",
-                            fontSize: "12px",
-                            fontWeight: 600,
-                            background: "var(--accent-subtle-bg)",
-                            color: "var(--color-primary)",
-                            border: "1px solid var(--accent-subtle-border)",
-                            textDecoration: "none",
-                            transition: "all 0.2s ease",
-                          }}
-                        >
-                          View Details
-                          <ExternalLink size={12} />
-                        </Link>
-                      </td>
-                    </tr>
-                  );
-                })}
-                {rows.length === 0 && <tr><td colSpan={6} style={{ textAlign: "center", padding: "24px 0", color: "var(--text-muted)" }}>{search ? "No schools match your search." : "No schools are registered yet."}</td></tr>}
+                {rows.map((school) => (
+                  <tr key={school.org_id}>
+                    <td className={styles.cellHighlight}>{school.name}</td>
+                    <td><span className={`${styles.statusPill} ${school.status === "active" ? styles.statusSuccess : school.status === "pending" ? styles.statusWarning : ""}`}>{school.status}</span></td>
+                    <td>{school.owner_name ?? "—"}<br /><small>{school.owner_email}</small></td>
+                    <td>{school.students}</td>
+                    <td>{school.teams}</td>
+                    <td><Link className={styles.actionBtn} href={`${detailPath}?id=${encodeURIComponent(school.org_id)}`}>View details</Link></td>
+                  </tr>
+                ))}
+                {rows.length === 0 && <tr><td colSpan={6}>{search ? "No schools match your search." : "No schools are registered yet."}</td></tr>}
               </tbody>
             </table>
           </div>

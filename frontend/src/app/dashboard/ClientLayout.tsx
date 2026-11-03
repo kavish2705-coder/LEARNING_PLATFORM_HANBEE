@@ -3,6 +3,8 @@
 import { useState } from "react";
 import Sidebar from "./components/Sidebar";
 import Header from "./components/Header";
+import EmailNudgeBanner from "./components/EmailNudgeBanner";
+import LearningComingSoon from "./components/LearningComingSoon";
 import styles from "./layout.module.css";
 import "./theme.css";
 import { useTheme } from "./ThemeProvider";
@@ -21,12 +23,15 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
       
       {/* Main Content */}
       <div className={styles.mainArea}>
-        <Header toggleMobileMenu={() => setIsMobileMenuOpen(!isMobileMenuOpen)} />
+        <Header
+          toggleMobileMenu={() => setIsMobileMenuOpen((isOpen) => !isOpen)}
+          mobileMenuOpen={isMobileMenuOpen}
+        />
+        <EmailNudgeBanner />
         <main className={styles.contentScroll}>
-          {children}
+          <LearningComingSoon>{children}</LearningComingSoon>
         </main>
       </div>
     </div>
   );
 }
-

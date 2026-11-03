@@ -4,47 +4,62 @@
   left: 0;
   right: 0;
   z-index: 100;
-  padding: 0 40px; /* Reduced to match the 40px left padding */
-  height: 100px;
+  padding: 0 40px;
   display: flex;
-  align-items: center; /* Center everything vertically */
+  align-items: center;
   background: transparent;
-  transition: background 0.3s ease;
+  pointer-events: auto;
+}
+
+/* Hardware-accelerated glass backdrop layer */
+.navBackdrop {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: rgba(14, 15, 22, 0.92);
+  backdrop-filter: blur(24px) saturate(140%);
+  -webkit-backdrop-filter: blur(24px) saturate(140%);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.45);
+  pointer-events: none;
+  will-change: opacity;
 }
 
 .navContent {
   display: grid;
   grid-template-columns: 1fr auto 1fr;
-  align-items: center; /* Ensure contents are vertically aligned */
+  align-items: center;
   width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
 }
 
 /* Logo */
 .logo {
   font-family: var(--font-logo);
-  font-size: 28px;
+  font-size: 26px;
   font-weight: 400;
   color: #ffffff;
   letter-spacing: 2px;
   text-decoration: none;
   justify-self: start;
+  flex-shrink: 0;
 }
 
 /* Center Nav Links */
 .navLinks {
   display: flex;
   align-items: center;
-  gap: 72px; /* Increased gap even slightly more */
+  gap: 48px;
   justify-self: center;
-  transform: translateX(-80px); /* Shifted even closer to the logo */
 }
 
 .navLink {
-  display: inline-block; /* Required for transform (scale) to work on <a> tags */
+  display: inline-block;
   font-family: var(--font-body);
-  font-size: 14.5px; /* Increased slightly */
+  font-size: 14.5px;
   font-weight: 500;
-  color: rgba(255, 255, 255, 0.85); /* Changed to white for dark theme */
+  color: rgba(255, 255, 255, 0.85);
   text-decoration: none;
   position: relative;
   padding-bottom: 4px;
@@ -66,8 +81,8 @@
   bottom: 0;
   left: 0;
   right: 0;
-  height: 1px;
-  background: #ffffff;
+  height: 2px;
+  background: var(--landing-accent, #c9782f);
 }
 
 /* Right Section */
@@ -75,64 +90,24 @@
   display: flex;
   align-items: center;
   justify-self: end;
-}
-
-.searchBtn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--color-text-white);
-  width: 32px; /* Slightly larger to fit the glass circle nicely */
-  height: 32px;
-  
-  /* Ultra-Realistic Liquid Glass Effect */
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  border-top-color: rgba(255, 255, 255, 0.4);
-  border-left-color: rgba(255, 255, 255, 0.3);
-  box-shadow: 
-    /* Dispersion/Chromatic Aberration */
-    -1px 0 3px rgba(255, 0, 80, 0.2),
-    1px 0 3px rgba(157, 82, 20, 0.2),
-    /* Inner reflections */
-    inset 0 1px 2px rgba(255, 255, 255, 0.5),
-    /* Outer drop shadow */
-    0 8px 24px rgba(0, 0, 0, 0.15);
-  backdrop-filter: blur(24px) saturate(140%) brightness(1.15);
-  -webkit-backdrop-filter: blur(24px) saturate(140%) brightness(1.15);
-  
-  border-radius: 50%;
-  margin-right: 28px; /* Increased gap between search and signin */
-  transition: all 0.3s ease;
-}
-
-.searchBtn svg {
-  width: 16px;
-  height: 16px;
-}
-
-.searchBtn:hover {
-  background: rgba(255, 255, 255, 0.1);
-  box-shadow: 
-    -2px 0 4px rgba(255, 0, 80, 0.3),
-    2px 0 4px rgba(157, 82, 20, 0.3),
-    inset 0 1px 3px rgba(255, 255, 255, 0.6),
-    0 8px 24px rgba(0, 0, 0, 0.2);
+  flex-shrink: 0;
 }
 
 .signIn {
   font-family: var(--font-body);
-  font-size: 14.5px;
-  font-weight: 500; /* Match navLink weight, 600 was not imported */
-  color: #ffffff; /* User requested white color */
+  font-size: 14px;
+  font-weight: 500;
+  color: #ffffff;
   text-decoration: none;
-  margin-right: 44px; /* Increased gap before get started button */
+  margin-right: 28px;
   letter-spacing: 0.5px;
   transition: opacity 0.2s ease;
+  white-space: nowrap;
 }
 
 .signIn:hover {
   opacity: 0.8;
+  color: var(--landing-accent, #c9782f);
 }
 
 .getStartedBtn {
@@ -140,67 +115,107 @@
   align-items: center;
   gap: 8px;
   font-family: var(--font-body);
-  font-size: 14.5px;
-  font-weight: 500; /* Match navLink weight */
-  color: var(--color-text-white);
-  
-  /* Ultra-Realistic Liquid Glass Effect */
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  border-top-color: rgba(255, 255, 255, 0.4);
-  border-left-color: rgba(255, 255, 255, 0.3);
-  box-shadow: 
-    /* Dispersion/Chromatic Aberration */
-    -2px 0 4px rgba(255, 0, 80, 0.15),
-    2px 0 4px rgba(157, 82, 20, 0.15),
-    /* Inner reflections */
-    inset 0 1px 2px rgba(255, 255, 255, 0.5),
-    inset 0 -1px 2px rgba(255, 255, 255, 0.1),
-    /* Outer drop shadow */
-    0 8px 32px rgba(0, 0, 0, 0.15);
-  backdrop-filter: blur(24px) saturate(140%) brightness(1.15);
-  -webkit-backdrop-filter: blur(24px) saturate(140%) brightness(1.15);
-  
-  padding: 10px 24px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #0b0c10;
+  background: var(--landing-accent, #e58a2b);
+  border: 1px solid var(--landing-accent, #e58a2b);
+  box-shadow:
+    0 4px 18px rgba(229, 138, 43, 0.38),
+    0 2px 8px rgba(0, 0, 0, 0.2);
+  padding: 9px 20px;
   border-radius: 50px;
   text-decoration: none;
-  transition: all 0.3s ease;
+  transition: all 0.25s ease;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .getStartedBtn:hover {
-  background: rgba(255, 255, 255, 0.1);
-  box-shadow: 
-    -3px 0 6px rgba(255, 0, 80, 0.25),
-    3px 0 6px rgba(157, 82, 20, 0.25),
-    inset 0 1px 3px rgba(255, 255, 255, 0.6),
-    inset 0 -1px 3px rgba(255, 255, 255, 0.2),
-    0 12px 40px rgba(0, 0, 0, 0.2);
+  background: color-mix(in srgb, var(--landing-accent, #e58a2b) 85%, white);
+  box-shadow:
+    0 6px 24px rgba(229, 138, 43, 0.50),
+    0 4px 12px rgba(0, 0, 0, 0.25);
+  transform: translateY(-1px);
 }
 
 .getStartedBtn svg {
-  transition: transform 0.3s ease;
+  transition: transform 0.25s ease;
   width: 12px;
   height: 12px;
 }
 
 .getStartedBtn:hover svg {
-  transform: translateX(4px);
+  transform: translateX(3px);
 }
 
-/* ===== Responsive ===== */
-@media (max-width: 1600px) {
-  .navLinks { gap: 5vw; }
-  .signIn { margin-right: 4vw; }
-}
-
-@media (max-width: 1200px) {
-  .navbar { padding: 30px 48px 0 48px; }
-  .navLinks { gap: 3vw; }
-  .signIn { margin-right: 3vw; }
-  .searchBtn { margin-right: 2vw; }
+/* ===== Responsive & Mobile 390px Viewport QA ===== */
+@media (max-width: 1024px) {
+  .navbar {
+    padding: 0 32px;
+  }
+  .navLinks {
+    gap: 32px;
+  }
 }
 
 @media (max-width: 900px) {
-  .navLinks { display: none; }
-  .navContent { grid-template-columns: 1fr 1fr; }
+  .navLinks {
+    display: none;
+  }
+  .navContent {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+}
+
+@media (max-width: 600px) {
+  .navbar {
+    padding: 0 20px;
+  }
+
+  .logo {
+    font-size: 22px;
+    letter-spacing: 1.5px;
+  }
+
+  .signIn {
+    font-size: 13.5px;
+    margin-right: 14px;
+  }
+
+  .getStartedBtn {
+    padding: 8px 16px;
+    font-size: 13px;
+    gap: 6px;
+  }
+}
+
+/* Strict 390px (and narrow phone) viewport QA - Zero overlap guarantee */
+@media (max-width: 400px) {
+  .navbar {
+    padding: 0 16px;
+  }
+
+  .logo {
+    font-size: 20px;
+    letter-spacing: 1px;
+  }
+
+  .signIn {
+    font-size: 12.5px;
+    margin-right: 10px;
+  }
+
+  .getStartedBtn {
+    padding: 7px 12px;
+    font-size: 12px;
+    gap: 4px;
+  }
+
+  .getStartedBtn svg {
+    width: 10px;
+    height: 10px;
+  }
 }

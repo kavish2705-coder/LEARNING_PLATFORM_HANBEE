@@ -66,6 +66,20 @@ async function supabaseFetch<T>(path: string, init: RequestInit = {}): Promise<T
   return JSON.parse(text) as T;
 }
 
+// Signup links carry only invite_token now (not email/full_name in plain
+// text -- see 0115_invite_link_privacy.sql) so the signup form fetches the
+// invitee's name/email itself, token-gated, instead of trusting the URL.
+export async function fetchInvitePreview(token: string): Promise<{ full_name: string | null; email: string | null }> {
+  return supabaseFetch<{ full_name: string | null; email: string | null }>("/rest/v1/rpc/invite_preview", {
+    method: "POST",
+    body: JSON.stringify({ p_token: token }),
+  });
+}
+
+export async function checkManagerExists(): Promise<boolean> {
+  return supabaseFetch<boolean>("/rest/v1/rpc/manager_exists", { method: "POST", body: JSON.stringify({}) });
+}
+
 export type SignInResult = SignedInAccount;
 
 export async function signInWithPassword(email: string, password: string): Promise<SignInResult> {
@@ -77,6 +91,53 @@ export async function signInWithPassword(email: string, password: string): Promi
   const session = toSupabaseSession(auth);
   const account = await loadAccount(auth);
   return { session, ...account };
+}
+
+export async function signInWithUsername(username: string, password: string): Promise<SignInResult> {
+  const email = await supabaseFetch<string | null>("/rest/v1/rpc/resolve_student_login_email", {
+    method: "POST",
+    body: JSON.stringify({ p_username: username.trim() }),
+  });
+  if (!email) {
+    throw new Error("We couldn't find that username. Please check it and try again.");
+  }
+  return signInWithPassword(email, password);
+}
+
+// The student login box accepts either identifier: school students get a
+// username (set by the username-invite path), while independent students
+// created via staff_create_independent_invite -> signUpWithPassword never
+// have one -- only an email. Without this, an independent student can
+// complete signup and then never log back in, since the username lookup
+// has no fallback. Email-shaped input skips the username RPC entirely;
+// anything else goes through the existing username resolution.
+export async function signInStudent(identifier: string, password: string): Promise<SignInResult> {
+  const trimmed = identifier.trim();
+  if (trimmed.includes("@")) {
+    return signInWithPassword(trimmed, password);
+  }
+  return signInWithUsername(trimmed, password);
+}
+
+export interface CreateStudentAccountsResult {
+  results: { username: string; fullName: string; password?: string; result: string }[];
+}
+
+export async function createStudentAccounts(orgId: string, students: { fullName: string; username: string }[]) {
+  return authenticatedSupabaseFetch<CreateStudentAccountsResult>("/functions/v1/create-student-accounts", {
+    method: "POST",
+    body: JSON.stringify({ orgId, students }),
+  });
+}
+
+// Adds or changes the signed-in account's own email. Completes immediately
+// (no confirmation email sent) via the update-my-email Edge Function's
+// Admin API call — see that function's header comment for why.
+export async function updateMyEmail(email: string) {
+  return authenticatedSupabaseFetch<{ email: string }>("/functions/v1/update-my-email", {
+    method: "POST",
+    body: JSON.stringify({ email }),
+  });
 }
 
 
@@ -246,6 +307,32 @@ export async function signUpWithPassword(input: {
   });
 }
 
+// For a student who received a per-student username-based invite link
+// (migration 0088) instead of an email invite — there's no real email to
+// collect, so one is auto-generated here purely as an internal identifier
+// Supabase Auth requires; it's never shown anywhere and login is always by
+// username via signInWithUsername/resolve_student_login_email.
+export async function signUpStudentWithUsernameInvite(input: {
+  fullName: string;
+  username: string;
+  phone: string;
+  password: string;
+  inviteToken: string;
+}) {
+  const placeholderEmail = `${input.username.trim().toLowerCase()}.${crypto.randomUUID().slice(0, 8)}@students.hanbee.internal`;
+  const data: Record<string, string> = {
+    full_name: input.fullName.trim(),
+    role: "student",
+    invite_token: input.inviteToken.trim(),
+    invite_username: input.username.trim().toLowerCase(),
+    phone: input.phone.trim(),
+  };
+  return supabaseFetch<AuthSessionResponse>("/auth/v1/signup", {
+    method: "POST",
+    body: JSON.stringify({ email: placeholderEmail, password: input.password, data }),
+  });
+}
+
 export async function requestPasswordReset(email: string) {
   getSupabaseConfig();
   const redirectTo = typeof window === "undefined" ? undefined : `${window.location.origin}/reset-password`;
@@ -273,7 +360,8 @@ export async function updatePassword(accessToken: string, password: string) {
 
 export interface AccountProfile {
   id: string;
-  email: string;
+  email: string | null;
+  username: string | null;
   full_name: string;
   role: HanbeeRole;
   avatar_url: string | null;
@@ -289,6 +377,7 @@ export async function getAccountProfile() {
     return {
       id: session.user.id,
       email: session.user.email || `${dummyRole}@hanbee.in`,
+      username: null,
       full_name: session.user.user_metadata?.full_name || `Dummy ${dummyRole}`,
       role: dummyRole,
       avatar_url: null
@@ -296,7 +385,7 @@ export async function getAccountProfile() {
   }
 
   const profiles = await authenticatedSupabaseFetch<AccountProfile[]>(
-    `/rest/v1/profiles?select=id,email,full_name,role,avatar_url&id=eq.${encodeURIComponent(session.user.id)}`,
+    `/rest/v1/profiles?select=id,email,username,full_name,role,avatar_url&id=eq.${encodeURIComponent(session.user.id)}`,
   );
   const profile = profiles[0];
   if (!profile) throw new Error("We couldn't find your Hanbee profile.");

@@ -56,7 +56,13 @@ export default function NotificationBell() {
 
   useEffect(() => {
     if (!profile?.id) return;
-    const channel = getRealtimeClient()
+    let realtimeClient: ReturnType<typeof getRealtimeClient>;
+    try {
+      realtimeClient = getRealtimeClient();
+    } catch {
+      return;
+    }
+    const channel = realtimeClient
       .channel(`notifications-${profile.id}`)
       .on(
         "postgres_changes",
@@ -69,9 +75,13 @@ export default function NotificationBell() {
           }
         },
       )
-      .subscribe();
+      .subscribe((status) => {
+        if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
+          queryClient.invalidateQueries({ queryKey: ["notifications"] });
+        }
+      });
     return () => {
-      void getRealtimeClient().removeChannel(channel);
+      void realtimeClient.removeChannel(channel).catch(() => undefined);
     };
   }, [profile?.id, queryClient]);
 
