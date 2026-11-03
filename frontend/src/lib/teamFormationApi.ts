@@ -65,6 +65,7 @@ export interface UpcomingTournament {
   starts_at: string;
   venue: string | null;
   team_size: number;
+  entry_fee_amount: number | null;
 }
 
 export interface TeamSlotStatus {
@@ -117,7 +118,7 @@ export async function fetchUpcomingTournament(): Promise<UpcomingTournament | nu
 // only ever needed "the next one" and is unaffected by this addition.
 export async function fetchUpcomingTournaments(): Promise<UpcomingTournament[]> {
   const params = new URLSearchParams({
-    select: "id,title,starts_at,venue,team_size",
+    select: "id,title,starts_at,venue,team_size,entry_fee_amount",
     status: "eq.upcoming",
     starts_at: `gte.${new Date().toISOString()}`,
     order: "starts_at.asc",

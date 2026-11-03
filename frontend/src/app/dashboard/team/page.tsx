@@ -906,6 +906,9 @@ export default function MyTeamPage() {
               </div>
 
               <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                {tournament?.entry_fee_amount != null && (
+                  <p style={{ fontSize: 15 }}>Entry fee: <strong style={{ color: "var(--text-primary)" }}>₹{tournament.entry_fee_amount}</strong></p>
+                )}
                 {paymentSettings?.qr_image_url ? (
                   <div style={{ display: "flex", gap: 16, alignItems: "flex-start", flexWrap: "wrap" }}>
                     {/* eslint-disable-next-line @next/next/no-img-element -- payment-assets is a public Supabase Storage bucket, not a Next-optimizable local/remote image source worth configuring */}

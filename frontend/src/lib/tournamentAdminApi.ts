@@ -11,6 +11,7 @@ export interface TournamentRecord {
   venue: string;
   status: TournamentStatus;
   team_size: number;
+  entry_fee_amount: number | null;
 }
 
 export interface VerifiedTournamentTeam {
@@ -64,7 +65,7 @@ async function rpc<T>(name: string, args: Record<string, unknown>) {
 
 export function listTournaments() {
   return authenticatedSupabaseFetch<TournamentRecord[]>(
-    "/rest/v1/tournaments?select=id,title,description,starts_at,ends_at,venue,status,team_size&order=starts_at.desc",
+    "/rest/v1/tournaments?select=id,title,description,starts_at,ends_at,venue,status,team_size,entry_fee_amount&order=starts_at.desc",
   );
 }
 
@@ -94,6 +95,7 @@ export function createTournament(input: Omit<TournamentRecord, "id" | "status" |
     p_starts_at: input.starts_at,
     p_ends_at: input.ends_at,
     p_venue: input.venue,
+    p_entry_fee_amount: input.entry_fee_amount,
   });
 }
 
@@ -106,6 +108,7 @@ export function updateTournament(input: TournamentRecord) {
     p_ends_at: input.ends_at,
     p_venue: input.venue,
     p_status: input.status,
+    p_entry_fee_amount: input.entry_fee_amount,
   });
 }
 
