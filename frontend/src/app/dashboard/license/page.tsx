@@ -5,14 +5,17 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   ShieldCheck, Copy, Check, Award, Trophy,
   Zap, ArrowLeft, Sparkles,
-  MapPin
+  MapPin, Lock
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import styles from "./license.module.css";
 import { useSessionProfile } from "../../../lib/hooks/useSessionProfile";
 import { useUserXp } from "../../../lib/hooks/useUserXp";
-import { fetchUpcomingTournament, fetchMyTeamFormation, fetchMySchool, type MyTeamFormation, type UpcomingTournament } from "../../../lib/teamFormationApi";
+import {
+  fetchUpcomingTournament, fetchMyTeamFormation, fetchMySchool, type MyTeamFormation, type UpcomingTournament,
+  fetchPaymentSettings, fetchMyLicense, declareLicensePayment, type PaymentSettings, type DriverLicense,
+} from "../../../lib/teamFormationApi";
 import { getStudentLeaderboard } from "../../../lib/tournamentAdminApi";
 
 export default function DriverLicensePage() {
@@ -25,6 +28,43 @@ export default function DriverLicensePage() {
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [tournament, setTournament] = useState<UpcomingTournament | null>(null);
   const [bestLapMs, setBestLapMs] = useState<number | null>(null);
+  const [license, setLicense] = useState<DriverLicense | null>(null);
+  const [paymentSettings, setPaymentSettings] = useState<PaymentSettings | null>(null);
+  const [paymentDeclared, setPaymentDeclared] = useState(false);
+  const [paymentReference, setPaymentReference] = useState("");
+  const [licenseBusy, setLicenseBusy] = useState(false);
+  const [licenseError, setLicenseError] = useState("");
+
+  const loadLicense = async () => {
+    try {
+      const [lic, settings] = await Promise.all([fetchMyLicense(), fetchPaymentSettings()]);
+      setLicense(lic);
+      setPaymentSettings(settings);
+    } catch {
+      // License card shows its own "couldn't load" state below.
+    }
+  };
+
+  useEffect(() => {
+    void loadLicense();
+  }, []);
+
+  async function handleDeclareLicensePayment() {
+    if (!paymentReference.trim()) {
+      setLicenseError("Enter the UPI transaction ID / UTR from your payment confirmation.");
+      return;
+    }
+    setLicenseBusy(true);
+    setLicenseError("");
+    try {
+      await declareLicensePayment(paymentReference);
+      await loadLicense();
+    } catch (reason) {
+      setLicenseError(reason instanceof Error ? reason.message : "We couldn't submit your payment.");
+    } finally {
+      setLicenseBusy(false);
+    }
+  }
   const [timeLeft, setTimeLeft] = useState({
     days: 0,
     hours: 0,
@@ -297,6 +337,92 @@ export default function DriverLicensePage() {
           </Link>
         </div>
       </header>
+
+      {/* Driver License purchase gate -- shown whenever the license isn't active yet */}
+      {license && license.status !== "active" && (
+        <div className={styles.infoCard}>
+          <div className={styles.cardHeaderWithAction}>
+            <h3 className={styles.cardTitle}>
+              <Lock size={18} color="#fbbf24" />
+              <span>Get Your Driver License</span>
+            </h3>
+          </div>
+          <p style={{ fontSize: 13, color: "var(--text-muted)", marginTop: 4 }}>
+            You need an active Driver License before you can enter a tournament.
+          </p>
+
+          {license.status === "payment_declared" ? (
+            <p role="status" style={{ fontSize: 14, color: "var(--text-main)", marginTop: 8 }}>
+              Payment submitted — Hanbee staff will verify it shortly.
+            </p>
+          ) : license.status === "rejected" ? (
+            <p role="alert" style={{ fontSize: 14, color: "var(--color-danger)", marginTop: 8 }}>
+              Your last payment was rejected. Contact Hanbee staff, or submit a new payment below.
+            </p>
+          ) : null}
+
+          {(license.status === "unpaid" || license.status === "rejected" || license.status === null) && (
+            <div style={{ display: "flex", flexDirection: "column", gap: 12, marginTop: 12 }}>
+              {paymentSettings && (
+                <p style={{ fontSize: 15 }}>
+                  License fee: <strong style={{ color: "var(--text-main)" }}>₹{paymentSettings.license_fee_amount}</strong>
+                </p>
+              )}
+              {paymentSettings?.qr_image_url ? (
+                <div style={{ display: "flex", gap: 16, alignItems: "flex-start", flexWrap: "wrap" }}>
+                  {/* eslint-disable-next-line @next/next/no-img-element -- payment-assets is a public Supabase Storage bucket, not a Next-optimizable local/remote image source worth configuring */}
+                  <img src={paymentSettings.qr_image_url} alt="Payment QR code" style={{ width: 160, height: 160, borderRadius: 10, border: "1px solid var(--border-elevated)", objectFit: "contain", background: "#fff" }} />
+                  <div style={{ fontSize: 13, color: "var(--text-muted)", maxWidth: 420 }}>
+                    {paymentSettings.upi_id && <p style={{ marginBottom: 6 }}>Pay to UPI ID: <strong style={{ color: "var(--text-main)" }}>{paymentSettings.upi_id}</strong></p>}
+                    {paymentSettings.instructions && <p>{paymentSettings.instructions}</p>}
+                  </div>
+                </div>
+              ) : (
+                <p role="status" style={{ fontSize: 13, color: "var(--text-muted)" }}>
+                  Payment QR isn&apos;t set up yet — contact Hanbee staff for payment instructions before confirming.
+                </p>
+              )}
+
+              <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, cursor: "pointer" }}>
+                <input type="checkbox" checked={paymentDeclared} onChange={(e) => setPaymentDeclared(e.target.checked)} />
+                I have completed the license payment.
+              </label>
+              {paymentDeclared && (
+                <label style={{ display: "block", fontSize: 13 }}>
+                  UPI transaction ID / UTR
+                  <input
+                    value={paymentReference}
+                    onChange={(e) => setPaymentReference(e.target.value)}
+                    placeholder="e.g. 408812345678"
+                    maxLength={100}
+                    disabled={licenseBusy}
+                    style={{ display: "block", marginTop: 4, width: "100%", maxWidth: 320, padding: "8px 10px", borderRadius: 8, border: "1px solid var(--border-elevated)", background: "var(--bg-input)", color: "var(--text-main)" }}
+                  />
+                </label>
+              )}
+              {licenseError && <p role="alert" style={{ fontSize: 13, color: "var(--color-danger)" }}>{licenseError}</p>}
+              <button
+                type="button"
+                disabled={!paymentDeclared || licenseBusy}
+                onClick={() => void handleDeclareLicensePayment()}
+                style={{
+                  alignSelf: "flex-start",
+                  padding: "9px 20px",
+                  borderRadius: 8,
+                  background: !paymentDeclared || licenseBusy ? "var(--btn-secondary-bg)" : "var(--color-primary)",
+                  color: !paymentDeclared || licenseBusy ? "var(--text-muted)" : "var(--color-primary-text)",
+                  fontWeight: 600,
+                  fontSize: 14,
+                  border: "none",
+                  cursor: !paymentDeclared || licenseBusy ? "not-allowed" : "pointer",
+                }}
+              >
+                {licenseBusy ? "Submitting…" : "Submit Payment"}
+              </button>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Balanced 2-Column Main Layout */}
       <div className={styles.licenseGrid}>

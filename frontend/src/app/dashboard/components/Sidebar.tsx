@@ -40,6 +40,7 @@ const staffMenu = [
   { name: "Scrutineering", href: "/dashboard/hanbee/scrutineering", icon: ShieldCheck },
   { name: "Independent students", href: "/dashboard/hanbee/independent-students", icon: UserPlus },
   { name: "Applications", href: "/dashboard/hanbee/applications", icon: ClipboardList },
+  { name: "License payments", href: "/dashboard/hanbee/licenses", icon: IdCard },
   { name: "Quiz reviews", href: "/dashboard/hanbee/assessment-reviews", icon: ClipboardCheck },
   { name: "Schedule", href: "/dashboard/hanbee/schedule", icon: CalendarDays },
   { name: "Attendance", href: "/dashboard/attendance", icon: Clock },
