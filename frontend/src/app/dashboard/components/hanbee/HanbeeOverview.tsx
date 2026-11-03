@@ -125,10 +125,16 @@ export default function HanbeeOverview() {
       } else {
         await authenticatedSupabaseFetch("/rest/v1/rpc/clock_in", { method: "POST", body: "{}" });
       }
-      await fetchOps();
     } catch (reason) {
       setClockError(reason instanceof Error ? reason.message : "We couldn't update your clock status.");
     } finally {
+      // Re-sync from the server either way: a failed attempt (e.g. "you
+      // already clocked in today") can mean an earlier request actually
+      // succeeded server-side even though this browser never saw that
+      // response (interrupted request, closed tab, etc.) -- without this,
+      // the button stays stuck showing "Clock in" forever, since only the
+      // success path used to refresh real state.
+      await fetchOps();
       setClockBusy(false);
     }
   }
