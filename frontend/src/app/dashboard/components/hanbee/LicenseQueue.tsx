@@ -1,6 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import styles from "../../dashboard.module.css";
+import Shimmer from "../../components/ui/Shimmer";
 import { fetchLicenseQueue, staffDecideLicense, type LicenseQueueRow } from "../../../../lib/teamFormationApi";
 
 function relativeTime(iso: string): string {
@@ -50,59 +52,69 @@ export default function LicenseQueue() {
   }
 
   return (
-    <section style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-      <div>
-        <h2 style={{ fontSize: 18, fontWeight: 700, margin: 0 }}>Driver License payments</h2>
-        <p style={{ fontSize: 13, color: "var(--text-muted)", marginTop: 4 }}>
-          Review payment declarations before activating a student&apos;s Driver License.
-        </p>
+    <div>
+      <div className={styles.pageHeader}>
+        <h1 className={styles.pageTitle}>Driver License payments</h1>
+        <p className={styles.pageSubtitle}>Review payment declarations before activating a student&apos;s Driver License.</p>
       </div>
 
-      {error && <p role="alert" style={{ color: "var(--color-danger)", fontSize: 13 }}>{error}</p>}
-      {notice && <p role="status" style={{ color: "var(--color-success)", fontSize: 13 }}>{notice}</p>}
+      {error && <p role="alert">{error}</p>}
+      {notice && <p role="status" style={{ color: "var(--color-success)" }}>{notice}</p>}
 
-      {loading ? (
-        <p style={{ fontSize: 13, color: "var(--text-muted)" }}>Loading…</p>
-      ) : rows.length === 0 ? (
-        <p style={{ fontSize: 13, color: "var(--text-muted)" }}>No license payments are waiting for review.</p>
-      ) : (
-        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          {rows.map((row) => (
-            <div
-              key={row.student_id}
-              style={{
-                display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12,
-                padding: "12px 16px", borderRadius: 10, background: "var(--bg-card)", border: "1px solid var(--border-elevated)",
-              }}
-            >
-              <div>
-                <strong style={{ color: "var(--text-main)" }}>{row.student_name}</strong>
-                <p style={{ fontSize: 12, color: "var(--text-muted)", margin: "2px 0 0" }}>
-                  ₹{row.amount} · UTR {row.payment_reference || "—"} · {relativeTime(row.created_at)}
-                </p>
-              </div>
-              <div style={{ display: "flex", gap: 8 }}>
-                <button
-                  type="button"
-                  disabled={busyId === row.student_id}
-                  onClick={() => void decide(row, "rejected")}
-                  style={{ padding: "7px 14px", borderRadius: 8, background: "var(--btn-secondary-bg)", color: "var(--text-main)", border: "none", fontSize: 13, cursor: "pointer" }}
-                >
-                  Reject
-                </button>
-                <button
-                  type="button"
-                  disabled={busyId === row.student_id}
-                  onClick={() => void decide(row, "active")}
-                  style={{ padding: "7px 14px", borderRadius: 8, background: "var(--color-primary)", color: "var(--color-primary-text)", border: "none", fontSize: 13, fontWeight: 600, cursor: "pointer" }}
-                >
-                  {busyId === row.student_id ? "Saving…" : "Activate"}
-                </button>
-              </div>
+      {loading ? <Shimmer rows={3} /> : (
+        <div className={styles.sectionCard}>
+          <div className={styles.sectionHeader}>
+            <h2 className={styles.tableTitle}>Waiting for review ({rows.length})</h2>
+          </div>
+          {rows.length === 0 ? (
+            <p>No license payments are waiting for review.</p>
+          ) : (
+            <div className={styles.tableContainer}>
+              <table className={styles.dataTable}>
+                <thead>
+                  <tr>
+                    <th>Student</th>
+                    <th>Amount</th>
+                    <th>UTR</th>
+                    <th>Submitted</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {rows.map((row) => (
+                    <tr key={row.student_id}>
+                      <td><strong style={{ color: "var(--text-main)" }}>{row.student_name}</strong></td>
+                      <td style={{ color: "var(--text-main)", fontWeight: 500 }}>₹{row.amount}</td>
+                      <td>{row.payment_reference || "—"}</td>
+                      <td>{relativeTime(row.created_at)}</td>
+                      <td>
+                        <div style={{ display: "flex", gap: 8 }}>
+                          <button
+                            type="button"
+                            disabled={busyId === row.student_id}
+                            onClick={() => void decide(row, "rejected")}
+                            style={{ padding: "7px 14px", borderRadius: 8, background: "var(--btn-secondary-bg)", color: "var(--text-main)", border: "none", fontSize: 13, cursor: busyId === row.student_id ? "not-allowed" : "pointer" }}
+                          >
+                            Reject
+                          </button>
+                          <button
+                            type="button"
+                            disabled={busyId === row.student_id}
+                            onClick={() => void decide(row, "active")}
+                            style={{ padding: "7px 14px", borderRadius: 8, background: "var(--color-primary)", color: "var(--color-primary-text)", border: "none", fontSize: 13, fontWeight: 600, cursor: busyId === row.student_id ? "not-allowed" : "pointer" }}
+                          >
+                            {busyId === row.student_id ? "Saving…" : "Activate"}
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
-          ))}
+          )}
         </div>
       )}
-    </section>
+    </div>
   );
 }

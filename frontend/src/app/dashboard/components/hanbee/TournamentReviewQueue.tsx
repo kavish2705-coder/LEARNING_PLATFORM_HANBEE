@@ -169,8 +169,8 @@ export default function TournamentReviewQueue() {
 
         <div className={local.chipRow}>
           <span className={local.chip}>Needs review <strong>{counts.pending}</strong></span>
-          <span className={`${local.chip} ${local.chipReady}`}>Payment declared <strong>{counts.ready}</strong></span>
-          <span className={`${local.chip} ${local.chipMissing}`}>Payment missing <strong>{counts.missing}</strong></span>
+          <span className={`${local.chip} ${local.chipReady}`}>Ready to verify <strong>{counts.ready}</strong></span>
+          <span className={`${local.chip} ${local.chipMissing}`}>Waiting for payment <strong>{counts.missing}</strong></span>
           <span className={local.chip}>Reviewed <strong>{counts.reviewed}</strong></span>
         </div>
 

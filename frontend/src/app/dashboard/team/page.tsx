@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useCallback, useEffect, useRef, useState, useMemo } from "react";
+import Link from "next/link";
 import { Users, ShieldCheck, CheckCircle2, AlertCircle, UserPlus, RefreshCw, Trophy, XCircle, AlertTriangle } from "lucide-react";
 import styles from "./team.module.css";
 import registrationStyles from "./registrationStatus.module.css";
@@ -10,6 +11,7 @@ import {
   answerTeamInvitation,
   applyStudentTeam,
   createSoloTournamentEntry,
+  fetchMyLicense,
   fetchMySoloStatus,
   fetchMyTeamFormation,
   fetchMyTeamRegistrationStatus,
@@ -19,6 +21,7 @@ import {
   leaveStudentTeam,
   startStudentTeam,
   submitStudentTeam,
+  type DriverLicense,
   type MyTeamFormation,
   type UpcomingTournament,
   type StudentTeamRegistrationStatus,
@@ -101,6 +104,7 @@ export default function MyTeamPage() {
   const [paymentDeclared, setPaymentDeclared] = useState(false);
   const [paymentReference, setPaymentReference] = useState("");
   const [paymentSettings, setPaymentSettings] = useState<PaymentSettings | null>(null);
+  const [license, setLicense] = useState<DriverLicense | null>(null);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -206,6 +210,13 @@ export default function MyTeamPage() {
     fetchPaymentSettings().then((settings) => { if (active) setPaymentSettings(settings); }).catch(() => {});
     return () => { active = false; };
   }, []);
+
+  useEffect(() => {
+    if (profile?.role !== "student") return;
+    let active = true;
+    fetchMyLicense().then((lic) => { if (active) setLicense(lic); }).catch(() => {});
+    return () => { active = false; };
+  }, [profile?.role]);
 
   useEffect(() => {
     if (!profile?.id || !tournament?.id) return;
@@ -368,7 +379,28 @@ export default function MyTeamPage() {
       {error && (
         <div className={`${styles.noticeAlert} ${styles.noticeAlertError}`}>
           <AlertCircle size={16} />
-          <span>{error}</span>
+          <span>
+            {error}
+            {/\bdriver license\b/i.test(error) && (
+              <>
+                {" "}
+                <Link href="/dashboard/license" style={{ color: "inherit", textDecoration: "underline", fontWeight: 600 }}>
+                  Get your Driver License →
+                </Link>
+              </>
+            )}
+          </span>
+        </div>
+      )}
+      {license && license.status !== "active" && (
+        <div className={`${styles.noticeAlert} ${styles.noticeAlertError}`}>
+          <AlertCircle size={16} />
+          <span>
+            You need an active Driver License before you can enter a tournament.{" "}
+            <Link href="/dashboard/license" style={{ color: "inherit", textDecoration: "underline", fontWeight: 600 }}>
+              Get your Driver License →
+            </Link>
+          </span>
         </div>
       )}
 
