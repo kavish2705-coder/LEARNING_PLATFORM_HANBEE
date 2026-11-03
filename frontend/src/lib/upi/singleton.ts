@@ -25,6 +25,18 @@ function buildUpiPay(): UpiPay {
     );
   }
 
+  // UPI_TEST_MODE enables /api/upi/payment/:id/simulate, which settles a
+  // payment (and auto-activates a Driver License) without any real money
+  // moving. That must never be reachable in production -- refuse to even
+  // start up rather than silently run with it on if a deploy config
+  // mistake ever copies a test env var into production.
+  if (testMode && (process.env.NODE_ENV === "production" || process.env.VERCEL_ENV === "production")) {
+    throw new Error(
+      "UPI_TEST_MODE is set alongside a production environment. Refusing to start -- this would let any signed-in " +
+      "user self-activate a Driver License for free via /api/upi/payment/:id/simulate. Unset UPI_TEST_MODE in production.",
+    );
+  }
+
   return createUpiPay({
     vpa,
     payeeName,

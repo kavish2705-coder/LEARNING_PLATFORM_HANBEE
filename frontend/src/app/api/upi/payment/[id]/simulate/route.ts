@@ -13,6 +13,11 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   const { id } = await params;
   try {
     const upi = getUpiPay();
+    // Ownership check, same as the other payment routes -- test mode
+    // already blocks this in production, but a payment that settles money
+    // status should never trust "the id is unguessable" alone.
+    const existing = await upi.getPayment(id);
+    if (!existing || existing.customer !== user.id) return Response.json({ error: "Payment not found." }, { status: 404 });
     const payment = await upi.simulatePayment(id);
     return Response.json(payment);
   } catch (e) {
