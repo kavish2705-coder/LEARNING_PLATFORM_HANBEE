@@ -16,17 +16,17 @@
 
 /* The source video's watermark (from whatever AI video tool generated
    it) isn't fixed to one corner -- it shows up near different edges at
-   different moments. A single corner patch can't catch that, so this
-   blurs a ring around the whole perimeter instead, leaving only the
-   center (where the car itself sits) sharp. Blurred rather than a flat
-   vignette so it reads as depth-of-field, not a sticker. */
+   different moments, and a translucent blur still let it show through.
+   This is a near-opaque solid fill instead (not just blurred), matched
+   to the video's own dark background tone so the covered ring reads as
+   part of the frame rather than a visible patch, covering the whole
+   perimeter and leaving only the center (where the car itself sits)
+   uncovered. */
 .watermarkPatch {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  backdrop-filter: blur(18px) saturate(85%);
-  -webkit-backdrop-filter: blur(18px) saturate(85%);
-  background: rgba(10, 10, 12, 0.7);
-  -webkit-mask-image: radial-gradient(ellipse 70% 70% at 50% 50%, transparent 66%, #000 92%);
-  mask-image: radial-gradient(ellipse 70% 70% at 50% 50%, transparent 66%, #000 92%);
+  background: #0a1512;
+  -webkit-mask-image: radial-gradient(ellipse 68% 68% at 50% 50%, transparent 60%, #000 78%);
+  mask-image: radial-gradient(ellipse 68% 68% at 50% 50%, transparent 60%, #000 78%);
 }
