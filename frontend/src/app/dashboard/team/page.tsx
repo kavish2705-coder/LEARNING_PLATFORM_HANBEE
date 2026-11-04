@@ -7,7 +7,7 @@ import styles from "./team.module.css";
 import registrationStyles from "./registrationStatus.module.css";
 import Shimmer from "../components/ui/Shimmer";
 import Dropdown from "../components/ui/Dropdown";
-import { createTournamentUpiPayment, getUpiPaymentStatus, claimUpiUtr, simulateUpiPayment, type PublicUpiPayment } from "../../../lib/upiClient";
+import { createTournamentUpiPayment, getUpiPaymentStatus, claimUpiUtr, type PublicUpiPayment } from "../../../lib/upiClient";
 import {
   answerTeamInvitation,
   createSoloTournamentEntry,
@@ -362,21 +362,6 @@ export default function MyTeamPage() {
     }
   }
 
-  async function handleSimulateTeamPayment() {
-    if (!teamUpiPayment) return;
-    setPaymentBusy(true);
-    setPaymentError("");
-    try {
-      await simulateUpiPayment(teamUpiPayment.id);
-      const p = await getUpiPaymentStatus(teamUpiPayment.id);
-      setTeamUpiPayment((current) => (current ? { ...current, ...p, qr: current.qr } : p));
-      if (p.status === "paid") await load();
-    } catch (reason) {
-      setPaymentError(reason instanceof Error ? reason.message : "We couldn't simulate this payment.");
-    } finally {
-      setPaymentBusy(false);
-    }
-  }
 
   if (loading) {
     return (
@@ -1059,17 +1044,6 @@ export default function MyTeamPage() {
                     >
                       {paymentBusy ? "Checking…" : "Check Payment"}
                     </button>
-                    {teamUpiPayment.testMode && (
-                      <button
-                        type="button"
-                        disabled={paymentBusy}
-                        onClick={() => void handleSimulateTeamPayment()}
-                        title="Test mode only -- pretends the bank's alert arrived"
-                        style={{ padding: "9px 20px", borderRadius: 8, fontWeight: 600, fontSize: 14, border: "1px dashed var(--border-elevated, var(--border-subtle))", background: "transparent", color: "var(--text-muted)", cursor: paymentBusy ? "not-allowed" : "pointer" }}
-                      >
-                        Simulate Payment (test mode)
-                      </button>
-                    )}
                     <button
                       type="button"
                       className={styles.dangerBtn}

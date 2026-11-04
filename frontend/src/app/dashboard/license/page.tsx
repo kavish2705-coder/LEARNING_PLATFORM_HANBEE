@@ -17,7 +17,7 @@ import {
   fetchMyLicense, type DriverLicense,
 } from "../../../lib/teamFormationApi";
 import { getStudentLeaderboard } from "../../../lib/tournamentAdminApi";
-import { createLicenseUpiPayment, getUpiPaymentStatus, claimUpiUtr, simulateUpiPayment, type PublicUpiPayment } from "../../../lib/upiClient";
+import { createLicenseUpiPayment, getUpiPaymentStatus, claimUpiUtr, type PublicUpiPayment } from "../../../lib/upiClient";
 
 export default function DriverLicensePage() {
   const router = useRouter();
@@ -104,21 +104,6 @@ export default function DriverLicensePage() {
     }
   }
 
-  async function handleSimulatePayment() {
-    if (!upiPayment) return;
-    setLicenseBusy(true);
-    setLicenseError("");
-    try {
-      await simulateUpiPayment(upiPayment.id);
-      const p = await getUpiPaymentStatus(upiPayment.id);
-      setUpiPayment((current) => (current ? { ...current, ...p, qr: current.qr } : p));
-      if (p.status === "paid") await loadLicense();
-    } catch (reason) {
-      setLicenseError(reason instanceof Error ? reason.message : "We couldn't simulate this payment.");
-    } finally {
-      setLicenseBusy(false);
-    }
-  }
   const [timeLeft, setTimeLeft] = useState({
     days: 0,
     hours: 0,
@@ -478,17 +463,6 @@ export default function DriverLicensePage() {
                 >
                   {licenseBusy ? "Checking…" : "Check Payment"}
                 </button>
-                {upiPayment.testMode && (
-                  <button
-                    type="button"
-                    disabled={licenseBusy}
-                    onClick={() => void handleSimulatePayment()}
-                    title="Test mode only -- pretends the bank's alert arrived"
-                    style={{ padding: "9px 20px", borderRadius: 8, fontWeight: 600, fontSize: 14, border: "1px dashed var(--border-elevated)", background: "transparent", color: "var(--text-muted)", cursor: licenseBusy ? "not-allowed" : "pointer" }}
-                  >
-                    Simulate Payment (test mode)
-                  </button>
-                )}
               </div>
             </div>
           ) : (

@@ -187,6 +187,15 @@ export function createUpiPay(opts: UpiPayOptions): UpiPay {
       if (!o.testMode) throw new UpiError("TEST_MODE_ONLY", "simulatePayment only works with testMode: true.", 403);
       const p = await store.getPayment(id);
       if (!p) fail("NOT_FOUND");
+      // Only pending payments may be simulated. A fake alert for a payment
+      // that already left 'pending' (expired, already paid, re-created)
+      // would never match its own order via upi_settle (which bails out
+      // when the target isn't 'pending') and would sit in upi_alerts as an
+      // orphan for up to 3 days -- where upi_match_alerts' amount-fallback
+      // can later attach it to a totally unrelated payment that happens to
+      // share the same pay_amount within a few minutes, falsely marking a
+      // real student's payment "paid" with no money having moved.
+      if (p.status !== "pending") fail("ALREADY_SETTLED");
       const utr = String(crypto.randomInt(100000, 999999)) + String(crypto.randomInt(100000, 999999));
       const settled = await store.ingestAlerts([{ utr, amount: amount || p.payAmount, bank: "Test Bank", payer: "test@upi", ref: p.ref, receivedAt: new Date().toISOString() }]);
       await announce(settled);

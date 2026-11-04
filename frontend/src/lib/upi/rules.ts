@@ -27,6 +27,7 @@ export const MESSAGES: Record<string, [string, number]> = {
   NOT_FOUND: ["Payment not found.", 404],
   TOO_MANY_TRIES: ["Too many UTR attempts for this payment. Contact the merchant.", 429],
   BAD_UTR: ["A UTR is the 12-digit number in your UPI app's payment details.", 400],
+  ALREADY_SETTLED: ["This payment is no longer open -- refresh the page to start a new one.", 409],
 };
 
 export function fail(code: string): never {
