@@ -2,23 +2,164 @@
 
 import { useRef, useEffect, useState } from "react";
 import IndependentStudentModal from "@/components/IndependentStudentModal/IndependentStudentModal";
-import { useScroll, useTransform, motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import Navbar from "@/components/Navbar/Navbar";
 import Hero from "@/components/Hero/Hero";
 import AnimatedHeading from "@/components/AnimatedHeading/AnimatedHeading";
-import AnimatedCard from "@/components/AnimatedCard/AnimatedCard";
-import AmbientSwarm from "@/components/AmbientSwarm/AmbientSwarm";
+import SeasonLeague from "@/components/SeasonLeague/SeasonLeague";
+import InteractiveCar from "@/components/InteractiveCar/InteractiveCar";
+import RaceDaySchedule from "@/components/RaceDaySchedule/RaceDaySchedule";
+import RegistrationSection from "@/components/RegistrationSection/RegistrationSection";
+import { 
+  Check, 
+  Flag, 
+  GraduationCap, 
+  Users, 
+  ArrowRight, 
+  Radio, 
+  Layers, 
+  Trophy, 
+  ShieldCheck, 
+  Terminal,
+  Calendar,
+  Award
+} from "lucide-react";
 import styles from "./page.module.css";
 
-const tickerItems = ["BUILD THE FLIGHT CONTROLLER", "CODE IT YOURSELF", "RACE AT THE HANBEE RC CUP", "LEARN JAVA · DSA · REACT"];
+const TECH_CONCEPTS = [
+  {
+    label: "BUILD THE FLIGHT CONTROLLER",
+    icon: (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+        <rect x="5" y="5" width="14" height="14" rx="2.5" fill="#141620" stroke="#e58a2b" strokeWidth="1.6" />
+        <rect x="8.5" y="8.5" width="7" height="7" rx="1" fill="#e58a2b" fillOpacity="0.4" stroke="#ffffff" strokeWidth="1" />
+        <path d="M9 2V5M12 2V5M15 2V5M9 19V22M12 19V22M15 19V22M2 9H5M2 12H5M2 15H5M19 9H22M19 12H22M19 15H22" stroke="rgba(255,255,255,0.75)" strokeWidth="1.3" strokeLinecap="round" />
+      </svg>
+    ),
+  },
+  {
+    label: "CODE IT YOURSELF",
+    icon: (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+        <path d="M7 8L3 12L7 16M17 8L21 12L17 16M14 4L10 20" stroke="#e58a2b" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    ),
+  },
+  {
+    label: "LEARN JAVA",
+    icon: (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+        <path d="M8 2C8 3.5 10 3.5 10 5M12 2C12 3.5 14 3.5 14 5M16 2C16 3.5 18 3.5 18 5" stroke="#e58a2b" strokeWidth="1.3" strokeLinecap="round" />
+        <path d="M4 7H18V13C18 15.2091 16.2091 17 14 17H8C5.79086 17 4 15.2091 4 13V7Z" fill="#141620" stroke="#ffffff" strokeWidth="1.5" />
+        <path d="M18 9H19.5C20.8807 9 22 10.1193 22 11.5C22 12.8807 20.8807 14 19.5 14H18" stroke="#e58a2b" strokeWidth="1.4" strokeLinecap="round" />
+        <path d="M3 20H19" stroke="rgba(255,255,255,0.6)" strokeWidth="1.5" strokeLinecap="round" />
+      </svg>
+    ),
+  },
+  {
+    label: "DATA STRUCTURES & ALGORITHMS",
+    icon: (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+        <circle cx="12" cy="4" r="2.5" fill="#e58a2b" stroke="#ffffff" strokeWidth="1.2" />
+        <path d="M10 6L6 11M14 6L18 11M6 13.5L4 18M6 13.5L8.5 18M18 13.5L15.5 18M18 13.5L20 18" stroke="rgba(255,255,255,0.45)" strokeWidth="1.4" strokeLinecap="round" />
+        <circle cx="6" cy="12" r="2" fill="#181a24" stroke="#e58a2b" strokeWidth="1.4" />
+        <circle cx="18" cy="12" r="2" fill="#181a24" stroke="#e58a2b" strokeWidth="1.4" />
+        <circle cx="4" cy="19" r="1.5" fill="#ffffff" />
+        <circle cx="8.5" cy="19" r="1.5" fill="#ffffff" />
+        <circle cx="15.5" cy="19" r="1.5" fill="#ffffff" />
+        <circle cx="20" cy="19" r="1.5" fill="#ffffff" />
+      </svg>
+    ),
+  },
+  {
+    label: "REACT ARCHITECTURE",
+    icon: (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+        <ellipse cx="12" cy="12" rx="10" ry="3.8" stroke="#58c4dc" strokeWidth="1.5" />
+        <ellipse cx="12" cy="12" rx="10" ry="3.8" transform="rotate(60 12 12)" stroke="#58c4dc" strokeWidth="1.5" />
+        <ellipse cx="12" cy="12" rx="10" ry="3.8" transform="rotate(120 12 12)" stroke="#58c4dc" strokeWidth="1.5" />
+        <circle cx="12" cy="12" r="2" fill="#58c4dc" />
+      </svg>
+    ),
+  },
+  {
+    label: "RACE AT THE HANBEE RC CUP",
+    icon: (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+        <path d="M6 3H18V10C18 13.3137 15.3137 16 12 16C8.68629 16 6 13.3137 6 10V3Z" fill="rgba(229,138,43,0.25)" stroke="#e58a2b" strokeWidth="1.5" />
+        <path d="M6 5H3C2.44772 5 2 5.44772 2 6V7C2 9.20914 3.79086 11 6 11" stroke="#e58a2b" strokeWidth="1.4" strokeLinecap="round" />
+        <path d="M18 5H21C21.5523 5 22 5.44772 22 6V7C22 9.20914 20.2091 11 18 11" stroke="#e58a2b" strokeWidth="1.4" strokeLinecap="round" />
+        <path d="M12 16V19M8 21H16" stroke="#ffffff" strokeWidth="1.6" strokeLinecap="round" />
+      </svg>
+    ),
+  },
+];
+
+const LEAGUE_COMPANIES = [
+  {
+    name: "STM32",
+    logo: (
+      <svg width="34" height="26" viewBox="0 0 48 36" fill="none">
+        <path d="M4 28L18 8H30L16 28H4Z" fill="#e58a2b" />
+        <path d="M22 28L36 8H44L30 28H22Z" fill="#ffffff" />
+      </svg>
+    ),
+  },
+  {
+    name: "BOSCH",
+    logo: (
+      <svg width="32" height="32" viewBox="0 0 40 40" fill="none">
+        <circle cx="20" cy="20" r="16" stroke="#ffffff" strokeWidth="3" />
+        <rect x="13" y="11" width="14" height="18" rx="2" stroke="#e58a2b" strokeWidth="2.5" />
+        <circle cx="20" cy="20" r="3.5" fill="#ffffff" />
+      </svg>
+    ),
+  },
+  {
+    name: "ANSYS",
+    logo: (
+      <svg width="30" height="30" viewBox="0 0 40 40" fill="none">
+        <path d="M8 32L24 6L32 6L40 32H31L28 24H17L14 32H8ZM19 18H26L22.5 9L19 18Z" fill="#e58a2b" />
+      </svg>
+    ),
+  },
+  {
+    name: "MathWorks",
+    logo: (
+      <svg width="36" height="28" viewBox="0 0 48 40" fill="none">
+        <path d="M6 30C12 28 16 12 24 12C32 12 36 32 42 22" stroke="#e58a2b" strokeWidth="3.5" strokeLinecap="round" />
+        <path d="M6 22C14 22 18 34 26 34C34 34 38 18 42 18" stroke="#ffffff" strokeWidth="2" strokeLinecap="round" strokeDasharray="3 3" />
+      </svg>
+    ),
+  },
+  {
+    name: "FUTABA",
+    logo: (
+      <svg width="32" height="32" viewBox="0 0 40 40" fill="none">
+        <rect x="5" y="5" width="30" height="30" rx="8" fill="#181a24" stroke="#ffffff" strokeWidth="2" />
+        <path d="M14 12H26M14 19H23M14 12V28" stroke="#e58a2b" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    ),
+  },
+  {
+    name: "BAMBU LAB",
+    logo: (
+      <svg width="32" height="32" viewBox="0 0 40 40" fill="none">
+        <rect x="6" y="6" width="12" height="12" rx="3" fill="#e58a2b" />
+        <rect x="22" y="6" width="12" height="12" rx="3" fill="#ffffff" />
+        <rect x="6" y="22" width="12" height="12" rx="3" fill="#ffffff" />
+        <rect x="22" y="22" width="12" height="12" rx="3" fill="#e58a2b" />
+      </svg>
+    ),
+  },
+];
 
 export default function Home() {
-  const { scrollY } = useScroll();
   const [isStudentModalOpen, setIsStudentModalOpen] = useState(false);
-  const schoolVideoRef = useRef<HTMLVideoElement>(null);
+  const trackVideoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
-    const video = schoolVideoRef.current;
+    const video = trackVideoRef.current;
     if (!video) return;
 
     const observer = new IntersectionObserver(
@@ -30,520 +171,266 @@ export default function Home() {
           }
         });
       },
-      { threshold: 0.2 }
+      { threshold: 0.15 }
     );
 
     observer.observe(video);
     return () => observer.disconnect();
   }, []);
 
-
   return (
-    <main
-      style={{
-        backgroundColor: "var(--landing-surface-2)",
-        position: "relative",
-        // Scoped to this page only -- the rest of the app keeps the shared
-        // --font-heading (Rajdhani) set in globals.css.
-        "--font-heading": "'Afacad', sans-serif",
-      } as React.CSSProperties}
-    >
+    <main className={styles.mainWrapper}>
       <Navbar />
 
       {/* Hero section */}
       <Hero onOpenStudentModal={() => setIsStudentModalOpen(true)} />
 
-      {/* Moving ticker strip - breaks straight into the hero's bottom edge */}
-      <div className={styles.marqueeWrap} style={{ position: "relative", zIndex: 10 }}>
-        <div className={styles.marqueeTrack}>
-          {[...tickerItems, ...tickerItems].map((item, i) => (
-            <span className={styles.marqueeItem} key={i}>
-              <span className={styles.marqueeDot} />
-              {item}
-            </span>
+      {/* Broad Tie-Up Companies Ribbon (Matching User Reference: Broad, Big, 6 Companies, Left-to-Right) */}
+      <section className={styles.partnersRibbon}>
+        <div className={styles.partnersTrackWrapper}>
+          <div className={styles.partnersTrack}>
+            {[...LEAGUE_COMPANIES, ...LEAGUE_COMPANIES].map((company, i) => (
+              <div className={styles.partnerCard} key={i}>
+                <div className={styles.partnerLogoWrap}>
+                  {company.logo}
+                </div>
+                <span className={styles.partnerName}>{company.name}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* SECTION 1: The Six-Month Competition Plan */}
+      <section className={styles.sectionDark} id="courses">
+        <div className={styles.container}>
+          <motion.div
+            className={styles.sectionHeader}
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-30px" }}
+            transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+          >
+            <span className={styles.badge}>HOW THE LEAGUE WORKS</span>
+            <AnimatedHeading as="h2" className={styles.mainTitle}>
+              Six Months. Six Different Races.
+            </AnimatedHeading>
+            <p className={styles.subtitle}>
+              One big race every month. Nobody gets knocked out for having a bad day — your points add up across the whole season to decide the champion.
+            </p>
+          </motion.div>
+
+          <SeasonLeague />
+        </div>
+      </section>
+
+      {/* Concept Ticker with Custom Themed Vectors (Placed right above The League Racer) */}
+      <div className={styles.techTickerWrap}>
+        <div className={styles.techTickerTrack}>
+          {[...TECH_CONCEPTS, ...TECH_CONCEPTS, ...TECH_CONCEPTS].map((concept, i) => (
+            <div className={styles.techTickerItem} key={i}>
+              <div className={styles.techTickerIcon}>
+                {concept.icon}
+              </div>
+              <span className={styles.techTickerText}>{concept.label}</span>
+            </div>
           ))}
         </div>
       </div>
 
-      {/* Photo banner: both liveries, side by side */}
-      <section className={styles.photoBanner}>
-        <motion.div
-          className={styles.photoBannerContent}
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-30px" }}
-          transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
-        >
-          <span style={{ fontFamily: "var(--font-body)", fontSize: "var(--landing-eyebrow)", letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.75)" }}>
-            #09 · #23 · #60
-          </span>
-          <AnimatedHeading as="h2" style={{ fontFamily: "var(--font-heading)", fontSize: "var(--landing-h2)", fontWeight: 400, color: "#fff", margin: "14px 0 0", letterSpacing: "-0.02em" }}>Two liveries. One grid. Every car student-built.</AnimatedHeading>
-        </motion.div>
-        <motion.div
-          className={styles.photoBannerFrame}
-          initial={{ opacity: 0, y: 20, scale: 0.98 }}
-          whileInView={{ opacity: 1, y: 0, scale: 1 }}
-          viewport={{ once: true, margin: "-30px" }}
-          transition={{ duration: 0.7, delay: 0.08, ease: [0.16, 1, 0.3, 1] }}
-        >
-          <img src="/rc-cars-angle.png" alt="Two HANBEE RC Cup cars, black and white liveries, side by side" className={styles.photoBannerImg} />
-          <div className={styles.photoWatermarkPatch} aria-hidden="true" />
-        </motion.div>
-      </section>
-
-      {/* Two tracks, one platform */}
-      <section
-        id="courses"
-        style={{
-          position: "relative",
-          zIndex: 10,
-          backgroundColor: "var(--landing-surface-4)",
-          backgroundImage:
-            "linear-gradient(180deg, var(--landing-surface-1) 0%, var(--landing-surface-4) 100%)",
-          padding: "140px 40px",
-          overflow: "hidden",
-        }}
-      >
-        {/* Background Track Image */}
-        <div className={styles.coursesImageBg}>
-          <img
-            src="/courses-track-bg.jpg"
-            alt="Hanbee RC Racing Circuit"
-            className={styles.coursesImage}
-          />
-          <div className={styles.coursesOverlay} />
-        </div>
-        <div className={styles.ambientWrap}><AmbientSwarm /></div>
-        <div style={{ maxWidth: "1200px", margin: "0 auto", position: "relative", zIndex: 1 }}>
+      {/* SECTION 2: The Machine (Interactive Car CAD Explorer) */}
+      <section className={styles.sectionMid} id="machine">
+        <div className={styles.container}>
           <motion.div
+            className={styles.sectionHeader}
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-30px" }}
-            transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
-            style={{ textAlign: "center", maxWidth: "680px", margin: "0 auto 72px" }}
+            transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
           >
-            <span style={{ fontFamily: "var(--font-body)", fontSize: "var(--landing-eyebrow)", letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.68)" }}>
-              What you get
-            </span>
-            <AnimatedHeading as="h2" style={{ fontFamily: "var(--font-heading)", fontSize: "var(--landing-h2)", fontWeight: 400, color: "#fff", margin: "16px 0 0", letterSpacing: "-0.02em" }}>Two tracks, one platform</AnimatedHeading>
+            <span className={styles.badge}>THE LEAGUE RACER</span>
+            <AnimatedHeading as="h2" className={styles.mainTitle}>
+              Built by students. Raced on the circuit.
+            </AnimatedHeading>
+            <p className={styles.subtitle}>
+              Identical competition specifications ensure a fair grid. Students assemble the carbon chassis, wire the powertrain, and program the flight controller.
+            </p>
           </motion.div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(380px, 1fr))", gap: "32px" }}>
-            {[
-              {
-                tag: "Tournament",
-                title: "Design, build, and race.",
-                desc: "Program your own RC car's flight controller, form a team with your school, and compete at the Hanbee RC Cup. Solo entries welcome too.",
-                points: ["Team or solo tournament entry", "Live leaderboard and results", "School-verified rosters"],
-              },
-              {
-                tag: "Classroom",
-                title: "Learn the fundamentals that matter.",
-                desc: "Structured courses in Java, data structures, and React — video lessons, written notes, and auto-graded quizzes that unlock as you go.",
-                points: ["Self-paced video and notes", "Auto-graded lesson checks", "Progress tracked per course"],
-              },
-            ].map((track, i) => (
-              <AnimatedCard
-                key={track.tag}
-                className={styles.glassCard}
-                delay={i * 0.12}
-                style={{
-                  borderRadius: "28px",
-                  padding: "40px",
-                }}
-              >
-
-                <span style={{ position: "relative", zIndex: 2, fontFamily: "var(--font-body)", fontSize: "12px", letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--landing-accent)" }}>
-                  {track.tag}
-                </span>
-                <h3 style={{ position: "relative", zIndex: 2, fontFamily: "var(--font-heading)", fontSize: "26px", fontWeight: 400, color: "#fff", margin: "14px 0 12px" }}>
-                  {track.title}
-                </h3>
-                <p style={{ position: "relative", zIndex: 2, fontFamily: "var(--font-body)", fontSize: "16px", color: "rgba(255,255,255,0.78)", lineHeight: 1.6, marginBottom: "24px" }}>
-                  {track.desc}
-                </p>
-                <ul style={{ position: "relative", zIndex: 2, display: "flex", flexDirection: "column", gap: "12px" }}>
-                  {track.points.map((point) => (
-                    <li key={point} style={{ display: "flex", alignItems: "center", gap: "10px", fontFamily: "var(--font-body)", fontSize: "14px", color: "rgba(255,255,255,0.7)" }}>
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--landing-accent)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
-                        <path d="M20 6L9 17l-5-5" />
-                      </svg>
-                      {point}
-                    </li>
-                  ))}
-                </ul>
-              </AnimatedCard>
-            ))}
-          </div>
-
-          <div style={{ marginTop: "72px" }}>
-            <motion.p
-              initial={{ opacity: 0, y: 14 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-30px" }}
-              transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
-              style={{ fontFamily: "var(--font-body)", fontSize: "var(--landing-eyebrow)", letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.68)", marginBottom: "20px" }}
-            >
-              Inside the RC track
-            </motion.p>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "20px" }}>
-              {[
-                { stage: "Flight controller fundamentals", desc: "Wire and program the brain of your car." },
-                { stage: "Chassis & tuning", desc: "Suspension, gearing, and getting the balance right." },
-                { stage: "Race strategy & telemetry", desc: "Read the data, plan the lap." },
-                { stage: "Track day & competition rules", desc: "What it takes to line up at the Hanbee RC Cup." },
-              ].map((item, i) => (
-                <AnimatedCard
-                  key={item.stage}
-                  className={styles.glassCard}
-                  delay={i * 0.08}
-                  style={{
-                    borderRadius: "18px",
-                    padding: "24px",
-                  }}
-                >
-                  <div className={styles.glowingNumber}>{String(i + 1).padStart(2, "0")}</div>
-                  <div style={{ position: "relative", zIndex: 2, fontFamily: "var(--font-heading)", fontSize: "18px", color: "#fff", marginBottom: "8px" }}>{item.stage}</div>
-                  <div style={{ position: "relative", zIndex: 2, fontFamily: "var(--font-body)", fontSize: "14px", color: "rgba(255,255,255,0.72)", lineHeight: 1.5 }}>{item.desc}</div>
-                </AnimatedCard>
-              ))}
-            </div>
-          </div>
+          <InteractiveCar />
         </div>
       </section>
 
-      {/* Build showcase: the exploded-parts diagram next to the labeled
-          "Inside the RC track" curriculum above -- shows what the curriculum
-          actually builds, not just describes it. */}
-      <section
-        style={{
-          position: "relative",
-          zIndex: 10,
-          backgroundColor: "var(--landing-surface-1)",
-          padding: "140px 40px",
-          overflow: "hidden",
-        }}
-      >
-        <div className={styles.buildGrid}>
+      {/* SECTION 3: Race Day Operations & Protocol */}
+      <section className={styles.sectionDark} id="event-day">
+        <div className={styles.container}>
           <motion.div
+            className={styles.sectionHeader}
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-30px" }}
-            transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
+            transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
           >
-            <span style={{ fontFamily: "var(--font-body)", fontSize: "var(--landing-eyebrow)", letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.68)" }}>
-              Every part, labeled
-            </span>
-            <AnimatedHeading as="h2" style={{ fontFamily: "var(--font-heading)", fontSize: "var(--landing-h2)", fontWeight: 400, color: "#fff", margin: "16px 0 20px", letterSpacing: "-0.02em" }}>{"This isn't a kit you snap together."}</AnimatedHeading>
-            <p style={{ fontFamily: "var(--font-body)", fontSize: "16px", color: "rgba(255,255,255,0.72)", lineHeight: 1.65 }}>
-              Monocoque chassis, inner radiator, brake ducts, the flight controller you wrote yourself — by the time you line up at the grid, you know what every part on this car does, because you built and programmed it.
+            <span className={styles.badge}>TRACK DAY OPERATIONS</span>
+            <AnimatedHeading as="h2" className={styles.mainTitle}>
+              From morning inspection to the podium.
+            </AnimatedHeading>
+            <p className={styles.subtitle}>
+              Every monthly competition follows an official race weekend schedule — from technical scrutineering to wheel-to-wheel finals.
             </p>
           </motion.div>
 
-          <motion.div
-            className={styles.buildImageFrame}
-            initial={{ opacity: 0, y: 20, scale: 0.98 }}
-            whileInView={{ opacity: 1, y: 0, scale: 1 }}
-            viewport={{ once: true, margin: "-30px" }}
-            transition={{ duration: 0.7, delay: 0.08, ease: [0.16, 1, 0.3, 1] }}
-          >
-            <img src="/rc-car-exploded.png" alt="HANBEE RC car with chassis, wing, and brake components labeled" />
-          </motion.div>
+          <RaceDaySchedule />
         </div>
       </section>
 
-      {/* Why it's different - glass box on photo background */}
-      <section className={styles.differentSection} id="platform">
-        {/* Background Image */}
-        <div className={styles.differentImageBg}>
-          <img
-            src="/hanbee-cars.jpg"
-            alt="Hanbee RC Racing Cars"
-            className={styles.differentImage}
-          />
-          <div className={styles.differentOverlay} />
-        </div>
-
-        {/* Centered Glass Container Box */}
-        <div className={`${styles.doersCard} ${styles.differentGrid}`} style={{ margin: "0 auto" }}>
-          <div className={styles.orbBackground} style={{ opacity: 0.35 }}></div>
-
+      {/* SECTION 4: Grid Registration (Schools vs. Solo) */}
+      <section className={styles.sectionMid} id="educators">
+        <div className={styles.container}>
           <motion.div
-            initial={{ opacity: 0, y: 22 }}
+            className={styles.sectionHeader}
+            initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-30px" }}
-            transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
-            style={{ position: "relative", zIndex: 2 }}
+            transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
           >
-            <span className={styles.categoryBadge}>
-              Beyond standard learning
-            </span>
-            <AnimatedHeading as="h2" className={styles.doersTitle}>An LMS built for doers.</AnimatedHeading>
-            <p className={styles.doersDesc}>
-              From mastering core engineering concepts to building and programming your own FC racing car, Hanbee bridges the gap between theory and adrenaline-pumping reality.
+            <span className={styles.badge}>GET ON THE GRID</span>
+            <AnimatedHeading as="h2" className={styles.mainTitle}>
+              Two ways to race in Season 1.
+            </AnimatedHeading>
+            <p className={styles.subtitle}>
+              Bring a school squad of 2 teams or enter the independent student pool to build, test, and compete.
             </p>
           </motion.div>
 
-          <motion.div
-            initial={{ opacity: 0, y: 22 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-30px" }}
-            transition={{ duration: 0.65, delay: 0.08, ease: [0.16, 1, 0.3, 1] }}
-            style={{ display: "flex", flexDirection: "column", gap: "16px", position: "relative", zIndex: 2 }}
-          >
-            {[
-              {
-                n: "01",
-                t: "Led by track pros",
-                d: "Learn directly from engineering veterans who design real-world flight controllers and autonomous systems."
-              },
-              {
-                n: "02",
-                t: "Live progress telemetry",
-                d: "Monitor your learning milestones like live race telemetry — visualize your growth from novice to track-ready."
-              },
-              {
-                n: "03",
-                t: "Pit-stop mentorship",
-                d: "Get 1-on-1 guidance when debugging your RC car's code or tuning its FC for maximum speed and control."
-              },
-              {
-                n: "04",
-                t: "Code, build, race",
-                d: "Learn the theory at home, then take your skills straight to the asphalt at the Hanbee RC Cup."
-              },
-            ].map((feature) => (
-              <motion.div
-                key={feature.t}
-                className={styles.doersItem}
-                whileHover={{ x: 6, transition: { duration: 0.25, ease: [0.16, 1, 0.3, 1] } }}
-              >
-                <span className={styles.glowingNumber} style={{ minWidth: "32px", margin: 0, marginTop: "2px" }}>{feature.n}</span>
-                <div>
-                  <strong className={styles.doersItemTitle}>{feature.t}</strong>
-                  <span className={styles.doersItemDesc}>{feature.d}</span>
-                </div>
-              </motion.div>
-            ))}
-          </motion.div>
+          <RegistrationSection onOpenStudentModal={() => setIsStudentModalOpen(true)} />
         </div>
       </section>
 
-      {/* For schools */}
-      <section className={styles.schoolSection} id="educators">
-        {/* Background Race Track Video */}
-        <div className={styles.schoolVideoBg}>
+      {/* SECTION 6: Track Atmosphere Video Banner */}
+      <section className={styles.cinematicBanner}>
+        <div className={styles.videoBackdrop}>
           <video
-            ref={schoolVideoRef}
-            className={styles.schoolVideo}
+            ref={trackVideoRef}
+            className={styles.bannerVideo}
             playsInline
             muted
+            loop
             preload="auto"
           >
             <source src="/race-track-video.mp4" type="video/mp4" />
           </video>
-          <div className={styles.schoolOverlay} />
+          <div className={styles.bannerOverlay} />
         </div>
 
-        <div className={`${styles.schoolCard} ${styles.schoolGrid}`} style={{ margin: "0 auto" }}>
-          <div className={styles.orbBackground} style={{ opacity: 0.35 }}></div>
+        <div className={styles.bannerContent}>
           <motion.div
-            initial={{ opacity: 0, y: 22 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-30px" }}
+            initial={{ opacity: 0, scale: 0.95 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true }}
             transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
-            style={{ position: "relative", zIndex: 2 }}
           >
-            <span style={{ fontFamily: "var(--font-body)", fontSize: "var(--landing-eyebrow)", letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.6)" }}>
-              For schools
-            </span>
-            <AnimatedHeading as="h2" style={{ fontFamily: "var(--font-heading)", fontSize: "var(--landing-h2)", fontWeight: 400, color: "#fff", margin: "16px 0 20px", letterSpacing: "-0.02em" }}>Bring your students to the track and the classroom.</AnimatedHeading>
-            <p style={{ fontFamily: "var(--font-body)", fontSize: "16px", color: "rgba(255,255,255,0.72)", lineHeight: 1.65, marginBottom: "32px" }}>
-              Register your school, and once a Hanbee staff member verifies it, invite your students, form tournament teams, and follow their course progress — all from one dashboard.
+            <span className={styles.bannerEyebrow}>SIX MONTHS · ZERO ELIMINATION</span>
+            <h2 className={styles.bannerHeading}>Consistency wins the Championship.</h2>
+            <p className={styles.bannerText}>
+              Points accumulate round after round. An off-day in Month 1 doesn't end your season — learn from the telemetry, refine your car, and climb back up the leaderboard.
             </p>
-            <motion.a
-              href="/login?mode=signup&role=School"
-              className={styles.liquidGlassBtn}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.97 }}
-              transition={{ type: "spring", stiffness: 400, damping: 17 }}
-            >
-              Register your school
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14" /><path d="M12 5l7 7-7 7" /></svg>
-            </motion.a>
+            <div className={styles.bannerActionGroup}>
+              <a href="/login?mode=signup" className={styles.bannerPrimaryBtn}>
+                Register Your Team
+                <ArrowRight size={16} />
+              </a>
+              <a href="/apply" className={styles.bannerSecondaryBtn}>
+                Contact Race Director
+              </a>
+            </div>
           </motion.div>
+        </div>
+      </section>
 
-          <motion.div
-            className={styles.schoolVisualFrame}
-            initial={{ opacity: 0, y: 22, scale: 0.98 }}
-            whileInView={{ opacity: 1, y: 0, scale: 1 }}
-            viewport={{ once: true, margin: "-30px" }}
-            transition={{ duration: 0.65, delay: 0.08, ease: [0.16, 1, 0.3, 1] }}
-            style={{ position: "relative", zIndex: 2 }}
-          >
-            <img src="/rc-cars-topdown.png" alt="Both HANBEE RC Cup cars viewed from above" />
-          </motion.div>
+      {/* SECTION 7: Competition Rules & FAQ */}
+      <section className={styles.faqSection} id="about">
+        <div className={styles.containerSm}>
+          <div className={styles.sectionHeader}>
+            <span className={styles.badge}>LEAGUE RULES & FAQ</span>
+            <AnimatedHeading as="h2" className={styles.mainTitle}>
+              Competition details at a glance.
+            </AnimatedHeading>
+          </div>
 
-          <motion.ol
-            initial={{ opacity: 0, y: 22 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-30px" }}
-            transition={{ duration: 0.65, delay: 0.14, ease: [0.16, 1, 0.3, 1] }}
-            style={{ display: "flex", flexDirection: "column", gap: "16px", position: "relative", zIndex: 2 }}
-          >
+          <div className={styles.faqList}>
             {[
-              { n: "01", t: "Register your school", d: "Share your school's name — no paperwork required to get started." },
-              { n: "02", t: "Get verified", d: "A Hanbee manager or staff member reviews and verifies your school." },
-              { n: "03", t: "Invite your students", d: "Send join links by email, bulk or one at a time." },
-              { n: "04", t: "Track and compete", d: "Form teams for the tournament and follow classroom progress." },
-            ].map((step) => (
-              <li
-                key={step.n}
-                className={styles.schoolStepItem}
-                style={{ display: "flex", gap: "16px", alignItems: "flex-start", position: "relative", zIndex: 2 }}
-              >
-                <span className={styles.glowingNumber} style={{ minWidth: "28px", margin: 0, marginTop: "2px" }}>{step.n}</span>
-                <div>
-                  <strong style={{ fontFamily: "var(--font-heading)", fontWeight: 500, fontSize: "16px", color: "#fff", display: "block", marginBottom: "4px" }}>{step.t}</strong>
-                  <span style={{ fontFamily: "var(--font-body)", fontSize: "14px", color: "rgba(255,255,255,0.68)" }}>{step.d}</span>
-                </div>
-              </li>
+              {
+                q: "How does the season points system work?",
+                a: "Points follow the official F1 table: 1st=25, 2nd=18, 3rd=15, 4th=12, 5th=10, 6th=8, 7th=6, 8th=4, 9th=2, 10th=1. Points accumulate across all 6 rounds, and an updated leaderboard is published after every monthly event.",
+              },
+              {
+                q: "What happens if a car has a collision or mechanical failure?",
+                a: "Under the Fair Play Principle, if an unavoidable crash occurs through no fault of your team, Race Control will pause and grant a restart or rerun. For mechanical issues, teams are allowed one repair window per standard regulations.",
+              },
+              {
+                q: "What is the qualification format for Month 6 (Grand Championship)?",
+                a: "The Top 8 teams on the cumulative leaderboard after Month 5 qualify for the Grand Championship Final to race for the title. All other teams race in the Placement Finals for season rankings and awards.",
+              },
+              {
+                q: "Can teams make driver substitutions during the season?",
+                a: "Yes. Each team may register one approved substitute student with school authorization and Race Director notification.",
+              },
+              {
+                q: "How are season ties broken if two teams have the same points?",
+                a: "Ties are resolved by: (1) Most monthly round wins, (2) Most second-place finishes, and (3) Finishing order in the Grand Championship Final.",
+              },
+            ].map((faq, idx) => (
+              <details key={idx} className={styles.faqCard}>
+                <summary className={styles.faqSummary}>
+                  <span>{faq.q}</span>
+                  <span className={styles.faqPlus}>+</span>
+                </summary>
+                <p className={styles.faqAnswer}>{faq.a}</p>
+              </details>
             ))}
-          </motion.ol>
+          </div>
         </div>
       </section>
 
-      {/* About */}
-      <section
-        id="about"
-        style={{
-          position: "relative",
-          zIndex: 10,
-          backgroundColor: "var(--landing-surface-4)",
-          backgroundImage:
-            "linear-gradient(rgba(17, 18, 26, 0.72), rgba(19, 20, 28, 0.85)), radial-gradient(ellipse 60% 70% at 50% 100%, color-mix(in srgb, var(--landing-accent) 28%, transparent), transparent 65%), url('/rc-car-macro.png')",
-          backgroundSize: "cover, cover, cover",
-          backgroundPosition: "center, center, center 30%",
-          backgroundRepeat: "no-repeat",
-          padding: "100px 40px",
-          overflow: "hidden",
-        }}
-      >
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-30px" }}
-          transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
-          style={{ maxWidth: "800px", margin: "0 auto", textAlign: "center" }}
-        >
-          <span style={{ fontFamily: "var(--font-body)", fontSize: "var(--landing-eyebrow)", letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.68)" }}>
-            Why Hanbee
-          </span>
-          <AnimatedHeading as="h2" style={{ fontFamily: "var(--font-heading)", fontSize: "var(--landing-h2)", fontWeight: 400, color: "#fff", margin: "16px 0 0", lineHeight: 1.4, letterSpacing: "-0.01em" }}>{"Most courses end where the real learning starts. We built Hanbee so the thing you coded actually has to work — on a track, against the clock, against other teams."}</AnimatedHeading>
-          <motion.a
-            href="/login"
-            className={styles.liquidGlassBtn}
-            style={{ marginTop: "40px" }}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.97 }}
-            transition={{ type: "spring", stiffness: 400, damping: 17 }}
-          >
-            Start learning
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14" /><path d="M12 5l7 7-7 7" /></svg>
-          </motion.a>
-          <p style={{ fontFamily: "var(--font-body)", fontSize: "13.5px", color: "rgba(255,255,255,0.68)", marginTop: "18px" }}>
-            Not ready to create an account?{" "}
-            <a href="/apply" style={{ color: "var(--landing-accent)", textDecoration: "underline" }}>Just ask us a question</a>
-          </p>
-        </motion.div>
-      </section>
-
-      {/* FAQ */}
-      <section style={{ position: "relative", zIndex: 10, backgroundColor: "var(--landing-surface-3)", padding: "100px 40px", overflow: "hidden" }}>
-        <div className={styles.ambientWrap}><AmbientSwarm /></div>
-        <div style={{ maxWidth: "820px", margin: "0 auto", position: "relative", zIndex: 1 }}>
-          <motion.p
-            initial={{ opacity: 0, y: 14 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-30px" }}
-            transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
-            style={{ fontFamily: "var(--font-body)", fontSize: "var(--landing-eyebrow)", letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.68)", textAlign: "center", marginBottom: "16px" }}
-          >
-            Questions
-          </motion.p>
-          <AnimatedHeading as="h2" style={{ fontFamily: "var(--font-heading)", fontSize: "var(--landing-h2)", fontWeight: 400, color: "#fff", textAlign: "center", marginBottom: "56px", letterSpacing: "-0.02em" }}>Before you start</AnimatedHeading>
-
-          {[
-            {
-              q: "Do I need to be part of a school to enter the tournament?",
-              a: "No. You can enter solo as a team of one, or join through your school if it's registered and verified on Hanbee.",
-            },
-            {
-              q: "How does payment work?",
-              a: "Scan the UPI QR code shown on your tournament entry page, pay, and enter the transaction ID. A Hanbee staff member verifies it before your entry is confirmed.",
-            },
-            {
-              q: "What do I need to actually enter the tournament?",
-              a: "An RC car with a flight controller you've built and programmed yourself — that's what the tournament track teaches you to do.",
-            },
-            {
-              q: "What happens if my school closes or I leave it?",
-              a: "Your course progress and tournament history stay with you. You can continue as a solo student or join a new school later.",
-            },
-          ].map((item, i) => (
-            <motion.details
-              key={item.q}
-              className={styles.faqItem}
-              initial={{ opacity: 0, y: 14 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-20px" }}
-              transition={{ duration: 0.5, delay: Math.min(i * 0.04, 0.16), ease: [0.16, 1, 0.3, 1] }}
-              style={{
-                borderBottom: "1px solid rgba(255,255,255,0.08)",
-                padding: "22px 0",
-                cursor: "pointer",
-              }}
-            >
-              <summary style={{ fontFamily: "var(--font-heading)", fontSize: "18px", fontWeight: 400, color: "#fff", listStyle: "none" }}>
-                {item.q}
-              </summary>
-              <p style={{ fontFamily: "var(--font-body)", fontSize: "15px", color: "rgba(255,255,255,0.78)", lineHeight: 1.65, marginTop: "14px" }}>
-                {item.a}
+      {/* FOOTER */}
+      <footer className={styles.footer}>
+        <div className={styles.container}>
+          <div className={styles.footerTop}>
+            <div className={styles.footerBrand}>
+              <span className={styles.footerLogo}>HANBEE F1 RC</span>
+              <p className={styles.footerTagline}>
+                Six-Month Inter-School RC Racing League. Season 1 Official Programme.
               </p>
-            </motion.details>
-          ))}
-        </div>
-      </section>
+              <div className={styles.systemStatus}>
+                <span className={styles.statusDotGreen} />
+                <span>Race Control Active</span>
+              </div>
+            </div>
 
-      {/* Footer */}
-      <footer style={{ position: "relative", zIndex: 10, backgroundColor: "var(--landing-surface-1)", borderTop: "1px solid rgba(255,255,255,0.06)", padding: "56px 40px 32px" }}>
-        <div style={{ maxWidth: "1200px", margin: "0 auto", display: "flex", flexWrap: "wrap", justifyContent: "space-between", gap: "32px", paddingBottom: "40px" }}>
-          <div>
-            <span style={{ fontFamily: "var(--font-logo, var(--font-heading))", fontSize: "22px", color: "#fff", letterSpacing: "0.02em" }}>HANBEE</span>
-            <p style={{ fontFamily: "var(--font-body)", fontSize: "14px", color: "rgba(255,255,255,0.68)", marginTop: "10px", maxWidth: "280px" }}>
-              Learn beyond the obvious. Build beyond the expected.
-            </p>
-          </div>
-          <div style={{ display: "flex", gap: "64px", flexWrap: "wrap" }}>
-            <div>
-              <div style={{ fontFamily: "var(--font-body)", fontSize: "12px", letterSpacing: "0.08em", textTransform: "uppercase", color: "rgba(255,255,255,0.35)", marginBottom: "16px" }}>Platform</div>
-              <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-                <a href="#courses" style={{ fontFamily: "var(--font-body)", fontSize: "14px", color: "rgba(255,255,255,0.6)" }}>Courses</a>
-                <a href="#educators" style={{ fontFamily: "var(--font-body)", fontSize: "14px", color: "rgba(255,255,255,0.6)" }}>For Educators</a>
-                <a href="#about" style={{ fontFamily: "var(--font-body)", fontSize: "14px", color: "rgba(255,255,255,0.6)" }}>About</a>
+            <div className={styles.footerLinksGroup}>
+              <div className={styles.footerCol}>
+                <span className={styles.footerColTitle}>COMPETITION</span>
+                <a href="#courses">6-Month Calendar</a>
+                <a href="#machine">Car Specifications</a>
+                <a href="#courses">Points & Scoring</a>
+                <a href="#educators">School Registration</a>
               </div>
-            </div>
-            <div>
-              <div style={{ fontFamily: "var(--font-body)", fontSize: "12px", letterSpacing: "0.08em", textTransform: "uppercase", color: "rgba(255,255,255,0.35)", marginBottom: "16px" }}>Account</div>
-              <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-                <a href="/login" style={{ fontFamily: "var(--font-body)", fontSize: "14px", color: "rgba(255,255,255,0.6)" }}>Sign in</a>
-                <a href="/login?mode=signup" style={{ fontFamily: "var(--font-body)", fontSize: "14px", color: "rgba(255,255,255,0.6)" }}>Create account</a>
+              <div className={styles.footerCol}>
+                <span className={styles.footerColTitle}>PARTICIPATE</span>
+                <a href="/login?mode=signup">Enter Season 1</a>
+                <a href="/apply">Inquire for School</a>
+                <a href="/login">Team Portal</a>
               </div>
             </div>
           </div>
-        </div>
-        <div style={{ maxWidth: "1200px", margin: "0 auto", borderTop: "1px solid rgba(255,255,255,0.06)", paddingTop: "24px", fontFamily: "var(--font-body)", fontSize: "var(--landing-eyebrow)", color: "rgba(255,255,255,0.3)" }}>
-          © {new Date().getFullYear()} Hanbee. All rights reserved.
+
+          <div className={styles.footerBottom}>
+            <span>© {new Date().getFullYear()} HANBEE F1 RC Racing League · Season 1. All rights reserved.</span>
+            <div className={styles.footerMetaLinks}>
+              <span>10 Schools · 20 Teams · 100 Racers · Zero Elimination</span>
+            </div>
+          </div>
         </div>
       </footer>
 

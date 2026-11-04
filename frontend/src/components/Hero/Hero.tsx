@@ -12,8 +12,8 @@ export default function Hero({ onOpenStudentModal }: HeroProps) {
   const yBg = useTransform(scrollY, [0, 800], [0, 140]);
   const opacityText = useTransform(scrollY, [0, 420], [1, 0]);
 
-  const line1Words = ["Learn", "beyond", "the", "obvious."];
-  const line2Words = ["Build", "beyond", "the", "expected."];
+  const line1Words = ["HANBEE", "F1", "RC"];
+  const line2Words = ["RACING", "LEAGUE"];
 
   return (
     <section className={styles.hero}>
@@ -46,10 +46,10 @@ export default function Hero({ onOpenStudentModal }: HeroProps) {
           transition={{ delay: 0.1, duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
         >
           <span className={styles.taglineDot} />
-          <span>LEARN · GROW · BELONG</span>
+          <span>SEASON 1 · SIX-MONTH COMPETITION PLAN</span>
         </motion.div>
 
-        {/* Main Heading - Buttery Smooth Word Cascade without heavy GPU blur lag */}
+        {/* Main Heading */}
         <h1 className={styles.heading}>
           <span className={styles.headingLine}>
             {line1Words.map((word, index) => (
@@ -58,11 +58,11 @@ export default function Hero({ onOpenStudentModal }: HeroProps) {
                 initial={{ opacity: 0, y: 18 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{
-                  delay: 0.16 + index * 0.035,
+                  delay: 0.16 + index * 0.04,
                   duration: 0.55,
                   ease: [0.16, 1, 0.3, 1],
                 }}
-                style={{ display: "inline-block", marginRight: "0.26em" }}
+                style={{ display: "inline-block", marginRight: "0.28em" }}
               >
                 {word}
               </motion.span>
@@ -75,11 +75,11 @@ export default function Hero({ onOpenStudentModal }: HeroProps) {
                 initial={{ opacity: 0, y: 18 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{
-                  delay: 0.30 + index * 0.035,
+                  delay: 0.30 + index * 0.04,
                   duration: 0.55,
                   ease: [0.16, 1, 0.3, 1],
                 }}
-                style={{ display: "inline-block", marginRight: "0.26em" }}
+                style={{ display: "inline-block", marginRight: "0.28em" }}
               >
                 {word}
               </motion.span>
@@ -94,13 +94,13 @@ export default function Hero({ onOpenStudentModal }: HeroProps) {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.44, duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
         >
-          Write the code. Build the car. Race it for real — at the Hanbee RC Cup.
+          A simple league format for schools, student teams and RC racing. Six monthly challenges, cumulative F1 points, and zero mid-season elimination.
         </motion.p>
 
         {/* CTA Button Group */}
         <div className={styles.ctaGroup}>
           <motion.a
-            href="/login"
+            href="/login?mode=signup"
             className={styles.ctaButton}
             initial={{ opacity: 0, y: 14 }}
             animate={{ opacity: 1, y: 0 }}
@@ -108,7 +108,7 @@ export default function Hero({ onOpenStudentModal }: HeroProps) {
             whileHover={{ scale: 1.03 }}
             whileTap={{ scale: 0.97 }}
           >
-            <span>Start Learning</span>
+            <span>Enter The League</span>
             <svg
               width="14"
               height="14"
