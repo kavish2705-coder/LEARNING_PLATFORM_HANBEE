@@ -617,86 +617,259 @@
   margin-top: 14px;
 }
 
-/* Footer */
+/* Futuristic Motorsport Telemetry Footer */
 .footer {
-  background: #06070a;
+  background: #040507;
   border-top: 1px solid rgba(255, 255, 255, 0.08);
-  padding: 72px 0 40px;
+  padding: 0 0 36px;
+  position: relative;
+  overflow: hidden;
 }
 
-.footerTop {
-  display: flex;
-  justify-content: space-between;
-  flex-wrap: wrap;
+.footerGlowLine {
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent 0%, rgba(229, 138, 43, 0.2) 20%, rgba(229, 138, 43, 0.8) 50%, rgba(229, 138, 43, 0.2) 80%, transparent 100%);
+  margin-bottom: 56px;
+}
+
+.footerMainGrid {
+  display: grid;
+  grid-template-columns: 1.4fr 2fr 1.2fr;
   gap: 48px;
   padding-bottom: 48px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
 }
 
-.footerBrand {
+/* Brand Column */
+.footerBrandCol {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  max-width: 320px;
+  gap: 18px;
 }
 
-.footerLogo {
-  font-family: var(--font-logo, var(--font-heading));
-  font-size: 24px;
-  letter-spacing: 0.04em;
-  color: #fff;
+.footerLogoRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
-.footerTagline {
+.footerLogoName {
+  font-family: var(--font-heading);
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: #ffffff;
+}
+
+.footerLogoTag {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: #0b0c10;
+  background: var(--landing-accent);
+  padding: 3px 8px;
+  border-radius: 6px;
+}
+
+.footerBrandMission {
   font-family: var(--font-body);
   font-size: 14px;
-  line-height: 1.5;
-  color: rgba(255, 255, 255, 0.6);
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.65);
   margin: 0;
 }
 
-
-.footerLinksGroup {
-  display: flex;
-  gap: 64px;
+/* Navigation Columns */
+.footerNavGroup {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
 }
 
-.footerCol {
+.footerNavCol {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 14px;
 }
 
-.footerColTitle {
+.footerSectionHeader {
   font-family: var(--font-heading);
-  font-size: 11.5px;
-  font-weight: 600;
-  letter-spacing: 0.14em;
-  color: rgba(255, 255, 255, 0.4);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  color: var(--landing-accent);
   text-transform: uppercase;
 }
 
-.footerCol a {
+.footerLinkList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.footerLink,
+.footerLinkBtn {
   font-family: var(--font-body);
-  font-size: 14px;
-  color: rgba(255, 255, 255, 0.7);
-  transition: color 0.2s ease;
+  font-size: 13.5px;
+  color: rgba(255, 255, 255, 0.68);
+  text-decoration: none;
+  transition: all 0.2s ease;
+  display: inline-block;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  text-align: left;
 }
 
-.footerCol a:hover {
+.footerLink:hover,
+.footerLinkBtn:hover {
+  color: #ffffff;
+  transform: translateX(3px);
+}
+
+/* Paddock Action Card */
+.footerActionCard {
+  position: relative;
+  border-radius: 16px;
+  background: linear-gradient(145deg, rgba(20, 22, 32, 0.8) 0%, rgba(12, 13, 18, 0.95) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  overflow: hidden;
+}
+
+.actionCardGlow {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent 0%, rgba(229, 138, 43, 0.6) 50%, transparent 100%);
+}
+
+.actionCardEyebrow {
+  font-family: var(--font-heading);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
   color: var(--landing-accent);
+  text-transform: uppercase;
 }
 
-.footerBottom {
+.actionCardHeading {
+  font-family: var(--font-heading);
+  font-size: 17px;
+  font-weight: 600;
+  color: #ffffff;
+  letter-spacing: -0.01em;
+  line-height: 1.25;
+}
+
+.actionCardDesc {
+  font-family: var(--font-body);
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.65);
+  margin: 0;
+}
+
+.actionCardBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 6px;
+  padding: 10px 16px;
+  border-radius: 10px;
+  background: var(--landing-accent);
+  color: #0b0c10;
+  font-family: var(--font-heading);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  text-decoration: none;
+  transition: all 0.22s ease;
+}
+
+.actionCardBtn:hover {
+  background: #ff9d2b;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 18px rgba(229, 138, 43, 0.4);
+}
+
+/* Bottom Bar */
+.footerBottomBar {
   display: flex;
   justify-content: space-between;
   align-items: center;
   flex-wrap: wrap;
   gap: 16px;
-  padding-top: 32px;
+  padding-top: 28px;
+}
+
+.copyrightText {
   font-family: var(--font-body);
-  font-size: 13px;
+  font-size: 12px;
   color: rgba(255, 255, 255, 0.4);
+  letter-spacing: 0.02em;
+}
+
+.telemetryTag {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.35);
+  letter-spacing: 0.06em;
+}
+
+.backToTopBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  padding: 6px 12px;
+  color: rgba(255, 255, 255, 0.65);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.backToTopBtn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(229, 138, 43, 0.4);
+  color: #ffffff;
+}
+
+@media (max-width: 960px) {
+  .footerMainGrid {
+    grid-template-columns: 1fr;
+    gap: 36px;
+  }
+  .footerNavGroup {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .footerNavGroup {
+    grid-template-columns: 1fr;
+  }
+  .footerBottomBar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
 }
 
 

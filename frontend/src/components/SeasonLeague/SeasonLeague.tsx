@@ -112,6 +112,8 @@ export default function SeasonLeague() {
       </div>
 
       <div className={styles.briefingCard}>
+        <div className={styles.glassReflection} />
+        <div className={styles.glassPrismGlow} />
         <AnimatePresence mode="wait">
           <motion.div
             key={current.monthNum}

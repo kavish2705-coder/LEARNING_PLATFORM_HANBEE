@@ -12,7 +12,8 @@ import RaceDaySchedule from "@/components/RaceDaySchedule/RaceDaySchedule";
 import RegistrationSection from "@/components/RegistrationSection/RegistrationSection";
 import {
   ArrowRight,
-  ChevronDown
+  ChevronDown,
+  ChevronUp
 } from "lucide-react";
 import styles from "./page.module.css";
 
@@ -383,31 +384,96 @@ export default function Home() {
         </div>
       </section>
 
-      {/* FOOTER */}
+      {/* FOOTER - Futuristic Motorsport Telemetry & Paddock Directory */}
       <footer className={styles.footer}>
+        <div className={styles.footerGlowLine} />
+
         <div className={styles.container}>
-          <div className={styles.footerTop}>
-            <div className={styles.footerBrand}>
-              <span className={styles.footerLogo}>HANBEE F1 RC</span>
-              <p className={styles.footerTagline}>
-                Inter-school RC racing league.
+          <div className={styles.footerMainGrid}>
+            {/* Left: Brand Identity, Mission & Telemetry Status */}
+            <div className={styles.footerBrandCol}>
+              <div className={styles.footerLogoRow}>
+                <span className={styles.footerLogoName}>HANBEE</span>
+                <span className={styles.footerLogoTag}>F1 RC</span>
+              </div>
+              <p className={styles.footerBrandMission}>
+                Inter-school autonomous &amp; RC racing league. Students engineer competition-grade vehicles, code custom firmware, and race under an official zero-elimination championship format.
               </p>
+
             </div>
 
-            <div className={styles.footerLinksGroup}>
-              <div className={styles.footerCol}>
-                <span className={styles.footerColTitle}>LEAGUE</span>
-                <a href="#courses">Season Calendar</a>
-                <a href="#machine">Car Specs</a>
-                <a href="#educators">Registration</a>
-                <a href="/login?mode=signup">Enter Season 1</a>
-                <a href="/apply">School Enquiries</a>
+            {/* Middle: 3 Structured Navigation Columns */}
+            <div className={styles.footerNavGroup}>
+              <div className={styles.footerNavCol}>
+                <span className={styles.footerSectionHeader}>COMPETITION</span>
+                <ul className={styles.footerLinkList}>
+                  <li><a href="#courses" className={styles.footerLink}>6-Month Calendar</a></li>
+                  <li><a href="#machine" className={styles.footerLink}>Car CAD Specs</a></li>
+                  <li><a href="#event-day" className={styles.footerLink}>Track Schedule</a></li>
+                  <li><a href="#about" className={styles.footerLink}>League Regulations</a></li>
+                </ul>
               </div>
+
+              <div className={styles.footerNavCol}>
+                <span className={styles.footerSectionHeader}>PARTICIPATE</span>
+                <ul className={styles.footerLinkList}>
+                  <li><a href="#educators" className={styles.footerLink}>School Squad Entry</a></li>
+                  <li><button onClick={() => setIsStudentModalOpen(true)} className={styles.footerLinkBtn}>Independent Racers</button></li>
+                  <li><a href="/login?mode=signup" className={styles.footerLink}>Register Your Team</a></li>
+                  <li><a href="/apply" className={styles.footerLink}>School Enquiries</a></li>
+                </ul>
+              </div>
+
+              <div className={styles.footerNavCol}>
+                <span className={styles.footerSectionHeader}>STEM &amp; LMS</span>
+                <ul className={styles.footerLinkList}>
+                  <li><a href="/login" className={styles.footerLink}>Student Portal</a></li>
+                  <li><a href="/login" className={styles.footerLink}>Faculty Dashboard</a></li>
+                  <li><a href="/login" className={styles.footerLink}>Course Modules</a></li>
+                  <li><a href="/login" className={styles.footerLink}>Tournament Telemetry</a></li>
+                </ul>
+              </div>
+            </div>
+
+            {/* Right: Futuristic Paddock Action Card */}
+            <div className={styles.footerActionCard}>
+              <div className={styles.actionCardGlow} />
+              <span className={styles.actionCardEyebrow}>SEASON 1 ENTRANCE</span>
+              <strong className={styles.actionCardHeading}>Take Your Place on the Grid.</strong>
+              <p className={styles.actionCardDesc}>
+                Open to school squads and solo student racers. Hardware kit &amp; flight controller curriculum included.
+              </p>
+              <a href="/login?mode=signup" className={styles.actionCardBtn}>
+                <span>Enter The League</span>
+                <ArrowRight size={14} />
+              </a>
             </div>
           </div>
 
-          <div className={styles.footerBottom}>
-            <span>© {new Date().getFullYear()} Hanbee F1 RC Racing League. All rights reserved.</span>
+          {/* Bottom Bar: Telemetry Line, Copyright & Back to Top */}
+          <div className={styles.footerBottomBar}>
+            <div className={styles.bottomLeft}>
+              <span className={styles.copyrightText}>
+                &copy; {new Date().getFullYear()} HANBEE F1 RC RACING LEAGUE. ALL RIGHTS RESERVED.
+              </span>
+            </div>
+
+            <div className={styles.bottomCenter}>
+              <span className={styles.telemetryTag}>
+                10 SCHOOLS &middot; 20 TEAMS &middot; 100 RACERS &middot; 0 ELIMINATIONS
+              </span>
+            </div>
+
+            <div className={styles.bottomRight}>
+              <button 
+                onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })} 
+                className={styles.backToTopBtn}
+                title="Scroll back to top"
+              >
+                <span>PIT WALL</span>
+                <ChevronUp size={14} />
+              </button>
+            </div>
           </div>
         </div>
       </footer>

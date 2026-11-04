@@ -12,8 +12,8 @@ export default function Hero({ onOpenStudentModal }: HeroProps) {
   const yBg = useTransform(scrollY, [0, 800], [0, 140]);
   const opacityText = useTransform(scrollY, [0, 420], [1, 0]);
 
-  const line1Words = ["HANBEE", "F1", "RC"];
-  const line2Words = ["RACING", "LEAGUE"];
+  const line1Words = ["DON'T", "JUST", "STUDY."];
+  const line2Words = ["BUILD", "SOMETHING", "REAL."];
 
   return (
     <section className={styles.hero}>
@@ -94,7 +94,7 @@ export default function Hero({ onOpenStudentModal }: HeroProps) {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.44, duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
         >
-          A simple league format for schools, student teams and RC racing. Six monthly challenges, cumulative F1 points, and zero mid-season elimination.
+          Build the car with your own hands. Code the brain with your team. Race wheel-to-wheel for six months — where one bad day never knocks you off the grid.
         </motion.p>
 
         {/* CTA Button Group */}
