@@ -364,7 +364,7 @@ export default function MyTeamPage() {
 
           <h1 className={styles.teamName}>
             {teamDisplayName}
-            {isCaptain && <span className={styles.badgeCaptain}>Captain</span>}
+            {isRealTeam && isCaptain && <span className={styles.badgeCaptain}>Captain</span>}
           </h1>
         </div>
       </div>
