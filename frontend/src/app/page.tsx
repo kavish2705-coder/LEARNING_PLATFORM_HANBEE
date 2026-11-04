@@ -10,19 +10,9 @@ import SeasonLeague from "@/components/SeasonLeague/SeasonLeague";
 import InteractiveCar from "@/components/InteractiveCar/InteractiveCar";
 import RaceDaySchedule from "@/components/RaceDaySchedule/RaceDaySchedule";
 import RegistrationSection from "@/components/RegistrationSection/RegistrationSection";
-import { 
-  Check, 
-  Flag, 
-  GraduationCap, 
-  Users, 
-  ArrowRight, 
-  Radio, 
-  Layers, 
-  Trophy, 
-  ShieldCheck, 
-  Terminal,
-  Calendar,
-  Award
+import {
+  ArrowRight,
+  ChevronDown
 } from "lucide-react";
 import styles from "./page.module.css";
 
@@ -216,7 +206,7 @@ export default function Home() {
               Six Months. Six Different Races.
             </AnimatedHeading>
             <p className={styles.subtitle}>
-              One big race every month. Nobody gets knocked out for having a bad day — your points add up across the whole season to decide the champion.
+              A cumulative points championship. Every round counts.
             </p>
           </motion.div>
 
@@ -248,12 +238,12 @@ export default function Home() {
             viewport={{ once: true, margin: "-30px" }}
             transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
           >
-            <span className={styles.badge}>THE LEAGUE RACER</span>
+            <span className={styles.badge}>THE CAR</span>
             <AnimatedHeading as="h2" className={styles.mainTitle}>
               Built by students. Raced on the circuit.
             </AnimatedHeading>
             <p className={styles.subtitle}>
-              Identical competition specifications ensure a fair grid. Students assemble the carbon chassis, wire the powertrain, and program the flight controller.
+              One spec. Every team builds the same car.
             </p>
           </motion.div>
 
@@ -271,12 +261,12 @@ export default function Home() {
             viewport={{ once: true, margin: "-30px" }}
             transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
           >
-            <span className={styles.badge}>TRACK DAY OPERATIONS</span>
+            <span className={styles.badge}>RACE DAY</span>
             <AnimatedHeading as="h2" className={styles.mainTitle}>
               From morning inspection to the podium.
             </AnimatedHeading>
             <p className={styles.subtitle}>
-              Every monthly competition follows an official race weekend schedule — from technical scrutineering to wheel-to-wheel finals.
+              The schedule for each monthly round.
             </p>
           </motion.div>
 
@@ -333,7 +323,7 @@ export default function Home() {
             <span className={styles.bannerEyebrow}>SIX MONTHS · ZERO ELIMINATION</span>
             <h2 className={styles.bannerHeading}>Consistency wins the Championship.</h2>
             <p className={styles.bannerText}>
-              Points accumulate round after round. An off-day in Month 1 doesn't end your season — learn from the telemetry, refine your car, and climb back up the leaderboard.
+              Points accumulate over six rounds. A bad month is a setback, not an exit.
             </p>
             <div className={styles.bannerActionGroup}>
               <a href="/login?mode=signup" className={styles.bannerPrimaryBtn}>
@@ -341,7 +331,7 @@ export default function Home() {
                 <ArrowRight size={16} />
               </a>
               <a href="/apply" className={styles.bannerSecondaryBtn}>
-                Contact Race Director
+                School Enquiries
               </a>
             </div>
           </motion.div>
@@ -352,9 +342,9 @@ export default function Home() {
       <section className={styles.faqSection} id="about">
         <div className={styles.containerSm}>
           <div className={styles.sectionHeader}>
-            <span className={styles.badge}>LEAGUE RULES & FAQ</span>
+            <span className={styles.badge}>FAQ</span>
             <AnimatedHeading as="h2" className={styles.mainTitle}>
-              Competition details at a glance.
+              Common questions.
             </AnimatedHeading>
           </div>
 
@@ -362,15 +352,15 @@ export default function Home() {
             {[
               {
                 q: "How does the season points system work?",
-                a: "Points follow the official F1 table: 1st=25, 2nd=18, 3rd=15, 4th=12, 5th=10, 6th=8, 7th=6, 8th=4, 9th=2, 10th=1. Points accumulate across all 6 rounds, and an updated leaderboard is published after every monthly event.",
+                a: "Points follow the F1 table: 1st=25, 2nd=18, 3rd=15, 4th=12, 5th=10, 6th=8, 7th=6, 8th=4, 9th=2, 10th=1. Points accumulate across all 6 rounds.",
               },
               {
                 q: "What happens if a car has a collision or mechanical failure?",
-                a: "Under the Fair Play Principle, if an unavoidable crash occurs through no fault of your team, Race Control will pause and grant a restart or rerun. For mechanical issues, teams are allowed one repair window per standard regulations.",
+                a: "If you're hit through no fault of your own, Race Control grants a restart. Teams get one repair window per round for mechanical issues.",
               },
               {
                 q: "What is the qualification format for Month 6 (Grand Championship)?",
-                a: "The Top 8 teams on the cumulative leaderboard after Month 5 qualify for the Grand Championship Final to race for the title. All other teams race in the Placement Finals for season rankings and awards.",
+                a: "The Top 8 teams on the cumulative leaderboard after Month 5 qualify for the Grand Championship Final. All other teams race in Placement Finals for season rankings and awards.",
               },
               {
                 q: "Can teams make driver substitutions during the season?",
@@ -384,7 +374,7 @@ export default function Home() {
               <details key={idx} className={styles.faqCard}>
                 <summary className={styles.faqSummary}>
                   <span>{faq.q}</span>
-                  <span className={styles.faqPlus}>+</span>
+                  <ChevronDown size={18} className={styles.faqChevron} />
                 </summary>
                 <p className={styles.faqAnswer}>{faq.a}</p>
               </details>
@@ -400,36 +390,24 @@ export default function Home() {
             <div className={styles.footerBrand}>
               <span className={styles.footerLogo}>HANBEE F1 RC</span>
               <p className={styles.footerTagline}>
-                Six-Month Inter-School RC Racing League. Season 1 Official Programme.
+                Inter-school RC racing league.
               </p>
-              <div className={styles.systemStatus}>
-                <span className={styles.statusDotGreen} />
-                <span>Race Control Active</span>
-              </div>
             </div>
 
             <div className={styles.footerLinksGroup}>
               <div className={styles.footerCol}>
-                <span className={styles.footerColTitle}>COMPETITION</span>
-                <a href="#courses">6-Month Calendar</a>
-                <a href="#machine">Car Specifications</a>
-                <a href="#courses">Points & Scoring</a>
-                <a href="#educators">School Registration</a>
-              </div>
-              <div className={styles.footerCol}>
-                <span className={styles.footerColTitle}>PARTICIPATE</span>
+                <span className={styles.footerColTitle}>LEAGUE</span>
+                <a href="#courses">Season Calendar</a>
+                <a href="#machine">Car Specs</a>
+                <a href="#educators">Registration</a>
                 <a href="/login?mode=signup">Enter Season 1</a>
-                <a href="/apply">Inquire for School</a>
-                <a href="/login">Team Portal</a>
+                <a href="/apply">School Enquiries</a>
               </div>
             </div>
           </div>
 
           <div className={styles.footerBottom}>
-            <span>© {new Date().getFullYear()} HANBEE F1 RC Racing League · Season 1. All rights reserved.</span>
-            <div className={styles.footerMetaLinks}>
-              <span>10 Schools · 20 Teams · 100 Racers · Zero Elimination</span>
-            </div>
+            <span>© {new Date().getFullYear()} Hanbee F1 RC Racing League. All rights reserved.</span>
           </div>
         </div>
       </footer>
