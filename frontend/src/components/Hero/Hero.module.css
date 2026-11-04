@@ -57,33 +57,30 @@
   max-width: 1200px;
 }
 
-/* Tagline - Disciplined Single Accent */
+/* Tagline - Authentic Motorsport League Header */
 .tagline {
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  font-family: var(--font-body);
-  font-size: 11.5px;
+  font-family: var(--font-heading);
+  font-size: 13px;
   font-weight: 600;
   letter-spacing: 0.2em;
   text-transform: uppercase;
-  color: #ffffff;
-  margin-bottom: 24px;
-  padding: 6px 16px;
-  border-radius: 9999px;
-  background: rgba(229, 138, 43, 0.12);
-  border: 1px solid rgba(229, 138, 43, 0.38);
-  box-shadow: 0 0 20px rgba(229, 138, 43, 0.20);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  color: var(--landing-accent, #e58a2b);
+  margin-bottom: 22px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  box-shadow: none;
 }
 
 .taglineDot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
   background: var(--landing-accent, #e58a2b);
-  box-shadow: 0 0 10px var(--landing-accent, #e58a2b);
+  flex-shrink: 0;
 }
 
 /* Heading */
