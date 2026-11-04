@@ -48,8 +48,13 @@ export function requestAccess(direction: AccessDirection) {
   return rpc<AccessRequest>("request_access", { p_direction: direction });
 }
 
-export function fetchMyAccessRequest(direction: AccessDirection) {
-  return rpc<AccessRequest | null>("my_access_request", { p_direction: direction });
+// my_access_request() is declared to return a single row (not setof), so
+// with no match Postgres returns a row of all-NULL fields rather than "no
+// row" -- PostgREST serializes that as a truthy {id: null, ...} object, not
+// JSON null. Normalize here so every caller can rely on a real null.
+export async function fetchMyAccessRequest(direction: AccessDirection): Promise<AccessRequest | null> {
+  const row = await rpc<AccessRequest | null>("my_access_request", { p_direction: direction });
+  return row && row.id != null ? row : null;
 }
 
 // Student: the one-shot qualifying quiz for add_course. Score is sent for
