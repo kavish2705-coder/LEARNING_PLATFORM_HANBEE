@@ -8,6 +8,7 @@ import Hero from "@/components/Hero/Hero";
 import AnimatedHeading from "@/components/AnimatedHeading/AnimatedHeading";
 import AnimatedCard from "@/components/AnimatedCard/AnimatedCard";
 import AmbientSwarm from "@/components/AmbientSwarm/AmbientSwarm";
+import ExplodedCarArt from "@/components/ExplodedCarArt/ExplodedCarArt";
 import styles from "./page.module.css";
 
 const tickerItems = ["BUILD THE FLIGHT CONTROLLER", "CODE IT YOURSELF", "RACE AT THE HANBEE RC CUP", "LEARN JAVA · DSA · REACT"];
@@ -326,8 +327,7 @@ export default function Home() {
           viewport={{ once: true, margin: "-30px" }}
           transition={{ duration: 0.7, delay: 0.08, ease: [0.16, 1, 0.3, 1] }}
         >
-          <img src="/rc-cars-angle.png" alt="Two HANBEE RC Cup cars, black and white liveries, side by side" className={styles.photoBannerImg} />
-          <div className={styles.photoWatermarkPatch} aria-hidden="true" />
+          <ExplodedCarArt />
         </motion.div>
       </section>
 

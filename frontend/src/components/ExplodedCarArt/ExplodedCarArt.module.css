@@ -1,0 +1,7 @@
+.svg {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1000 / 460;
+  display: block;
+  background: #0a0a0c;
+}
