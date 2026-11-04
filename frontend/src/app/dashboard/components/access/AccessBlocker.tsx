@@ -11,6 +11,7 @@ import {
   requestAccess, fetchMyAccessRequest, type AccessDirection, type AccessRequest,
 } from "../../../../lib/accessApi";
 import { createCourseAccessUpiPayment, getUpiPaymentStatus, claimUpiUtr, type PublicUpiPayment } from "../../../../lib/upiClient";
+import UpiCheckout from "../payments/UpiCheckout";
 
 const COPY: Record<AccessDirection, { icon: ReactNode; title: string; body: string }> = {
   add_course: {
@@ -138,17 +139,23 @@ export default function AccessBlocker({ direction, children }: { direction: Acce
   if (!request) {
     return (
       <div className={styles.wrap}>
-        <div className={styles.card}>
+        <div className={`${styles.card} ${styles.choiceCard}`}>
+          <span className={styles.eyebrow}>Choose your learning track</span>
           <div className={styles.icon}>{copy.icon}</div>
           <h2 className={styles.title}>{copy.title}</h2>
           <p className={styles.body}>{copy.body}</p>
+          <div className={styles.steps} aria-label="What happens next">
+            <div className={styles.step}><span>01</span><strong>Tell us you&apos;re interested</strong></div>
+            <div className={styles.step}><span>02</span><strong>We confirm the right fit</strong></div>
+            <div className={styles.step}><span>03</span><strong>Unlock your dashboard</strong></div>
+          </div>
           {error && <p className={styles.error} role="alert">{error}</p>}
           <div className={styles.actions}>
             <button type="button" className={styles.secondaryBtn} disabled={busy} onClick={() => router.push("/dashboard")}>
               Not Interested
             </button>
             <button type="button" className={styles.primaryBtn} disabled={busy} onClick={() => void handleInterested()}>
-              {busy ? "…" : "Interested"}
+              {busy ? "Sending request…" : "Interested"}
             </button>
           </div>
         </div>
@@ -184,53 +191,37 @@ export default function AccessBlocker({ direction, children }: { direction: Acce
     );
   }
 
+  if (request.status === "awaiting_payment" && payment) {
+    return (
+      <div className={styles.wrap}>
+        <UpiCheckout
+          payment={payment}
+          title="Unlock your Course dashboard"
+          description="Your course access is approved. Complete this one-time UPI payment to unlock your learning dashboard."
+          reference={paymentReference}
+          onReferenceChange={setPaymentReference}
+          onCheckPayment={() => void handleClaimUtr()}
+          checking={busy}
+          error={error}
+          onRetry={() => { setPayment(null); setPaymentReference(""); setError(""); }}
+          paidMessage="Payment confirmed — your Course dashboard is being unlocked."
+          underpaidMessage={`We received ₹${payment.paidAmount ?? 0}, but ₹${payment.payAmount} was expected. Hanbee staff need to review this payment manually. Contact them with reference ${payment.ref}.`}
+        />
+      </div>
+    );
+  }
+
   // Awaiting payment -- only reachable for add_course; add_tournament goes
   // straight from 'requested' to 'active' via staff approval, no payment.
   if (request.status === "awaiting_payment") {
     return (
       <div className={styles.wrap}>
-        <div className={styles.card} style={{ textAlign: "left" }}>
-          <span className={styles.statusBadge}>Payment</span>
-          <h2 className={styles.title} style={{ textAlign: "center" }}>Course access confirmed</h2>
-          {!payment ? (
-            <p className={styles.body} style={{ textAlign: "center" }}>{error || "Starting your payment…"}</p>
-          ) : (
-            <>
-              <p className={styles.body} style={{ textAlign: "center" }}>
-                Amount: <strong style={{ color: "var(--text-main)" }}>₹{payment.payAmount}</strong>
-              </p>
-              <div style={{ display: "flex", gap: 16, alignItems: "flex-start", flexWrap: "wrap", marginBottom: 20 }}>
-                {payment.qr && (
-                  <div
-                    style={{ width: 160, height: 160, borderRadius: 10, border: "1px solid var(--border-elevated)", background: "#fff", padding: 8 }}
-                    dangerouslySetInnerHTML={{ __html: payment.qr }}
-                  />
-                )}
-                <div style={{ fontSize: 13, color: "var(--text-muted)", maxWidth: 420 }}>
-                  <p style={{ marginBottom: 6 }}>Pay to UPI ID: <strong style={{ color: "var(--text-main)" }}>{payment.upiId}</strong></p>
-                  <p style={{ marginBottom: 6 }}>Scan the QR, or <a href={payment.link} style={{ color: "var(--accent-subtle-text)" }}>open in your UPI app</a>.</p>
-                  <p role="status">Waiting for payment… this confirms automatically, usually within a minute.</p>
-                </div>
-              </div>
-              <label style={{ display: "block", fontSize: 13, marginBottom: 12 }}>
-                Already paid but it hasn&apos;t confirmed yet? Enter your UPI transaction ID / UTR
-                <input
-                  value={paymentReference}
-                  onChange={(e) => setPaymentReference(e.target.value)}
-                  placeholder="e.g. 408812345678"
-                  maxLength={12}
-                  disabled={busy}
-                  style={{ display: "block", marginTop: 6, width: "100%", padding: "9px 12px", borderRadius: 8, border: "var(--border-subtle)", background: "transparent", color: "inherit" }}
-                />
-              </label>
-              {error && <p className={styles.error} role="alert">{error}</p>}
-              <div className={styles.actions} style={{ justifyContent: "flex-end" }}>
-                <button type="button" className={styles.primaryBtn} disabled={busy} onClick={() => void handleClaimUtr()}>
-                  {busy ? "Checking…" : "Check Payment"}
-                </button>
-              </div>
-            </>
-          )}
+        <div className={styles.paymentStarting} role="status">
+          <span className={styles.paymentStartingMark}><Lock size={19} /></span>
+          <div>
+            <strong>Course access confirmed</strong>
+            <p>{error || "Preparing secure checkout…"}</p>
+          </div>
         </div>
       </div>
     );

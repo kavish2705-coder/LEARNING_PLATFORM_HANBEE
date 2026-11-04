@@ -19,6 +19,7 @@ import {
 import { getStudentLeaderboard } from "../../../lib/tournamentAdminApi";
 import { createLicenseUpiPayment, getUpiPaymentStatus, claimUpiUtr, type PublicUpiPayment } from "../../../lib/upiClient";
 import AccessBlocker from "../components/access/AccessBlocker";
+import UpiCheckout from "../components/payments/UpiCheckout";
 
 export default function DriverLicensePage() {
   return (
@@ -387,98 +388,46 @@ function DriverLicensePageContent() {
       </header>
 
       {/* Driver License purchase gate -- shown whenever the license isn't active yet */}
-      {license && license.status !== "active" && (
-        <div className={styles.infoCard}>
+      {license && license.status !== "active" && upiPayment && (
+        <UpiCheckout
+          payment={upiPayment}
+          title="Get your Driver License"
+          description="Your license unlocks tournament entry. Pay securely by UPI; we’ll confirm it automatically when your bank sends the payment."
+          reference={paymentReference}
+          onReferenceChange={setPaymentReference}
+          onCheckPayment={() => void handleClaimUtr()}
+          checking={licenseBusy}
+          error={licenseError}
+          onRetry={() => { setUpiPayment(null); setPaymentReference(""); setLicenseError(""); }}
+          paidMessage="Payment confirmed — activating your Driver License now."
+          underpaidMessage={`We received ₹${upiPayment.paidAmount ?? 0}, but ₹${upiPayment.payAmount} was expected. Hanbee staff need to review this payment manually. Contact them with reference ${upiPayment.ref}.`}
+        />
+      )}
+      {license && license.status !== "active" && !upiPayment && (
+        <div className={`${styles.infoCard} ${styles.purchaseGate}`}>
           <div className={styles.cardHeaderWithAction}>
             <h3 className={styles.cardTitle}>
               <Lock size={18} color="#fbbf24" />
               <span>Get Your Driver License</span>
             </h3>
           </div>
-          <p style={{ fontSize: 13, color: "var(--text-muted)", marginTop: 4 }}>
+          <p className={styles.purchaseDescription}>
             You need an active Driver License before you can enter a tournament.
           </p>
 
           {license.status === "rejected" && (
-            <p role="alert" style={{ fontSize: 14, color: "var(--color-danger)", marginTop: 8 }}>
+            <p className={styles.paymentNotice} role="alert">
               Your last payment was rejected. Contact Hanbee staff, or pay again below.
             </p>
           )}
 
-          {upiPayment?.status === "paid" ? (
-            <p role="status" style={{ fontSize: 14, color: "var(--color-success)", marginTop: 8 }}>
-              Payment confirmed — activating your license…
-            </p>
-          ) : upiPayment?.status === "expired" ? (
-            <div style={{ marginTop: 12 }}>
-              <p role="alert" style={{ fontSize: 14, color: "var(--color-danger)" }}>
-                This payment window expired before we received it. No charge was made -- start a new one below.
-              </p>
-              <button
-                type="button"
-                disabled={licenseBusy}
-                onClick={() => { setUpiPayment(null); setPaymentReference(""); setLicenseError(""); }}
-                style={{ marginTop: 10, padding: "9px 20px", borderRadius: 8, fontWeight: 600, fontSize: 14, border: "none", background: "var(--color-primary)", color: "var(--color-primary-text)", cursor: "pointer" }}
-              >
-                Start New Payment
-              </button>
+          <div className={styles.paymentPending} role="status">
+            <span className={styles.paymentPendingMark}><Lock size={18} /></span>
+            <div>
+              <strong>Preparing secure checkout</strong>
+              <p>{licenseError || "Your payment details are being prepared. This usually takes a moment."}</p>
             </div>
-          ) : upiPayment?.status === "underpaid" ? (
-            <p role="alert" style={{ fontSize: 14, color: "var(--color-danger)", marginTop: 8 }}>
-              We received a payment of ₹{upiPayment.paidAmount} but ₹{upiPayment.payAmount} was expected. This needs a Hanbee staff member to review it manually -- contact them with your payment reference.
-            </p>
-          ) : upiPayment ? (
-            <div style={{ display: "flex", flexDirection: "column", gap: 12, marginTop: 12 }}>
-              <p style={{ fontSize: 15 }}>
-                License fee: <strong style={{ color: "var(--text-main)" }}>₹{upiPayment.payAmount}</strong>
-              </p>
-              <div style={{ display: "flex", gap: 16, alignItems: "flex-start", flexWrap: "wrap" }}>
-                {upiPayment.qr && (
-                  <div
-                    style={{ width: 160, height: 160, borderRadius: 10, border: "1px solid var(--border-elevated)", background: "#fff", padding: 8 }}
-                    dangerouslySetInnerHTML={{ __html: upiPayment.qr }}
-                  />
-                )}
-                <div style={{ fontSize: 13, color: "var(--text-muted)", maxWidth: 420 }}>
-                  <p style={{ marginBottom: 6 }}>Pay to UPI ID: <strong style={{ color: "var(--text-main)" }}>{upiPayment.upiId}</strong></p>
-                  <p style={{ marginBottom: 6 }}>Scan the QR, or <a href={upiPayment.link} style={{ color: "var(--accent-subtle-text)" }}>open in your UPI app</a>.</p>
-                  <p role="status">Waiting for payment… this confirms automatically once your bank processes it — usually within a minute.</p>
-                </div>
-              </div>
-
-              <label style={{ display: "block", fontSize: 13 }}>
-                Already paid but it hasn&apos;t confirmed yet? Enter your UPI transaction ID / UTR
-                <input
-                  value={paymentReference}
-                  onChange={(e) => setPaymentReference(e.target.value)}
-                  placeholder="e.g. 408812345678"
-                  maxLength={12}
-                  disabled={licenseBusy}
-                  style={{ display: "block", marginTop: 4, width: "100%", maxWidth: 320, padding: "8px 10px", borderRadius: 8, border: "1px solid var(--border-elevated)", background: "var(--bg-input)", color: "var(--text-main)" }}
-                />
-              </label>
-              {licenseError && <p role="alert" style={{ fontSize: 13, color: "var(--color-danger)" }}>{licenseError}</p>}
-              <div style={{ display: "flex", gap: 10 }}>
-                <button
-                  type="button"
-                  disabled={licenseBusy}
-                  onClick={() => void handleClaimUtr()}
-                  style={{
-                    padding: "9px 20px", borderRadius: 8, fontWeight: 600, fontSize: 14, border: "none",
-                    background: licenseBusy ? "var(--btn-secondary-bg)" : "var(--color-primary)",
-                    color: licenseBusy ? "var(--text-muted)" : "var(--color-primary-text)",
-                    cursor: licenseBusy ? "not-allowed" : "pointer",
-                  }}
-                >
-                  {licenseBusy ? "Checking…" : "Check Payment"}
-                </button>
-              </div>
-            </div>
-          ) : (
-            <p role="status" style={{ fontSize: 13, color: "var(--text-muted)", marginTop: 8 }}>
-              {licenseError || "Starting your payment…"}
-            </p>
-          )}
+          </div>
         </div>
       )}
 

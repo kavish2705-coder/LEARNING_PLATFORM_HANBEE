@@ -634,6 +634,67 @@
   gap: 16px;
 }
 
+.purchaseGate {
+  max-width: 930px;
+  margin: 0 auto;
+  padding: 24px;
+  border-color: color-mix(in srgb, var(--color-primary) 20%, var(--border-elevated));
+  background:
+    radial-gradient(ellipse at 0% 0%, color-mix(in srgb, var(--color-primary) 11%, transparent), transparent 42%),
+    var(--bg-card);
+}
+
+.purchaseDescription {
+  margin: -8px 0 0;
+  color: var(--text-muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.paymentNotice {
+  margin: 0;
+  padding: 11px 13px;
+  border: 1px solid color-mix(in srgb, var(--color-danger) 30%, transparent);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--color-danger) 8%, transparent);
+  color: var(--color-danger);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.paymentPending {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  padding: 16px;
+  border: 1px solid var(--border-elevated);
+  border-radius: 13px;
+  background: color-mix(in srgb, var(--bg-page) 58%, transparent);
+}
+
+.paymentPendingMark {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  flex: 0 0 40px;
+  place-items: center;
+  border-radius: 12px;
+  background: var(--accent-subtle-bg);
+  color: var(--accent-subtle-text);
+}
+
+.paymentPending strong {
+  color: var(--text-main);
+  font-size: 13px;
+}
+
+.paymentPending p {
+  margin: 3px 0 0;
+  color: var(--text-muted);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
 .cardHeaderWithAction {
   display: flex;
   justify-content: space-between;

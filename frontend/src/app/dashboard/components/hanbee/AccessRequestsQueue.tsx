@@ -1,7 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import styles from "../../dashboard.module.css";
+import { BookOpen, CheckCircle2, Phone, RefreshCw, Trophy, UserRound } from "lucide-react";
+import styles from "./accessRequestsQueue.module.css";
 import Shimmer from "../ui/Shimmer";
 import {
   fetchAccessRequestsQueue, approveTournamentAccess, setCourseAccessConfirmation, setCourseAccessAmount,
@@ -94,107 +95,139 @@ export default function AccessRequestsQueue() {
   }
 
   return (
-    <div>
-      <div className={styles.pageHeader}>
-        <h1 className={styles.pageTitle}>Course / RC Tournament access requests</h1>
-        <p className={styles.pageSubtitle}>
-          Students asking to add the dashboard they didn&apos;t pick at signup. Call the student (and their parent,
-          for a Course request) before confirming anything here.
-        </p>
-      </div>
-
-      {error && <p role="alert">{error}</p>}
-      {notice && <p role="status" style={{ color: "var(--color-success)" }}>{notice}</p>}
-
-      {loading ? <Shimmer rows={3} /> : (
-        <div className={styles.sectionCard}>
-          <div className={styles.sectionHeader}>
-            <h2 className={styles.tableTitle}>Waiting on you ({rows.length})</h2>
-          </div>
-          {rows.length === 0 ? (
-            <p>No access requests are waiting right now.</p>
-          ) : (
-            <div className={styles.tableContainer}>
-              <table className={styles.dataTable}>
-                <thead>
-                  <tr>
-                    <th>Student</th>
-                    <th>Phone</th>
-                    <th>Wants</th>
-                    <th>Quiz</th>
-                    <th>Submitted</th>
-                    <th>Action</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {rows.map((row) => (
-                    <tr key={row.id}>
-                      <td><strong style={{ color: "var(--text-main)" }}>{row.student_name}</strong></td>
-                      <td>{row.phone || "—"}</td>
-                      <td>{row.direction === "add_course" ? "Course" : "RC Tournament"}</td>
-                      <td>{row.direction === "add_course" ? (row.quiz_score == null ? "Not taken yet" : `${row.quiz_score}/${row.quiz_total}`) : "—"}</td>
-                      <td>{relativeTime(row.created_at)}</td>
-                      <td>
-                        {row.direction === "add_tournament" ? (
-                          <button
-                            type="button"
-                            disabled={busyId === row.id}
-                            onClick={() => void approve(row)}
-                            style={{ padding: "7px 14px", borderRadius: 8, background: "var(--color-primary)", color: "var(--color-primary-text)", border: "none", fontSize: 13, fontWeight: 600, cursor: busyId === row.id ? "not-allowed" : "pointer" }}
-                          >
-                            {busyId === row.id ? "Saving…" : "Approve"}
-                          </button>
-                        ) : (
-                          <div style={{ display: "flex", flexDirection: "column", gap: 6, minWidth: 220 }}>
-                            <label style={{ display: "flex", gap: 6, alignItems: "center", fontSize: 12 }}>
-                              <input
-                                type="checkbox"
-                                checked={row.parent_confirmed}
-                                disabled={busyId === row.id}
-                                onChange={(e) => void toggleConfirm(row, "parent", e.target.checked)}
-                              />
-                              Called parent, confirmed
-                            </label>
-                            <label style={{ display: "flex", gap: 6, alignItems: "center", fontSize: 12 }}>
-                              <input
-                                type="checkbox"
-                                checked={row.student_confirmed}
-                                disabled={busyId === row.id}
-                                onChange={(e) => void toggleConfirm(row, "student", e.target.checked)}
-                              />
-                              Called student, confirmed
-                            </label>
-                            <div style={{ display: "flex", gap: 6 }}>
-                              <input
-                                type="number"
-                                min={1}
-                                placeholder="Amount ₹"
-                                disabled={busyId === row.id || !(row.parent_confirmed && row.student_confirmed)}
-                                value={amountDrafts[row.id] ?? ""}
-                                onChange={(e) => setAmountDrafts((d) => ({ ...d, [row.id]: e.target.value }))}
-                                style={{ width: 100, padding: "6px 8px", borderRadius: 6, border: "var(--border-subtle)", background: "transparent", color: "inherit", fontSize: 13 }}
-                              />
-                              <button
-                                type="button"
-                                disabled={busyId === row.id || !(row.parent_confirmed && row.student_confirmed)}
-                                onClick={() => void submitAmount(row)}
-                                style={{ padding: "6px 12px", borderRadius: 6, background: "var(--color-primary)", color: "var(--color-primary-text)", border: "none", fontSize: 12, fontWeight: 600, cursor: "pointer" }}
-                                title={!(row.parent_confirmed && row.student_confirmed) ? "Confirm with the parent and student first" : undefined}
-                              >
-                                Set & pay
-                              </button>
-                            </div>
-                          </div>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
+    <main className={styles.page}>
+      <header className={styles.pageHeader}>
+        <div className={styles.headingCopy}>
+          <span className={styles.eyebrow}>Student services</span>
+          <h1>Access requests</h1>
+          <p>Call the student — and their parent for Course access — before confirming the next step.</p>
         </div>
+        <button type="button" className={styles.refreshButton} onClick={() => void load()} disabled={loading}>
+          <RefreshCw size={15} className={loading ? styles.spinning : ""} />
+          <span>{loading ? "Refreshing…" : "Refresh queue"}</span>
+        </button>
+      </header>
+
+      {error && <div className={styles.alertError} role="alert">{error}</div>}
+      {notice && <div className={styles.alertSuccess} role="status"><CheckCircle2 size={17} />{notice}</div>}
+
+      {loading ? (
+        <div className={styles.loadingPanel}><Shimmer rows={3} /></div>
+      ) : rows.length === 0 ? (
+        <section className={styles.emptyState}>
+          <span className={styles.emptyIcon}><CheckCircle2 size={24} /></span>
+          <p className={styles.eyebrow}>All caught up</p>
+          <h2>No requests waiting</h2>
+          <p>New student access requests will appear here when they come in.</p>
+        </section>
+      ) : (
+        <section aria-labelledby="queue-title">
+          <div className={styles.queueHeading}>
+            <div>
+              <span className={styles.eyebrow}>Needs your attention</span>
+              <h2 id="queue-title">Waiting on you <span>{rows.length}</span></h2>
+            </div>
+            <p>Confirm the conversation before approving or setting a fee.</p>
+          </div>
+
+          <div className={styles.requestGrid}>
+            {rows.map((row) => {
+              const isCourse = row.direction === "add_course";
+              const confirmed = row.parent_confirmed && row.student_confirmed;
+              const busy = busyId === row.id;
+              return (
+                <article className={styles.requestCard} key={row.id}>
+                  <div className={styles.requestTop}>
+                    <div className={styles.studentIdentity}>
+                      <span className={styles.avatar}><UserRound size={19} /></span>
+                      <div className={styles.studentCopy}>
+                        <h3>{row.student_name}</h3>
+                        <a className={styles.phoneLink} href={row.phone ? `tel:${row.phone}` : undefined}>
+                          <Phone size={13} /> {row.phone || "Phone not provided"}
+                        </a>
+                      </div>
+                    </div>
+                    <span className={`${styles.requestType} ${isCourse ? styles.courseType : styles.tournamentType}`}>
+                      {isCourse ? <BookOpen size={14} /> : <Trophy size={14} />}
+                      {isCourse ? "Course" : "RC Tournament"}
+                    </span>
+                  </div>
+
+                  <div className={styles.requestMeta}>
+                    <div>
+                      <span>Submitted</span>
+                      <strong>{relativeTime(row.created_at)}</strong>
+                    </div>
+                    {isCourse && (
+                      <div>
+                        <span>Qualifying quiz</span>
+                        <strong>{row.quiz_score == null ? "Not taken" : `${row.quiz_score} / ${row.quiz_total}`}</strong>
+                      </div>
+                    )}
+                  </div>
+
+                  {isCourse ? (
+                    <div className={styles.courseReview}>
+                      <p className={styles.actionLabel}>Confirm both calls before setting a fee</p>
+                      <label className={styles.confirmOption}>
+                        <input
+                          type="checkbox"
+                          checked={row.parent_confirmed}
+                          disabled={busy}
+                          onChange={(event) => void toggleConfirm(row, "parent", event.target.checked)}
+                        />
+                        <span>Spoke with parent</span>
+                        {row.parent_confirmed && <CheckCircle2 size={16} />}
+                      </label>
+                      <label className={styles.confirmOption}>
+                        <input
+                          type="checkbox"
+                          checked={row.student_confirmed}
+                          disabled={busy}
+                          onChange={(event) => void toggleConfirm(row, "student", event.target.checked)}
+                        />
+                        <span>Spoke with student</span>
+                        {row.student_confirmed && <CheckCircle2 size={16} />}
+                      </label>
+                      <div className={styles.amountRow}>
+                        <label className={styles.amountField}>
+                          <span className={styles.srOnly}>Course access fee in rupees</span>
+                          <span aria-hidden="true">₹</span>
+                          <input
+                            type="number"
+                            min={1}
+                            placeholder="Set amount"
+                            disabled={busy || !confirmed}
+                            value={amountDrafts[row.id] ?? ""}
+                            onChange={(event) => setAmountDrafts((drafts) => ({ ...drafts, [row.id]: event.target.value }))}
+                          />
+                        </label>
+                        <button
+                          type="button"
+                          className={styles.primaryButton}
+                          disabled={busy || !confirmed}
+                          onClick={() => void submitAmount(row)}
+                          title={!confirmed ? "Confirm with the parent and student first" : undefined}
+                        >
+                          {busy ? "Saving…" : "Set fee"}
+                        </button>
+                      </div>
+                      {!confirmed && <p className={styles.helperText}>Both calls must be confirmed to enable fee setup.</p>}
+                    </div>
+                  ) : (
+                    <div className={styles.tournamentReview}>
+                      <p>Approve this student&apos;s request to add RC Tournament access.</p>
+                      <button type="button" className={styles.primaryButton} disabled={busy} onClick={() => void approve(row)}>
+                        {busy ? "Approving…" : "Approve access"}
+                      </button>
+                    </div>
+                  )}
+                </article>
+              );
+            })}
+          </div>
+        </section>
       )}
-    </div>
+    </main>
   );
 }

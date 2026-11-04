@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { CheckCircle2, Clock3, FileCheck2, Gauge } from "lucide-react";
 import styles from "./accessBlocker.module.css";
 import { submitQuizAttempt } from "../../../../lib/accessApi";
 
@@ -62,17 +63,26 @@ export default function QualifyingQuiz({ onDone }: { onDone: () => void }) {
 
   if (!started) {
     return (
-      <div className={styles.card}>
-        <span className={styles.statusBadge}>Qualifying Quiz</span>
-        <h2 className={styles.title}>One attempt only</h2>
+      <div className={`${styles.card} ${styles.quizIntro}`}>
+        <div className={styles.quizIcon}><Gauge size={25} /></div>
+        <span className={styles.statusBadge}>Course access · Step 1 of 2</span>
+        <h2 className={styles.title}>A quick check-in before we begin</h2>
         <p className={styles.body}>
-          {QUESTIONS.length} questions, {TIME_LIMIT_SECONDS / 60} minutes. You can only take this once --
-          your answers can&apos;t be changed or retaken after you submit, so make sure you&apos;re ready
-          before starting. Your result isn&apos;t shown to you here; the Hanbee team will call you about next steps.
+          This one-time quiz helps our team understand where to start when we call you. Your score stays private;
+          a Hanbee team member will speak with you and your parent about next steps.
         </p>
+        <div className={styles.quizStats}>
+          <div><span>{QUESTIONS.length}</span><small>questions</small></div>
+          <div><span>{TIME_LIMIT_SECONDS / 60} min</span><small>time limit</small></div>
+          <div><FileCheck2 size={17} /><small>one attempt</small></div>
+        </div>
+        <div className={styles.quizNotice}>
+          <Clock3 size={16} />
+          <span>Once started, answers can&apos;t be changed after submission. Make sure you have a few uninterrupted minutes.</span>
+        </div>
         <div className={styles.actions}>
           <button type="button" className={styles.primaryBtn} onClick={() => setStarted(true)}>
-            Start the quiz
+            Begin the quiz <span aria-hidden="true">→</span>
           </button>
         </div>
       </div>
@@ -81,47 +91,62 @@ export default function QualifyingQuiz({ onDone }: { onDone: () => void }) {
 
   if (submitted) {
     return (
-      <div className={styles.card}>
-        <span className={styles.statusBadge}>Submitted</span>
+      <div className={`${styles.card} ${styles.submittedCard}`}>
+        <div className={styles.submittedIcon}><CheckCircle2 size={28} /></div>
+        <span className={styles.statusBadge}>Response received</span>
         <h2 className={styles.title}>Thanks -- you&apos;re done</h2>
-        <p className={styles.body}>The Hanbee team will call you and your parent shortly to confirm next steps.</p>
+        <p className={styles.body}>Your answers are with the Hanbee team. They&apos;ll call you and your parent to confirm the next step for course access.</p>
+        <div className={styles.nextStep}>
+          <span className={styles.nextStepNumber}>02</span>
+          <div><strong>Look out for our call</strong><small>We&apos;ll be in touch shortly.</small></div>
+        </div>
       </div>
     );
   }
 
   const minutes = Math.floor(timeLeft / 60);
   const seconds = String(timeLeft % 60).padStart(2, "0");
+  const answeredCount = answers.filter((answer) => answer !== null).length;
 
   return (
-    <div className={styles.card} style={{ maxWidth: 640, textAlign: "left" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
-        <span className={styles.statusBadge} style={{ marginBottom: 0 }}>Qualifying Quiz</span>
-        <span style={{ fontSize: 13, fontWeight: 600, color: timeLeft < 60 ? "var(--color-danger, #e5484d)" : "var(--text-muted)" }}>
+    <div className={`${styles.card} ${styles.quizCard}`}>
+      <header className={styles.quizHeader}>
+        <div>
+          <span className={styles.statusBadge}>Qualifying quiz</span>
+          <p className={styles.quizProgressText}>{answeredCount} of {QUESTIONS.length} answered</p>
+        </div>
+        <span className={`${styles.timer} ${timeLeft < 60 ? styles.timerUrgent : ""}`} role="timer" aria-live="polite">
+          <Clock3 size={15} />
           {minutes}:{seconds}
         </span>
-      </div>
+      </header>
+      <progress className={styles.quizProgress} max={QUESTIONS.length} value={answeredCount} aria-label={`${answeredCount} of ${QUESTIONS.length} questions answered`} />
 
       {QUESTIONS.map((item, i) => (
-        <div key={i} style={{ marginBottom: 20 }}>
-          <p style={{ fontSize: 14, fontWeight: 600, marginBottom: 10 }}>{i + 1}. {item.q}</p>
-          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+        <fieldset className={styles.question} key={i}>
+          <legend className={styles.questionLegend}>
+            <span className={styles.questionNumber}>{String(i + 1).padStart(2, "0")}</span>
+            <span>{item.q}</span>
+          </legend>
+          <div className={styles.options}>
             {item.options.map((opt, oi) => (
-              <label key={oi} style={{ display: "flex", gap: 8, alignItems: "center", fontSize: 13, cursor: "pointer" }}>
+              <label key={oi} className={`${styles.answerOption} ${answers[i] === oi ? styles.answerSelected : ""}`}>
                 <input
                   type="radio"
                   name={`q${i}`}
                   checked={answers[i] === oi}
                   onChange={() => setAnswers((a) => a.map((v, idx) => (idx === i ? oi : v)))}
                 />
-                {opt}
+                <span>{opt}</span>
               </label>
             ))}
           </div>
-        </div>
+        </fieldset>
       ))}
 
       {error && <p className={styles.error} role="alert">{error}</p>}
-      <div className={styles.actions} style={{ justifyContent: "flex-end" }}>
+      <div className={styles.quizFooter}>
+        <span>Your result is shared privately with the Hanbee team.</span>
         <button type="button" className={styles.primaryBtn} disabled={busy} onClick={() => void handleSubmit()}>
           {busy ? "Submitting…" : "Submit quiz"}
         </button>

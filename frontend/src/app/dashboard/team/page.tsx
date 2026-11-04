@@ -9,6 +9,7 @@ import Shimmer from "../components/ui/Shimmer";
 import Dropdown from "../components/ui/Dropdown";
 import { createTournamentUpiPayment, getUpiPaymentStatus, claimUpiUtr, type PublicUpiPayment } from "../../../lib/upiClient";
 import AccessBlocker from "../components/access/AccessBlocker";
+import UpiCheckout from "../components/payments/UpiCheckout";
 import {
   answerTeamInvitation,
   createSoloTournamentEntry,
@@ -111,6 +112,7 @@ function MyTeamPageContent() {
   const [paymentReference, setPaymentReference] = useState("");
   const [license, setLicense] = useState<DriverLicense | null>(null);
   const [teamUpiPayment, setTeamUpiPayment] = useState<PublicUpiPayment | null>(null);
+  const [paymentAttempt, setPaymentAttempt] = useState(0);
   const [paymentBusy, setPaymentBusy] = useState(false);
   const [paymentError, setPaymentError] = useState("");
   const [loading, setLoading] = useState(true);
@@ -330,7 +332,7 @@ function MyTeamPageContent() {
     createTournamentUpiPayment(independentDraftTeamId)
       .then(setTeamUpiPayment)
       .catch((reason) => setPaymentError(reason instanceof Error ? reason.message : "We couldn't start your payment."));
-  }, [independentDraftTeamId]);
+  }, [independentDraftTeamId, paymentAttempt]);
 
   useEffect(() => {
     if (!teamUpiPayment || teamUpiPayment.status !== "pending") return;
@@ -985,74 +987,21 @@ function MyTeamPageContent() {
 
           {/* Solo entry: automatic UPI payment instead of school-staff submission */}
           {team && independentDraftTeamId === team.id && (
-            <div className={styles.formSection}>
-              <div className={styles.formHeader}>
-                <h2 className={styles.formTitle}>Confirm Tournament Payment</h2>
-                <p className={styles.formSubtitle}>
-                  Pay your solo tournament entry fee. This confirms automatically once your bank processes it -- Hanbee staff then review the entry itself.
-                </p>
-              </div>
-
-              {teamUpiPayment?.status === "paid" ? (
-                <p role="status" style={{ fontSize: 14, color: "var(--color-success)" }}>
-                  Payment confirmed — your entry is now waiting for Hanbee staff review.
-                </p>
-              ) : teamUpiPayment?.status === "expired" ? (
-                <div>
-                  <p role="alert" style={{ fontSize: 14, color: "var(--color-danger)" }}>
-                    This payment window expired before we received it. No charge was made -- start a new one below.
-                  </p>
-                  <button
-                    type="button"
-                    onClick={() => setTeamUpiPayment(null)}
-                    style={{ marginTop: 10, padding: "9px 20px", borderRadius: 8, fontWeight: 600, fontSize: 14, border: "none", background: "var(--color-primary)", color: "var(--color-primary-text)", cursor: "pointer" }}
-                  >
-                    Start New Payment
-                  </button>
-                </div>
-              ) : teamUpiPayment?.status === "underpaid" ? (
-                <p role="alert" style={{ fontSize: 14, color: "var(--color-danger)" }}>
-                  We received a payment of ₹{teamUpiPayment.paidAmount} but ₹{teamUpiPayment.payAmount} was expected. This needs a Hanbee staff member to review it manually -- contact them with your payment reference.
-                </p>
-              ) : teamUpiPayment ? (
-                <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                  <p style={{ fontSize: 15 }}>Entry fee: <strong style={{ color: "var(--text-primary)" }}>₹{teamUpiPayment.payAmount}</strong></p>
-                  <div style={{ display: "flex", gap: 16, alignItems: "flex-start", flexWrap: "wrap" }}>
-                    {teamUpiPayment.qr && (
-                      <div
-                        style={{ width: 160, height: 160, borderRadius: 10, border: "1px solid var(--border-subtle)", background: "#fff", padding: 8 }}
-                        dangerouslySetInnerHTML={{ __html: teamUpiPayment.qr }}
-                      />
-                    )}
-                    <div style={{ fontSize: 13, color: "var(--text-muted)", maxWidth: 420 }}>
-                      <p style={{ marginBottom: 6 }}>Pay to UPI ID: <strong style={{ color: "var(--text-primary)" }}>{teamUpiPayment.upiId}</strong></p>
-                      <p style={{ marginBottom: 6 }}>Scan the QR, or <a href={teamUpiPayment.link} style={{ color: "var(--accent-subtle-text, inherit)" }}>open in your UPI app</a>.</p>
-                      <p role="status">Waiting for payment… this confirms automatically once your bank processes it — usually within a minute.</p>
-                    </div>
-                  </div>
-
-                  <label style={{ display: "block", fontSize: 13 }}>
-                    Already paid but it hasn&apos;t confirmed yet? Enter your UPI transaction ID / UTR
-                    <input
-                      value={paymentReference}
-                      onChange={(e) => setPaymentReference(e.target.value)}
-                      placeholder="e.g. 408812345678"
-                      maxLength={12}
-                      disabled={paymentBusy}
-                      className={styles.textInput}
-                      style={{ display: "block", marginTop: 6 }}
-                    />
-                  </label>
-                  {paymentError && <p role="alert" style={{ fontSize: 13, color: "var(--color-danger)" }}>{paymentError}</p>}
-                  <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
-                    <button
-                      type="button"
-                      className={styles.actionBtn}
-                      disabled={paymentBusy}
-                      onClick={() => void handleClaimTeamUtr()}
-                    >
-                      {paymentBusy ? "Checking…" : "Check Payment"}
-                    </button>
+            <div className={`${styles.formSection} ${teamUpiPayment ? styles.paymentSection : ""}`}>
+              {teamUpiPayment ? (
+                <UpiCheckout
+                  payment={teamUpiPayment}
+                  title="Confirm your tournament entry"
+                  description="Complete your solo entry fee by UPI. We’ll confirm it automatically when your bank sends the payment; Hanbee staff then review the entry."
+                  reference={paymentReference}
+                  onReferenceChange={setPaymentReference}
+                  onCheckPayment={() => void handleClaimTeamUtr()}
+                  checking={paymentBusy}
+                  error={paymentError}
+                  onRetry={() => { setPaymentReference(""); setPaymentError(""); setPaymentAttempt((attempt) => attempt + 1); }}
+                  paidMessage="Payment confirmed — your entry is now waiting for Hanbee staff review."
+                  underpaidMessage={`We received ₹${teamUpiPayment.paidAmount ?? 0}, but ₹${teamUpiPayment.payAmount} was expected. Hanbee staff need to review this payment manually. Contact them with reference ${teamUpiPayment.ref}.`}
+                  secondaryAction={
                     <button
                       type="button"
                       className={styles.dangerBtn}
@@ -1061,12 +1010,20 @@ function MyTeamPageContent() {
                     >
                       Leave Team
                     </button>
-                  </div>
-                </div>
+                  }
+                />
               ) : (
-                <p role="status" style={{ fontSize: 13, color: "var(--text-muted)" }}>
-                  {paymentError || "Starting your payment…"}
-                </p>
+                <>
+                  <div className={styles.formHeader}>
+                    <h2 className={styles.formTitle}>Confirm Tournament Payment</h2>
+                    <p className={styles.formSubtitle}>
+                      Pay your solo tournament entry fee. Once your bank confirms, Hanbee staff will review the entry.
+                    </p>
+                  </div>
+                  <p className={styles.paymentStarting} role="status">
+                    {paymentError || "Starting your secure checkout…"}
+                  </p>
+                </>
               )}
             </div>
           )}
