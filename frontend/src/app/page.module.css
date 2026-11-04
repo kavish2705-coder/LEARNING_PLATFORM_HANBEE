@@ -599,15 +599,14 @@
   display: none;
 }
 
-.faqPlus {
-  font-family: var(--font-mono);
-  font-size: 20px;
+.faqChevron {
   color: var(--landing-accent);
+  flex-shrink: 0;
   transition: transform 0.25s ease;
 }
 
-.faqCard[open] .faqPlus {
-  transform: rotate(45deg);
+.faqCard[open] .faqChevron {
+  transform: rotate(180deg);
 }
 
 .faqAnswer {
@@ -656,23 +655,6 @@
   margin: 0;
 }
 
-.systemStatus {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-family: var(--font-mono);
-  font-size: 11.5px;
-  color: rgba(255, 255, 255, 0.5);
-  margin-top: 6px;
-}
-
-.statusDotGreen {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: #10b981;
-  box-shadow: 0 0 8px #10b981;
-}
 
 .footerLinksGroup {
   display: flex;
@@ -717,10 +699,6 @@
   color: rgba(255, 255, 255, 0.4);
 }
 
-.footerMetaLinks {
-  font-family: var(--font-mono);
-  font-size: 11px;
-}
 
 @media (max-width: 768px) {
   .partnerCard {

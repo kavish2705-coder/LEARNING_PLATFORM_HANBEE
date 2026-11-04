@@ -124,6 +124,7 @@ img {
   --landing-surface-2: #111218; /* base section background - rich, warm, inviting */
   --landing-surface-3: #161720; /* alternating section background */
   --landing-surface-4: #1c1d28; /* raised panels within a section */
+  --landing-surface-5: #22232e; /* interactive/hover states on raised elements */
   --landing-card-bg: rgba(255, 255, 255, 0.055);
   --landing-card-border: rgba(255, 255, 255, 0.16);
   --landing-radius-card: 24px;
