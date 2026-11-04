@@ -1,38 +1,36 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { useEffect, useRef } from "react";
+import { motion, useInView } from "framer-motion";
 import styles from "./ExplodedCarArt.module.css";
 
-// Real reference artwork (not generated) -- the exploded and assembled
-// HANBEE car illustrations for this section. The exploded view starts
-// zoomed in and visible; once scrolled into view it holds briefly, then
-// zooms out/fades while the assembled car zooms in/fades from a matching
-// offset underneath it -- same object-literal whileInView pattern already
-// used elsewhere on this page (photoBannerFrame, buildImageFrame etc.),
-// deliberately avoiding custom hooks/state so there's nothing non-standard
-// that could be the point of failure.
+// Real video of the HANBEE car assembling, provided directly rather than
+// generated or hand-drawn. Plays once, muted/inline, starting the moment
+// this scrolls into view -- not looped, since this is a one-time
+// "watch it come together" moment, not a looping background clip.
 export default function ExplodedCarArt() {
+  const ref = useRef<HTMLDivElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const inView = useInView(ref, { once: true, amount: 0.5 });
+
+  useEffect(() => {
+    if (inView) videoRef.current?.play().catch(() => {});
+  }, [inView]);
+
   return (
-    <div className={styles.wrap}>
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <motion.img
-        src="/car-assembled.png"
-        alt="A HANBEE RC race car, fully assembled"
+    <div ref={ref} className={styles.wrap}>
+      <motion.video
+        ref={videoRef}
+        src="/car-assembly.mp4"
+        poster="/car-assembled.png"
         className={styles.layer}
-        initial={{ opacity: 0, scale: 1.12 }}
+        muted
+        playsInline
+        preload="metadata"
+        initial={{ opacity: 0, scale: 1.04 }}
         whileInView={{ opacity: 1, scale: 1 }}
         viewport={{ once: true, amount: 0.5 }}
-        transition={{ duration: 1.6, delay: 1.3, ease: [0.16, 1, 0.3, 1] }}
-      />
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <motion.img
-        src="/car-exploded.png"
-        alt="The same car, shown with every part separated before assembly"
-        className={styles.layer}
-        initial={{ opacity: 1, scale: 1 }}
-        whileInView={{ opacity: 0, scale: 0.88 }}
-        viewport={{ once: true, amount: 0.5 }}
-        transition={{ duration: 1.4, delay: 1.1, ease: [0.4, 0, 0.2, 1] }}
+        transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
       />
     </div>
   );
