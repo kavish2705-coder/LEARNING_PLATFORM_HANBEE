@@ -11,5 +11,8 @@
   inset: 0;
   width: 100%;
   height: 100%;
-  object-fit: contain;
+  object-fit: cover;
+  /* Scale baked into the component's own animated transform (not here)
+     -- Framer Motion sets transform inline, which would override a
+     stylesheet rule here. See ExplodedCarArt.tsx. */
 }

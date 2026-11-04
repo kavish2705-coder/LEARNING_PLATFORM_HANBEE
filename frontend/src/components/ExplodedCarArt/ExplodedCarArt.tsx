@@ -27,8 +27,8 @@ export default function ExplodedCarArt() {
         muted
         playsInline
         preload="metadata"
-        initial={{ opacity: 0, scale: 1.04 }}
-        whileInView={{ opacity: 1, scale: 1 }}
+        initial={{ opacity: 0, scale: 1.26 }}
+        whileInView={{ opacity: 1, scale: 1.22 }}
         viewport={{ once: true, amount: 0.5 }}
         transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
       />
