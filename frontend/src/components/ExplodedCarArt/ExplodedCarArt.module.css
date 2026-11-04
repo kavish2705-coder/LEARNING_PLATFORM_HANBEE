@@ -26,7 +26,12 @@
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background: #0a1512;
+  /* Sampled directly from the video's own corner pixels -- its
+     background isn't a flat color, it has a diagonal gradient (teal at
+     top-left/bottom-right, near-black at top-right/bottom-left), which
+     is why a flat fill left a visible seam. This approximates that same
+     diagonal pattern instead of guessing a single color. */
+  background: conic-gradient(from -45deg at 50% 50%, rgb(14, 27, 29), rgb(3, 8, 9), rgb(14, 27, 29), rgb(3, 8, 9), rgb(14, 27, 29));
   -webkit-mask-image: radial-gradient(ellipse 68% 68% at 50% 50%, transparent 60%, #000 78%);
   mask-image: radial-gradient(ellipse 68% 68% at 50% 50%, transparent 60%, #000 78%);
 }
