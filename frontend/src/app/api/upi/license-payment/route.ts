@@ -9,10 +9,16 @@ function requireEnv(name: string): string {
 }
 
 async function fetchLicenseFeeAmount(): Promise<number> {
+  // payment_settings' RLS policy ("any authenticated user can read payment
+  // settings") requires an authenticated session, not just the anon key --
+  // this is a server-side lookup with no user session to forward, so it
+  // needs the service-role key (bypasses RLS). Querying with anon alone
+  // silently returned zero rows here, meaning this always fell through to
+  // the ?? 1 fallback regardless of what staff actually configured.
   const url = requireEnv("NEXT_PUBLIC_SUPABASE_URL").replace(/\/$/, "");
-  const anonKey = requireEnv("NEXT_PUBLIC_SUPABASE_ANON_KEY");
+  const serviceKey = requireEnv("SUPABASE_SERVICE_ROLE_KEY");
   const res = await fetch(`${url}/rest/v1/payment_settings?select=license_fee_amount&limit=1`, {
-    headers: { apikey: anonKey },
+    headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` },
   });
   const rows = (await res.json()) as { license_fee_amount: number }[];
   return rows[0]?.license_fee_amount ?? 1;

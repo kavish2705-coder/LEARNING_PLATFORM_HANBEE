@@ -48,6 +48,26 @@ export async function settleUpiOrder(payment: Payment): Promise<void> {
     return;
   }
 
+  // Tournament entry fee, independent/solo captains only (school teams go
+  // through school staff, a different flow). This only confirms PAYMENT --
+  // it moves the team to 'payment_declared', the same state apply_team's
+  // own payment_declared=true path produces. Staff still do the actual
+  // team/roster review (decide_team) before it becomes 'verified'; auto-pay
+  // replaces the "staff manually confirms the money arrived" sub-step, not
+  // the whole review. Filtered to draft/proposed so a payment settling
+  // late (after staff already decided the team some other way) is a no-op
+  // instead of clobbering a later status.
+  const tournamentEntryMatch = orderId.match(/^tournament_entry:(.+)$/);
+  if (tournamentEntryMatch) {
+    const teamId = tournamentEntryMatch[1];
+    await supabasePatch(`/rest/v1/tournament_teams?id=eq.${encodeURIComponent(teamId)}&status=in.(draft,proposed)`, {
+      status: "payment_declared",
+      payment_declared: true,
+      payment_reference: payment.utr,
+    });
+    return;
+  }
+
   // Unrecognized orderId shape: nothing to settle automatically. Logged,
   // not thrown, so one bad/foreign orderId can't break the sync loop for
   // every other payment in the same batch (announce() awaits onPaid per

@@ -7,15 +7,14 @@ import styles from "./team.module.css";
 import registrationStyles from "./registrationStatus.module.css";
 import Shimmer from "../components/ui/Shimmer";
 import Dropdown from "../components/ui/Dropdown";
+import { createTournamentUpiPayment, getUpiPaymentStatus, claimUpiUtr, simulateUpiPayment, type PublicUpiPayment } from "../../../lib/upiClient";
 import {
   answerTeamInvitation,
-  applyStudentTeam,
   createSoloTournamentEntry,
   fetchMyLicense,
   fetchMySoloStatus,
   fetchMyTeamFormation,
   fetchMyTeamRegistrationStatus,
-  fetchPaymentSettings,
   fetchUpcomingTournaments,
   inviteStudentToTeam,
   leaveStudentTeam,
@@ -25,7 +24,6 @@ import {
   type MyTeamFormation,
   type UpcomingTournament,
   type StudentTeamRegistrationStatus,
-  type PaymentSettings,
 } from "../../../lib/teamFormationApi";
 import { useSessionProfile } from "../../../lib/hooks/useSessionProfile";
 import { getRealtimeClient } from "../../../lib/realtime";
@@ -101,10 +99,11 @@ export default function MyTeamPage() {
   const [teamName, setTeamName] = useState("");
   const [inviteeId, setInviteeId] = useState("");
   const [isSolo, setIsSolo] = useState(false);
-  const [paymentDeclared, setPaymentDeclared] = useState(false);
   const [paymentReference, setPaymentReference] = useState("");
-  const [paymentSettings, setPaymentSettings] = useState<PaymentSettings | null>(null);
   const [license, setLicense] = useState<DriverLicense | null>(null);
+  const [teamUpiPayment, setTeamUpiPayment] = useState<PublicUpiPayment | null>(null);
+  const [paymentBusy, setPaymentBusy] = useState(false);
+  const [paymentError, setPaymentError] = useState("");
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -204,12 +203,6 @@ export default function MyTeamPage() {
   }
 
   useEffect(() => { void load(); }, [load]);
-
-  useEffect(() => {
-    let active = true;
-    fetchPaymentSettings().then((settings) => { if (active) setPaymentSettings(settings); }).catch(() => {});
-    return () => { active = false; };
-  }, []);
 
   useEffect(() => {
     if (profile?.role !== "student") return;
@@ -315,6 +308,75 @@ export default function MyTeamPage() {
   const memberCount = isRealTeam ? (team?.members.length ?? 0) : 0;
   const isCaptain = isRealTeam ? team!.is_captain : true;
   const isIndependent = isSolo && !formation?.school_id;
+  const independentDraftTeamId = isRealTeam && isCaptain && teamStatus === "draft" && isIndependent ? team?.id : undefined;
+
+  // Start (or reopen) the UPI auto-pay payment once there's a draft,
+  // independent-captain team to pay for -- mirrors the license page's
+  // pattern. Resets if the relevant team itself changes (e.g. switching
+  // tournaments), so a stale payment for a different team can't linger.
+  useEffect(() => {
+    setTeamUpiPayment(null);
+    setPaymentError("");
+    if (!independentDraftTeamId) return;
+    createTournamentUpiPayment(independentDraftTeamId)
+      .then(setTeamUpiPayment)
+      .catch((reason) => setPaymentError(reason instanceof Error ? reason.message : "We couldn't start your payment."));
+  }, [independentDraftTeamId]);
+
+  useEffect(() => {
+    if (!teamUpiPayment || teamUpiPayment.status !== "pending") return;
+    const timer = setInterval(() => {
+      getUpiPaymentStatus(teamUpiPayment.id)
+        .then((p) => {
+          setTeamUpiPayment((current) => (current ? { ...current, ...p, qr: current.qr } : p));
+          if (p.status === "paid") void load();
+        })
+        .catch(() => {});
+    }, 4000);
+    return () => clearInterval(timer);
+  }, [teamUpiPayment, load]);
+
+  async function handleClaimTeamUtr() {
+    if (!teamUpiPayment) return;
+    if (!paymentReference.trim()) {
+      setPaymentError("Enter the UPI transaction ID / UTR from your payment confirmation.");
+      return;
+    }
+    setPaymentBusy(true);
+    setPaymentError("");
+    try {
+      const r = await claimUpiUtr(teamUpiPayment.id, paymentReference);
+      if (r.result === "not_found") {
+        setPaymentError("We haven't received that payment yet -- it can take a minute after the bank's alert arrives. Try again shortly.");
+      } else if (r.result === "used") {
+        setPaymentError("That UTR has already been used for another payment.");
+      } else {
+        const p = await getUpiPaymentStatus(teamUpiPayment.id);
+        setTeamUpiPayment((current) => (current ? { ...current, ...p, qr: current.qr } : p));
+        if (p.status === "paid") await load();
+      }
+    } catch (reason) {
+      setPaymentError(reason instanceof Error ? reason.message : "We couldn't check that UTR.");
+    } finally {
+      setPaymentBusy(false);
+    }
+  }
+
+  async function handleSimulateTeamPayment() {
+    if (!teamUpiPayment) return;
+    setPaymentBusy(true);
+    setPaymentError("");
+    try {
+      await simulateUpiPayment(teamUpiPayment.id);
+      const p = await getUpiPaymentStatus(teamUpiPayment.id);
+      setTeamUpiPayment((current) => (current ? { ...current, ...p, qr: current.qr } : p));
+      if (p.status === "paid") await load();
+    } catch (reason) {
+      setPaymentError(reason instanceof Error ? reason.message : "We couldn't simulate this payment.");
+    } finally {
+      setPaymentBusy(false);
+    }
+  }
 
   if (loading) {
     return (
@@ -927,77 +989,102 @@ export default function MyTeamPage() {
             </div>
           )}
 
-          {/* Solo entry: payment confirmation instead of school-staff submission */}
-          {team && isCaptain && team.status === "draft" && !formation?.school_id && (
+          {/* Solo entry: automatic UPI payment instead of school-staff submission */}
+          {team && independentDraftTeamId === team.id && (
             <div className={styles.formSection}>
               <div className={styles.formHeader}>
                 <h2 className={styles.formTitle}>Confirm Tournament Payment</h2>
                 <p className={styles.formSubtitle}>
-                  Confirm payment for your solo tournament entry. Hanbee staff will verify the entry after submission.
+                  Pay your solo tournament entry fee. This confirms automatically once your bank processes it -- Hanbee staff then review the entry itself.
                 </p>
               </div>
 
-              <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                {tournament?.entry_fee_amount != null && (
-                  <p style={{ fontSize: 15 }}>Entry fee: <strong style={{ color: "var(--text-primary)" }}>₹{tournament.entry_fee_amount}</strong></p>
-                )}
-                {paymentSettings?.qr_image_url ? (
+              {teamUpiPayment?.status === "paid" ? (
+                <p role="status" style={{ fontSize: 14, color: "var(--color-success)" }}>
+                  Payment confirmed — your entry is now waiting for Hanbee staff review.
+                </p>
+              ) : teamUpiPayment?.status === "expired" ? (
+                <div>
+                  <p role="alert" style={{ fontSize: 14, color: "var(--color-danger)" }}>
+                    This payment window expired before we received it. No charge was made -- start a new one below.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setTeamUpiPayment(null)}
+                    style={{ marginTop: 10, padding: "9px 20px", borderRadius: 8, fontWeight: 600, fontSize: 14, border: "none", background: "var(--color-primary)", color: "var(--color-primary-text)", cursor: "pointer" }}
+                  >
+                    Start New Payment
+                  </button>
+                </div>
+              ) : teamUpiPayment?.status === "underpaid" ? (
+                <p role="alert" style={{ fontSize: 14, color: "var(--color-danger)" }}>
+                  We received a payment of ₹{teamUpiPayment.paidAmount} but ₹{teamUpiPayment.payAmount} was expected. This needs a Hanbee staff member to review it manually -- contact them with your payment reference.
+                </p>
+              ) : teamUpiPayment ? (
+                <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                  <p style={{ fontSize: 15 }}>Entry fee: <strong style={{ color: "var(--text-primary)" }}>₹{teamUpiPayment.payAmount}</strong></p>
                   <div style={{ display: "flex", gap: 16, alignItems: "flex-start", flexWrap: "wrap" }}>
-                    {/* eslint-disable-next-line @next/next/no-img-element -- payment-assets is a public Supabase Storage bucket, not a Next-optimizable local/remote image source worth configuring */}
-                    <img src={paymentSettings.qr_image_url} alt="Payment QR code" style={{ width: 160, height: 160, borderRadius: 10, border: "1px solid var(--border-subtle)", objectFit: "contain", background: "#fff" }} />
+                    {teamUpiPayment.qr && (
+                      <div
+                        style={{ width: 160, height: 160, borderRadius: 10, border: "1px solid var(--border-subtle)", background: "#fff", padding: 8 }}
+                        dangerouslySetInnerHTML={{ __html: teamUpiPayment.qr }}
+                      />
+                    )}
                     <div style={{ fontSize: 13, color: "var(--text-muted)", maxWidth: 420 }}>
-                      {paymentSettings.upi_id && <p style={{ marginBottom: 6 }}>Pay to UPI ID: <strong style={{ color: "var(--text-primary)" }}>{paymentSettings.upi_id}</strong></p>}
-                      {paymentSettings.instructions && <p>{paymentSettings.instructions}</p>}
+                      <p style={{ marginBottom: 6 }}>Pay to UPI ID: <strong style={{ color: "var(--text-primary)" }}>{teamUpiPayment.upiId}</strong></p>
+                      <p style={{ marginBottom: 6 }}>Scan the QR, or <a href={teamUpiPayment.link} style={{ color: "var(--accent-subtle-text, inherit)" }}>open in your UPI app</a>.</p>
+                      <p role="status">Waiting for payment… this confirms automatically once your bank processes it — usually within a minute.</p>
                     </div>
                   </div>
-                ) : (
-                  <p role="status" style={{ fontSize: 13, color: "var(--text-muted)" }}>
-                    Payment QR isn&apos;t set up yet -- contact Hanbee staff for payment instructions before confirming.
-                  </p>
-                )}
 
-                <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, cursor: "pointer" }}>
-                  <input
-                    type="checkbox"
-                    checked={paymentDeclared}
-                    onChange={(e) => setPaymentDeclared(e.target.checked)}
-                  />
-                  I have completed the tournament payment.
-                </label>
-                {paymentDeclared && (
                   <label style={{ display: "block", fontSize: 13 }}>
-                    UPI transaction ID / UTR
+                    Already paid but it hasn&apos;t confirmed yet? Enter your UPI transaction ID / UTR
                     <input
                       value={paymentReference}
                       onChange={(e) => setPaymentReference(e.target.value)}
                       placeholder="e.g. 408812345678"
-                      maxLength={100}
-                      required
-                      disabled={busy}
+                      maxLength={12}
+                      disabled={paymentBusy}
                       className={styles.textInput}
                       style={{ display: "block", marginTop: 6 }}
                     />
                   </label>
-                )}
-                <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
-                  <button
-                    type="button"
-                    className={styles.actionBtn}
-                    disabled={busy || !paymentDeclared || !paymentReference.trim()}
-                    onClick={() => void runAction(async () => { await applyStudentTeam(team.id, true, paymentReference); setPaymentDeclared(false); setPaymentReference(""); }, "Payment declared. Your solo entry is waiting for Hanbee review.")}
-                  >
-                    Submit Paid Solo Entry
-                  </button>
-                  <button
-                    type="button"
-                    className={styles.dangerBtn}
-                    disabled={busy}
-                    onClick={() => void runAction(() => leaveStudentTeam(team.id), "You left the team.")}
-                  >
-                    Leave Team
-                  </button>
+                  {paymentError && <p role="alert" style={{ fontSize: 13, color: "var(--color-danger)" }}>{paymentError}</p>}
+                  <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
+                    <button
+                      type="button"
+                      className={styles.actionBtn}
+                      disabled={paymentBusy}
+                      onClick={() => void handleClaimTeamUtr()}
+                    >
+                      {paymentBusy ? "Checking…" : "Check Payment"}
+                    </button>
+                    {teamUpiPayment.testMode && (
+                      <button
+                        type="button"
+                        disabled={paymentBusy}
+                        onClick={() => void handleSimulateTeamPayment()}
+                        title="Test mode only -- pretends the bank's alert arrived"
+                        style={{ padding: "9px 20px", borderRadius: 8, fontWeight: 600, fontSize: 14, border: "1px dashed var(--border-elevated, var(--border-subtle))", background: "transparent", color: "var(--text-muted)", cursor: paymentBusy ? "not-allowed" : "pointer" }}
+                      >
+                        Simulate Payment (test mode)
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      className={styles.dangerBtn}
+                      disabled={busy}
+                      onClick={() => void runAction(() => leaveStudentTeam(team.id), "You left the team.")}
+                    >
+                      Leave Team
+                    </button>
+                  </div>
                 </div>
-              </div>
+              ) : (
+                <p role="status" style={{ fontSize: 13, color: "var(--text-muted)" }}>
+                  {paymentError || "Starting your payment…"}
+                </p>
+              )}
             </div>
           )}
         </div>

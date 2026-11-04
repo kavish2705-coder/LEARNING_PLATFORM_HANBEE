@@ -34,6 +34,13 @@ export function createLicenseUpiPayment() {
   return authedFetch<PublicUpiPayment>("/api/upi/license-payment", { method: "POST" });
 }
 
+export function createTournamentUpiPayment(teamId: string) {
+  return authedFetch<PublicUpiPayment>("/api/upi/tournament-payment", {
+    method: "POST",
+    body: JSON.stringify({ team_id: teamId }),
+  });
+}
+
 export function getUpiPaymentStatus(id: string) {
   return authedFetch<PublicUpiPayment>(`/api/upi/payment/${encodeURIComponent(id)}`, { method: "GET" });
 }
