@@ -68,6 +68,32 @@ export async function settleUpiOrder(payment: Payment): Promise<void> {
     return;
   }
 
+  // Course-access upgrade request (add_course direction only -- the
+  // add_tournament direction never reaches a payment, it's a plain staff
+  // approve). orderId is the access_requests row id, not a student id,
+  // since a student only ever has one add_course row (unique constraint).
+  const accessMatch = orderId.match(/^access:(.+)$/);
+  if (accessMatch) {
+    const requestId = accessMatch[1];
+    const url = requireEnv("NEXT_PUBLIC_SUPABASE_URL").replace(/\/$/, "");
+    const serviceKey = requireEnv("SUPABASE_SERVICE_ROLE_KEY");
+    const res = await fetch(`${url}/rest/v1/access_requests?id=eq.${encodeURIComponent(requestId)}&select=student_id,direction,status`, {
+      headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` },
+    });
+    const rows = (await res.json()) as { student_id: string; direction: string; status: string }[];
+    const row = rows[0];
+    if (!row || row.status !== "awaiting_payment") return;
+
+    await supabasePatch(`/rest/v1/access_requests?id=eq.${encodeURIComponent(requestId)}`, {
+      status: "active",
+      decided_at: new Date().toISOString(),
+    });
+    await supabasePatch(`/rest/v1/profiles?id=eq.${encodeURIComponent(row.student_id)}`, {
+      course_access: "active",
+    });
+    return;
+  }
+
   // Unrecognized orderId shape: nothing to settle automatically. Logged,
   // not thrown, so one bad/foreign orderId can't break the sync loop for
   // every other payment in the same batch (announce() awaits onPaid per

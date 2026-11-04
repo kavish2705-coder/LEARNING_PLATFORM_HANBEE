@@ -361,6 +361,8 @@ export async function updatePassword(accessToken: string, password: string) {
   });
 }
 
+export type AccessStage = "none" | "requested" | "awaiting_payment" | "active";
+
 export interface AccountProfile {
   id: string;
   email: string | null;
@@ -368,9 +370,12 @@ export interface AccountProfile {
   full_name: string;
   role: HanbeeRole;
   avatar_url: string | null;
+  is_solo?: boolean;
+  tournament_access?: AccessStage;
+  course_access?: AccessStage;
 }
 
-export async function getAccountProfile() {
+export async function getAccountProfile(): Promise<AccountProfile> {
   const session = readStoredSession();
   if (!session) throw new Error("Your session has expired. Sign in again to continue.");
   
@@ -383,12 +388,15 @@ export async function getAccountProfile() {
       username: null,
       full_name: session.user.user_metadata?.full_name || `Dummy ${dummyRole}`,
       role: dummyRole,
-      avatar_url: null
+      avatar_url: null,
+      is_solo: true,
+      tournament_access: "active",
+      course_access: "active",
     };
   }
 
   const profiles = await authenticatedSupabaseFetch<AccountProfile[]>(
-    `/rest/v1/profiles?select=id,email,username,full_name,role,avatar_url&id=eq.${encodeURIComponent(session.user.id)}`,
+    `/rest/v1/profiles?select=id,email,username,full_name,role,avatar_url,is_solo,tournament_access,course_access&id=eq.${encodeURIComponent(session.user.id)}`,
   );
   const profile = profiles[0];
   if (!profile) throw new Error("We couldn't find your Hanbee profile.");

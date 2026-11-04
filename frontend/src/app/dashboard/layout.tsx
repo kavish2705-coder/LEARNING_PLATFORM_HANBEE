@@ -3,6 +3,7 @@ import { ModeProvider } from "./ModeContext";
 import ClientLayout from "./ClientLayout";
 import { QueryProvider } from "./QueryProvider";
 import AuthGate from "./components/AuthGate";
+import InitialPlanGate from "./components/InitialPlanGate";
 import { ToastProvider } from "../../components/ui/Toast";
 
 export default function DashboardLayout({
@@ -15,11 +16,13 @@ export default function DashboardLayout({
       <QueryProvider>
         <ModeProvider>
           <AuthGate>
-            <ToastProvider>
-              <ClientLayout>
-                {children}
-              </ClientLayout>
-            </ToastProvider>
+            <InitialPlanGate>
+              <ToastProvider>
+                <ClientLayout>
+                  {children}
+                </ClientLayout>
+              </ToastProvider>
+            </InitialPlanGate>
           </AuthGate>
         </ModeProvider>
       </QueryProvider>

@@ -18,8 +18,17 @@ import {
 } from "../../../lib/teamFormationApi";
 import { getStudentLeaderboard } from "../../../lib/tournamentAdminApi";
 import { createLicenseUpiPayment, getUpiPaymentStatus, claimUpiUtr, type PublicUpiPayment } from "../../../lib/upiClient";
+import AccessBlocker from "../components/access/AccessBlocker";
 
 export default function DriverLicensePage() {
+  return (
+    <AccessBlocker direction="add_tournament">
+      <DriverLicensePageContent />
+    </AccessBlocker>
+  );
+}
+
+function DriverLicensePageContent() {
   const router = useRouter();
   const { data: profile } = useSessionProfile();
   const { xp } = useUserXp();

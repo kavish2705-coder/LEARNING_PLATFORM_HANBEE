@@ -41,6 +41,10 @@ export function createTournamentUpiPayment(teamId: string) {
   });
 }
 
+export function createCourseAccessUpiPayment() {
+  return authedFetch<PublicUpiPayment>("/api/upi/course-access-payment", { method: "POST" });
+}
+
 export function getUpiPaymentStatus(id: string) {
   return authedFetch<PublicUpiPayment>(`/api/upi/payment/${encodeURIComponent(id)}`, { method: "GET" });
 }

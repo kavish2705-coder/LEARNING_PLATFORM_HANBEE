@@ -8,6 +8,7 @@ import registrationStyles from "./registrationStatus.module.css";
 import Shimmer from "../components/ui/Shimmer";
 import Dropdown from "../components/ui/Dropdown";
 import { createTournamentUpiPayment, getUpiPaymentStatus, claimUpiUtr, type PublicUpiPayment } from "../../../lib/upiClient";
+import AccessBlocker from "../components/access/AccessBlocker";
 import {
   answerTeamInvitation,
   createSoloTournamentEntry,
@@ -80,6 +81,14 @@ function errorMessage(reason: unknown, fallback: string) {
 }
 
 export default function MyTeamPage() {
+  return (
+    <AccessBlocker direction="add_tournament">
+      <MyTeamPageContent />
+    </AccessBlocker>
+  );
+}
+
+function MyTeamPageContent() {
   const { data: profile } = useSessionProfile();
 
   const [tournaments, setTournaments] = useState<UpcomingTournament[]>([]);

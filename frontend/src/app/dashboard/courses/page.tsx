@@ -8,10 +8,19 @@ import styles from "./courses.module.css";
 import Shimmer from "../components/ui/Shimmer";
 import EmptyState from "../components/ui/EmptyState";
 import { fetchMyCourses } from "../../../lib/coursesApi";
+import AccessBlocker from "../components/access/AccessBlocker";
 
 const TABS = ["All Courses", "In Progress", "Completed"] as const;
 
 export default function CoursesPage() {
+  return (
+    <AccessBlocker direction="add_course">
+      <CoursesContent />
+    </AccessBlocker>
+  );
+}
+
+function CoursesContent() {
   const [activeTab, setActiveTab] = useState<(typeof TABS)[number]>("All Courses");
   const { data: courses, isLoading, error } = useQuery({
     queryKey: ["my-courses"],

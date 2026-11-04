@@ -4,12 +4,14 @@ import { usePathname } from "next/navigation";
 import { useSessionProfile } from "../../../lib/hooks/useSessionProfile";
 import type { AccountProfile } from "../../../lib/supabaseAuth";
 
-// Learning isn't ready for real students yet -- blurred/blocked for them,
-// but a test/dummy account can still preview it by being listed in
-// NEXT_PUBLIC_LEARNING_PREVIEW_ACCOUNTS (comma-separated emails or
-// usernames, matched case-insensitively). Remove this gate (and that env
-// var) once Learning is ready for everyone.
-const LEARNING_ONLY_PREFIXES = ["/dashboard/courses", "/dashboard/certificate", "/dashboard/ai-assistant", "/dashboard/attendance"];
+// Certificate/AI-assistant/attendance aren't ready for real students yet --
+// blurred/blocked for them, but a test/dummy account can still preview it
+// by being listed in NEXT_PUBLIC_LEARNING_PREVIEW_ACCOUNTS
+// (comma-separated emails or usernames, matched case-insensitively).
+// /dashboard/courses used to be in this list too, but it's a real, shipped
+// feature now (see AccessBlocker.tsx), not a placeholder -- that route
+// owns its own access logic and must not be blurred over here.
+const LEARNING_ONLY_PREFIXES = ["/dashboard/certificate", "/dashboard/ai-assistant", "/dashboard/attendance"];
 
 function isPreviewAccount(profile: AccountProfile | undefined) {
   const allowlist = (process.env.NEXT_PUBLIC_LEARNING_PREVIEW_ACCOUNTS ?? "")

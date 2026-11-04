@@ -7,6 +7,7 @@ import TournamentOverview from "./components/TournamentOverview";
 import SchoolOverview from "./components/school/SchoolOverview";
 import HanbeeOverview from "./components/hanbee/HanbeeOverview";
 import ManagerDashboard from "./components/manager/ManagerDashboard";
+import AccessBlocker from "./components/access/AccessBlocker";
 
 export default function DashboardOverview() {
   const router = useRouter();
@@ -42,7 +43,9 @@ export default function DashboardOverview() {
   // was removed.
   return (
     <div>
-      <TournamentOverview />
+      <AccessBlocker direction="add_tournament">
+        <TournamentOverview />
+      </AccessBlocker>
     </div>
   );
 }
