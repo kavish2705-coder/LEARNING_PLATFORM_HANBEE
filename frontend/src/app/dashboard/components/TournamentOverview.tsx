@@ -12,6 +12,7 @@ import Link from "next/link";
 import styles from "./TournamentOverview.module.css";
 import EmptyState from "./ui/EmptyState";
 import Shimmer from "./ui/Shimmer";
+import ActionCenter, { type DashboardActionItem } from "./ui/ActionCenter";
 import { fetchUpcomingTournament, fetchMyTeamFormation, fetchMySchool, type MyTeamFormation, type UpcomingTournament } from "../../../lib/teamFormationApi";
 import { getStudentLeaderboard, type StudentLeaderboardRow } from "../../../lib/tournamentAdminApi";
 import { useSessionProfile } from "../../../lib/hooks/useSessionProfile";
@@ -81,22 +82,57 @@ export default function TournamentOverview() {
     },
   ];
 
-  const [inspectionStatus, setInspectionStatus] = useState<Record<string, boolean>>(() => {
-    if (typeof window !== "undefined") {
-      try {
-        const saved = localStorage.getItem("hanbee_rc_inspection");
-        if (saved) return JSON.parse(saved);
-      } catch {}
-    }
-    return {
-      wheels: true,
-      body: true,
-      motor: true,
-      wiring: false,
-      remote: false,
-      battery: false,
-    };
+  const [inspectionStatus, setInspectionStatus] = useState<Record<string, boolean>>({
+    wheels: false,
+    body: false,
+    motor: false,
+    wiring: false,
+    remote: false,
+    battery: false,
   });
+  const inspectionStorageKey = profile?.id ? `hanbee_rc_inspection:${profile.id}` : null;
+
+  useEffect(() => {
+    if (!inspectionStorageKey) {
+      setInspectionStatus({ wheels: false, body: false, motor: false, wiring: false, remote: false, battery: false });
+      return;
+    }
+
+    try {
+      const saved = localStorage.getItem(inspectionStorageKey);
+      if (!saved) {
+        setInspectionStatus({ wheels: false, body: false, motor: false, wiring: false, remote: false, battery: false });
+        return;
+      }
+
+      const parsed: unknown = JSON.parse(saved);
+      if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+        throw new Error("Saved practice checklist has an invalid format.");
+      }
+      const values = parsed as Record<string, unknown>;
+      setInspectionStatus({
+        wheels: values.wheels === true,
+        body: values.body === true,
+        motor: values.motor === true,
+        wiring: values.wiring === true,
+        remote: values.remote === true,
+        battery: values.battery === true,
+      });
+    } catch {
+      setInspectionStatus({ wheels: false, body: false, motor: false, wiring: false, remote: false, battery: false });
+      setToastMessage("Your saved practice checklist couldn’t be restored, so all checks are reset.");
+    }
+  }, [inspectionStorageKey]);
+
+  function persistInspectionStatus(status: Record<string, boolean>) {
+    if (!inspectionStorageKey) return false;
+    try {
+      localStorage.setItem(inspectionStorageKey, JSON.stringify(status));
+      return true;
+    } catch {
+      return false;
+    }
+  }
 
   const [leaderboardRows, setLeaderboardRows] = useState<StudentLeaderboardRow[]>([]);
 
@@ -191,25 +227,27 @@ export default function TournamentOverview() {
     const next = !current;
     const updated = { ...inspectionStatus, [id]: next };
     setInspectionStatus(updated);
-    if (typeof window !== "undefined") {
-      try {
-        localStorage.setItem("hanbee_rc_inspection", JSON.stringify(updated));
-      } catch {}
-    }
+    const saved = persistInspectionStatus(updated);
 
     if (next) {
       addXpTask(`insp_${id}`, 15, `${name}: Good Condition`);
       const passed = Object.values(updated).filter(Boolean).length;
       if (passed === 6) {
-        setToastMessage(`🏎️ Practice checklist 100% complete! (+50 XP)`);
+        setToastMessage(saved
+          ? "🏎️ Practice checklist 100% complete! (+50 XP)"
+          : "Checklist updated, but it couldn’t be saved on this device.");
         addXpTask("insp_all_bonus", 50, "Practice Checklist Complete");
       } else {
-        setToastMessage(`✓ ${name}: Passed / Good Condition (+15 XP)`);
+        setToastMessage(saved
+          ? `✓ ${name}: Passed / Good Condition (+15 XP)`
+          : "Checklist updated, but it couldn’t be saved on this device.");
       }
     } else {
       removeXpTask(`insp_${id}`);
       removeXpTask("insp_all_bonus");
-      setToastMessage(`Marked ${name} as pending re-inspection.`);
+      setToastMessage(saved
+        ? `Marked ${name} as pending re-inspection.`
+        : "Checklist updated, but it couldn’t be saved on this device.");
     }
     setTimeout(() => setToastMessage(null), 3500);
   };
@@ -224,16 +262,14 @@ export default function TournamentOverview() {
       battery: true,
     };
     setInspectionStatus(allPassed);
-    if (typeof window !== "undefined") {
-      try {
-        localStorage.setItem("hanbee_rc_inspection", JSON.stringify(allPassed));
-      } catch {}
-    }
+    const saved = persistInspectionStatus(allPassed);
     Object.keys(allPassed).forEach((key) => {
       addXpTask(`insp_${key}`, 15, `${key}: Passed`);
     });
     addXpTask("insp_all_bonus", 50, "Practice Checklist Complete");
-    setToastMessage(`🎉 All 6 items checked on your practice checklist (+50 XP)`);
+    setToastMessage(saved
+      ? "🎉 All 6 items checked on your practice checklist (+50 XP)"
+      : "Checklist updated, but it couldn’t be saved on this device.");
     setTimeout(() => setToastMessage(null), 3500);
   };
 
@@ -247,16 +283,14 @@ export default function TournamentOverview() {
       battery: false,
     };
     setInspectionStatus(reset);
-    if (typeof window !== "undefined") {
-      try {
-        localStorage.setItem("hanbee_rc_inspection", JSON.stringify(reset));
-      } catch {}
-    }
+    const saved = persistInspectionStatus(reset);
     Object.keys(reset).forEach((key) => {
       removeXpTask(`insp_${key}`);
     });
     removeXpTask("insp_all_bonus");
-    setToastMessage(`Inspection reset: Ready for a new pre-race hardware check.`);
+    setToastMessage(saved
+      ? "Inspection reset: Ready for a new pre-race hardware check."
+      : "Checklist reset, but the change couldn’t be saved on this device.");
     setTimeout(() => setToastMessage(null), 2500);
   };
 
@@ -283,6 +317,35 @@ export default function TournamentOverview() {
   const userRank = userEntry?.rank ?? null;
   const teamAhead = userRank ? allRankedTeams.find((t) => t.rank === userRank - 1) : undefined;
   const ptsBehind = teamAhead && userEntry ? Math.max(0, teamAhead.points - userEntry.points) : 0;
+  const studentActions: DashboardActionItem[] = [];
+  if (!team) {
+    studentActions.push({
+      id: "team-setup",
+      title: "Build your race team",
+      description: "Register your squad to get ready for the next tournament.",
+      href: teamHref,
+      icon: <Users size={18} />,
+    });
+  }
+  if (readinessScore < 100) {
+    studentActions.push({
+      id: "practice-checklist",
+      title: "Continue your practice check",
+      description: `${passedCount} of ${inspectionItems.length} self-reported checks are complete.`,
+      href: "#practice-checklist",
+      icon: <Wrench size={18} />,
+      meta: `${readinessScore}%`,
+    });
+  }
+  if (userRank === null) {
+    studentActions.push({
+      id: "official-results",
+      title: "Check official standings",
+      description: "See verified entries and recorded race results.",
+      href: "/dashboard/leaderboard",
+      icon: <Trophy size={18} />,
+    });
+  }
 
   function formatLapTime(ms: number | null) {
     return ms === null ? "—" : `${(ms / 1000).toFixed(2)}s`;
@@ -381,6 +444,12 @@ export default function TournamentOverview() {
           </span>
         </div>
       </div>
+
+      <ActionCenter
+        title="Your next steps"
+        description="A short list of useful actions based on your team, practice, and verified results."
+        items={studentActions}
+      />
 
       {/* ===== 01: Championship Standings (First Box) ===== */}
       <div className={styles.sectionHeaderWrap}>
@@ -565,7 +634,7 @@ export default function TournamentOverview() {
       <div className={styles.middleGrid}>
 
         {/* RC Car Pre-Race Hardware Inspection (Active Workstation) */}
-        <div className={`${styles.telemetryCard} ${styles.activeWorkshopCard}`}>
+        <div id="practice-checklist" className={`${styles.telemetryCard} ${styles.activeWorkshopCard}`}>
           <div className={styles.cardHeaderTitle}>
             <div className={styles.telemetryHeading}>
               <Wrench size={18} color="#7dd3e8" />

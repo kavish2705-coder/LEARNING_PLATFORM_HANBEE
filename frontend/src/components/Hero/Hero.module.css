@@ -199,6 +199,17 @@
   transform: translateX(3px);
 }
 
+/* Animated SVG accent underline */
+.heroUnderline {
+  display: block;
+  width: min(420px, 70vw);
+  height: 14px;
+  margin: -8px 0 20px;
+  overflow: visible;
+}
+.heroUnderline path {
+  filter: drop-shadow(0 0 6px rgba(229, 138, 43, 0.45));
+}
 /* Secondary path text link */
 .independentLink {
   display: block;

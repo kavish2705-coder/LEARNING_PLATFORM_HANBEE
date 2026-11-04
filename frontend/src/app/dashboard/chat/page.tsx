@@ -436,6 +436,12 @@ export default function ChatPage() {
             {error && <p role="alert" style={{ padding: "8px 16px", color: "#ef4444" }}>{error}</p>}
 
             <div className={styles.chatHistory}>
+              {!messagesQuery.isLoading && messages.length === 0 && (
+                <div style={{ textAlign: "center", padding: "40px 16px", color: "var(--text-muted)" }}>
+                  <p style={{ fontSize: 14 }}>No messages yet.</p>
+                  <p style={{ fontSize: 13, marginTop: 4 }}>Say hello to start the conversation.</p>
+                </div>
+              )}
               {messagesQuery.hasNextPage && (
                 <div style={{ textAlign: "center", padding: "8px 0 16px" }}>
                   <button

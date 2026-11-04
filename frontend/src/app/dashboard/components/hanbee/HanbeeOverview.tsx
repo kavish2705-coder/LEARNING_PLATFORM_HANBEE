@@ -16,6 +16,7 @@ import { fetchScrutineeringQueue } from "../../../../lib/teamFormationApi";
 import { useSessionProfile } from "../../../../lib/hooks/useSessionProfile";
 import EmptyState from "../ui/EmptyState";
 import Shimmer from "../ui/Shimmer";
+import ActionCenter, { type DashboardActionItem } from "../ui/ActionCenter";
 
 type RosterDriver = {
   name: string;
@@ -227,6 +228,37 @@ export default function HanbeeOverview() {
     return laps.length ? formatLapTime(Math.min(...laps)) : "--";
   }, [teamsToDisplay]);
   const firstName = profile?.full_name.trim().split(/\s+/)[0];
+  const openTasks = data?.personalTasks.filter((task) => task.status !== "done") ?? [];
+  const staffActions: DashboardActionItem[] = [];
+  if (openTasks.length > 0) {
+    staffActions.push({
+      id: "staff-tasks",
+      title: "Work through your assigned tasks",
+      description: `${openTasks.length} task${openTasks.length === 1 ? "" : "s"} remain open.`,
+      href: "#staff-task-queue",
+      icon: <CheckCircle size={18} />,
+      meta: `${openTasks.length} open`,
+    });
+  }
+  if (tournament) {
+    staffActions.push({
+      id: "tournament-entries",
+      title: "Review tournament entries",
+      description: `Manage registrations and results for ${tournament.title}.`,
+      href: "/dashboard/hanbee/tournament",
+      icon: <Trophy size={18} />,
+    });
+  }
+  if (tournament && scrutineeredCount !== null && totalSquads > scrutineeredCount) {
+    staffActions.push({
+      id: "scrutineering",
+      title: "Open the scrutineering queue",
+      description: "Review teams that have not yet passed the race inspection.",
+      href: `/dashboard/hanbee/scrutineering?tournament=${encodeURIComponent(tournament.id)}`,
+      icon: <ShieldCheck size={18} />,
+      meta: `${totalSquads - scrutineeredCount} to review`,
+    });
+  }
 
   return (
     <div className={styles.container}>
@@ -256,6 +288,14 @@ export default function HanbeeOverview() {
           </Link>
         </div>
       </header>
+
+      {!loading && (
+        <ActionCenter
+          title="Operations action center"
+          description="Pick up open work and move tournament operations forward."
+          items={staffActions}
+        />
+      )}
 
       {loading ? <Shimmer rows={5} /> : (
         <div className={styles.overviewSections}>
@@ -566,7 +606,7 @@ export default function HanbeeOverview() {
             </div>
           </div>
 
-          <div className={styles.tableCard}>
+          <div id="staff-task-queue" className={styles.tableCard}>
             <div className={styles.tableHeaderRow}>
               <div>
                 <h2 className={styles.tableTitle}>

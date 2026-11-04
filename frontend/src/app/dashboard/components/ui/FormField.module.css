@@ -26,6 +26,19 @@
   cursor: not-allowed;
 }
 
+/* Native date/time/datetime-local pickers otherwise render with a
+   light-mode calendar icon that's nearly invisible on our dark
+   background, even though the input box itself picks up .field's
+   theme correctly. color-scheme tells the browser to draw its own
+   picker UI (icon, popup calendar) in dark mode to match. */
+input[type="date"].field,
+input[type="time"].field,
+input[type="datetime-local"].field,
+input[type="month"].field,
+input[type="week"].field {
+  color-scheme: dark;
+}
+
 textarea.field {
   resize: vertical;
   min-height: 80px;

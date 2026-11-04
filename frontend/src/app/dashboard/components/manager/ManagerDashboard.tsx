@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { ArrowUpRight, Bell, BookOpen, Building2, CircleAlert, Clock3, Flag, Users } from "lucide-react";
+import { ArrowUpRight, Bell, BookOpen, Building2, CircleAlert, Clock3, Flag, Users, ShieldCheck } from "lucide-react";
 import styles from "../../dashboard.module.css";
+import ActionCenter, { type DashboardActionItem } from "../ui/ActionCenter";
 import { authenticatedSupabaseFetch, getAccountProfile } from "../../../../lib/supabaseAuth";
 import { fetchSchoolDirectory, type SchoolDirectoryRow } from "../../../../lib/schoolAdminApi";
 import { useSessionProfile } from "../../../../lib/hooks/useSessionProfile";
@@ -50,6 +51,48 @@ export default function ManagerDashboard() {
   const orderedStaff = [...staff].sort((a, b) => (b.last_clock_in ?? "").localeCompare(a.last_clock_in ?? "")).slice(0, 6);
 
   const firstName = profile?.full_name.trim().split(/\s+/)[0];
+  const managerActions: DashboardActionItem[] = [
+    {
+      id: "school-verifications",
+      title: "Review school registrations",
+      description: pendingSchools > 0
+        ? `${pendingSchools} school registration${pendingSchools === 1 ? "" : "s"} need review.`
+        : "No school registrations are waiting for review.",
+      href: "/dashboard/manager/verifications",
+      icon: <Building2 size={18} />,
+      meta: `${pendingSchools} pending`,
+    },
+    {
+      id: "staff-verifications",
+      title: "Review staff applications",
+      description: staffApplications > 0
+        ? `${staffApplications} Hanbee staff application${staffApplications === 1 ? "" : "s"} need review.`
+        : "No Hanbee staff applications are waiting for review.",
+      href: "/dashboard/manager/verifications",
+      icon: <ShieldCheck size={18} />,
+      meta: `${staffApplications} pending`,
+    },
+    {
+      id: "course-applications",
+      title: "Review course applications",
+      description: (lms?.course_applications_pending ?? 0) > 0
+        ? `${lms?.course_applications_pending} student course application${lms?.course_applications_pending === 1 ? "" : "s"} need review.`
+        : "No student course applications are waiting for review.",
+      href: "/dashboard/hanbee/applications",
+      icon: <BookOpen size={18} />,
+      meta: `${lms?.course_applications_pending ?? 0} pending`,
+    },
+    {
+      id: "tournament-decisions",
+      title: "Review tournament entries",
+      description: (tournament?.teams_awaiting_decision ?? 0) > 0
+        ? `${tournament?.teams_awaiting_decision} tournament entr${tournament?.teams_awaiting_decision === 1 ? "y needs" : "ies need"} a decision.`
+        : "No tournament entries are waiting for a decision.",
+      href: "/dashboard/hanbee/tournament",
+      icon: <Flag size={18} />,
+      meta: `${tournament?.teams_awaiting_decision ?? 0} pending`,
+    },
+  ];
 
   return <div>
     <header className={`${styles.pageHeader} ${styles.managerPageHeader}`}>
@@ -68,6 +111,14 @@ export default function ManagerDashboard() {
     </header>
     {error && <p role="alert" className={styles.sectionCard}>{error}</p>}
     {loading ? <div className={styles.sectionCard} role="status">Loading platform activity…</div> : <>
+
+      {!error && (
+        <ActionCenter
+          title="Manager action center"
+          description="Review real platform work queues and jump directly to the items that need a decision."
+          items={managerActions}
+        />
+      )}
 
       <div className={styles.managerMetricsGrid}>
         <div className={styles.metricCard}>

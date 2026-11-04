@@ -40,6 +40,7 @@ export default function Home() {
 
   return (
     <main
+      id="main"
       style={{
         backgroundColor: "var(--landing-surface-2)",
         position: "relative",
@@ -48,13 +49,14 @@ export default function Home() {
         "--font-heading": "'Afacad', sans-serif",
       } as React.CSSProperties}
     >
+      <a href="#main" className={styles.skipLink}>Skip to content</a>
       <Navbar />
 
       {/* Hero section */}
       <Hero onOpenStudentModal={() => setIsStudentModalOpen(true)} />
 
       {/* Moving ticker strip - breaks straight into the hero's bottom edge */}
-      <div className={styles.marqueeWrap} style={{ position: "relative", zIndex: 10 }}>
+      <div className={styles.marqueeWrap} style={{ position: "relative", zIndex: 10 }} aria-hidden="true">
         <div className={styles.marqueeTrack}>
           {[...tickerItems, ...tickerItems].map((item, i) => (
             <span className={styles.marqueeItem} key={i}>

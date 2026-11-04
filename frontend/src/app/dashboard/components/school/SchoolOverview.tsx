@@ -5,10 +5,11 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import {
   BookOpen, CalendarDays, ChevronRight, GraduationCap,
-  Trophy, Users, MapPin, Bell
+  Trophy, Users, MapPin, Bell, UserPlus, ClipboardList
 } from "lucide-react";
 import styles from "./SchoolOverview.module.css";
 import EmptyState from "../ui/EmptyState";
+import ActionCenter, { type DashboardActionItem } from "../ui/ActionCenter";
 import { fetchMyOrganizationId } from "../../../../lib/teamFormationApi";
 import {
   fetchSchoolCourseParticipation,
@@ -55,6 +56,52 @@ export default function SchoolOverviewPage() {
   const currentHour = new Date().getHours();
   const timeGreeting = currentHour < 12 ? "Good morning" : currentHour < 17 ? "Good afternoon" : "Good evening";
   const staffName = profile?.full_name ? profile.full_name.split(" ")[0] : "Staff";
+  const schoolActions: DashboardActionItem[] = overview
+    ? tab === "tournament"
+      ? [
+          {
+            id: "school-invitations",
+            title: overview.people.pending_invites > 0 ? "Follow up on invitations" : "Invite students",
+            description: overview.people.pending_invites > 0
+              ? `${overview.people.pending_invites} student invitation${overview.people.pending_invites === 1 ? " is" : "s are"} still open.`
+              : overview.people.students === 0
+                ? "Invite your first students to connect them with your school."
+                : "Add students to your school roster.",
+            href: "/dashboard/school/students",
+            icon: <UserPlus size={18} />,
+            meta: overview.people.pending_invites > 0 ? `${overview.people.pending_invites} open` : undefined,
+          },
+          {
+            id: "school-teams",
+            title: overview.tournament.teams_total > 0 ? "Review tournament teams" : "Prepare tournament teams",
+            description: overview.tournament.teams_total > 0
+              ? `${overview.tournament.teams_total} team${overview.tournament.teams_total === 1 ? " is" : "s are"} registered for your school.`
+              : "Manage team slots and review submissions when students are ready.",
+            href: "/dashboard/school/teams",
+            icon: <Trophy size={18} />,
+            meta: overview.tournament.teams_total > 0 ? `${overview.tournament.teams_total} teams` : undefined,
+          },
+        ]
+      : [
+          {
+            id: "school-course-progress",
+            title: courses.length > 0 ? "Review course progress" : "Explore course activity",
+            description: courses.length > 0
+              ? `Progress is available for ${courses.length} active course${courses.length === 1 ? "" : "s"}.`
+              : "Course participation will appear here when students enroll.",
+            href: "/dashboard/school/courses",
+            icon: <ClipboardList size={18} />,
+            meta: courses.length > 0 ? `${courses.length} courses` : undefined,
+          },
+          {
+            id: "school-roster",
+            title: "Open your student roster",
+            description: `${overview.people.students} student${overview.people.students === 1 ? "" : "s"} linked to your school.`,
+            href: "/dashboard/school/students",
+            icon: <Users size={18} />,
+          },
+        ]
+    : [];
 
   return (
     <div className={styles.hubContainer}>
@@ -141,6 +188,12 @@ export default function SchoolOverviewPage() {
                   detail="Across your school's results"
                 />
               </div>
+
+              <ActionCenter
+                title="School action center"
+                description="Keep invitations and tournament preparation moving."
+                items={schoolActions}
+              />
 
               {/* ===== Next Event Section (Clean Title, No Bubbles) ===== */}
               <section className={styles.sectionCard}>
@@ -243,6 +296,12 @@ export default function SchoolOverviewPage() {
                   detail="For active enrollments"
                 />
               </div>
+
+              <ActionCenter
+                title="Learning action center"
+                description="Jump to the school learning activity that needs your attention."
+                items={schoolActions}
+              />
 
               {/* ===== Course Participation Section ===== */}
               <section className={styles.sectionCard}>

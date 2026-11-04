@@ -185,9 +185,7 @@ export default function HanbeeCoursesPage() {
                     {course.description || "No course description provided."}
                   </p>
 
-                  <div style={{ display: "flex", alignItems: "center", gap: 12, fontSize: 12, color: "var(--text-muted)", fontFamily: "monospace" }}>
-                    <span>ID: {course.id.slice(0, 8)}…</span>
-                    <span>·</span>
+                  <div style={{ display: "flex", alignItems: "center", gap: 12, fontSize: 12, color: "var(--text-muted)" }}>
                     <span>Created {new Date(course.created_at).toLocaleDateString()}</span>
                   </div>
                 </div>

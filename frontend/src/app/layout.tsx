@@ -3,15 +3,24 @@ import "./globals.css";
 import { RoleProvider } from "./RoleContext";
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"),
   title: "Hanbee — Learn Beyond the Obvious",
   description:
-    "A learning space for curious minds — built to help you gain real skills, achieve your goals, and create a life you're proud of.",
-  keywords: ["learning", "LMS", "education", "courses", "Hanbee", "online learning"],
+    "Write the code. Build the car. Race it for real — Hanbee blends Java, DSA, and React with hands-on RC racing, for students and schools.",
+  keywords: ["learning", "LMS", "education", "courses", "Hanbee", "online learning", "RC racing", "Java", "DSA"],
   openGraph: {
     title: "Hanbee — Learn Beyond the Obvious",
     description:
-      "A learning space for curious minds — built to help you gain real skills, achieve your goals, and create a life you're proud of.",
+      "Write the code. Build the car. Race it for real — Hanbee blends Java, DSA, and React with hands-on RC racing, for students and schools.",
     type: "website",
+    images: [{ url: "/hero-bg.jpg", width: 1200, height: 630, alt: "Hanbee RC racing cars" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Hanbee — Learn Beyond the Obvious",
+    description:
+      "Write the code. Build the car. Race it for real — Hanbee blends Java, DSA, and React with hands-on RC racing, for students and schools.",
+    images: ["/hero-bg.jpg"],
   },
 };
 
