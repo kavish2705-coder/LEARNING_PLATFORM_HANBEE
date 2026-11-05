@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { motion } from "framer-motion";
 import {
   Wrench,
   Radio,
@@ -10,99 +9,120 @@ import {
   Flag,
   CheckCircle2,
   Trophy,
-  Zap,
-  Users2,
-  TrendingUp,
-  ShieldCheck,
 } from "lucide-react";
 import styles from "./RaceDaySchedule.module.css";
 
 interface Phase {
-  time: string;
+  step: string;
   title: string;
   desc: string;
   icon: React.ElementType;
 }
 
 const PHASES: Phase[] = [
-  { time: "08:30", title: "Safety Inspection", desc: "Check-in and car inspection.", icon: Wrench },
-  { time: "09:30", title: "Driver Briefing", desc: "Track walk and driver briefing.", icon: Radio },
-  { time: "10:15", title: "Practice", desc: "Open warm-up sessions.", icon: Gauge },
-  { time: "11:30", title: "Qualifying", desc: "Timed heats under official timing.", icon: Timer },
-  { time: "14:00", title: "Finals", desc: "Championship and placement races.", icon: Flag },
-  { time: "16:00", title: "Verification", desc: "Lap data audit and points update.", icon: CheckCircle2 },
-  { time: "16:45", title: "Podium Ceremony", desc: "Trophies and team awards.", icon: Trophy },
-];
-
-const AWARDS = [
-  { title: "Season Champion", icon: Trophy },
-  { title: "Best Driver", icon: Zap },
-  { title: "Best Teamwork", icon: Users2 },
-  { title: "Most Improved", icon: TrendingUp },
-  { title: "Fair Play", icon: ShieldCheck },
+  { step: "01", title: "Safety Inspection", desc: "Team check-in, car scrutineering, and transponder frequency verification.", icon: Wrench },
+  { step: "02", title: "Driver Briefing", desc: "Track walk, safety flags, track limits, and heat assignment review.", icon: Radio },
+  { step: "03", title: "Practice Session", desc: "Open track warm-up to dial in tire grip, suspension, and trim balance.", icon: Gauge },
+  { step: "04", title: "Qualifying & Heats", desc: "Official timed runs and wheel-to-wheel heats under optical timing gates.", icon: Timer },
+  { step: "05", title: "Finals & Placement", desc: "Main bracket championship finals alongside consolation placement races.", icon: Flag },
+  { step: "06", title: "Official Verification", desc: "Lap data verification, penalty review, and championship points update.", icon: CheckCircle2 },
+  { step: "07", title: "Podium & Awards", desc: "Trophies for Round Winner, Best Driver, Best Teamwork, and Fair Play.", icon: Trophy },
 ];
 
 export default function RaceDaySchedule() {
-  const [activeIdx, setActiveIdx] = useState(0);
+  const [activeIdx, setActiveIdx] = useState<number>(0);
 
   return (
     <div className={styles.wrapper}>
-      <div className={styles.timeline}>
+      {/* Centered Roadmap Timeline */}
+      <div className={styles.roadmapTimeline}>
+        <div className={styles.centerSpineLine} />
+
         {PHASES.map((phase, idx) => {
-          const active = idx === activeIdx;
-          const passed = idx < activeIdx;
+          const isActive = idx === activeIdx;
+          const isPassed = idx < activeIdx;
+          const isEven = idx % 2 === 0;
           const Icon = phase.icon;
 
           return (
-            <button
-              key={idx}
-              onClick={() => setActiveIdx(idx)}
-              className={`${styles.timelineRow} ${active ? styles.timelineRowActive : ""}`}
+            <div
+              key={phase.step}
+              className={`${styles.roadmapRow} ${isEven ? styles.rowEven : styles.rowOdd} ${isActive ? styles.rowActive : ""}`}
             >
-              <span className={styles.timeCol}>{phase.time}</span>
-
-              <div className={styles.lineCol}>
-                <div
-                  className={`${styles.lineSegmentTop} ${idx === 0 ? styles.hidden : ""} ${
-                    passed || active ? styles.lineFilled : ""
-                  }`}
-                />
-                <div className={`${styles.node} ${active ? styles.nodeActive : ""} ${passed ? styles.nodePassed : ""}`} />
-                <div
-                  className={`${styles.lineSegmentBottom} ${idx === PHASES.length - 1 ? styles.hidden : ""} ${
-                    passed ? styles.lineFilled : ""
-                  }`}
-                />
-              </div>
-
-              <div className={styles.contentCol}>
-                <div className={styles.phaseHeader}>
-                  <Icon size={16} className={styles.phaseIcon} />
-                  <h4 className={styles.phaseTitle}>{phase.title}</h4>
-                </div>
-                {active && (
-                  <motion.p
-                    className={styles.phaseDesc}
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: "auto" }}
-                    transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+              {/* Left Column (Card if Even, Meta Pill if Odd) */}
+              <div className={`${styles.sideCol} ${styles.leftCol}`}>
+                {isEven ? (
+                  <button
+                    type="button"
+                    onClick={() => setActiveIdx(idx)}
+                    className={`${styles.phaseCard} ${isActive ? styles.cardActive : ""}`}
                   >
-                    {phase.desc}
-                  </motion.p>
+                    <div className={styles.cardHeader}>
+                      <div className={styles.iconWrap}>
+                        <Icon size={16} />
+                      </div>
+                      <div className={styles.titleWrap}>
+                        <span className={styles.phaseStep}>PHASE {phase.step}</span>
+                        <h4 className={styles.phaseTitle}>{phase.title}</h4>
+                      </div>
+                    </div>
+                    <p className={styles.phaseDesc}>{phase.desc}</p>
+                  </button>
+                ) : (
+                  <div className={styles.metaBadgeWrapRight}>
+                    <span className={styles.metaPhasePill}>PHASE {phase.step}</span>
+                  </div>
                 )}
               </div>
-            </button>
-          );
-        })}
-      </div>
 
-      <div className={styles.awardsRow}>
-        {AWARDS.map((award, i) => {
-          const Icon = award.icon;
-          return (
-            <div key={i} className={styles.awardPill}>
-              <Icon size={14} />
-              <span>{award.title}</span>
+              {/* Center Column: Spine & Central Radar Node */}
+              <div className={styles.centerCol}>
+                <div
+                  className={`${styles.spineSegmentTop} ${idx === 0 ? styles.hidden : ""} ${
+                    isPassed || isActive ? styles.spineFilled : ""
+                  }`}
+                />
+                <button
+                  type="button"
+                  onClick={() => setActiveIdx(idx)}
+                  className={`${styles.centerNode} ${isActive ? styles.nodeActive : ""} ${isPassed ? styles.nodePassed : ""}`}
+                  aria-label={`Select ${phase.title}`}
+                >
+                  {isActive && <span className={styles.nodeRadarPulse} />}
+                  <span className={styles.nodeCore} />
+                </button>
+                <div
+                  className={`${styles.spineSegmentBottom} ${idx === PHASES.length - 1 ? styles.hidden : ""} ${
+                    isPassed ? styles.spineFilled : ""
+                  }`}
+                />
+              </div>
+
+              {/* Right Column (Meta Pill if Even, Card if Odd) */}
+              <div className={`${styles.sideCol} ${styles.rightCol}`}>
+                {isEven ? (
+                  <div className={styles.metaBadgeWrapLeft}>
+                    <span className={styles.metaPhasePill}>PHASE {phase.step}</span>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => setActiveIdx(idx)}
+                    className={`${styles.phaseCard} ${isActive ? styles.cardActive : ""}`}
+                  >
+                    <div className={styles.cardHeader}>
+                      <div className={styles.iconWrap}>
+                        <Icon size={16} />
+                      </div>
+                      <div className={styles.titleWrap}>
+                        <span className={styles.phaseStep}>PHASE {phase.step}</span>
+                        <h4 className={styles.phaseTitle}>{phase.title}</h4>
+                      </div>
+                    </div>
+                    <p className={styles.phaseDesc}>{phase.desc}</p>
+                  </button>
+                )}
+              </div>
             </div>
           );
         })}

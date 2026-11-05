@@ -109,18 +109,6 @@ export default function InteractiveCar() {
               alt="Exploded diagram of Hanbee RC Racer"
               className={styles.carImg}
             />
-            {COMPONENTS.map((comp) => {
-              const active = selected.id === comp.id;
-              return (
-                <button
-                  key={comp.id}
-                  onClick={() => setSelected(comp)}
-                  className={`${styles.hotspot} ${active ? styles.hotspotActive : ""}`}
-                  style={{ left: `${comp.coords.x}%`, top: `${comp.coords.y}%` }}
-                  title={comp.name}
-                />
-              );
-            })}
           </div>
         </div>
 

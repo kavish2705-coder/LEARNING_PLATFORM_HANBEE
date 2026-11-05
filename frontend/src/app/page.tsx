@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useEffect, useState } from "react";
+import Image from "next/image";
 import IndependentStudentModal from "@/components/IndependentStudentModal/IndependentStudentModal";
 import { motion, AnimatePresence } from "framer-motion";
 import Navbar from "@/components/Navbar/Navbar";
@@ -390,30 +391,49 @@ export default function Home() {
 
         <div className={styles.container}>
           <div className={styles.footerMainGrid}>
-            {/* Left: Brand Identity, Mission & Telemetry Status */}
+            {/* Left: Brand Identity & Quick Connect */}
             <div className={styles.footerBrandCol}>
               <div className={styles.footerLogoRow}>
-                <span className={styles.footerLogoName}>HANBEE</span>
-                <span className={styles.footerLogoTag}>F1 RC</span>
+                <Image
+                  src="/brand/hanbee-logo-white.png"
+                  alt="HANBEE"
+                  width={198}
+                  height={18}
+                  className={styles.footerLogoImg}
+                />
               </div>
-              <p className={styles.footerBrandMission}>
-                Inter-school autonomous &amp; RC racing league. Students engineer competition-grade vehicles, code custom firmware, and race under an official zero-elimination championship format.
-              </p>
-
+              <div className={styles.footerSocialRow}>
+                <a
+                  href="https://www.linkedin.com/company/hanbee-india/posts/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={styles.socialIconBtn}
+                  aria-label="Connect on LinkedIn"
+                  title="Connect on LinkedIn"
+                >
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.28 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.75M6.46 10.9v8.37H9.2V10.9H6.46M7.83 6.25c-.95 0-1.72.78-1.72 1.73s.77 1.73 1.72 1.73 1.73-.78 1.73-1.73-.78-1.73-1.73-1.73Z"/>
+                  </svg>
+                </a>
+                <a
+                  href="https://www.instagram.com/hanbee.in?igsh=b2thYzA4Mm05enNk"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={styles.socialIconBtn}
+                  aria-label="Follow on Instagram"
+                  title="Follow on Instagram"
+                >
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/>
+                    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/>
+                    <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/>
+                  </svg>
+                </a>
+              </div>
             </div>
 
             {/* Middle: 3 Structured Navigation Columns */}
             <div className={styles.footerNavGroup}>
-              <div className={styles.footerNavCol}>
-                <span className={styles.footerSectionHeader}>COMPETITION</span>
-                <ul className={styles.footerLinkList}>
-                  <li><a href="#courses" className={styles.footerLink}>6-Month Calendar</a></li>
-                  <li><a href="#machine" className={styles.footerLink}>Car CAD Specs</a></li>
-                  <li><a href="#event-day" className={styles.footerLink}>Track Schedule</a></li>
-                  <li><a href="#about" className={styles.footerLink}>League Regulations</a></li>
-                </ul>
-              </div>
-
               <div className={styles.footerNavCol}>
                 <span className={styles.footerSectionHeader}>PARTICIPATE</span>
                 <ul className={styles.footerLinkList}>
@@ -430,23 +450,42 @@ export default function Home() {
                   <li><a href="/login" className={styles.footerLink}>Student Portal</a></li>
                   <li><a href="/login" className={styles.footerLink}>Faculty Dashboard</a></li>
                   <li><a href="/login" className={styles.footerLink}>Course Modules</a></li>
-                  <li><a href="/login" className={styles.footerLink}>Tournament Telemetry</a></li>
                 </ul>
               </div>
-            </div>
 
-            {/* Right: Futuristic Paddock Action Card */}
-            <div className={styles.footerActionCard}>
-              <div className={styles.actionCardGlow} />
-              <span className={styles.actionCardEyebrow}>SEASON 1 ENTRANCE</span>
-              <strong className={styles.actionCardHeading}>Take Your Place on the Grid.</strong>
-              <p className={styles.actionCardDesc}>
-                Open to school squads and solo student racers. Hardware kit &amp; flight controller curriculum included.
-              </p>
-              <a href="/login?mode=signup" className={styles.actionCardBtn}>
-                <span>Enter The League</span>
-                <ArrowRight size={14} />
-              </a>
+              <div className={styles.footerNavCol}>
+                <span className={styles.footerSectionHeader}>CONNECT WITH US</span>
+                <ul className={styles.footerLinkList}>
+                  <li>
+                    <a
+                      href="https://www.linkedin.com/company/hanbee-india/posts/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={styles.footerSocialLink}
+                    >
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.28 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.75M6.46 10.9v8.37H9.2V10.9H6.46M7.83 6.25c-.95 0-1.72.78-1.72 1.73s.77 1.73 1.72 1.73 1.73-.78 1.73-1.73-.78-1.73-1.73-1.73Z"/>
+                      </svg>
+                      <span>LinkedIn</span>
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href="https://www.instagram.com/hanbee.in?igsh=b2thYzA4Mm05enNk"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={styles.footerSocialLink}
+                    >
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/>
+                        <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/>
+                        <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/>
+                      </svg>
+                      <span>Instagram</span>
+                    </a>
+                  </li>
+                </ul>
+              </div>
             </div>
           </div>
 
@@ -458,22 +497,6 @@ export default function Home() {
               </span>
             </div>
 
-            <div className={styles.bottomCenter}>
-              <span className={styles.telemetryTag}>
-                10 SCHOOLS &middot; 20 TEAMS &middot; 100 RACERS &middot; 0 ELIMINATIONS
-              </span>
-            </div>
-
-            <div className={styles.bottomRight}>
-              <button 
-                onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })} 
-                className={styles.backToTopBtn}
-                title="Scroll back to top"
-              >
-                <span>PIT WALL</span>
-                <ChevronUp size={14} />
-              </button>
-            </div>
           </div>
         </div>
       </footer>

@@ -1,196 +1,406 @@
 .wrapper {
   display: flex;
   flex-direction: column;
-  gap: 32px;
+  gap: 40px;
   width: 100%;
 }
 
-/* Vertical timeline */
-.timeline {
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-  max-width: 640px;
+/* Centered Roadmap Container */
+.roadmapTimeline {
+  position: relative;
+  max-width: 900px;
   margin: 0 auto;
   width: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
-.timelineRow {
+/* Central Continuous Spine Line */
+.centerSpineLine {
+  position: absolute;
+  top: 18px;
+  bottom: 18px;
+  left: 50%;
+  width: 2px;
+  transform: translateX(-50%);
+  background: linear-gradient(
+    180deg,
+    rgba(229, 138, 43, 0.4) 0%,
+    rgba(255, 255, 255, 0.08) 50%,
+    rgba(229, 138, 43, 0.4) 100%
+  );
+  z-index: 0;
+}
+
+/* Individual Roadmap Row (3-column: Left Card/Meta | Center Node | Right Meta/Card) */
+.roadmapRow {
   display: grid;
-  grid-template-columns: 56px 24px 1fr;
-  gap: 0 16px;
+  grid-template-columns: 1fr 64px 1fr;
   align-items: center;
-  background: transparent;
-  border: none;
-  padding: 0;
-  cursor: pointer;
-  text-align: left;
-  min-height: 56px;
-  transition: all 0.2s ease;
+  position: relative;
+  min-height: 104px;
+  padding: 10px 0;
+  z-index: 1;
 }
 
-.timelineRow:hover .phaseTitle {
-  color: #fff;
+.sideCol {
+  display: flex;
+  width: 100%;
 }
 
-.timelineRowActive {
-  min-height: 72px;
+.leftCol {
+  justify-content: flex-end;
+  padding-right: 20px;
 }
 
-/* Time column */
-.timeCol {
-  font-family: var(--font-mono);
-  font-size: 13px;
-  font-weight: 600;
-  color: rgba(255, 255, 255, 0.35);
-  text-align: right;
-  padding-right: 4px;
-  transition: color 0.2s ease;
+.rightCol {
+  justify-content: flex-start;
+  padding-left: 20px;
 }
 
-.timelineRowActive .timeCol {
-  color: var(--landing-accent);
-}
-
-/* Line column */
-.lineCol {
+/* Center Column: Node + Segment lines */
+.centerCol {
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   align-self: stretch;
   position: relative;
+  z-index: 2;
 }
 
-.lineSegmentTop,
-.lineSegmentBottom {
+.spineSegmentTop,
+.spineSegmentBottom {
   flex: 1;
   width: 2px;
   background: rgba(255, 255, 255, 0.08);
   transition: background 0.3s ease;
 }
 
-.lineFilled {
-  background: rgba(229, 138, 43, 0.4);
+.spineFilled {
+  background: rgba(229, 138, 43, 0.5);
 }
 
 .hidden {
   visibility: hidden;
 }
 
-.node {
+/* Center Node Button */
+.centerNode {
+  position: relative;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #090b10;
+  border: 2px solid rgba(255, 255, 255, 0.22);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+  transition: all 0.25s ease;
+  flex-shrink: 0;
+}
+
+.nodeCore {
   width: 10px;
   height: 10px;
   border-radius: 50%;
-  border: 2px solid rgba(255, 255, 255, 0.2);
-  background: transparent;
-  flex-shrink: 0;
-  transition: all 0.2s ease;
-  z-index: 1;
+  background: rgba(255, 255, 255, 0.3);
+  transition: all 0.25s ease;
+}
+
+.centerNode:hover {
+  border-color: var(--landing-accent);
+  transform: scale(1.15);
+}
+
+.centerNode:hover .nodeCore {
+  background: var(--landing-accent);
 }
 
 .nodeActive {
   border-color: var(--landing-accent);
+  background: #0e1017;
+  box-shadow: 0 0 16px rgba(229, 138, 43, 0.5);
+}
+
+.nodeActive .nodeCore {
   background: var(--landing-accent);
-  box-shadow: 0 0 10px rgba(229, 138, 43, 0.4);
+  box-shadow: 0 0 8px #ff9d2b;
 }
 
 .nodePassed {
   border-color: rgba(229, 138, 43, 0.5);
+}
+
+.nodePassed .nodeCore {
   background: rgba(229, 138, 43, 0.5);
 }
 
-/* Content column */
-.contentCol {
+.nodeRadarPulse {
+  position: absolute;
+  inset: -6px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(229, 138, 43, 0.5);
+  animation: radarPulse 2.2s cubic-bezier(0, 0.2, 0.8, 1) infinite;
+  pointer-events: none;
+}
+
+@keyframes radarPulse {
+  0% { transform: scale(0.8); opacity: 1; }
+  100% { transform: scale(2.2); opacity: 0; }
+}
+
+/* Phase Card: Sleek Translucent Glass Card */
+.phaseCard {
+  width: 100%;
+  max-width: 380px;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.05) 0%,
+    rgba(255, 255, 255, 0.015) 100%
+  ), rgba(14, 16, 24, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  padding: 16px 20px;
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  padding: 12px 0;
+  gap: 8px;
+  cursor: pointer;
+  text-align: left;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  transition: all 0.25s ease;
+  box-shadow: 0 8px 24px -4px rgba(0, 0, 0, 0.35);
 }
 
-.phaseHeader {
+.phaseCard:hover {
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.08) 0%,
+    rgba(255, 255, 255, 0.03) 100%
+  ), rgba(16, 18, 28, 0.85);
+  border-color: rgba(255, 255, 255, 0.16);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 32px -4px rgba(0, 0, 0, 0.5);
+}
+
+.cardActive {
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.09) 0%,
+    rgba(229, 138, 43, 0.04) 50%,
+    rgba(14, 16, 24, 0.85) 100%
+  );
+  border-color: rgba(229, 138, 43, 0.45);
+  box-shadow:
+    0 12px 32px -4px rgba(0, 0, 0, 0.6),
+    0 0 20px rgba(229, 138, 43, 0.15),
+    inset 0 1px 1px rgba(255, 255, 255, 0.2);
+}
+
+.cardHeader {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
 }
 
-.phaseIcon {
-  color: rgba(255, 255, 255, 0.3);
+.iconWrap {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, 0.45);
   flex-shrink: 0;
-  transition: color 0.2s ease;
+  transition: all 0.2s ease;
 }
 
-.timelineRowActive .phaseIcon {
+.cardActive .iconWrap,
+.phaseCard:hover .iconWrap {
   color: var(--landing-accent);
+  border-color: rgba(229, 138, 43, 0.35);
+  background: rgba(229, 138, 43, 0.1);
+}
+
+.titleWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.stepRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.phaseStep {
+  font-family: var(--font-heading);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  color: var(--landing-accent);
+  text-transform: uppercase;
+}
+
+.mobileTimeTag {
+  display: none;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.45);
 }
 
 .phaseTitle {
   font-family: var(--font-heading);
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.7);
+  color: rgba(255, 255, 255, 0.85);
   margin: 0;
+  line-height: 1.25;
   transition: color 0.2s ease;
 }
 
-.timelineRowActive .phaseTitle {
-  color: #fff;
+.cardActive .phaseTitle,
+.phaseCard:hover .phaseTitle {
+  color: #ffffff;
 }
 
 .phaseDesc {
   font-family: var(--font-body);
-  font-size: 14px;
-  color: rgba(255, 255, 255, 0.5);
-  margin: 0;
-  padding-left: 26px;
-  line-height: 1.5;
-  overflow: hidden;
-}
-
-/* Awards row */
-.awardsRow {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  justify-content: center;
-}
-
-.awardPill {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 14px;
-  border-radius: 20px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  font-family: var(--font-heading);
-  font-size: 12px;
-  font-weight: 500;
+  font-size: 13px;
   color: rgba(255, 255, 255, 0.6);
-  transition: all 0.2s ease;
+  margin: 0;
+  line-height: 1.5;
 }
 
-.awardPill svg {
+/* Opposite-Side Meta Badges */
+.metaBadgeWrapRight {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 3px;
+  padding-right: 12px;
+}
+
+.metaBadgeWrapLeft {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
+  padding-left: 12px;
+}
+
+.metaTime {
+  font-family: var(--font-mono);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.metaStep {
+  font-family: var(--font-heading);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: rgba(255, 255, 255, 0.35);
+  text-transform: uppercase;
+}
+
+.rowActive .metaTime {
   color: var(--landing-accent);
 }
 
-.awardPill:hover {
-  background: rgba(255, 255, 255, 0.06);
-  border-color: rgba(229, 138, 43, 0.3);
-  color: #fff;
+.rowActive .metaStep {
+  color: rgba(229, 138, 43, 0.65);
 }
 
-/* Responsive */
-@media (max-width: 480px) {
-  .timelineRow {
-    grid-template-columns: 44px 20px 1fr;
-    gap: 0 10px;
+/* Responsive / Mobile Breakdown */
+@media (max-width: 768px) {
+  .centerSpineLine {
+    left: 20px;
+    transform: none;
   }
 
-  .timeCol {
-    font-size: 11px;
+  .roadmapRow {
+    grid-template-columns: 40px 1fr;
+    gap: 0;
+    min-height: auto;
+    padding: 12px 0;
   }
 
-  .phaseTitle {
-    font-size: 14px;
+  .centerCol {
+    grid-column: 1;
+    align-items: center;
   }
+
+  .leftCol,
+  .rightCol {
+    padding: 0 0 0 16px;
+    justify-content: flex-start;
+  }
+
+  /* On mobile, only render the card */
+  .rowEven .leftCol {
+    grid-column: 2;
+    order: 2;
+  }
+
+  .rowEven .rightCol {
+    display: none;
+  }
+
+  .rowOdd .leftCol {
+    display: none;
+  }
+
+  .rowOdd .rightCol {
+    grid-column: 2;
+    order: 2;
+  }
+
+  .mobileTimeTag {
+    display: inline-block;
+  }
+
+  .phaseCard {
+    max-width: 100%;
+  }
+
+  .centerNode {
+    width: 24px;
+    height: 24px;
+  }
+
+  .nodeCore {
+    width: 8px;
+    height: 8px;
+  }
+}
+
+.metaPhasePill {
+  font-family: var(--font-heading);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.45);
+  padding: 6px 14px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  transition: all 0.25s ease;
+  white-space: nowrap;
+}
+
+.rowActive .metaPhasePill {
+  color: var(--landing-accent);
+  background: rgba(229, 138, 43, 0.1);
+  border-color: rgba(229, 138, 43, 0.35);
+  box-shadow: 0 0 16px rgba(229, 138, 43, 0.2);
 }

@@ -9,7 +9,7 @@
 .container {
   max-width: 1240px;
   margin: 0 auto;
-  padding: 0 32px;
+  padding: 0 48px;
   position: relative;
   z-index: 2;
 }
@@ -634,8 +634,9 @@
 }
 
 .footerMainGrid {
-  display: grid;
-  grid-template-columns: 1.4fr 2fr 1.2fr;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
   gap: 48px;
   padding-bottom: 48px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.07);
@@ -685,7 +686,7 @@
 .footerNavGroup {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 24px;
+  gap: 32px;
 }
 
 .footerNavCol {
@@ -809,11 +810,12 @@
 /* Bottom Bar */
 .footerBottomBar {
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
   flex-wrap: wrap;
   gap: 16px;
   padding-top: 28px;
+  text-align: center;
 }
 
 .copyrightText {
@@ -858,7 +860,7 @@
     gap: 36px;
   }
   .footerNavGroup {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(3, 1fr);
   }
 }
 
@@ -961,4 +963,56 @@
   letter-spacing: 0.12em;
   color: #ffffff;
   text-transform: uppercase;
+}
+
+.footerLogoImg {
+  height: 18px;
+  width: auto;
+  display: block;
+  object-fit: contain;
+}
+
+.footerSocialRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.socialIconBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.65);
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.socialIconBtn:hover {
+  background: rgba(229, 138, 43, 0.12);
+  border-color: rgba(229, 138, 43, 0.4);
+  color: var(--landing-accent);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(229, 138, 43, 0.2);
+}
+
+.footerSocialLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-body);
+  font-size: 13.5px;
+  color: rgba(255, 255, 255, 0.68);
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.footerSocialLink:hover {
+  color: var(--landing-accent);
+  transform: translateX(2px);
 }

@@ -16,7 +16,6 @@ interface RoundInfo {
   monthNum: number;
   name: string;
   format: string;
-  points: string;
   icon: React.ElementType;
 }
 
@@ -25,42 +24,36 @@ const SEASON_ROUNDS: RoundInfo[] = [
     monthNum: 1,
     name: "Speed Race",
     format: "5-lap wheel-to-wheel sprint. First across the line wins.",
-    points: "1st: 25 · 2nd: 18 · 3rd: 15",
     icon: Gauge,
   },
   {
     monthNum: 2,
     name: "Time Trial",
     format: "3 solo laps against the clock. Fastest clean lap counts.",
-    points: "Fastest lap wins 25 pts",
     icon: Timer,
   },
   {
     monthNum: 3,
     name: "Obstacle Challenge",
     format: "Technical course with gates and chicanes. Best of two runs.",
-    points: "Best clean run earns 25 pts",
     icon: Compass,
   },
   {
     monthNum: 4,
     name: "Endurance Race",
     format: "10-minute non-stop race. Most completed laps wins.",
-    points: "Most laps earns 25 pts",
     icon: BatteryCharging,
   },
   {
     monthNum: 5,
     name: "Knockout Challenge",
     format: "Head-to-head bracket duels. Best of 3 heats per matchup.",
-    points: "Bracket winner earns 25 pts",
     icon: Swords,
   },
   {
     monthNum: 6,
     name: "Grand Championship",
     format: "Top 8 race for the title. Everyone else races placement finals.",
-    points: "Season total decides the Champion",
     icon: Trophy,
   },
 ];
@@ -132,10 +125,6 @@ export default function SeasonLeague() {
               <p className={styles.roundFormat}>{current.format}</p>
             </div>
 
-            <div className={styles.pointsBadge}>
-              <span className={styles.pointsLabel}>Points</span>
-              <span className={styles.pointsValue}>{current.points}</span>
-            </div>
           </motion.div>
         </AnimatePresence>
       </div>
