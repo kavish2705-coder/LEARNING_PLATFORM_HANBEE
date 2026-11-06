@@ -28,9 +28,9 @@ jobs:
           npm ci --prefix supabase/tests
           npm install --prefix supabase --no-save --package-lock=false
 
-      - name: Start a fresh local Supabase stack and apply migrations
+      - name: Start local Supabase without the unused email server and apply migrations
         run: |
-          supabase start
+          supabase start --exclude mailpit
           supabase db reset --local
 
       - name: Configure local database connection
