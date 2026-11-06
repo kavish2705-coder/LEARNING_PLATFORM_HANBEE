@@ -64,6 +64,9 @@ Never commit the URL. Use the session pooler (the direct host is IPv6 only). Enc
 | `0026_chat_v2.mjs` | Who may message whom (27 allowed and 27 refused pairs), school groups, add/remove rules, unread counts, rate limit, forged system messages |
 | `0027_tournaments_teams_applications.mjs` | Tournament visibility, teams, payment claims can never be client-set, leaderboard, course applications and enrollment; tournament create/update with optional entry fees, including calls that omit them; solo-entry access and license gates |
 | `0039_team_formation.mjs` | School team slots, configurable team size, tournament-access and active-license gates, student captains and invitations, same-school membership, proposal/return/approval flow, team chat synchronization, and role-scoped statistics (60 assertions) |
+| `0093_pool_team_formation.mjs` | Independent pool teams, solo entries, invitations, school-team compatibility, and team chat; fixtures include required tournament and license entitlements |
+| `0094_pool_join_requests.mjs` | Pool join requests, captain decisions, capacity and duplicate protections, and entitlement enforcement |
+| `0096_pool_queue_labeling.mjs` | Labels school vs independent entries and rejection notifications; fixtures include required tournament and license entitlements |
 | `0036_reviews_certificates.mjs` | Lesson reviews and certificates lists: who may see which |
 | `0037_backend_hardening.mjs` | Join link rotation, append-only audit log, masked certificate name, chat history and profile limits, flood caps |
 | `0029_overviews_status_solo.mjs` | Dashboard data functions and who may call them, suspend/close/revoke, solo conversion, joining a new school |

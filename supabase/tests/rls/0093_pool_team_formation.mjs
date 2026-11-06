@@ -37,6 +37,12 @@ const pk4 = await mkIndependent("pk4@x.test","PK Four");
 const pk5 = await mkIndependent("pk5@x.test","PK Five");
 
 await asOwner();
+const eligiblePoolStudents = [pk1,pk2,pk3,pk4,pk5];
+await c.query("update profiles set tournament_access='active' where id = any($1::uuid[])",[eligiblePoolStudents]);
+await c.query(
+  "insert into driver_licenses (student_id,status,amount,payment_declared) select unnest($1::uuid[]),'active',1,true",
+  [eligiblePoolStudents],
+);
 const poolTour = (await one("insert into tournaments (title,status,starts_at,ends_at,venue) values ('Pool93 Cup','upcoming',now()+interval '30 days',now()+interval '31 days','Arena') returning id")).id;
 const schoolTour = (await one("insert into tournaments (title,status,starts_at,ends_at,venue,team_size) values ('School93 Cup','upcoming',now()+interval '30 days',now()+interval '31 days','Arena',2) returning id")).id;
 
@@ -104,6 +110,13 @@ await asOwner();
 const tokA = (await one("select join_token t from organizations where id=$1",[orgA])).t;
 const S1 = await signup("s1-93@x.test",{join_token:tokA, full_name:"School Stu1"});
 const S2 = await signup("s2-93@x.test",{join_token:tokA, full_name:"School Stu2"});
+await asOwner();
+const eligibleSchoolStudents = [S1,S2];
+await c.query("update profiles set tournament_access='active' where id = any($1::uuid[])",[eligibleSchoolStudents]);
+await c.query(
+  "insert into driver_licenses (student_id,status,amount,payment_declared) select unnest($1::uuid[]),'active',1,true",
+  [eligibleSchoolStudents],
+);
 await asUser(ownerA); await c.query("select set_team_slots($1,$2,2)",[schoolTour,orgA]);
 
 await asUser(S1);
