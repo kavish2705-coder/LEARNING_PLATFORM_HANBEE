@@ -2,7 +2,7 @@
 
 **Review date:** 2026-11-04
 **Review type:** Read-only source review
-**Status:** One actionable finding; production and provider checks remain outstanding.
+**Status:** The actionable source finding has a remediation migration and regression test; runtime verification and production/provider checks remain outstanding.
 
 ## Findings
 
@@ -90,3 +90,29 @@ dependencies or claim that the vulnerable code paths are reachable.
 
 No application-code, API, or schema changes were made as part of this review.
 No breaking changes were introduced.
+
+## Follow-up — 2026-11-06 dependency audit
+
+The production dependency audit reproduced the four advisories recorded above.
+`npm audit fix` updated Next.js to 15.5.29, sharp to 0.35.5, and
+source-map-js to 1.2.2. A root npm override pins the transitive PostCSS
+dependency to 8.5.32, avoiding the breaking Next.js 16 upgrade suggested by
+`npm audit fix --force`. A subsequent full `npm audit` reported zero
+vulnerabilities. The frontend production build and TypeScript check passed.
+
+This was a dependency remediation and targeted validation, not a complete
+repository-wide security re-review. The security-review agent reported no
+vulnerabilities in the changes it reviewed, but did not return repository-wide
+findings. The previously documented medium-severity tournament team entitlement
+finding has a source remediation in
+[`supabase/migrations/0125_team_join_entitlements.sql`](./supabase/migrations/0125_team_join_entitlements.sql).
+The migration gates new join requests, captain acceptance against the
+requester's entitlements, and invitation acceptance against the invitee's
+entitlements. A focused regression suite was added at
+[`supabase/tests/rls/0125_team_join_entitlements.mjs`](./supabase/tests/rls/0125_team_join_entitlements.mjs),
+but it could not be executed because Supabase CLI and Docker are unavailable.
+Treat this finding as **patched in source, runtime verification pending**;
+production migration state was not checked. No staging-only B data or
+local-only dummy data was treated as a production exposure. Production
+configuration, secrets, and deployed database policies remain outside this
+check.
