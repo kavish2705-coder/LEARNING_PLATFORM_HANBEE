@@ -194,7 +194,7 @@ export default function Home() {
       </section>
 
       {/* SECTION 1: The Six-Month Competition Plan */}
-      <section className={styles.sectionDark} id="courses">
+      <section className={styles.sectionDark} id="how-it-works"><span id="courses" />
         <div className={styles.container}>
           <motion.div
             className={styles.sectionHeader}
