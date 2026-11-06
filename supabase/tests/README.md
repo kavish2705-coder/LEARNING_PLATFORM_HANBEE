@@ -9,6 +9,11 @@ checked-in migration, seeds the demo course and the identities required by the
 RLS suites, then runs each suite. To reproduce that workflow locally, install
 Docker and the Supabase CLI, then from the repository root run:
 
+Schema coverage requires RLS on every public table. Tables used only by
+server-side service-role integrations (AI usage, UPI payment processing, and
+tournament race recording) are expected to have no policies; coverage checks
+that these tables exist and remain policy-free.
+
 ```powershell
 npm ci --prefix supabase/tests
 npm install --prefix supabase --no-save --package-lock=false

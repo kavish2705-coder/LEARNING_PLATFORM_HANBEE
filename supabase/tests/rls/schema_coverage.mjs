@@ -4,6 +4,10 @@ const intentionallyPrivateTables = new Set([
   "ai_chat_minute_usage",
   "ai_chat_usage",
   "ai_daily_capacity",
+  // UPI tables are accessed only by the server-side service-role integration.
+  "upi_alerts",
+  "upi_payments",
+  "upi_sync",
   // tournament_races/results/laps: written and read only through the
   // SECURITY DEFINER RPCs in 0086 (record_tournament_race_result,
   // list_tournament_race_results, get_student_leaderboard) -- all direct
@@ -35,7 +39,11 @@ try {
     );
     if (!table.rls_enabled) {
       failures.push(`${table.table_name} has RLS disabled`);
-    } else if (table.policy_count === 0 && !intentionallyPrivateTables.has(table.table_name)) {
+    } else if (intentionallyPrivateTables.has(table.table_name)) {
+      if (table.policy_count !== 0) {
+        failures.push(`${table.table_name} is intended to have no policies but has ${table.policy_count}`);
+      }
+    } else if (table.policy_count === 0) {
       failures.push(`${table.table_name} has RLS enabled but no policies`);
     }
   }
@@ -50,7 +58,7 @@ try {
     throw new Error(`Schema access coverage failed:\n- ${failures.join("\n- ")}`);
   }
 
-  console.log(`PASS: ${rows.length} public tables have RLS and policy coverage.`);
+  console.log(`PASS: ${rows.length} public tables have RLS and access-control coverage.`);
 } finally {
   await db.end();
 }
