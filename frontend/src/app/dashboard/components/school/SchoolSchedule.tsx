@@ -99,7 +99,7 @@ export default function SchoolSchedule() {
   }
 
   return <div>{dialog}
-    <div className={styles.pageHeader}><div className={styles.metricLabel}>SCHOOL PORTAL</div><h1 className={styles.pageTitle}>School Schedule</h1><p className={styles.pageSubtitle}>Plan school events and see your personal calendar together</p></div>
+    <div className={styles.pageHeader}><div className={styles.metricLabel}>School portal</div><h1 className={styles.pageTitle}>School Schedule</h1><p className={styles.pageSubtitle}>Plan school events and see your personal calendar together</p></div>
     {error && <p role="alert" style={{ marginBottom: 12 }}>{error}</p>}{notice && <p role="status" style={{ marginBottom: 12 }}>{notice}</p>}
     <form className={styles.sectionCard} onSubmit={createEvent} style={{ marginBottom: 20 }}>
       <h2 className={styles.sectionTitle}>Add an event</h2>

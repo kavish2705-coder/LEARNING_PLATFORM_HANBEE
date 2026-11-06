@@ -65,7 +65,7 @@ export default function QualifyingQuiz({ onDone }: { onDone: () => void }) {
     return (
       <div className={`${styles.card} ${styles.quizIntro}`}>
         <div className={styles.quizIcon}><Gauge size={25} /></div>
-        <span className={styles.statusBadge}>Course access · Step 1 of 2</span>
+        <span className={styles.statusBadge}>First of two steps for course access</span>
         <h2 className={styles.title}>A quick check-in before we begin</h2>
         <p className={styles.body}>
           This one-time quiz helps our team understand where to start when we call you. Your score stays private;

@@ -50,7 +50,7 @@ export default function InitialPlanGate({ children }: { children: ReactNode }) {
             onClick={() => void choose("tournament")}
             style={{ border: "var(--border-subtle)", borderRadius: 12, padding: 20, background: "transparent", color: "inherit", cursor: "pointer", textAlign: "left" }}
           >
-            <Trophy size={22} style={{ marginBottom: 10, color: "var(--color-accent, #0891b2)" }} />
+            <Trophy size={22} style={{ marginBottom: 10, color: "var(--color-primary)" }} />
             <div style={{ fontWeight: 600, marginBottom: 6 }}>RC Tournament</div>
             <div style={{ fontSize: 13, color: "var(--text-muted)" }}>Driver License + per-tournament entry fees, as usual.</div>
             {busy === "tournament" && <div style={{ marginTop: 10, fontSize: 12 }}>Setting this up…</div>}
@@ -61,7 +61,7 @@ export default function InitialPlanGate({ children }: { children: ReactNode }) {
             onClick={() => void choose("course")}
             style={{ border: "var(--border-subtle)", borderRadius: 12, padding: 20, background: "transparent", color: "inherit", cursor: "pointer", textAlign: "left" }}
           >
-            <BookOpen size={22} style={{ marginBottom: 10, color: "var(--color-accent, #0891b2)" }} />
+            <BookOpen size={22} style={{ marginBottom: 10, color: "var(--color-primary)" }} />
             <div style={{ fontWeight: 600, marginBottom: 6 }}>Course only</div>
             <div style={{ fontSize: 13, color: "var(--text-muted)" }}>A short qualifying quiz, then our team confirms the price with a call.</div>
             {busy === "course" && <div style={{ marginTop: 10, fontSize: 12 }}>Setting this up…</div>}

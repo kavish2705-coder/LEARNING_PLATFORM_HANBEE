@@ -50,7 +50,7 @@
   background: var(--bg-surface-elevated);
   color: var(--text-main);
   text-decoration: none;
-  transition: background-color 160ms ease, border-color 160ms ease, transform 160ms ease;
+  transition: background-color var(--motion-fast-duration) var(--motion-fast-ease), border-color var(--motion-fast-duration) var(--motion-fast-ease), transform var(--motion-fast-duration) var(--motion-fast-ease);
 }
 
 .action:hover {
@@ -85,13 +85,23 @@
   gap: 3px;
 }
 
+.actionTitleRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 8px;
+}
+
 .actionTitle {
+  display: -webkit-box;
   overflow: hidden;
   color: var(--text-main);
-  font-size: 14px;
-  font-weight: 650;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  font-size: 14.5px;
+  font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
 }
 
 .actionDescription {
@@ -144,6 +154,21 @@
   }
 }
 
+.actionReveal {
+  animation: actionReveal var(--motion-moment-duration) var(--motion-moment-ease) both;
+}
+
+@keyframes actionReveal {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .action {
     transition: none;
@@ -151,5 +176,9 @@
 
   .action:hover {
     transform: none;
+  }
+
+  .actionReveal {
+    animation: none;
   }
 }

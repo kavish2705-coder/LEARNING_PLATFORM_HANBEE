@@ -60,9 +60,9 @@ export default function JoinSchoolPage() {
           Use the email address your school invited — the link only works for that exact address.
         </p>
 
-        {error && <p role="alert" style={{ color: "#ef4444", marginTop: 12 }}>{error}</p>}
+        {error && <p role="alert" style={{ color: "var(--color-danger)", marginTop: 12 }}>{error}</p>}
         {message && (
-          <p role="status" style={{ display: "flex", alignItems: "center", gap: 8, color: "#10b981", marginTop: 12 }}>
+          <p role="status" style={{ display: "flex", alignItems: "center", gap: 8, color: "var(--color-success)", marginTop: 12 }}>
             <CheckCircle2 size={16} /> {message}
           </p>
         )}

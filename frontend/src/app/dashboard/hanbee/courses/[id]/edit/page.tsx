@@ -250,7 +250,7 @@ export default function EditCoursePage() {
     <div>
       {dialog}
       <div className={styles.pageHeader}>
-        <Link href="/dashboard/hanbee/courses" style={{ color: "var(--text-muted)", fontSize: 13 }}>← All courses</Link>
+        <Link href="/dashboard/hanbee/courses" style={{ color: "var(--text-muted)", fontSize: 13 }}>Back to all courses</Link>
         <h1 className={styles.pageTitle}>{course.title}</h1>
         <p className={styles.pageSubtitle}>Add modules and lessons. Published lessons are visible to enrolled students.</p>
       </div>

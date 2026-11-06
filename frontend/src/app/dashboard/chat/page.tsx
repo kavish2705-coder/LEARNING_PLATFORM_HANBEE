@@ -3,12 +3,19 @@
 import { useEffect, useRef, useState } from "react";
 import { useQuery, useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import styles from "./chat.module.css";
-import { Send, Search, ChevronLeft, User, Users, Inbox, Plus } from "lucide-react";
+import { Send, Search, ChevronLeft, User, Users, Inbox, Plus, Settings, Crown, UserMinus, LogOut, Trash2, Pencil, Check, X } from "lucide-react";
 import {
   createGroupConversation,
   fetchChatContacts,
   fetchChatConversations,
+  fetchChatMembers,
   fetchChatMessages,
+  addChatMember,
+  removeChatMember,
+  setChatMemberRole,
+  renameGroupConversation,
+  deleteGroupConversation,
+  leaveGroupConversation,
   markChatRead,
   sendChatMessage,
   startDirectConversation,
@@ -179,6 +186,75 @@ export default function ChatPage() {
     setNewGroupMemberIds((current) => current.includes(userId) ? current.filter((id) => id !== userId) : [...current, userId]);
   }
 
+  // ----- Group info panel: rename, members, roles, leave, delete -----
+  const [groupInfoOpen, setGroupInfoOpen] = useState(false);
+  const [renaming, setRenaming] = useState(false);
+  const [renameValue, setRenameValue] = useState("");
+  const [renameError, setRenameError] = useState("");
+  const [groupActionError, setGroupActionError] = useState("");
+  const [addMemberId, setAddMemberId] = useState("");
+  const [confirmDelete, setConfirmDelete] = useState(false);
+
+  const membersQuery = useQuery({
+    queryKey: ["chat-members", activeConversationId],
+    queryFn: () => fetchChatMembers(activeConversationId),
+    enabled: groupInfoOpen && Boolean(activeConversationId),
+  });
+  const members = membersQuery.data ?? [];
+  const canManageGroup = members.some((m) => m.can_add);
+  const memberIds = new Set(members.map((m) => m.user_id));
+
+  function invalidateGroup() {
+    queryClient.invalidateQueries({ queryKey: ["chat-members", activeConversationId] });
+    queryClient.invalidateQueries({ queryKey: ["chat-conversations"] });
+    queryClient.invalidateQueries({ queryKey: ["chat-messages", activeConversationId] });
+  }
+
+  const renameGroup = useMutation({
+    mutationFn: (title: string) => renameGroupConversation(activeConversationId, title),
+    onSuccess: () => { setRenaming(false); setRenameError(""); invalidateGroup(); },
+    onError: (reason) => setRenameError(reason instanceof Error ? reason.message : "We couldn't rename this group."),
+  });
+
+  const addMember = useMutation({
+    mutationFn: (userId: string) => addChatMember(activeConversationId, userId),
+    onSuccess: () => { setAddMemberId(""); setGroupActionError(""); invalidateGroup(); },
+    onError: (reason) => setGroupActionError(reason instanceof Error ? reason.message : "We couldn't add that person."),
+  });
+
+  const removeMember = useMutation({
+    mutationFn: (userId: string) => removeChatMember(activeConversationId, userId),
+    onSuccess: () => { setGroupActionError(""); invalidateGroup(); },
+    onError: (reason) => setGroupActionError(reason instanceof Error ? reason.message : "We couldn't remove that person."),
+  });
+
+  const toggleAdmin = useMutation({
+    mutationFn: ({ userId, role }: { userId: string; role: "admin" | "member" }) => setChatMemberRole(activeConversationId, userId, role),
+    onSuccess: () => { setGroupActionError(""); invalidateGroup(); },
+    onError: (reason) => setGroupActionError(reason instanceof Error ? reason.message : "We couldn't update that person's role."),
+  });
+
+  const leaveGroup = useMutation({
+    mutationFn: () => leaveGroupConversation(activeConversationId),
+    onSuccess: async () => {
+      setGroupInfoOpen(false);
+      setActiveConversationId("");
+      await queryClient.invalidateQueries({ queryKey: ["chat-conversations"] });
+    },
+    onError: (reason) => setGroupActionError(reason instanceof Error ? reason.message : "We couldn't leave this group."),
+  });
+
+  const deleteGroup = useMutation({
+    mutationFn: () => deleteGroupConversation(activeConversationId),
+    onSuccess: async () => {
+      setGroupInfoOpen(false);
+      setConfirmDelete(false);
+      setActiveConversationId("");
+      await queryClient.invalidateQueries({ queryKey: ["chat-conversations"] });
+    },
+    onError: (reason) => setGroupActionError(reason instanceof Error ? reason.message : "We couldn't delete this group."),
+  });
+
   const sendMessage = useMutation({
     mutationFn: (body: string) => sendChatMessage(activeConversationId, body),
     onSuccess: () => {
@@ -223,7 +299,9 @@ export default function ChatPage() {
   const contactList = (contacts ?? []).filter((contact) => !isAiEntity(contact.full_name, contact.user_id, contact.role));
   const activeConversation = conversationList.find((c) => c.id === activeConversationId);
   const activeContact = contactList.find((c) => c.user_id === activeConversation?.other_user_id);
-  
+  const canDeleteGroup = canManageGroup && activeConversation?.org_id == null;
+  const addableContacts = contactList.filter((c) => !memberIds.has(c.user_id));
+
   const title = activeConversation?.kind === "direct"
     ? activeConversation.other_full_name ?? "Conversation"
     : activeConversation?.title ?? "Hanbee Race Comms";
@@ -328,9 +406,6 @@ export default function ChatPage() {
                 );
               })}
 
-              {visibleContacts.length > 0 && (
-                <h3 style={{ padding: "14px 20px 4px", fontSize: 12, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: 1 }}>Direct Contacts</h3>
-              )}
               {visibleContacts.map((contact: ChatContact) => (
                 <button
                   key={contact.user_id}
@@ -431,9 +506,27 @@ export default function ChatPage() {
                     : `${activeConversation.participant_count} members`}
                 </p>
               </div>
+              {activeConversation.kind === "group" && (
+                <button
+                  type="button"
+                  className={styles.contactItem}
+                  style={{ width: "auto", padding: "8px 12px", marginLeft: "auto" }}
+                  aria-label="Group info"
+                  onClick={() => {
+                    setRenameValue(activeConversation.title ?? "");
+                    setRenaming(false);
+                    setRenameError("");
+                    setGroupActionError("");
+                    setConfirmDelete(false);
+                    setGroupInfoOpen(true);
+                  }}
+                >
+                  <Settings size={16} />
+                </button>
+              )}
             </header>
 
-            {error && <p role="alert" style={{ padding: "8px 16px", color: "#ef4444" }}>{error}</p>}
+            {error && <p role="alert" style={{ padding: "8px 16px", color: "var(--color-danger)" }}>{error}</p>}
 
             <div className={styles.chatHistory}>
               {!messagesQuery.isLoading && messages.length === 0 && (
@@ -592,6 +685,158 @@ export default function ChatPage() {
               <span style={{ fontSize: 12, color: "var(--text-muted)" }}>{contact.relation.replaceAll("_", " ")}</span>
             </label>
           ))}
+        </div>
+      </Modal>
+
+      <Modal
+        open={groupInfoOpen}
+        title="Group info"
+        onClose={() => { setGroupInfoOpen(false); setConfirmDelete(false); }}
+        actions={
+          <button type="button" className={modalStyles.secondaryBtn} onClick={() => { setGroupInfoOpen(false); setConfirmDelete(false); }}>
+            Close
+          </button>
+        }
+      >
+        {groupActionError && <p role="alert" style={{ marginBottom: 12, color: "var(--color-danger)" }}>{groupActionError}</p>}
+
+        <div style={{ marginBottom: 18 }}>
+          {renaming ? (
+            <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+              <input
+                value={renameValue}
+                onChange={(event) => setRenameValue(event.target.value)}
+                maxLength={60}
+                className={styles.searchInput}
+                style={{ flex: 1 }}
+                disabled={renameGroup.isPending}
+              />
+              <button
+                type="button"
+                className={styles.sendBtn}
+                aria-label="Save name"
+                disabled={renameGroup.isPending || !renameValue.trim()}
+                onClick={() => renameGroup.mutate(renameValue)}
+              >
+                <Check size={16} />
+              </button>
+              <button type="button" className={styles.sendBtn} aria-label="Cancel" onClick={() => { setRenaming(false); setRenameError(""); }}>
+                <X size={16} />
+              </button>
+            </div>
+          ) : (
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <h3 style={{ margin: 0, flex: 1 }}>{activeConversation?.title ?? "Group"}</h3>
+              {canManageGroup && (
+                <button type="button" className={styles.sendBtn} aria-label="Rename group" onClick={() => setRenaming(true)}>
+                  <Pencil size={15} />
+                </button>
+              )}
+            </div>
+          )}
+          {renameError && <p role="alert" style={{ marginTop: 6, color: "var(--color-danger)", fontSize: 13 }}>{renameError}</p>}
+        </div>
+
+        {canManageGroup && addableContacts.length > 0 && (
+          <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
+            <select
+              value={addMemberId}
+              onChange={(event) => setAddMemberId(event.target.value)}
+              className={styles.searchInput}
+              style={{ flex: 1 }}
+              disabled={addMember.isPending}
+            >
+              <option value="">Add a member…</option>
+              {addableContacts.map((c) => (
+                <option key={c.user_id} value={c.user_id}>{c.full_name}</option>
+              ))}
+            </select>
+            <button
+              type="button"
+              className={modalStyles.primaryBtn}
+              disabled={!addMemberId || addMember.isPending}
+              onClick={() => addMember.mutate(addMemberId)}
+            >
+              Add
+            </button>
+          </div>
+        )}
+
+        <p style={{ fontSize: 12.5, color: "var(--text-muted)", marginBottom: 8 }}>
+          {members.length} {members.length === 1 ? "member" : "members"}
+        </p>
+        <div style={{ maxHeight: 280, overflowY: "auto", display: "flex", flexDirection: "column", gap: 2, marginBottom: 18 }}>
+          {membersQuery.isLoading && <p style={{ color: "var(--text-muted)", fontSize: 13 }}>Loading members…</p>}
+          {members.map((member) => (
+            <div key={member.user_id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 4px" }}>
+              <div className={styles.contactAvatar} style={{ width: 32, height: 32, fontSize: 12 }}>{initials(member.full_name)}</div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 14, fontWeight: 600 }}>
+                  {member.full_name}
+                  {member.user_id === effectiveUserId ? " (you)" : ""}
+                </div>
+                <div style={{ fontSize: 12, color: "var(--text-muted)" }}>
+                  {member.member_role === "admin" ? "Admin" : "Member"} · {member.role.replaceAll("_", " ")}
+                </div>
+              </div>
+              {canManageGroup && member.user_id !== effectiveUserId && (
+                <>
+                  <button
+                    type="button"
+                    className={styles.sendBtn}
+                    aria-label={member.member_role === "admin" ? "Remove admin" : "Make admin"}
+                    title={member.member_role === "admin" ? "Remove admin" : "Make admin"}
+                    disabled={toggleAdmin.isPending}
+                    onClick={() => toggleAdmin.mutate({ userId: member.user_id, role: member.member_role === "admin" ? "member" : "admin" })}
+                  >
+                    <Crown size={15} color={member.member_role === "admin" ? "var(--color-warning)" : "var(--text-muted)"} />
+                  </button>
+                  {member.can_remove && (
+                    <button
+                      type="button"
+                      className={styles.sendBtn}
+                      aria-label="Remove from group"
+                      title="Remove from group"
+                      disabled={removeMember.isPending}
+                      onClick={() => removeMember.mutate(member.user_id)}
+                    >
+                      <UserMinus size={15} color="var(--color-danger)" />
+                    </button>
+                  )}
+                </>
+              )}
+            </div>
+          ))}
+        </div>
+
+        <div style={{ display: "flex", gap: 10, flexWrap: "wrap", borderTop: "1px solid var(--border-subtle)", paddingTop: 16 }}>
+          <button
+            type="button"
+            className={modalStyles.secondaryBtn}
+            disabled={leaveGroup.isPending}
+            onClick={() => leaveGroup.mutate()}
+          >
+            <LogOut size={15} style={{ marginRight: 6, verticalAlign: -2 }} />
+            {leaveGroup.isPending ? "Leaving…" : "Leave group"}
+          </button>
+          {canDeleteGroup && (
+            confirmDelete ? (
+              <button
+                type="button"
+                className={modalStyles.primaryBtn}
+                style={{ background: "var(--color-danger)" }}
+                disabled={deleteGroup.isPending}
+                onClick={() => deleteGroup.mutate()}
+              >
+                {deleteGroup.isPending ? "Deleting…" : "Confirm delete"}
+              </button>
+            ) : (
+              <button type="button" className={modalStyles.secondaryBtn} onClick={() => setConfirmDelete(true)}>
+                <Trash2 size={15} style={{ marginRight: 6, verticalAlign: -2 }} />
+                Delete group
+              </button>
+            )
+          )}
         </div>
       </Modal>
     </div>

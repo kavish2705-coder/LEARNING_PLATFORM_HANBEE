@@ -144,18 +144,22 @@ function LeaderboardEntry({ entry }: { entry: StudentLeaderboardRow }) {
         border: entry.is_current_user ? "2px solid var(--color-primary)" : "1px solid var(--border-subtle)",
       }}
     >
-      <div style={{ fontSize: 22, fontWeight: 700, fontFamily: "var(--font-mono)", color: entry.rank === 1 ? "#fbbf24" : "var(--text-muted)", textAlign: "center" }}>
+      <div style={{ fontSize: 22, fontWeight: 700, fontFamily: "var(--font-mono)", color: entry.rank === 1 ? "var(--color-warning)" : "var(--text-muted)", textAlign: "center" }}>
         {entry.rank === null ? "—" : `#${entry.rank}`}
       </div>
       <div style={{ minWidth: 0 }}>
         <h3 style={{ fontSize: 16, fontWeight: 600, margin: 0, overflowWrap: "anywhere" }}>{entry.team_name}</h3>
         <p style={{ fontSize: 13, color: "var(--text-muted)", margin: "3px 0 0" }}>{entry.school_name ?? "Solo entry"}</p>
-        {entry.is_current_user && <span style={{ color: "var(--accent-subtle-text)", fontSize: 11, fontWeight: 700 }}>YOUR ENTRY</span>}
+        {entry.is_current_user && <span style={{ color: "var(--accent-subtle-text)", fontSize: 12, fontWeight: 600 }}>Your entry</span>}
       </div>
       <EntryStat label="Avg lap" value={formatLapTime(entry.average_lap_time_ms)} />
       <EntryStat label="Races" value={String(entry.matches_participated)} />
       <EntryStat label="Wins" value={String(entry.wins)} />
       <EntryStat label="Top 3" value={String(entry.top_three_finishes)} />
+      <EntryStat
+        label="Win rate"
+        value={entry.matches_participated === 0 ? "—" : `${Math.round((entry.wins / entry.matches_participated) * 100)}%`}
+      />
       <EntryStat label="Points" value={entry.points.toLocaleString()} />
     </article>
   );
@@ -165,7 +169,7 @@ function EntryStat({ label, value }: { label: string; value: string }) {
   return (
     <div className={leaderboardStyles.stat} style={{ textAlign: "right", fontFamily: "var(--font-mono)", fontVariantNumeric: "tabular-nums" }}>
       <div style={{ color: "var(--text-main)", fontWeight: 700 }}>{value}</div>
-      <div style={{ color: "var(--text-muted)", fontSize: 10, textTransform: "uppercase", letterSpacing: "0.06em" }}>{label}</div>
+      <div style={{ color: "var(--text-muted)", fontSize: 12, fontFamily: "var(--font-heading)" }}>{label}</div>
     </div>
   );
 }

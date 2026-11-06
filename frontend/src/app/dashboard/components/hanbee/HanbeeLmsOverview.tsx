@@ -107,11 +107,11 @@ export default function HanbeeLmsOverview() {
                 <p style={{ color: "var(--text-muted)", marginTop: 4, fontSize: 13 }}>Critical administrative queues requiring staff action.</p>
               </div>
               {pendingApplications > 0 ? (
-                <span style={{ fontSize: 12, fontWeight: 700, color: "#f59e0b", background: "rgba(245, 158, 11, 0.12)", border: "1px solid rgba(245, 158, 11, 0.35)", padding: "4px 12px", borderRadius: 999 }}>
+                <span style={{ fontSize: 12, fontWeight: 700, color: "var(--color-warning)", background: "rgba(245, 158, 11, 0.12)", border: "1px solid rgba(245, 158, 11, 0.35)", padding: "4px 12px", borderRadius: 999 }}>
                   {pendingApplications} Pending Application{pendingApplications > 1 ? "s" : ""}
                 </span>
               ) : (
-                <span style={{ fontSize: 12, fontWeight: 700, color: "#10b981", background: "rgba(16, 185, 129, 0.12)", border: "1px solid rgba(16, 185, 129, 0.35)", padding: "4px 12px", borderRadius: 999, display: "inline-flex", alignItems: "center", gap: 6 }}>
+                <span style={{ fontSize: 12, fontWeight: 700, color: "var(--color-success)", background: "rgba(16, 185, 129, 0.12)", border: "1px solid rgba(16, 185, 129, 0.35)", padding: "4px 12px", borderRadius: 999, display: "inline-flex", alignItems: "center", gap: 6 }}>
                   <CheckCircle2 size={13} /> Queues Clear
                 </span>
               )}
@@ -121,7 +121,7 @@ export default function HanbeeLmsOverview() {
               <Link href="/dashboard/hanbee/applications" style={{ textDecoration: "none", color: "inherit" }}>
                 <div className={styles.actionCard}>
                   <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-                    <div style={{ width: 44, height: 44, borderRadius: 12, background: "rgba(245, 158, 11, 0.14)", color: "#f59e0b", border: "1px solid rgba(245, 158, 11, 0.35)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                    <div style={{ width: 44, height: 44, borderRadius: 12, background: "rgba(245, 158, 11, 0.14)", color: "var(--color-warning)", border: "1px solid rgba(245, 158, 11, 0.35)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                       <ClipboardList size={22} />
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
@@ -138,7 +138,7 @@ export default function HanbeeLmsOverview() {
               <Link href="/dashboard/hanbee/assessment-reviews" style={{ textDecoration: "none", color: "inherit" }}>
                 <div className={styles.actionCard}>
                   <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-                    <div style={{ width: 44, height: 44, borderRadius: 12, background: "rgba(16, 185, 129, 0.14)", color: "#10b981", border: "1px solid rgba(16, 185, 129, 0.35)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                    <div style={{ width: 44, height: 44, borderRadius: 12, background: "rgba(16, 185, 129, 0.14)", color: "var(--color-success)", border: "1px solid rgba(16, 185, 129, 0.35)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                       <GraduationCap size={22} />
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
@@ -153,7 +153,7 @@ export default function HanbeeLmsOverview() {
               <Link href="/dashboard/hanbee/courses" style={{ textDecoration: "none", color: "inherit" }}>
                 <div className={styles.actionCard}>
                   <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-                    <div style={{ width: 44, height: 44, borderRadius: 12, background: "rgba(8, 145, 178, 0.14)", color: "#0891b2", border: "1px solid rgba(8, 145, 178, 0.35)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                    <div style={{ width: 44, height: 44, borderRadius: 12, background: "rgba(8, 145, 178, 0.14)", color: "var(--color-primary-hover)", border: "1px solid rgba(8, 145, 178, 0.35)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                       <BookOpen size={22} />
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
@@ -182,19 +182,19 @@ export default function HanbeeLmsOverview() {
             {/* Status Breakdown Pills */}
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 14, marginBottom: 20 }}>
               <div style={{ background: "var(--bg-surface-elevated)", border: "1px solid var(--border-elevated)", borderRadius: 12, padding: "14px 18px" }}>
-                <div style={{ fontSize: 11, fontFamily: "monospace", textTransform: "uppercase", color: "#10b981", fontWeight: 700 }}>Published</div>
+                <div style={{ fontSize: 13, fontFamily: "var(--font-heading)", color: "var(--color-success)", fontWeight: 600 }}>Published</div>
                 <div style={{ fontSize: 24, fontWeight: 800, color: "var(--text-main)", marginTop: 4 }}>{published}</div>
                 <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 2 }}>Live for enrolled students</div>
               </div>
 
               <div style={{ background: "var(--bg-surface-elevated)", border: "1px solid var(--border-elevated)", borderRadius: 12, padding: "14px 18px" }}>
-                <div style={{ fontSize: 11, fontFamily: "monospace", textTransform: "uppercase", color: "#f59e0b", fontWeight: 700 }}>Drafts</div>
+                <div style={{ fontSize: 13, fontFamily: "var(--font-heading)", color: "var(--color-warning)", fontWeight: 600 }}>Drafts</div>
                 <div style={{ fontSize: 24, fontWeight: 800, color: "var(--text-main)", marginTop: 4 }}>{drafts}</div>
                 <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 2 }}>In-development modules</div>
               </div>
 
               <div style={{ background: "var(--bg-surface-elevated)", border: "1px solid var(--border-elevated)", borderRadius: 12, padding: "14px 18px" }}>
-                <div style={{ fontSize: 11, fontFamily: "monospace", textTransform: "uppercase", color: "var(--text-muted)", fontWeight: 700 }}>Archived</div>
+                <div style={{ fontSize: 13, fontFamily: "var(--font-heading)", color: "var(--text-muted)", fontWeight: 600 }}>Archived</div>
                 <div style={{ fontSize: 24, fontWeight: 800, color: "var(--text-main)", marginTop: 4 }}>{archived}</div>
                 <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 2 }}>Retired or seasonal courses</div>
               </div>
@@ -217,15 +217,15 @@ export default function HanbeeLmsOverview() {
                       <tr key={course.id}>
                         <td className={styles.cellHighlight}>{course.title}</td>
                         <td>
-                          <span style={{ 
-                            fontSize: 11, 
-                            fontFamily: "monospace", 
-                            fontWeight: 700, 
-                            textTransform: "uppercase", 
-                            padding: "3px 8px", 
+                          <span style={{
+                            fontSize: 12.5,
+                            fontFamily: "var(--font-heading)",
+                            fontWeight: 600,
+                            textTransform: "capitalize",
+                            padding: "3px 8px",
                             borderRadius: 6,
                             background: course.status === "published" ? "rgba(16, 185, 129, 0.12)" : "rgba(245, 158, 11, 0.12)",
-                            color: course.status === "published" ? "#10b981" : "#f59e0b",
+                            color: course.status === "published" ? "var(--color-success)" : "var(--color-warning)",
                             border: `1px solid ${course.status === "published" ? "rgba(16, 185, 129, 0.3)" : "rgba(245, 158, 11, 0.3)"}`
                           }}>
                             {course.status}
@@ -279,7 +279,7 @@ function Metric({ icon, label, value, detail, trend }: { icon?: ReactNode; label
       <div style={{ display: "flex", alignItems: "baseline", gap: 8, marginTop: 4 }}>
         <div className={styles.metricValue} style={{ fontSize: "28px", fontWeight: 800 }}>{value}</div>
         {trend && (
-          <span style={{ fontSize: 11, fontFamily: "monospace", color: "#10b981", background: "rgba(16, 185, 129, 0.12)", border: "1px solid rgba(16, 185, 129, 0.3)", padding: "2px 6px", borderRadius: 6, fontWeight: 700 }}>
+          <span style={{ fontSize: 11, fontFamily: "monospace", color: "var(--color-success)", background: "rgba(16, 185, 129, 0.12)", border: "1px solid rgba(16, 185, 129, 0.3)", padding: "2px 6px", borderRadius: 6, fontWeight: 700 }}>
             {trend}
           </span>
         )}

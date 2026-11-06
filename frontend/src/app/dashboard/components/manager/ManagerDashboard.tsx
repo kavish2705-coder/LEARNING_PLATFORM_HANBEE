@@ -170,13 +170,16 @@ export default function ManagerDashboard() {
                           <span className={styles.managerStaffAvatar}>{initials || "H"}</span>
                           <h3 className={styles.managerStaffName}>{person.full_name}</h3>
                         </div>
-                        <span className={styles.badge + " " + (person.last_clock_in ? styles.badgeCompleted : styles.badgeUpcoming)}>
+                        <span
+                          className={styles.badge + " " + (person.last_clock_in ? styles.badgeCompleted : styles.badgeUpcoming)}
+                          style={{ textTransform: "none", letterSpacing: "normal", fontSize: 12 }}
+                        >
                           {person.last_clock_in ? "Active" : "Offline"}
                         </span>
                       </div>
                       <div className={styles.managerStaffStats}>
-                        <div><span>Hours · 7 days</span><strong>{person.hours_last_7_days}</strong></div>
-                        <div><span>Days · 30 days</span><strong>{person.days_worked_last_30}</strong></div>
+                        <div><span>Hours this week</span><strong>{person.hours_last_7_days}</strong></div>
+                        <div><span>Days this month</span><strong>{person.days_worked_last_30}</strong></div>
                         <div><span>Open tasks</span><strong>{person.open_tasks}</strong></div>
                       </div>
                       <p className={styles.managerStaffLastSeen}>
@@ -250,7 +253,7 @@ export default function ManagerDashboard() {
 
 function AttentionLink({ href, label, count }: { href: string; label: string; count: number }) {
   if (count === 0) return null;
-  return <Link href={href} className={styles.actionBtn} style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: "8px", background: "rgba(245, 158, 11, 0.1)", borderColor: "rgba(245, 158, 11, 0.2)", color: "#F59E0B" }}>
+  return <Link href={href} className={styles.actionBtn} style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: "8px", background: "rgba(245, 158, 11, 0.1)", borderColor: "rgba(245, 158, 11, 0.2)", color: "var(--color-warning)" }}>
     <CircleAlert size={16} />
     <div style={{ fontSize: "13px" }}>
       <strong>{count}</strong> {label}

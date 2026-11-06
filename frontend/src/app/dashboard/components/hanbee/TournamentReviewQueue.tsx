@@ -228,7 +228,7 @@ export default function TournamentReviewQueue() {
                       </td>
                       <td>
                         {isPending(row) ? (
-                          <button type="button" className={styles.filterBtn} style={{ padding: "6px 12px", fontSize: "12px" }} onClick={() => openReview(row)}>Review →</button>
+                          <button type="button" className={styles.filterBtn} style={{ padding: "6px 12px", fontSize: "12px" }} onClick={() => openReview(row)}>Review</button>
                         ) : (
                           <span className={`${local.decisionLabel} ${row.status === "verified" ? local.decisionApproved : local.decisionRejected}`}>
                             {row.status === "verified" ? "Verified" : "Rejected"}
@@ -256,7 +256,7 @@ export default function TournamentReviewQueue() {
                   <div className={local.entryCardRow}>
                     <span className={local.ageText}>Submitted {relativeTime(row.submitted_at)}</span>
                     {isPending(row) ? (
-                      <button type="button" className={styles.filterBtn} style={{ padding: "6px 12px", fontSize: "12px" }} onClick={() => openReview(row)}>Review →</button>
+                      <button type="button" className={styles.filterBtn} style={{ padding: "6px 12px", fontSize: "12px" }} onClick={() => openReview(row)}>Review</button>
                     ) : (
                       <span className={`${local.decisionLabel} ${row.status === "verified" ? local.decisionApproved : local.decisionRejected}`}>
                         {row.status === "verified" ? "Verified" : "Rejected"}

@@ -1,671 +1,1004 @@
-.skipLink {
-  position: absolute;
-  left: -9999px;
-  top: 8px;
-  z-index: 1000;
-  padding: 8px 14px;
-  background: var(--landing-accent, #e58a2b);
-  color: #0b0c10;
-  border-radius: 8px;
-  font-family: var(--font-body);
-  font-size: 14px;
-  font-weight: 600;
-  text-decoration: none;
-}
-.skipLink:focus {
-  left: 8px;
-}
-
-.marqueeWrap {
-  overflow: hidden;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  background: var(--landing-surface-2);
-}
-
-.marqueeTrack {
-  display: flex;
-  width: max-content;
-  animation: marquee 28s linear infinite;
-  will-change: transform;
-}
-
-.marqueeItem {
-  display: flex;
-  align-items: center;
-  gap: 18px;
-  padding: 22px 36px;
-  font-family: var(--font-heading);
-  font-size: 22px;
-  font-weight: 400;
-  color: rgba(255, 255, 255, 0.8);
-  white-space: nowrap;
-  letter-spacing: -0.01em;
-}
-
-.marqueeDot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--landing-accent);
-  flex-shrink: 0;
-}
-
-@keyframes marquee {
-  from {
-    transform: translateX(0);
-  }
-
-  to {
-    transform: translateX(-50%);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .marqueeTrack {
-    animation: none;
-  }
-}
-
-.featureRow {
-  display: flex;
-  align-items: baseline;
-  gap: 32px;
-  padding: 36px 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.featureRow:first-child {
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
-}
-
-.featureRow:hover {
-  border-color: color-mix(in srgb, var(--landing-accent) 45%, transparent);
-  transform: translateX(6px);
-}
-
-.featureRow:hover .featureTitle {
-  color: var(--landing-accent);
-}
-
-.featureNum {
-  font-family: monospace;
-  font-size: 15px;
-  color: rgba(255, 255, 255, 0.3);
-  min-width: 32px;
-  flex-shrink: 0;
-}
-
-.featureTitle {
-  font-family: var(--font-heading);
-  font-size: clamp(20px, 2vw, 26px);
-  font-weight: 400;
-  color: #fff;
-  min-width: 260px;
-  flex-shrink: 0;
-  letter-spacing: -0.01em;
-  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.7);
-}
-
-.featureDesc {
-  font-family: var(--font-body);
-  font-size: 15px;
-  line-height: 1.6;
-  color: rgba(255, 255, 255, 0.7);
-  max-width: 460px;
-  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.7);
-}
-
-.faqItem summary {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-}
-
-.faqItem summary::-webkit-details-marker {
-  display: none;
-}
-
-.faqItem summary::after {
-  content: "+";
-  font-family: var(--font-heading);
-  font-size: 22px;
-  color: rgba(255, 255, 255, 0.4);
-  flex-shrink: 0;
-  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.faqItem[open] summary::after {
-  transform: rotate(45deg);
-}
-
-@media (max-width: 800px) {
-  .featureRow {
-    flex-direction: column;
-    gap: 8px;
-  }
-
-  .featureTitle {
-    min-width: 0;
-  }
-}
-
-/* Futuristic Utilities */
-.glassCard {
-  background: rgba(22, 23, 33, 0.65);
-  backdrop-filter: blur(24px) saturate(140%);
-  -webkit-backdrop-filter: blur(24px) saturate(130%);
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  box-shadow:
-    0 16px 40px -10px rgba(0, 0, 0, 0.35),
-    inset 0 1px 0 rgba(255, 255, 255, 0.22);
-  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+.mainWrapper {
+  background-color: var(--landing-surface-1);
+  color: #ffffff;
   position: relative;
+  overflow-x: hidden;
+  font-family: var(--font-body);
+}
+
+.container {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 0 48px;
+  position: relative;
+  z-index: 2;
+}
+
+.containerSm {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 0 32px;
+  position: relative;
+  z-index: 2;
+}
+
+/* Sections */
+.sectionDark {
+  position: relative;
+  padding: 110px 0;
+  background: var(--landing-surface-1);
   overflow: hidden;
 }
 
-.glassCard::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  border-radius: inherit;
-  padding: 1px;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.22) 0%, transparent 45%, transparent 65%, rgba(255, 255, 255, 0.08) 100%);
-  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  -webkit-mask-composite: xor;
-  mask-composite: exclude;
-  pointer-events: none;
+.sectionMid {
+  position: relative;
+  padding: 110px 0;
+  background: linear-gradient(180deg, var(--landing-surface-2) 0%, var(--landing-surface-3) 100%);
+  overflow: hidden;
 }
 
-.glassCard:hover {
-  background: rgba(28, 29, 42, 0.75);
-  transform: translateY(-4px);
-  box-shadow:
-    0 30px 60px -15px rgba(0, 0, 0, 0.7),
-    0 10px 30px rgba(0, 0, 0, 0.35),
-    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+/* Section Header */
+.sectionHeader {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  max-width: 760px;
+  margin: 0 auto 52px;
+  gap: 12px;
 }
 
-.glowingNumber {
-  font-family: monospace;
-  font-size: 14px;
+.badge {
+  font-family: var(--font-heading);
+  font-size: 15px;
+  font-weight: 600;
   color: var(--landing-accent);
-  text-shadow: 0 0 12px color-mix(in srgb, var(--landing-accent) 60%, transparent);
-  margin-bottom: 12px;
 }
 
-.glowText {
-  color: #fff;
-  text-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
-}
-
-/* Glass Orb Background for Sections */
-.orbBackground {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 100%;
-  height: 100%;
-  background: radial-gradient(circle at 50% 50%, color-mix(in srgb, var(--landing-accent) 14%, transparent) 0%, rgba(245, 158, 11, 0.04) 40%, transparent 70%);
-  filter: blur(100px);
-  pointer-events: none;
-  z-index: 0;
-}
-
-.schoolGrid {
-  display: grid;
-  grid-template-columns: 1.1fr 0.85fr 1fr;
-  gap: 40px;
-  align-items: center;
-}
-
-@media (max-width: 1080px) {
-  .schoolGrid {
-    grid-template-columns: 1fr 1fr;
-  }
-
-  .schoolVisualFrame {
-    grid-column: 1 / -1;
-    max-width: 420px;
-    margin: 0 auto;
-  }
-}
-
-.aboutGrid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 40px;
-  align-items: start;
-}
-
-@media (max-width: 800px) {
-
-  .schoolGrid,
-  .aboutGrid {
-    grid-template-columns: 1fr;
-    gap: 40px;
-  }
-}
-
-/* Ultra-Realistic Liquid Glass Button matching Get Started */
-.liquidGlassBtn {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  font-family: var(--font-body);
-  font-size: 14.5px;
+.mainTitle {
+  font-family: var(--font-heading);
+  font-size: clamp(32px, 3.8vw, 50px);
   font-weight: 500;
   color: #ffffff;
-
-  /* Ultra-Realistic Liquid Glass Effect */
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  border-top-color: rgba(255, 255, 255, 0.4);
-  border-left-color: rgba(255, 255, 255, 0.3);
-  box-shadow:
-    -2px 0 4px rgba(255, 0, 80, 0.15),
-    2px 0 4px color-mix(in srgb, var(--landing-accent) 15%, transparent),
-    inset 0 1px 2px rgba(255, 255, 255, 0.5),
-    inset 0 -1px 2px rgba(255, 255, 255, 0.1),
-    0 8px 32px rgba(0, 0, 0, 0.15);
-  backdrop-filter: blur(24px) saturate(140%) brightness(1.15);
-  -webkit-backdrop-filter: blur(24px) saturate(140%) brightness(1.15);
-
-  padding: 12px 28px;
-  border-radius: 50px;
-  text-decoration: none;
-  transition: all 0.3s ease;
-  cursor: pointer;
-}
-
-.liquidGlassBtn:hover {
-  background: rgba(255, 255, 255, 0.1);
-  box-shadow:
-    -3px 0 6px rgba(255, 0, 80, 0.25),
-    3px 0 6px color-mix(in srgb, var(--landing-accent) 25%, transparent),
-    inset 0 1px 3px rgba(255, 255, 255, 0.6),
-    inset 0 -1px 3px rgba(255, 255, 255, 0.2),
-    0 12px 40px rgba(0, 0, 0, 0.2);
-}
-
-.liquidGlassBtn svg {
-  transition: transform 0.3s ease;
-  width: 14px;
-  height: 14px;
-}
-
-.liquidGlassBtn:hover svg {
-  transform: translateX(4px);
-}
-
-
-
-/* Blurred Video Section ("An LMS built for doers") */
-.differentSection {
-  position: relative;
-  z-index: 10;
-  overflow: hidden;
-  background-color: var(--landing-surface-3);
-  padding: 120px 40px;
-  display: flex;
-  justifyContent: center;
-  align-items: center;
-  width: 100%;
-  box-sizing: border-box;
-}
-
-.differentImageBg {
-  position: absolute;
-  inset: -12px;
-  z-index: 0;
-  overflow: hidden;
-  pointer-events: none;
-}
-
-.differentImage {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: center 38%;
-  filter: blur(2px) brightness(1.04) contrast(1.04);
-  transform: scale(1.04);
-}
-
-.differentOverlay {
-  position: absolute;
-  inset: 0;
-  background:
-    radial-gradient(ellipse 90% 90% at 50% 50%, rgba(14, 15, 22, 0.22) 0%, rgba(11, 12, 18, 0.50) 100%),
-    linear-gradient(180deg,
-      rgba(17, 18, 24, 0.72) 0%,
-      transparent 25%,
-      transparent 75%,
-      rgba(17, 18, 24, 0.78) 100%);
-  z-index: 1;
-  pointer-events: none;
-}
-
-.doersCard,
-.schoolCard {
-  position: relative;
-  z-index: 2;
-  width: 100%;
-  max-width: 1200px;
-  margin: 0 auto;
-  border-radius: var(--landing-radius-card);
-  padding: 64px 56px;
-  background: rgba(18, 19, 27, 0.74);
-  backdrop-filter: blur(20px) saturate(140%);
-  -webkit-backdrop-filter: blur(20px) saturate(140%);
-  border: 1px solid rgba(255, 255, 255, 0.20);
-  /* One accent glow for both -- .doersCard previously used a cyan
-     (rgba(125,211,232,...)) that appeared nowhere else on the page while
-     .schoolCard used the real amber accent right next to it; same card,
-     two different undocumented "accents" for no reason. */
-  box-shadow:
-    0 24px 70px -15px rgba(0, 0, 0, 0.45),
-    0 0 50px -10px var(--landing-accent-glow),
-    inset 0 1px 0 rgba(255, 255, 255, 0.25);
-  box-sizing: border-box;
-}
-
-.differentGrid {
-  display: grid;
-  grid-template-columns: 1fr 1.15fr;
-  gap: 56px;
-  align-items: center;
-}
-
-.categoryBadge {
-  display: inline-block;
-  font-family: var(--font-body);
-  font-size: var(--landing-eyebrow);
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--landing-accent);
-  margin-bottom: 12px;
-}
-
-.doersTitle {
-  font-family: var(--font-heading);
-  font-size: var(--landing-h2);
-  font-weight: 400;
-  color: #fff;
-  margin: 0 0 20px;
   letter-spacing: -0.02em;
   line-height: 1.15;
+  margin: 0;
 }
 
-.doersDesc {
+.subtitle {
   font-family: var(--font-body);
-  font-size: 16px;
-  color: rgba(255, 255, 255, 0.82);
-  line-height: 1.65;
+  font-size: clamp(16px, 1.2vw, 18px);
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.72);
+  margin: 0;
 }
 
-.doersItem {
+
+/* Broad Tie-Up Companies Ribbon (Matching User Reference: Broad, Big, Left-to-Right) */
+.partnersRibbon {
+  background: #08090d;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 52px 0;
+  overflow: hidden;
+  position: relative;
+  z-index: 5;
+}
+
+.partnersTrackWrapper {
+  overflow: hidden;
+  width: 100%;
+}
+
+.partnersTrack {
   display: flex;
-  gap: 16px;
-  align-items: flex-start;
+  width: max-content;
+  animation: marqueeLeftToRight 34s linear infinite;
+  will-change: transform;
+  gap: 32px;
+}
+
+.partnersTrack:hover {
+  animation-play-state: paused;
+}
+
+@keyframes marqueeLeftToRight {
+  from {
+    transform: translateX(-50%);
+  }
+  to {
+    transform: translateX(0%);
+  }
+}
+
+.partnerCard {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  min-width: 370px;
+  height: 110px;
+  padding: 0 48px;
+  border-radius: 20px;
+  background: linear-gradient(135deg, rgba(22, 25, 36, 0.95) 0%, rgba(13, 15, 22, 0.98) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.10);
+  white-space: nowrap;
+  transition: all 0.28s ease;
+  user-select: none;
+}
+
+.partnerCard:hover {
+  border-color: rgba(229, 138, 43, 0.55);
+  box-shadow: 0 20px 48px rgba(0, 0, 0, 0.70), inset 0 1px 0 rgba(255, 255, 255, 0.20);
+  transform: translateY(-3px);
+}
+
+.partnerLogoWrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+}
+
+.partnerName {
+  font-family: var(--font-heading);
+  font-size: 26px;
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* Mode Toggle Bar */
+.modeToggleBar {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 36px;
   position: relative;
   z-index: 2;
-  background: rgba(255, 255, 255, 0.055);
-  border: 1px solid rgba(255, 255, 255, 0.10);
-  border-radius: 16px;
-  padding: 16px 20px;
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.doersItem:hover {
-  background: rgba(255, 255, 255, 0.10);
-  border-color: var(--landing-accent-glow);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3), 0 0 20px var(--landing-accent-glow);
-}
-
-.doersItemTitle {
-  font-family: var(--font-heading);
-  font-weight: 500;
-  font-size: 17px;
-  color: #fff;
-  display: block;
-  margin-bottom: 4px;
-  letter-spacing: -0.01em;
-}
-
-.doersItemDesc {
-  font-family: var(--font-body);
-  font-size: 14px;
-  color: rgba(255, 255, 255, 0.72);
-  line-height: 1.5;
-}
-
-@media (max-width: 800px) {
-  .differentGrid {
-    grid-template-columns: 1fr;
-    gap: 40px;
-  }
-  .doersCard {
-    padding: 40px 24px;
-  }
-}
-
-
-/* Race Track Video Section ("For schools") */
-.schoolSection {
+.modeBtn {
   position: relative;
-  z-index: 10;
-  overflow: hidden;
-  background-color: var(--landing-surface-3);
-  padding: 120px 40px;
   display: flex;
-  justifyContent: center;
   align-items: center;
-  width: 100%;
-  box-sizing: border-box;
+  gap: 8px;
+  padding: 12px 24px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  font-family: var(--font-heading);
+  font-size: 15px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+  transition: color 0.25s ease;
 }
 
-.schoolVideoBg {
-  position: absolute;
-  inset: -8px;
-  z-index: 0;
-  overflow: hidden;
-  pointer-events: none;
+.modeBtn:hover {
+  color: #fff;
 }
 
-.schoolVideo {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: center;
-  filter: brightness(1.02) contrast(1.02);
-  transform: scale(1.02);
+.modeBtnActive {
+  color: #fff;
+  border-color: rgba(229, 138, 43, 0.4);
 }
 
-.schoolOverlay {
+.modeGlow {
   position: absolute;
   inset: 0;
-  background:
-    radial-gradient(ellipse 90% 90% at 50% 50%, rgba(14, 15, 22, 0.22) 0%, rgba(11, 12, 18, 0.48) 100%),
-    linear-gradient(180deg,
-      rgba(17, 18, 24, 0.72) 0%,
-      transparent 25%,
-      transparent 75%,
-      rgba(17, 18, 24, 0.78) 100%);
-  z-index: 1;
-  pointer-events: none;
-}
-
-.schoolStepItem {
-  background: rgba(255, 255, 255, 0.065);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(229, 138, 43, 0.16);
   border-radius: 14px;
-  padding: 14px 18px;
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 0 16px rgba(229, 138, 43, 0.2);
+  z-index: -1;
 }
 
-.schoolStepItem:hover {
-  background: rgba(255, 255, 255, 0.12);
-  border-color: color-mix(in srgb, var(--landing-accent) 45%, transparent);
-  transform: translateX(4px);
+/* Pathway Card */
+.pathwayCard {
+  background: linear-gradient(180deg, rgba(22, 24, 34, 0.9) 0%, rgba(13, 14, 20, 0.98) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 28px;
+  padding: 48px;
+  box-shadow: 0 24px 64px -16px rgba(0, 0, 0, 0.8);
+  position: relative;
+  overflow: hidden;
 }
 
-/* ===== Build showcase: the exploded-parts diagram ties the "Inside the
-   RC track" curriculum cards above it to the actual physical car ===== */
-.buildGrid {
+.pathwayContent {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 56px;
+  grid-template-columns: 1.25fr 1fr;
+  gap: 48px;
   align-items: center;
-  max-width: 1200px;
-  margin: 0 auto;
 }
 
-@media (max-width: 860px) {
-  .buildGrid {
+@media (max-width: 900px) {
+  .pathwayCard {
+    padding: 32px;
+  }
+  .pathwayContent {
     grid-template-columns: 1fr;
     gap: 36px;
   }
 }
 
-/* ===== One shared frame for every real product photo on the page
-   (build diagram, two-car banner, schools top-down shot) -- these three
-   previously had three different radii (24/24/20px) and border opacities
-   (0.12/0.12/0.14) despite looking like they should be the same
-   component. One base, one override point (--landing-radius-photo). ===== */
-.photoFrame {
+.pathwayInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.pathwayEyebrow {
+  font-family: var(--font-heading);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  color: var(--landing-accent);
+}
+
+.pathwayTitle {
+  font-family: var(--font-heading);
+  font-size: clamp(28px, 2.8vw, 38px);
+  font-weight: 500;
+  color: #fff;
+  letter-spacing: -0.01em;
+  margin: 0;
+}
+
+.pathwayDesc {
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.65;
+  color: rgba(255, 255, 255, 0.75);
+  margin: 0;
+}
+
+.perkGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 6px 0;
+}
+
+.perkItem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-body);
+  font-size: 14.5px;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.perkCheck {
+  color: var(--landing-accent);
+  flex-shrink: 0;
+}
+
+.ctaRow {
+  margin-top: 10px;
+}
+
+.primaryPaddockBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 26px;
+  border-radius: 12px;
+  background: var(--landing-accent);
+  color: #000;
+  font-family: var(--font-heading);
+  font-size: 15px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 4px 20px rgba(229, 138, 43, 0.35);
+  transition: all 0.25s ease;
+}
+
+.primaryPaddockBtn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 26px rgba(229, 138, 43, 0.5);
+  background: #ff9f24;
+}
+
+.pathwayVisualFrame {
   position: relative;
-  border-radius: var(--landing-radius-photo);
+  border-radius: 20px;
   overflow: hidden;
-  border: 1px solid var(--landing-card-border);
-  box-shadow: 0 30px 80px -20px rgba(0, 0, 0, 0.6), 0 0 60px -20px var(--landing-accent-glow);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: #090a0f;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.7);
+}
+
+.pathwayImg {
+  width: 100%;
+  height: 100%;
+  max-height: 360px;
+  object-fit: cover;
+  transition: transform 0.4s ease;
+}
+
+.pathwayVisualFrame:hover .pathwayImg {
+  transform: scale(1.03);
+}
+
+/* Event Day Routine Schedule Grid */
+.scheduleGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+  margin-bottom: 40px;
+}
+
+.scheduleCard {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 16px;
+  padding: 20px 22px;
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  transition: all 0.25s ease;
+}
+
+.scheduleCard:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(229, 138, 43, 0.3);
+  transform: translateY(-2px);
+}
+
+.scheduleNumber {
+  font-family: var(--font-mono);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--landing-accent);
+  background: rgba(229, 138, 43, 0.12);
+  padding: 4px 8px;
+  border-radius: 6px;
+  flex-shrink: 0;
+}
+
+.scheduleBody {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.scheduleTitle {
+  font-family: var(--font-heading);
+  font-size: 16px;
+  font-weight: 500;
+  color: #fff;
+}
+
+.scheduleDesc {
+  font-family: var(--font-body);
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.68);
+  margin: 0;
+}
+
+/* Fairness Banner */
+.fairnessBanner {
+  background: linear-gradient(180deg, rgba(22, 24, 34, 0.9) 0%, rgba(13, 14, 20, 0.98) 100%);
+  border: 1px solid rgba(229, 138, 43, 0.3);
+  border-radius: 20px;
+  padding: 28px 36px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.fairnessHeader {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-heading);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--landing-accent);
+}
+
+.fairnessIcon {
+  color: var(--landing-accent);
+}
+
+.fairnessText {
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.85);
+  margin: 0;
+}
+
+.awardsRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding-top: 8px;
+}
+
+.awardTag {
+  font-family: var(--font-heading);
+  font-size: 12.5px;
+  font-weight: 500;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 6px 14px;
+  border-radius: 20px;
+}
+
+/* Cinematic Banner */
+.cinematicBanner {
+  position: relative;
+  min-height: 520px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.videoBackdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+
+.bannerVideo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.bannerOverlay {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at center, rgba(12, 13, 18, 0.75) 0%, rgba(12, 13, 18, 0.95) 100%);
+}
+
+.bannerContent {
+  position: relative;
+  z-index: 2;
+  max-width: 760px;
+  margin: 0 auto;
+  text-align: center;
+  padding: 80px 32px;
+}
+
+.bannerEyebrow {
+  font-family: var(--font-heading);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  color: var(--landing-accent);
+  display: block;
+  margin-bottom: 16px;
+}
+
+.bannerHeading {
+  font-family: var(--font-heading);
+  font-size: clamp(34px, 4.4vw, 56px);
+  font-weight: 500;
+  color: #fff;
+  letter-spacing: -0.02em;
+  margin: 0 0 20px;
+}
+
+.bannerText {
+  font-family: var(--font-body);
+  font-size: 17px;
+  line-height: 1.65;
+  color: rgba(255, 255, 255, 0.8);
+  margin: 0 0 36px;
+}
+
+.bannerActionGroup {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.bannerPrimaryBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 28px;
+  border-radius: 12px;
+  background: var(--landing-accent);
+  color: #000;
+  font-family: var(--font-heading);
+  font-size: 15px;
+  font-weight: 600;
+  transition: all 0.25s ease;
+  box-shadow: 0 4px 20px rgba(229, 138, 43, 0.4);
+}
+
+.bannerPrimaryBtn:hover {
+  background: #ff9f24;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(229, 138, 43, 0.55);
+}
+
+.bannerSecondaryBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 24px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #fff;
+  font-family: var(--font-heading);
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  transition: all 0.25s ease;
+}
+
+.bannerSecondaryBtn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+/* FAQ */
+.faqSection {
+  padding: 110px 0;
   background: var(--landing-surface-1);
 }
 
-.photoFrame img {
-  width: 100%;
-  display: block;
-  /* The four real product photos were shot warm (golden-hour window
-     light on a wood table); the UI around them is a cool purple-black.
-     Pulling the warmth down and lifting contrast slightly brings them
-     into the same family instead of reading as a separate warm "product
-     catalog" shoot dropped into a cool sci-fi page. */
-  filter: saturate(1.06) brightness(1.02) contrast(1.02);
+.faqList {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 
-/* Soft vignette so the photo's corners feather into the frame's own
-   background instead of ending in a hard rectangle -- sits above the
-   image, below nothing (frame has no other overlay content). */
-.photoFrame::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background: radial-gradient(ellipse 72% 72% at 50% 50%, transparent 58%, var(--landing-surface-1) 100%);
-  opacity: 0.65;
+.faqCard {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  padding: 24px 28px;
+  transition: all 0.25s ease;
+  cursor: pointer;
 }
 
-.buildImageFrame {
-  composes: photoFrame;
+.faqCard:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(229, 138, 43, 0.3);
 }
 
-/* ===== Photo banner (the two-car angle shot) -- the source photo is
-   near-square, so this is a contained, framed image (not a full-bleed
-   cover crop, which would cut one of the two cars off the edge). ===== */
-.photoBanner {
+.faqSummary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  font-family: var(--font-heading);
+  font-size: 18px;
+  font-weight: 500;
+  color: #fff;
+  list-style: none;
+}
+
+.faqSummary::-webkit-details-marker {
+  display: none;
+}
+
+.faqChevron {
+  color: var(--landing-accent);
+  flex-shrink: 0;
+  transition: transform 0.25s ease;
+}
+
+.faqCard[open] .faqChevron {
+  transform: rotate(180deg);
+}
+
+.faqAnswer {
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.75);
+  margin-top: 14px;
+}
+
+/* Futuristic Motorsport Telemetry Footer */
+.footer {
+  background: #040507;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 0 0 36px;
   position: relative;
-  padding: 100px 40px;
-  background-color: var(--landing-surface-1);
-  background-image: radial-gradient(ellipse 70% 60% at 50% 0%, var(--landing-accent-glow), transparent 65%);
-  text-align: center;
-}
-
-.photoBannerFrame {
-  composes: photoFrame;
-  max-width: 820px;
-  margin: 0 auto;
-}
-
-/* Covers a small AI-generation watermark baked into the bottom-right
-   corner of the source photo -- blurred rather than a flat color patch
-   so it reads as part of the photo's own soft-focus table surface
-   instead of an obvious sticker. */
-.photoWatermarkPatch {
-  position: absolute;
-  right: 0;
-  bottom: 0;
-  width: 24%;
-  height: 28%;
-  pointer-events: none;
-  backdrop-filter: blur(22px) saturate(85%);
-  -webkit-backdrop-filter: blur(22px) saturate(85%);
-  background: radial-gradient(ellipse 80% 80% at 70% 70%, rgba(18, 13, 9, 0.8), rgba(18, 13, 9, 0.4) 60%, transparent 85%);
-  -webkit-mask-image: radial-gradient(ellipse 90% 90% at 75% 75%, #000 55%, transparent 100%);
-  mask-image: radial-gradient(ellipse 90% 90% at 75% 75%, #000 55%, transparent 100%);
-}
-
-.photoBannerImg {
-  width: 100%;
-  display: block;
-}
-
-.photoBannerContent {
-  position: relative;
-  z-index: 2;
-  max-width: 680px;
-  margin: 0 auto 40px;
-}
-
-/* ===== Framed top-down image used inside "For schools" ===== */
-.schoolVisualFrame {
-  composes: photoFrame;
-}
-
-.schoolVisualFrame img {
-  object-fit: cover;
-}
-
-/* Wrapper for the ambient ember-swarm canvas (replaces the old static
-   grid texture) sitting behind a section's content. */
-.ambientWrap {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
   overflow: hidden;
-  z-index: 0;
 }
 
+.footerGlowLine {
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent 0%, rgba(229, 138, 43, 0.2) 20%, rgba(229, 138, 43, 0.8) 50%, rgba(229, 138, 43, 0.2) 80%, transparent 100%);
+  margin-bottom: 56px;
+}
 
-/* Background Track Image for Courses Section */
-.coursesImageBg {
+.footerMainGrid {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 48px;
+  padding-bottom: 48px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+/* Brand Column */
+.footerBrandCol {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.footerLogoRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.footerLogoName {
+  font-family: var(--font-heading);
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: #ffffff;
+}
+
+.footerLogoTag {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: #0b0c10;
+  background: var(--landing-accent);
+  padding: 3px 8px;
+  border-radius: 6px;
+}
+
+.footerBrandMission {
+  font-family: var(--font-body);
+  font-size: 14px;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.65);
+  margin: 0;
+}
+
+/* Navigation Columns */
+.footerNavGroup {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 32px;
+}
+
+.footerNavCol {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.footerSectionHeader {
+  font-family: var(--font-heading);
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--landing-accent);
+}
+
+.footerLinkList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.footerLink,
+.footerLinkBtn {
+  font-family: var(--font-body);
+  font-size: 13.5px;
+  color: rgba(255, 255, 255, 0.68);
+  text-decoration: none;
+  transition: all 0.2s ease;
+  display: inline-block;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  text-align: left;
+}
+
+.footerLink:hover,
+.footerLinkBtn:hover {
+  color: #ffffff;
+  transform: translateX(3px);
+}
+
+/* Paddock Action Card */
+.footerActionCard {
+  position: relative;
+  border-radius: 16px;
+  background: linear-gradient(145deg, rgba(20, 22, 32, 0.8) 0%, rgba(12, 13, 18, 0.95) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  overflow: hidden;
+}
+
+.actionCardGlow {
   position: absolute;
   top: 0;
   left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent 0%, rgba(229, 138, 43, 0.6) 50%, transparent 100%);
+}
+
+.actionCardEyebrow {
+  font-family: var(--font-heading);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--landing-accent);
+}
+
+.actionCardHeading {
+  font-family: var(--font-heading);
+  font-size: 17px;
+  font-weight: 600;
+  color: #ffffff;
+  letter-spacing: -0.01em;
+  line-height: 1.25;
+}
+
+.actionCardDesc {
+  font-family: var(--font-body);
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.65);
+  margin: 0;
+}
+
+.actionCardBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 6px;
+  padding: 10px 16px;
+  border-radius: 10px;
+  background: var(--landing-accent);
+  color: #0b0c10;
+  font-family: var(--font-heading);
+  font-size: 13.5px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: all 0.22s ease;
+}
+
+.actionCardBtn:hover {
+  background: #ff9d2b;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 18px rgba(229, 138, 43, 0.4);
+}
+
+/* Bottom Bar */
+.footerBottomBar {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  padding-top: 28px;
+  text-align: center;
+}
+
+.copyrightText {
+  font-family: var(--font-body);
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.4);
+  letter-spacing: 0.02em;
+}
+
+.telemetryTag {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.35);
+  letter-spacing: 0.06em;
+}
+
+.backToTopBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  padding: 6px 12px;
+  color: rgba(255, 255, 255, 0.65);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.backToTopBtn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(229, 138, 43, 0.4);
+  color: #ffffff;
+}
+
+@media (max-width: 960px) {
+  .footerMainGrid {
+    grid-template-columns: 1fr;
+    gap: 36px;
+  }
+  .footerNavGroup {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .footerNavGroup {
+    grid-template-columns: 1fr;
+  }
+  .footerBottomBar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+
+@media (max-width: 768px) {
+  .partnerCard {
+    min-width: 280px;
+    height: 88px;
+    padding: 0 30px;
+    gap: 16px;
+    border-radius: 16px;
+  }
+  .partnerName {
+    font-size: 20px;
+  }
+  .partnersRibbon {
+    padding: 36px 0;
+  }
+}
+
+/* Tech Concept Marquee Ticker (Above The League Racer) */
+.techTickerWrap {
   overflow: hidden;
-  pointer-events: none;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  background: #090a0f;
+  position: relative;
+  z-index: 10;
+  padding: 16px 0;
 }
 
-.coursesImage {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: center 60%;
-  filter: brightness(0.96) contrast(1.04) saturate(1.02);
+.techTickerTrack {
+  display: flex;
+  width: max-content;
+  animation: techTickerMarquee 38s linear infinite;
+  will-change: transform;
+  gap: 28px;
 }
 
-.coursesOverlay {
-  position: absolute;
-  inset: 0;
-  background:
-    linear-gradient(180deg, var(--landing-surface-2) 0%, rgba(17, 18, 24, 0.40) 25%, rgba(17, 18, 24, 0.55) 75%, var(--landing-surface-2) 100%),
-    radial-gradient(ellipse 90% 80% at 50% 50%, rgba(18, 19, 26, 0.25) 0%, rgba(11, 12, 18, 0.65) 100%);
-  pointer-events: none;
+.techTickerTrack:hover {
+  animation-play-state: paused;
+}
+
+@keyframes techTickerMarquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-33.333333%);
+  }
+}
+
+.techTickerItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 22px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+  white-space: nowrap;
+  transition: all 0.25s ease;
+  user-select: none;
+}
+
+.techTickerItem:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(229, 138, 43, 0.45);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45);
+  transform: translateY(-1px);
+}
+
+.techTickerIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  flex-shrink: 0;
+}
+
+.techTickerText {
+  font-family: var(--font-heading);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: #ffffff;
+  text-transform: uppercase;
+}
+
+.footerLogoImg {
+  height: 18px;
+  width: auto;
+  display: block;
+  object-fit: contain;
+}
+
+.footerSocialRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.socialIconBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.65);
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.socialIconBtn:hover {
+  background: rgba(229, 138, 43, 0.12);
+  border-color: rgba(229, 138, 43, 0.4);
+  color: var(--landing-accent);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(229, 138, 43, 0.2);
+}
+
+.footerSocialLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-body);
+  font-size: 13.5px;
+  color: rgba(255, 255, 255, 0.68);
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.footerSocialLink:hover {
+  color: var(--landing-accent);
+  transform: translateX(2px);
 }

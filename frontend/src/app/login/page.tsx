@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { motion } from "framer-motion";
 import styles from "./login.module.css";
+import { GraduationCap, School, Shield, Crown } from "lucide-react";
 import { Suspense, useState, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useRole, Role } from "../RoleContext";
@@ -236,7 +237,7 @@ function LoginContent() {
                 </div>
                 {authError && <p role="alert" style={{ color: "var(--color-danger)", marginBottom: 10 }}>{authError}</p>}
                 <button type="submit" className={styles.submitBtn} disabled={submitting}>
-                  {submitting ? "Sending…" : "Send reset link →"}
+                  {submitting ? "Sending…" : "Send reset link"}
                 </button>
               </form>
             )}
@@ -272,14 +273,20 @@ function LoginContent() {
 
         </div>
 
-        <span className={styles.sectionLabel}>SELECT ROLE</span>
+        <span className={styles.sectionLabel}>Who's racing?</span>
         <div className={styles.roleSegment}>
-          {["Student", "School", "Staff", "Manager"].map(role => (
-            <button 
+          {([
+            { role: "Student", Icon: GraduationCap },
+            { role: "School", Icon: School },
+            { role: "Staff", Icon: Shield },
+            { role: "Manager", Icon: Crown },
+          ] as const).map(({ role, Icon }) => (
+            <button
               key={role}
               className={`${styles.roleBtn} ${activeRole === role ? styles.roleBtnActive : ''}`}
               onClick={() => setActiveRole(role)}
             >
+              <Icon size={16} />
               {role}
             </button>
           ))}
@@ -373,7 +380,7 @@ function LoginContent() {
           {authError && <p role="alert" style={{ color: "var(--color-danger)", marginBottom: 10 }}>{authError}</p>}
 
           <button type="submit" className={styles.submitBtn} disabled={submitting}>
-            {submitting ? (isLogin ? "Signing in…" : "Creating account…") : isLogin ? "Launch Workspace →" : "Create Account →"}
+            {submitting ? (isLogin ? "Signing in…" : "Creating account…") : isLogin ? "Launch workspace" : "Create account"}
           </button>
         </form>
         )}
@@ -402,7 +409,7 @@ function LoginContent() {
 
         <p style={{ textAlign: "center", marginTop: "24px", fontSize: "13px", color: "rgba(255,255,255,0.5)" }}>
           <Link href="/" style={{ color: "rgba(255,255,255,0.8)", textDecoration: "none" }}>
-            ← Back to Home
+            Back to home
           </Link>
         </p>
         </>}

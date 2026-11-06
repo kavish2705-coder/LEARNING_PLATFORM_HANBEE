@@ -337,7 +337,7 @@ export default function HanbeeOverview() {
 
               <span className={styles.liveBadge}>
                 <Radio size={12} style={{ animation: "pulse 1.5s infinite" }} />
-                {tournament.status === "live" ? "LIVE" : tournament.status?.toUpperCase?.() ?? "SCHEDULED"}
+                {tournament.status === "live" ? "Live" : tournament.status === "upcoming" ? "Scheduled" : "Completed"}
               </span>
             </div>
 
@@ -347,18 +347,18 @@ export default function HanbeeOverview() {
                   <Users size={18} />
                 </div>
                 <div className={styles.metricMeta}>
-                  <span className={styles.metricCategory}>PARTICIPATION</span>
+                  <span className={styles.metricCategory}>Participation</span>
                   <span className={styles.metricTitle}>Payment Verified Squads</span>
                   <span className={styles.metricValue}>{totalSquads} Teams</span>
                 </div>
               </div>
 
               <div className={styles.metricBox}>
-                <div className={styles.metricIcon} style={{ color: "#10b981", background: "rgba(16, 185, 129, 0.12)", borderColor: "rgba(16, 185, 129, 0.3)" }}>
+                <div className={styles.metricIcon} style={{ color: "var(--color-success)", background: "rgba(16, 185, 129, 0.12)", borderColor: "rgba(16, 185, 129, 0.3)" }}>
                   <ShieldCheck size={18} />
                 </div>
                 <div className={styles.metricMeta}>
-                  <span className={styles.metricCategory} style={{ color: "#10b981" }}>SCRUTINEERING</span>
+                  <span className={styles.metricCategory} style={{ color: "var(--color-success)" }}>Scrutineering</span>
                   <span className={styles.metricTitle}>Race-Eligible Drivers</span>
                   <span className={styles.metricValue}>
                     {scrutineeredDrivers === null ? "—" : `${scrutineeredDrivers} Drivers`}
@@ -374,7 +374,7 @@ export default function HanbeeOverview() {
                   <Sparkles size={18} />
                 </div>
                 <div className={styles.metricMeta}>
-                  <span className={styles.metricCategory} style={{ color: "#a855f7" }}>PACE BENCHMARK</span>
+                  <span className={styles.metricCategory} style={{ color: "#a855f7" }}>Pace benchmark</span>
                   <span className={styles.metricTitle}>Best Average Lap</span>
                   <span className={styles.metricValue} style={{ color: "#a855f7" }}>{bestAverageLap}</span>
                 </div>
@@ -475,7 +475,7 @@ export default function HanbeeOverview() {
                                     const initials = name.split(" ").map((w) => w[0]).slice(0, 2).join("");
                                     const isIndependent = driver.is_independent === true;
                                     const showPhone = Boolean(driver.phone);
-                                    const schoolLocation = [driver.school_name, driver.location].filter(Boolean).join(" · ");
+                                    const schoolLocation = [driver.school_name, driver.location].filter(Boolean).join(", ");
                                     return (
                                       <div key={driver.student_id ?? name} className={styles.driverMiniCard}>
                                         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
@@ -552,7 +552,7 @@ export default function HanbeeOverview() {
                 <span className={styles.bigHours}>{data?.hoursWorked.today !== null && data?.hoursWorked.today !== undefined ? `${data.hoursWorked.today}h` : "--"}</span>
                 <span className={styles.hoursSub}>worked today</span>
               </div>
-              <div style={{ fontSize: 12, color: "#10b981", fontWeight: 600 }}>
+              <div style={{ fontSize: 12, color: "var(--color-success)", fontWeight: 600 }}>
                 ● Status: {data?.status ?? "Off shift"}
               </div>
               <button
@@ -564,7 +564,7 @@ export default function HanbeeOverview() {
               >
                 {clockBusy ? "Saving…" : data?.status === "Clocked In" ? "Clock out" : "Clock in"}
               </button>
-              {clockError && <div style={{ fontSize: 11, color: "#ef4444", marginTop: 6 }}>{clockError}</div>}
+              {clockError && <div style={{ fontSize: 11, color: "var(--color-danger)", marginTop: 6 }}>{clockError}</div>}
             </div>
 
             <div className={styles.opsCard}>
@@ -583,7 +583,7 @@ export default function HanbeeOverview() {
 
             <div className={styles.opsCard}>
               <div className={styles.opsHeader}>
-                <AlertTriangle size={20} color={scrutineeredCount !== null && totalSquads - scrutineeredCount > 0 ? "#f59e0b" : "#10b981"} />
+                <AlertTriangle size={20} color={scrutineeredCount !== null && totalSquads - scrutineeredCount > 0 ? "var(--color-warning)" : "var(--color-success)"} />
                 Scrutineering Alert
               </div>
               <div style={{ fontSize: 14, color: "var(--text-main)", fontWeight: 500 }}>
@@ -601,7 +601,7 @@ export default function HanbeeOverview() {
                 href={tournament ? `/dashboard/hanbee/scrutineering?tournament=${encodeURIComponent(tournament.id)}` : "/dashboard/hanbee/scrutineering"}
                 style={{ fontSize: 12, color: "var(--accent-subtle-text)", textDecoration: "none", marginTop: "auto" }}
               >
-                Open Inspection Queue →
+                Open the inspection queue
               </Link>
             </div>
           </div>
@@ -643,18 +643,17 @@ export default function HanbeeOverview() {
                       <td>
                         <span
                           style={{
-                            fontFamily: "var(--font-mono)",
-                            fontSize: 10,
-                            fontWeight: 700,
-                            padding: "3px 8px",
+                            fontFamily: "var(--font-heading)",
+                            fontSize: 12,
+                            fontWeight: 600,
+                            padding: "3px 10px",
                             borderRadius: 6,
-                            textTransform: "uppercase",
                             background: task.priority === "high" ? "rgba(239, 68, 68, 0.15)" : "rgba(125, 211, 232, 0.15)",
-                            color: task.priority === "high" ? "#ef4444" : "var(--accent-subtle-text)",
+                            color: task.priority === "high" ? "var(--color-danger)" : "var(--accent-subtle-text)",
                             border: task.priority === "high" ? "1px solid rgba(239, 68, 68, 0.4)" : "1px solid rgba(125, 211, 232, 0.3)",
                           }}
                         >
-                          {task.priority}
+                          {task.priority.charAt(0).toUpperCase() + task.priority.slice(1)}
                         </span>
                       </td>
                       <td>
@@ -663,14 +662,13 @@ export default function HanbeeOverview() {
                           disabled={updatingTaskId === task.id}
                           onChange={(event) => void updateTaskStatus(task.id, event.target.value as "todo" | "in_progress" | "done")}
                           style={{
-                            fontFamily: "var(--font-mono)",
-                            fontSize: 10,
-                            fontWeight: 700,
-                            padding: "3px 8px",
+                            fontFamily: "var(--font-heading)",
+                            fontSize: 12,
+                            fontWeight: 600,
+                            padding: "3px 10px",
                             borderRadius: 6,
-                            textTransform: "uppercase",
                             background: task.status === "done" ? "rgba(16, 185, 129, 0.15)" : "rgba(245, 158, 11, 0.15)",
-                            color: task.status === "done" ? "#10b981" : "#f59e0b",
+                            color: task.status === "done" ? "var(--color-success)" : "var(--color-warning)",
                             border: task.status === "done" ? "1px solid rgba(16, 185, 129, 0.4)" : "1px solid rgba(245, 158, 11, 0.3)",
                           }}
                         >

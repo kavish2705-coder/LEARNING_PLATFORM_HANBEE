@@ -64,7 +64,7 @@ export default function AttendancePage() {
           <div className={styles.statusIndicator}>
             <div
               className={styles.statusDot}
-              style={{ backgroundColor: live ? "#00ff80" : "var(--text-muted)", boxShadow: live ? "0 0 10px #00ff80" : "none" }}
+              style={{ backgroundColor: live ? "var(--status-online)" : "var(--text-muted)", boxShadow: live ? "0 0 10px var(--status-online)" : "none" }}
             />
             Status: {live ? "Active now" : "Not active"}
           </div>

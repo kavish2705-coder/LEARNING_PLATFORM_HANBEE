@@ -79,10 +79,10 @@ export default function SchoolTeams() {
   return (
     <div>
       <header className={styles.pageHeader}>
-        <div className={styles.metricLabel}>SCHOOL PORTAL</div>
+        <div className={styles.metricLabel}>School portal</div>
         <h1 className={styles.pageTitle}>Teams</h1>
         <p className={styles.pageSubtitle}>
-          {tournament ? `${tournament.title} · ${tournament.team_size} players per school team` : "No upcoming tournament is open for team formation."}
+          {tournament ? `Forming teams of ${tournament.team_size} for ${tournament.title}.` : "No upcoming tournament is open for team formation."}
         </p>
       </header>
 
@@ -129,7 +129,7 @@ export default function SchoolTeams() {
                         </span>
                       </div>
                       <p style={{ color: "var(--text-muted)", marginTop: 6 }}>
-                        Captain: {team.captain_name ?? "Unknown"} · {team.member_count}/{team.team_size} players
+                        Captained by {team.captain_name ?? "an unknown driver"}, with {team.member_count} of {team.team_size} players signed up
                       </p>
                     </div>
                     {team.submitted_at && <time dateTime={team.submitted_at} style={{ color: "var(--text-muted)" }}>{new Date(team.submitted_at).toLocaleDateString()}</time>}
@@ -178,7 +178,7 @@ export default function SchoolTeams() {
           {tournament && (
             <div className={styles.sideRail}>
               <div className={styles.railSummaryCard}>
-                <span className={styles.metricLabel}>AT A GLANCE</span>
+                <span className={styles.metricLabel}>At a glance</span>
                 <div className={styles.railStat}>
                   <span className={styles.railStatLabel}>Slots used</span>
                   <span className={styles.railStatValue}>{slots?.used ?? 0} / {slots?.max_teams ?? "—"}</span>
@@ -194,7 +194,7 @@ export default function SchoolTeams() {
               </div>
 
               <div className={styles.railSummaryCard}>
-                <span className={styles.metricLabel}>TEAM SLOTS</span>
+                <span className={styles.metricLabel}>Team slots</span>
                 <form
                   onSubmit={(event) => {
                     event.preventDefault();

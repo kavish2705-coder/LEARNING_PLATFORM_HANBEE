@@ -390,71 +390,85 @@ export default function TournamentOverview() {
               gap: "10px",
             }}
           >
-            <Sparkles size={18} color="#7dd3e8" />
+            <Sparkles size={18} color="var(--accent-subtle-text)" />
             {toastMessage}
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* ===== Hub Header ===== */}
-      <header className={styles.hubHeader}>
-        <div className={styles.hubHeaderLeft}>
-          <h1 className={styles.hubTitle} suppressHydrationWarning>
-            {timeGreeting}, {studentName}!
+      {/* ===== Hero: asymmetric greeting + headline rank, not a uniform 4-box grid ===== */}
+      <header className={styles.heroSection}>
+        <div className={styles.heroMain}>
+          <p className={styles.heroEyebrow} suppressHydrationWarning>
+            {new Date().toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" })}
+          </p>
+          <h1 className={styles.heroGreeting} suppressHydrationWarning>
+            {timeGreeting}, {studentName}.
           </h1>
           <p className={styles.hubSubtitle}>
-            Live race countdown, quick RC car check, and squad standings.
+            Your pit wall for today — countdown to the next race, a quick garage check, and where your squad stands.
           </p>
+
+          <div className={styles.heroHeadlineStat}>
+            <span className={styles.heroHeadlineLabel}>Paddock standing</span>
+            <span
+              className={styles.heroHeadlineValue}
+              style={{ color: userRank === 1 ? "var(--color-warning)" : "var(--text-main)" }}
+            >
+              {userRank === null ? "Unranked" : `P${userRank}`}
+            </span>
+            <span className={styles.heroHeadlineContext}>
+              {userRank === null
+                ? "Put in a result and claim your spot on the grid."
+                : userRank === 1
+                ? "You're leading the pack — hold the line."
+                : `of ${fieldSize} entries, ${ptsBehind > 0 ? `${ptsBehind} pts off P${userRank - 1} and well within reach` : "closing in on the podium"}`}
+            </span>
+          </div>
+        </div>
+
+        <div className={styles.heroSideStats}>
+          <div className={styles.sideStatRow}>
+            <span className={styles.sideStatLabel}>Active team</span>
+            <span className={styles.sideStatValue}>
+              {team?.name ? (schoolName ? `${team.name} (${schoolName})` : team.name) : "Flying solo for now"}
+            </span>
+            {!team && (
+              <Link href={teamHref} className={styles.sideStatLink}>
+                Build your crew
+              </Link>
+            )}
+          </div>
+          <div className={styles.sideStatDivider} />
+          <div className={styles.sideStatRow}>
+            <span className={styles.sideStatLabel}>Best qualifying lap</span>
+            <span className={styles.sideStatValue}>{formatLapTime(userEntry?.avgLapMs ?? null)}</span>
+          </div>
+          <div className={styles.sideStatDivider} />
+          <div className={styles.sideStatRow}>
+            <span className={styles.sideStatLabel}>Practice readiness</span>
+            <span
+              className={styles.sideStatValue}
+              style={{ color: readinessScore === 100 ? "var(--color-success)" : "var(--text-main)" }}
+            >
+              {readinessScore}% {readinessScore === 100 ? "done" : "in progress"}
+            </span>
+          </div>
         </div>
       </header>
 
-      {/* ===== Overview of Team Performance ===== */}
-      <div className={styles.teamPerformanceStrip}>
-        <div className={styles.perfItem}>
-          <span className={styles.perfLabel}>ACTIVE TEAM</span>
-          <span className={styles.perfValue}>
-            {team?.name ? (schoolName ? `${team.name} (${schoolName})` : team.name) : "No team yet"}
-          </span>
-          {!team && (
-            <Link href={teamHref} style={{ color: "var(--accent-subtle-text)", fontSize: 13, fontWeight: 600, textDecoration: "none" }}>
-              Register your team →
-            </Link>
-          )}
-        </div>
-        <div className={styles.perfItem}>
-          <span className={styles.perfLabel}>PADDOCK STANDING</span>
-          <span className={styles.perfValue} style={{ color: userRank === 1 ? "#f59e0b" : "var(--accent-subtle-text)" }}>
-            {userRank === null
-              ? "Not ranked yet"
-              : userRank === 1
-              ? "Rank #1 (Championship Lead)"
-              : `Rank #${userRank} of ${fieldSize} (${ptsBehind > 0 ? `${ptsBehind} pts behind P${userRank - 1}` : "Chasing Podium"})`}
-          </span>
-        </div>
-        <div className={styles.perfItem}>
-          <span className={styles.perfLabel}>BEST QUALIFYING LAP</span>
-          <span className={styles.perfValue} style={{ color: "var(--accent-subtle-text)" }}>
-            {formatLapTime(userEntry?.avgLapMs ?? null)}
-          </span>
-        </div>
-        <div className={styles.perfItem}>
-          <span className={styles.perfLabel}>PRACTICE READINESS</span>
-          <span className={styles.perfValue} style={{ color: readinessScore === 100 ? "#10b981" : "#7dd3e8" }}>
-            {readinessScore}% {readinessScore === 100 ? "· Checklist Done" : "· In Progress"}
-          </span>
-        </div>
-      </div>
-
       <ActionCenter
-        title="Your next steps"
-        description="A short list of useful actions based on your team, practice, and verified results."
+        title="What's next on your todo"
+        description="A few things worth tackling next, picked from your team status, your garage check, and the official results."
         items={studentActions}
+        pace="moment"
       />
 
       {/* ===== 01: Championship Standings (First Box) ===== */}
       <div className={styles.sectionHeaderWrap}>
         <div className={styles.sectionHeaderLeft}>
           <h3 className={styles.sectionGroupTitle}>Championship Standings</h3>
+          {tournament && <span className={styles.sectionGroupSubtitle}>{tournament.title}</span>}
         </div>
       </div>
 
@@ -462,7 +476,7 @@ export default function TournamentOverview() {
       <section className={styles.standingsSection}>
         <div className={styles.cardHeaderTitle}>
           <div className={styles.sectionGroupTitle}>
-            <Award size={22} color="#fbbf24" />
+            <Award size={22} color="var(--color-warning)" />
             <span>Active Grid Standings & Top 3 Podium</span>
           </div>
           <Link href="/dashboard/leaderboard" style={{ fontSize: "13px", color: "var(--accent-subtle-text)", textDecoration: "none", display: "flex", alignItems: "center", gap: 4 }}>
@@ -482,9 +496,9 @@ export default function TournamentOverview() {
             {/* 3D-styled Dynamic Podium */}
             <div className={styles.podiumRow}>
               {([
-                { rankLabel: "1", cardClass: styles.podiumCardGold, rankClass: styles.podiumRankGold, ptsColor: "#fbbf24" },
+                { rankLabel: "1", cardClass: styles.podiumCardGold, rankClass: styles.podiumRankGold, ptsColor: "var(--color-warning)" },
                 { rankLabel: "2", cardClass: styles.podiumCardSilver, rankClass: styles.podiumRankSilver, ptsColor: "#9ca3af" },
-                { rankLabel: "3", cardClass: styles.podiumCardBronze, rankClass: styles.podiumRankBronze, ptsColor: "#f59e0b" },
+                { rankLabel: "3", cardClass: styles.podiumCardBronze, rankClass: styles.podiumRankBronze, ptsColor: "var(--color-warning)" },
               ] as const).map((slot, idx) => {
                 const t = allRankedTeams[idx];
                 if (!t) return null;
@@ -500,7 +514,7 @@ export default function TournamentOverview() {
                       <h4>
                         {t.name}
                         {t.isUserTeam && (
-                          <span className={styles.userSquadTag} style={{ marginLeft: 6 }}>YOUR SQUAD</span>
+                          <span className={styles.userSquadTag} style={{ marginLeft: 6 }}>Your squad</span>
                         )}
                       </h4>
                       <p>{t.school}</p>
@@ -536,14 +550,14 @@ export default function TournamentOverview() {
                 </div>
 
                 <div className={styles.rivalryDelta}>
-                  {userRank === 1 ? "P1 LEADER" : teamAhead ? `GAP: -${ptsBehind} pts` : "UNRANKED"}
+                  {userRank === 1 ? "P1 leader" : teamAhead ? `-${ptsBehind} pts behind` : "Unranked"}
                 </div>
               </div>
             )}
 
             {/* Mobile Swipe Hint */}
             <div className={styles.mobileSwipeHint}>
-              ← Swipe table horizontally to inspect lap times & telemetry →
+              Swipe sideways to see lap times and telemetry
             </div>
 
             {/* Full Grid Standings Table */}
@@ -581,7 +595,7 @@ export default function TournamentOverview() {
                         <div className={styles.teamMetaTitle}>
                           <span>{t.name}</span>
                           {t.isUserTeam && (
-                            <span className={styles.userSquadTag}>YOUR SQUAD • LIVE</span>
+                            <span className={styles.userSquadTag}>Your squad, live</span>
                           )}
                         </div>
                       </td>
@@ -616,18 +630,18 @@ export default function TournamentOverview() {
         <div className={styles.sectionStatusPill}>
           {passedCount === 6 ? (
             <span className={styles.paddockClearedPill}>
-              <CheckCircle2 size={13} /> CHECKLIST DONE
+              <CheckCircle2 size={13} /> Checklist done
             </span>
           ) : (
             <span className={styles.paddockActionPill}>
-              <Wrench size={13} /> {6 - passedCount} CHECKS LEFT
+              <Wrench size={13} /> {6 - passedCount} checks left
             </span>
           )}
         </div>
       </div>
       <p style={{ margin: "-8px 0 16px", fontSize: 13, color: "var(--text-muted)" }}>
-        This is your own practice checklist, not the official race inspection. For your team&apos;s real scrutineering
-        result, see <Link href={teamHref} style={{ color: "var(--accent-subtle-text)" }}>My Team</Link>.
+        Think of this as your own garage walkaround — a gut check before the real thing. For the official scrutineering
+        call, head to <Link href={teamHref} style={{ color: "var(--accent-subtle-text)" }}>My Team</Link>.
       </p>
 
       {/* ===== Middle Grid: Telemetry Readiness & Daily Bounties ===== */}
@@ -637,7 +651,7 @@ export default function TournamentOverview() {
         <div id="practice-checklist" className={`${styles.telemetryCard} ${styles.activeWorkshopCard}`}>
           <div className={styles.cardHeaderTitle}>
             <div className={styles.telemetryHeading}>
-              <Wrench size={18} color="#7dd3e8" />
+              <Wrench size={18} color="var(--accent-subtle-text)" />
               <span>Personal Practice Checklist</span>
             </div>
             <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
@@ -662,8 +676,8 @@ export default function TournamentOverview() {
                   <span>Pass All</span>
                 </button>
               )}
-              <span style={{ fontSize: "11px", color: "var(--text-muted)", fontFamily: "var(--font-mono)" }}>
-                {passedCount}/6 CHECKED
+              <span style={{ fontSize: "12px", color: "var(--text-muted)" }}>
+                {passedCount} of 6 checked
               </span>
             </div>
           </div>
@@ -682,15 +696,17 @@ export default function TournamentOverview() {
             <div className={styles.readinessDetails}>
               <h4>
                 {readinessScore === 100
-                  ? "Practice checklist: 100% complete"
+                  ? "Pit crew ready — car's good to roll"
                   : readinessScore >= 50
-                  ? `Practice checklist: Good (${readinessScore}%)`
-                  : `Practice checklist: In progress (${readinessScore}%)`}
+                  ? `Looking sharp, ${readinessScore}% through the checklist`
+                  : `Pre-race check: ${readinessScore}% done so far`}
               </h4>
               <p>
                 {readinessScore === 100
-                  ? "All 6 parts self-checked. This doesn't replace staff scrutineering."
-                  : `${6 - passedCount} part(s) left on your personal checklist.`}
+                  ? "Every part's been eyed over by you. Staff scrutineering still has the final word on race day."
+                  : passedCount === 0
+                  ? "Six quick checks before you hit the track — nothing's marked off yet."
+                  : `${6 - passedCount} more to go and you're race-ready.`}
               </p>
             </div>
           </div>
@@ -721,19 +737,18 @@ export default function TournamentOverview() {
                   </div>
                   <div>
                     {isPassed ? (
-                      <motion.span 
+                      <motion.span
                         initial={{ scale: 0.82, opacity: 0 }}
                         animate={{ scale: 1, opacity: 1 }}
                         transition={{ type: "spring", stiffness: 500, damping: 22 }}
                         className={styles.diagPassed}
                       >
                         <CheckCircle2 size={13} />
-                        <span>Passed / Good Condition</span>
+                        <span>Looking good</span>
                       </motion.span>
                     ) : (
                       <span className={styles.diagPending}>
-                        <CheckCircle2 size={13} />
-                        <span>Check & Pass</span>
+                        <span>Tap to check off</span>
                       </span>
                     )}
                   </div>
@@ -747,7 +762,7 @@ export default function TournamentOverview() {
         <div className={styles.bountiesCard}>
           <div className={styles.cardHeaderTitle}>
             <div className={styles.telemetryHeading}>
-              <Zap size={18} color="#f59e0b" />
+              <Zap size={18} color="var(--color-warning)" />
               <span>Pit-Stop Bounties & Quests</span>
             </div>
             <span className={styles.localSimNotice}>
@@ -759,30 +774,30 @@ export default function TournamentOverview() {
             {[
               {
                 id: "bounty_1",
-                title: "Check Your RC Car",
-                desc: "Check the Wheels, Body, Motor, Wires, Remote, and Battery.",
+                title: "Give your ride the once-over",
+                desc: "Wheels, body, motor, wires, remote, battery — all six, all good.",
                 reward: 100,
                 icon: Wrench,
               },
               {
                 id: "bounty_2",
-                title: "Time Trial Practice Run",
-                desc: "Clock a fast practice lap under 14 seconds.",
+                title: "Put the hammer down",
+                desc: "Clock a practice lap under 14 seconds and bank the bonus.",
                 reward: 250,
                 icon: Zap,
               },
               {
                 id: "bounty_3",
-                title: "Assemble 3-Driver Team",
-                desc: "Have 3 students ready on your school team roster.",
+                title: "Round up your crew",
+                desc: "Get 3 drivers on your school roster and you're a real team.",
                 reward: 150,
                 icon: Users,
               },
             ].map((bounty) => (
-              <motion.div 
-                key={bounty.id} 
+              <motion.div
+                key={bounty.id}
                 className={styles.bountyItem}
-                whileHover={{ y: -3, scale: 1.01 }}
+                whileHover={{ y: -4, scale: 1.015 }}
                 whileTap={{ scale: 0.99 }}
                 transition={{ type: "spring", stiffness: 400, damping: 25 }}
               >
@@ -832,7 +847,7 @@ export default function TournamentOverview() {
                 <div>
                   <h2 className={styles.eventTitle}>{tournament.title}</h2>
                   <div className={styles.eventCircuit}>
-                    <Compass size={14} color="#7dd3e8" />
+                    <Compass size={14} color="var(--accent-subtle-text)" />
                     <span>{tournament.venue || "Venue to be announced"}</span>
                   </div>
                 </div>

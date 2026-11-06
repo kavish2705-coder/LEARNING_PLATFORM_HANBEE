@@ -336,7 +336,7 @@ export default function SettingsPage() {
                     autoComplete="email"
                     aria-label="Email address"
                   />
-                  {emailError && <p role="alert" style={{ color: "#ef4444", fontSize: 12 }}>{emailError}</p>}
+                  {emailError && <p role="alert" style={{ color: "var(--color-danger)", fontSize: 12 }}>{emailError}</p>}
                   <button type="submit" className={styles.saveBtn} disabled={savingEmail}>
                     {savingEmail ? "Saving..." : "Save"}
                   </button>

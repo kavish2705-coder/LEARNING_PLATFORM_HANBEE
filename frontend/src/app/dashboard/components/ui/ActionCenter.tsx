@@ -15,10 +15,13 @@ export default function ActionCenter({
   title = "Your next steps",
   description,
   items,
+  pace = "fast",
 }: {
   title?: string;
   description: string;
   items: DashboardActionItem[];
+  /** "fast": no stagger, for high-frequency staff/manager queues. "moment": staggered reveal, for lower-frequency student-facing surfaces. */
+  pace?: "fast" | "moment";
 }) {
   return (
     <section className={styles.section} aria-labelledby="dashboard-action-center-title">
@@ -30,14 +33,21 @@ export default function ActionCenter({
       </header>
       {items.length > 0 ? (
         <div className={styles.grid}>
-          {items.map((item) => (
-            <Link key={item.id} href={item.href} className={styles.action}>
+          {items.map((item, index) => (
+            <Link
+              key={item.id}
+              href={item.href}
+              className={`${styles.action} ${pace === "moment" ? styles.actionReveal : ""}`}
+              style={pace === "moment" ? { animationDelay: `calc(var(--motion-moment-duration) * ${index * 0.35})` } : undefined}
+            >
               <span className={styles.icon} aria-hidden="true">{item.icon}</span>
               <span className={styles.content}>
-                <span className={styles.actionTitle}>{item.title}</span>
+                <span className={styles.actionTitleRow}>
+                  <span className={styles.actionTitle}>{item.title}</span>
+                  {item.meta && <span className={styles.meta}>{item.meta}</span>}
+                </span>
                 <span className={styles.actionDescription}>{item.description}</span>
               </span>
-              {item.meta && <span className={styles.meta}>{item.meta}</span>}
               <span className={styles.arrow} aria-hidden="true">→</span>
             </Link>
           ))}

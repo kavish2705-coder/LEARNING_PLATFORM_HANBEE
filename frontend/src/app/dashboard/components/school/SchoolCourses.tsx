@@ -45,7 +45,7 @@ export default function SchoolCourses() {
   return (
     <div>
       <header className={styles.pageHeader}>
-        <div className={styles.metricLabel}>SCHOOL PORTAL</div>
+        <div className={styles.metricLabel}>School portal</div>
         <h1 className={styles.pageTitle}>School Courses</h1>
         <p className={styles.pageSubtitle}>Read-only course enrollment and progress for your students</p>
       </header>
@@ -114,7 +114,7 @@ export default function SchoolCourses() {
 
           <div className={styles.sideRail}>
             <div className={styles.railSummaryCard}>
-              <span className={styles.metricLabel}>AT A GLANCE</span>
+              <span className={styles.metricLabel}>At a glance</span>
               <div className={styles.railStat}>
                 <span className={styles.railStatLabel}><BookOpen size={13} style={{ marginRight: 6, verticalAlign: -2 }} />Courses with activity</span>
                 <span className={styles.railStatValue}>{courses.length}</span>

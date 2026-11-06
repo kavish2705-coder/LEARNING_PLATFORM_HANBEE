@@ -75,8 +75,11 @@ function PaymentSettingsCard() {
   return (
     <div className={styles.sectionCard} style={{ marginBottom: 20 }}>
       <h3 className={styles.tableTitle}>Payment settings</h3>
-      <p style={{ color: "var(--text-muted)", marginTop: 4, marginBottom: 14 }}>
-        One shared UPI account and QR code for every tournament -- edit it here anytime, including if the account ever needs to change. The entry fee amount is set per tournament below instead.
+      <p style={{ color: "var(--text-muted)", marginTop: 4, marginBottom: 10 }}>
+        The entry fee amount is set per tournament below.
+      </p>
+      <p role="alert" style={{ color: "var(--color-warning)", background: "var(--accent-subtle-bg)", border: "1px solid var(--color-warning)", borderRadius: 8, padding: "10px 14px", marginBottom: 14, fontSize: 13.5 }}>
+        The UPI ID and QR code saved here are <strong>not</strong> what students actually pay to. The live checkout always uses the server&apos;s <code>UPI_VPA</code> environment variable, which this form never reads or writes. To change where real payments are routed, update <code>UPI_VPA</code> in the deployment environment directly, not here.
       </p>
       {error && <p role="alert">{error}</p>}{notice && <p role="status">{notice}</p>}
       <div style={{ display: "flex", gap: 20, flexWrap: "wrap", alignItems: "flex-start" }}>

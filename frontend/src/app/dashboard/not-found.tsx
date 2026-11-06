@@ -31,7 +31,7 @@ export default function DashboardNotFound() {
           fontSize: 14,
         }}
       >
-        ← Back to Dashboard
+        Back to dashboard
       </Link>
     </div>
   );

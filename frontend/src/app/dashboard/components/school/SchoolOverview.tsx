@@ -123,7 +123,7 @@ export default function SchoolOverviewPage() {
         )}
       </header>
 
-      {error && <p role="alert" className={styles.sectionCard} style={{ color: "#ef4444" }}>{error}</p>}
+      {error && <p role="alert" className={styles.sectionCard} style={{ color: "var(--color-danger)" }}>{error}</p>}
 
       {loading ? (
         <div className={styles.sectionCard} style={{ textAlign: "center", padding: "40px" }}>
@@ -211,7 +211,7 @@ export default function SchoolOverviewPage() {
                   <div className={styles.eventCardInner}>
                     <div className={styles.eventMetaList}>
                       <span className={styles.eventMetaItem}>
-                        <CalendarDays size={15} color="#7dd3e8" />
+                        <CalendarDays size={15} color="var(--accent-subtle-text)" />
                         {new Date(overview.tournament.next_tournament.starts_at).toLocaleDateString([], {
                           weekday: "short",
                           month: "short",
@@ -222,12 +222,12 @@ export default function SchoolOverviewPage() {
                       </span>
                       {overview.tournament.next_tournament.venue && (
                         <span className={styles.eventMetaItem}>
-                          <MapPin size={15} color="#7dd3e8" />
+                          <MapPin size={15} color="var(--accent-subtle-text)" />
                           {overview.tournament.next_tournament.venue}
                         </span>
                       )}
                       <span className={styles.eventMetaItem}>
-                        <Users size={15} color="#7dd3e8" />
+                        <Users size={15} color="var(--accent-subtle-text)" />
                         {overview.tournament.participants} participants registered
                       </span>
                     </div>

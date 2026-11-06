@@ -62,14 +62,14 @@ function CoursesContent() {
           const completed = course.status === "completed";
           return (
             <div key={course.id} className={styles.courseCard}>
-              <div className={styles.courseImage} style={{ background: `linear-gradient(135deg, ${course.coverAccent || "#0891b2"}, #0b0b0c 85%)` }}>
+              <div className={styles.courseImage} style={{ background: `linear-gradient(135deg, ${course.coverAccent || "var(--color-primary-hover)"}, #0b0b0c 85%)` }}>
                 <div className={styles.courseOverlay} />
               </div>
 
               <div className={styles.courseContent}>
                 <div className={styles.badgeRow}>
                   <span className={styles.badge}>{course.moduleCount} modules</span>
-                  {completed && <span className={`${styles.badge} ${styles.badgeCompleted}`}>COMPLETED</span>}
+                  {completed && <span className={`${styles.badge} ${styles.badgeCompleted}`}>Completed</span>}
                 </div>
                 <h3 className={styles.courseTitle}>{course.title}</h3>
                 <p className={styles.courseInstructor}>

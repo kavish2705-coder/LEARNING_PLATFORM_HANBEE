@@ -27,7 +27,7 @@ export default function CertificatePage() {
         <p className={styles.pageSubtitle}>Certificates issued for completed courses on Hanbee</p>
       </div>
 
-      {error && <p role="alert" className={styles.sectionCard} style={{ color: "#ef4444" }}>{error}</p>}
+      {error && <p role="alert" className={styles.sectionCard} style={{ color: "var(--color-danger)" }}>{error}</p>}
       {loading && (
         <div className={styles.sectionCard} style={{ textAlign: "center", padding: "40px" }}>
           <p role="status" style={{ color: "var(--text-muted)", margin: 0 }}>Loading your certificates…</p>
@@ -54,7 +54,7 @@ export default function CertificatePage() {
           <article key={certificate.id} className={styles.sectionCard}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-                <div style={{ display: "inline-flex", padding: 12, borderRadius: 14, background: "rgba(16, 185, 129, 0.12)", color: "#10b981" }}>
+                <div style={{ display: "inline-flex", padding: 12, borderRadius: 14, background: "rgba(16, 185, 129, 0.12)", color: "var(--color-success)" }}>
                   <Award size={24} aria-hidden="true" />
                 </div>
                 <div>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { motion, useScroll, useTransform, useSpring } from "framer-motion";
 import styles from "./Navbar.module.css";
 
@@ -57,7 +58,14 @@ export default function Navbar() {
           whileHover={{ scale: 1.02 }}
           transition={{ type: "spring", stiffness: 400, damping: 17 }}
         >
-          HANBEE
+          <Image
+            src="/brand/hanbee-logo-white.png"
+            alt="HANBEE"
+            width={154}
+            height={14}
+            priority
+            className={styles.logoImg}
+          />
         </motion.a>
 
         {/* Center Links */}
@@ -108,7 +116,7 @@ export default function Navbar() {
 
           {/* Get Started Button */}
           <motion.a
-            href="/login?mode=signup"
+            href="/login"
             className={styles.getStartedBtn}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.97 }}

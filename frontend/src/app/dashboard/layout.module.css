@@ -83,7 +83,15 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-1);
-  flex: 1 0 auto;
+  /* flex: 1 1 auto + min-height: 0 (not the old 1 0 auto) lets a long role
+     menu (staff/manager run 17 items) scroll within its own region instead
+     of pushing userProfile/sign-out past the sidebar's max-height -- that
+     footer must always stay reachable without scrolling the whole sidebar. */
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  padding-right: 2px;
 }
 
 .navLink {
@@ -387,7 +395,7 @@
 }
 
 .headerXpIcon {
-  color: #fbbf24;
+  color: var(--color-warning);
   animation: pulseXpZap 2.4s ease-in-out infinite;
 }
 
@@ -463,7 +471,7 @@
   width: 40px;
   height: 40px;
   border-radius: 999px;
-  background: linear-gradient(135deg, var(--color-primary) 0%, #38bdf8 100%);
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary) 100%);
   border: 2px solid var(--accent-subtle-border);
   color: #ffffff;
   display: flex;
@@ -478,7 +486,7 @@
 }
 
 .avatarOpen {
-  border-color: #38bdf8;
+  border-color: var(--color-primary);
   box-shadow: 0 0 0 3px rgba(125, 211, 232, 0.45), 0 0 16px rgba(8, 145, 178, 0.5);
   transform: scale(1.04);
 }
@@ -541,12 +549,10 @@
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  font-family: var(--font-mono);
-  font-size: 10.5px;
-  font-weight: 700;
-  text-transform: uppercase;
+  font-family: var(--font-heading);
+  font-size: 13px;
+  font-weight: 600;
   color: var(--accent-subtle-text);
-  letter-spacing: 0.5px;
 }
 
 .profileMenuItem {
@@ -602,11 +608,11 @@
 
 .profileMenuLogout:hover {
   background: rgba(239, 68, 68, 0.12);
-  color: #ef4444;
+  color: var(--color-danger);
 }
 
 .profileMenuLogout:hover .profileMenuItemIcon {
-  color: #ef4444;
+  color: var(--color-danger);
 }
 
 
