@@ -203,12 +203,12 @@ export default function Home() {
             viewport={{ once: true, margin: "-30px" }}
             transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
           >
-            <span className={styles.badge}>The season, at a glance</span>
+            <span className={styles.badge}>Your RC racing season, at a glance</span>
             <AnimatedHeading as="h2" className={styles.mainTitle}>
-              Six months. Six races. Every round counts.
+              Six months. Six RC races. Every round counts.
             </AnimatedHeading>
             <p className={styles.subtitle}>
-              Earn points month by month and see how far your team can climb.
+              Learn coding and robotics month by month, earn points every round, and see how far your student team can climb.
             </p>
           </motion.div>
 
@@ -240,12 +240,12 @@ export default function Home() {
             viewport={{ once: true, margin: "-30px" }}
             transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
           >
-            <span className={styles.badge}>Meet your machine</span>
+            <span className={styles.badge}>Meet your RC race car</span>
             <AnimatedHeading as="h2" className={styles.mainTitle}>
               From the workbench to the starting grid.
             </AnimatedHeading>
             <p className={styles.subtitle}>
-              One shared design. Every team builds, tunes, and races its own.
+              One shared RC car design. Every student team codes, builds, tunes, and races its own.
             </p>
           </motion.div>
 
@@ -263,12 +263,12 @@ export default function Home() {
             viewport={{ once: true, margin: "-30px" }}
             transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
           >
-            <span className={styles.badge}>Race day</span>
+            <span className={styles.badge}>RC race day</span>
             <AnimatedHeading as="h2" className={styles.mainTitle}>
               From morning inspection to the podium.
             </AnimatedHeading>
             <p className={styles.subtitle}>
-              A race day, from the first check to the final awards.
+              A full RC racing day, from the first scrutineering check to the final awards.
             </p>
           </motion.div>
 
@@ -291,7 +291,7 @@ export default function Home() {
               Choose your way into the race.
             </AnimatedHeading>
             <p className={styles.subtitle}>
-              Come with your school team, or join as an independent student. Either way, there is a place for you to build, test, and race.
+              Join with your school team, or sign up as an independent student. Either way, there is a place for you to learn to code, build your RC car, and race it.
             </p>
           </motion.div>
 
@@ -322,10 +322,10 @@ export default function Home() {
             viewport={{ once: true }}
             transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
           >
-            <span className={styles.bannerEyebrow}>Every round keeps you in the race</span>
+            <span className={styles.bannerEyebrow}>Every round keeps you in the RC racing season</span>
             <h2 className={styles.bannerHeading}>One tough round doesn&apos;t end your season.</h2>
             <p className={styles.bannerText}>
-              Your points add up across all six rounds. A difficult month is a setback—not the finish line.
+              Your points add up across all six rounds of the season. A difficult month is a setback—not the finish line.
             </p>
             <div className={styles.bannerActionGroup}>
               <a href="/login?mode=signup" className={styles.bannerPrimaryBtn}>
@@ -346,7 +346,7 @@ export default function Home() {
           <div className={styles.sectionHeader}>
             <span className={styles.badge}>FAQ</span>
             <AnimatedHeading as="h2" className={styles.mainTitle}>
-              A few things you might be wondering.
+              A few things you might be wondering about our RC racing league.
             </AnimatedHeading>
           </div>
 

@@ -12,8 +12,8 @@ export default function Hero({ onOpenStudentModal }: HeroProps) {
   const yBg = useTransform(scrollY, [0, 800], [0, 140]);
   const opacityText = useTransform(scrollY, [0, 420], [1, 0]);
 
-  const line1Words = ["Don't", "just", "study."];
-  const line2Words = ["Build", "something", "real."];
+  const line1Words = ["Don't", "just", "code."];
+  const line2Words = ["Build", "a", "race", "car."];
 
   return (
     <section className={styles.hero}>
@@ -46,7 +46,7 @@ export default function Hero({ onOpenStudentModal }: HeroProps) {
           transition={{ delay: 0.1, duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
         >
           <span className={styles.taglineDot} />
-          <span className={styles.taglineText}>Learn. Build. Belong.</span>
+          <span className={styles.taglineText}>Learn to code. Build an RC car. Belong to a team.</span>
         </motion.div>
 
         {/* Main Heading */}
@@ -94,7 +94,7 @@ export default function Hero({ onOpenStudentModal }: HeroProps) {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.44, duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
         >
-          Build the car by hand. Bring its brain to life with code. Then race your team&apos;s creation across six rounds—because one tough day should never end your season.
+          Build an RC race car by hand, program its brain with real Java and robotics code, then race your team&apos;s build across all six rounds of Hanbee&apos;s student RC racing league—because one tough round should never end your season.
         </motion.p>
 
         {/* CTA Button Group */}
