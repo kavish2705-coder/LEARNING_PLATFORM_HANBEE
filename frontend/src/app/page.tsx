@@ -268,7 +268,7 @@ export default function Home() {
               From morning inspection to the podium.
             </AnimatedHeading>
             <p className={styles.subtitle}>
-              Every event day is fully supervised, from the first safety check to the final awards—so parents know exactly what their child is part of.
+              Every event day is fully supervised, from the first safety check to the final awards, so parents know exactly what their child is part of.
             </p>
           </motion.div>
 
@@ -325,7 +325,7 @@ export default function Home() {
             <span className={styles.bannerEyebrow}>Every month builds on the last</span>
             <h2 className={styles.bannerHeading}>One tough month doesn&apos;t end your child&apos;s progress.</h2>
             <p className={styles.bannerText}>
-              Progress adds up across all six months of the program. A difficult month is a setback—not the finish line.
+              Progress adds up across all six months of the program. A difficult month is a setback, not the finish line.
             </p>
             <div className={styles.bannerActionGroup}>
               <a href="/login?mode=signup" className={styles.bannerPrimaryBtn}>

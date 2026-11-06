@@ -13,11 +13,11 @@ export const metadata: Metadata = {
     apple: "/apple-touch-icon.png",
   },
   title: {
-    default: "Hanbee — Trusted Coding & Robotics Program for School Students | Learn · Build · Belong",
+    default: "Hanbee: Trusted Coding & Robotics Program for School Students | Learn · Build · Belong",
     template: "%s | Hanbee Student Engineering Program",
   },
   description:
-    "India's trusted, mentor-led coding and robotics program for school students. Students learn real Java and embedded programming, build a working engineering project by hand, and grow through a structured, supervised six-month season — built for parents' peace of mind.",
+    "India's trusted, mentor-led coding and robotics program for school students. Students learn real Java and embedded programming, build a working engineering project by hand, and grow through a structured, supervised six-month season, built for parents' peace of mind.",
   keywords: [
     "Hanbee",
     "Hanbee Student Engineering Program",
@@ -42,7 +42,7 @@ export const metadata: Metadata = {
     canonical: "https://hanbee.in",
   },
   openGraph: {
-    title: "Hanbee — Trusted Coding & Robotics Program for School Students",
+    title: "Hanbee: Trusted Coding & Robotics Program for School Students",
     description:
       "Don't just study. Build something real. Learn to code, build it with your own hands, and grow with a mentor-guided team your family can trust.",
     url: "https://hanbee.in",
@@ -53,7 +53,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Hanbee — Trusted Coding & Robotics Program for School Students",
+    title: "Hanbee: Trusted Coding & Robotics Program for School Students",
     description:
       "India's trusted coding and robotics program for school students. Learn · Build · Belong.",
     images: ["/hero-bg.jpg"],
