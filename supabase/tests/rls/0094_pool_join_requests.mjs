@@ -173,6 +173,12 @@ const ra = await mkIndependentCommitted("ra1-94@x.test","RC CandA");
 const rb = await mkIndependentCommitted("rb1-94@x.test","RC CandB");
 
 await asOwner();
+const raceStudents = [rc, ra, rb];
+await c.query("update profiles set tournament_access='active' where id = any($1::uuid[])",[raceStudents]);
+await c.query(
+  "insert into driver_licenses (student_id, status, amount, payment_declared) select unnest($1::uuid[]), 'active', 1, true",
+  [raceStudents],
+);
 const raceTour = (await one("insert into tournaments (title,status,starts_at,ends_at,venue,team_size) values ('Race94 Cup','upcoming',now()+interval '30 days',now()+interval '31 days','Arena',2) returning id")).id;
 
 await asUser(rc);
