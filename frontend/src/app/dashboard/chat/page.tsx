@@ -262,7 +262,7 @@ export default function ChatPage() {
       queryClient.invalidateQueries({ queryKey: ["chat-messages", activeConversationId] });
       queryClient.invalidateQueries({ queryKey: ["chat-conversations"] });
     },
-    onError: (reason) => setError(reason instanceof Error ? reason.message : "We couldn't send your message."),
+    onError: (reason) => setError(reason instanceof Error ? reason.message : "That one didn't go through — give it another send."),
   });
 
   function handleSend(customText?: string) {
@@ -428,7 +428,7 @@ export default function ChatPage() {
               {!conversationsLoading && soloConversations.length === 0 && visibleContacts.length === 0 && (
                 <div className={styles.chatEmptyState}>
                   <User size={28} aria-hidden="true" />
-                  <p>No direct messages yet. People you can message will appear here.</p>
+                  <p>Nobody in your inbox yet — anyone you're allowed to message will show up here.</p>
                 </div>
               )}
             </>
@@ -473,7 +473,7 @@ export default function ChatPage() {
               {!conversationsLoading && groupConversations.length === 0 && (
                 <div className={styles.chatEmptyState}>
                   <Inbox size={28} aria-hidden="true" />
-                  <p>You&apos;re not part of any group chat yet.</p>
+                  <p>No crew chat yet — start one with your team.</p>
                 </div>
               )}
             </>
@@ -630,7 +630,7 @@ export default function ChatPage() {
           </div>
         ) : (
           <div className={styles.noChatSelected}>
-            Select a channel or contact to start chatting.
+            Pick someone from the list and say what's up.
           </div>
         )}
       </div>

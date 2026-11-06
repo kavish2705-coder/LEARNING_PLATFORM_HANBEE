@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { Cpu, Shield, Zap, Radio } from "lucide-react";
 import styles from "./InteractiveCar.module.css";
@@ -104,9 +105,12 @@ export default function InteractiveCar() {
       <div className={styles.grid}>
         <div className={styles.visualFrame}>
           <div className={styles.carImageContainer}>
-            <img
+            <Image
               src="/rc-car-exploded.png"
               alt="Exploded diagram of Hanbee RC Racer"
+              width={683}
+              height={614}
+              sizes="(max-width: 480px) 60vw, (max-width: 960px) 90vw, 55vw"
               className={styles.carImg}
             />
           </div>

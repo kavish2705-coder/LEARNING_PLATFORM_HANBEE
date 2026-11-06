@@ -23,6 +23,9 @@ Razorpay decides whether to approve and activate the account.
   their captain can pay.
 - The Fees page shows the configured Driver License amount. Tournament entry
   fees vary by event, and independent course prices are confirmed by staff.
+- Course payment activates course access but does not choose or enroll a
+  student in a specific course section. Hanbee staff must assign a student to
+  the intended section before that published course appears under My Courses.
 
 These are source-code checks only. They do not prove that the pages are
 deployed, publicly reachable, accurate for the business, or approved by
@@ -130,6 +133,10 @@ payment-creation API calls return HTTP 410. This is an intentional API change.
   been verified from this workspace.
 - The exact customer-facing course and event prices still need business
   confirmation and clearer public disclosure where applicable.
+- Course-access payment fulfillment is not tied to a specific course or
+  section. Until that product mapping is implemented, staff must enroll each
+  paid student in the intended section; verify this assignment before telling
+  the student their course is ready.
 - Razorpay account KYC/approval, live credentials, webhook registration, and
   successful live settlement are not verified.
 - The owner reports migration `0129` was run, but no remote Supabase

@@ -86,12 +86,11 @@ export default function Sidebar({
 
   const activeRole = profile?.role ?? "student";
 
-  // Independent students can hold RC Tournament access, Course access, or
-  // both (supabase/migrations/0123_access_requests.sql) -- they get both
-  // nav items, each gated by its own blocker screen if not yet granted.
-  // Org/school-joined students only ever go through the RC Tournament
-  // path, so they never see the Courses item at all.
-  const studentMenu = profile?.is_solo
+  // Independent students can request either track, while any student with
+  // active course access must be able to reach Courses even if their account
+  // is linked to a school.
+  const canSeeCourses = profile?.is_solo || profile?.course_access === "active";
+  const studentMenu = canSeeCourses
     ? [...studentTournamentMenu.slice(0, 1), { name: "Courses", href: "/dashboard/courses", icon: BookOpen }, ...studentTournamentMenu.slice(1)]
     : studentTournamentMenu;
 

@@ -74,14 +74,14 @@ export default function PrivacyPolicyPage() {
             We keep account and activity data for as long as your account is active, and for a
             reasonable period after to meet legal and accounting requirements (including
             payment records). To request deletion of your personal data, contact us at{" "}
-            <a href="mailto:support@hanbee.in">support@hanbee.in</a>.
+            <a href="mailto:info@hanbee.in">info@hanbee.in</a>.
           </p>
         </section>
 
         <section className={styles.section}>
           <h2>Contact</h2>
           <p>
-            Questions about this policy: <a href="mailto:support@hanbee.in">support@hanbee.in</a>.
+            Questions about this policy: <a href="mailto:info@hanbee.in">info@hanbee.in</a>.
           </p>
         </section>
       </div>

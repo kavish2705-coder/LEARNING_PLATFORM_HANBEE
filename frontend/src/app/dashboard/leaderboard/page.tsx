@@ -70,13 +70,13 @@ export default function LeaderboardPage() {
         </div>
       )}
 
-      {failure && <p role="alert">{failure instanceof Error ? failure.message : "We couldn't load the leaderboard."}</p>}
+      {failure && <p role="alert">{failure instanceof Error ? failure.message : "Couldn't pull up the leaderboard — give it another go."}</p>}
       {loading && <Shimmer rows={5} />}
       {!loading && !failure && !tournament && (
         <EmptyState
           icon={<Trophy size={22} />}
-          title="No tournaments yet"
-          description="Standings will appear here as soon as a tournament is scheduled."
+          title="No race on the calendar yet"
+          description="The moment a tournament gets scheduled, this is where the standings will show up."
         />
       )}
 
@@ -123,11 +123,11 @@ export default function LeaderboardPage() {
               </div>
             ) : (
               <div style={{ padding: 20, border: "1px dashed var(--border-subtle)", borderRadius: 14, color: "var(--text-muted)" }}>
-                No {activeEntryType === "school" ? "school team" : "solo"} entries have been verified for this tournament.
+                No {activeEntryType === "school" ? "school team" : "solo"} entries verified yet — check back once results start coming in.
               </div>
             )
           ) : (
-            <p style={{ color: "var(--text-muted)" }}>No verified entries or results are available for this tournament yet.</p>
+            <p style={{ color: "var(--text-muted)" }}>Nobody's officially on the board yet for this one — results land here as soon as they're verified.</p>
           )}
         </section>
       )}

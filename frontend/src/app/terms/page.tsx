@@ -79,7 +79,7 @@ export default function TermsPage() {
         <section className={styles.section}>
           <h2>Contact</h2>
           <p>
-            Questions about these terms: <a href="mailto:support@hanbee.in">support@hanbee.in</a>.
+            Questions about these terms: <a href="mailto:info@hanbee.in">info@hanbee.in</a>.
           </p>
         </section>
       </div>

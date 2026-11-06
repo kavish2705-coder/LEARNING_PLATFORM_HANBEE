@@ -42,7 +42,7 @@ export default function AboutPage() {
           <h2>Contact</h2>
           <p>
             For general enquiries, reach us at{" "}
-            <a href="mailto:support@hanbee.in">support@hanbee.in</a>. See our{" "}
+            <a href="mailto:info@hanbee.in">info@hanbee.in</a>. See our{" "}
             <Link href="/contact">Contact page</Link> for more ways to reach us.
           </p>
         </section>

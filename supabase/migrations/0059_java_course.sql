@@ -16,7 +16,7 @@ begin
     return;
   end if;
 
-  select id into v_owner from profiles where email = 'hanbeetechnology@gmail.com';
+  select id into v_owner from profiles where email = 'info@hanbee.in';
   if v_owner is null then
     select id into v_owner from profiles where role in ('staff', 'manager') order by created_at limit 1;
   end if;

@@ -50,12 +50,9 @@ export default function AccessBlocker({ direction, children }: { direction: Acce
 
   const isOrgStudent = profile?.role === "student" && !profile?.is_solo;
 
-  // Staff/manager/school_staff, or anyone who already has this access --
-  // never blocked. Org-linked students always have RC Tournament access by
-  // default, so they pass that direction too -- but Course is an
-  // independent-student-only offering (org students join a school for RC
-  // Tournament specifically), so they get a plain notice instead of ever
-  // reaching real course content, even if they hit this URL directly.
+  // Active entitlements are honored, including for existing profiles
+  // grandfathered in by the access migration. School students without active
+  // course access are shown a notice instead of the independent-student flow.
   if (flag === "active" || (isOrgStudent && direction === "add_tournament") || (profile && profile.role !== "student")) {
     return <>{children}</>;
   }

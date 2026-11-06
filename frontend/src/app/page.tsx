@@ -308,7 +308,7 @@ export default function Home() {
             playsInline
             muted
             loop
-            preload="auto"
+            preload="none"
           >
             <source src="/race-track-video.mp4" type="video/mp4" />
           </video>

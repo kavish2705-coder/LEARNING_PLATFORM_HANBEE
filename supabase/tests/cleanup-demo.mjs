@@ -18,12 +18,12 @@
 //   * "Intro to Design" (created before the demo seed, owned by jamie): kept by default. Demo students' enrollments are removed
 //     with their accounts; ava's enrollment stays. Seed-made class sessions (scheduled at a :07 seconds mark) are removed.
 //   * jamie's seed-made time entries (exact-minute clock-ins; a real clock-in has fractional seconds) are removed in default mode.
-//   NEVER touched: info@hanbee.in, hanbeetechnology@gmail.com, the holiday "Founders' Day", anything not matching above.
+//   NEVER touched: info@hanbee.in, the holiday "Founders' Day", anything not matching above.
 import { connect } from "./rls/_db.mjs";
 
 const args = new Set(process.argv.slice(2));
 const YES = args.has("--yes"), ROLLBACK_TEST = args.has("--rollback-test"), INCLUDE_SEEDED = args.has("--include-seeded");
-const PROTECTED = ["info@hanbee.in", "hanbeetechnology@gmail.com"];
+const PROTECTED = ["info@hanbee.in"];
 const SEEDED = ["ava@student.edu", "jamie@hanbeelms.edu", "morgan@hanbeelms.edu"];
 const COMMIT = YES && !ROLLBACK_TEST;
 const say = (m) => console.log(m);

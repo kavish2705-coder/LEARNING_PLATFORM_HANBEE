@@ -198,7 +198,7 @@ export default function TournamentOverview() {
           }
         }
       } catch (reason) {
-        if (active) setError(reason instanceof Error ? reason.message : "We couldn't load tournament information.");
+        if (active) setError(reason instanceof Error ? reason.message : "Couldn't pull up your race info — give it another try in a moment.");
       } finally {
         if (active) setLoading(false);
       }
@@ -331,7 +331,7 @@ export default function TournamentOverview() {
     studentActions.push({
       id: "practice-checklist",
       title: "Continue your practice check",
-      description: `${passedCount} of ${inspectionItems.length} self-reported checks are complete.`,
+      description: `${passedCount} of ${inspectionItems.length} checks done — a few more and your car's race-ready.`,
       href: "#practice-checklist",
       icon: <Wrench size={18} />,
       meta: `${readinessScore}%`,
@@ -341,7 +341,7 @@ export default function TournamentOverview() {
     studentActions.push({
       id: "official-results",
       title: "Check official standings",
-      description: "See verified entries and recorded race results.",
+      description: "See where every team actually lands once results are locked in.",
       href: "/dashboard/leaderboard",
       icon: <Trophy size={18} />,
     });
@@ -488,8 +488,8 @@ export default function TournamentOverview() {
         {allRankedTeams.length === 0 ? (
           <EmptyState
             icon={<Trophy size={22} />}
-            title="No verified entries yet"
-            description="Standings appear here once teams are verified for this tournament."
+            title="The grid's still filling in"
+            description="Nobody's locked in yet — once teams are verified for this tournament, you'll see them here first."
           />
         ) : (
           <>
@@ -908,7 +908,7 @@ export default function TournamentOverview() {
           </>
         ) : (
           <p style={{ color: "var(--text-muted)", textAlign: "center", padding: "24px 0" }}>
-            No upcoming races scheduled. Check back later.
+            Nothing on the calendar right now — we'll let you know the moment the next race is set.
           </p>
         )}
       </div>
