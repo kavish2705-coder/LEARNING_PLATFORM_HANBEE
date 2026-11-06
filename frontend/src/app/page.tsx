@@ -75,7 +75,7 @@ const TECH_CONCEPTS = [
     ),
   },
   {
-    label: "Race at the Hanbee RC Cup",
+    label: "Compete at the Hanbee Student Cup",
     icon: (
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
         <path d="M6 3H18V10C18 13.3137 15.3137 16 12 16C8.68629 16 6 13.3137 6 10V3Z" fill="rgba(229,138,43,0.25)" stroke="#e58a2b" strokeWidth="1.5" />
@@ -203,12 +203,12 @@ export default function Home() {
             viewport={{ once: true, margin: "-30px" }}
             transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
           >
-            <span className={styles.badge}>Your RC racing season, at a glance</span>
+            <span className={styles.badge}>A full academic year of structured learning, at a glance</span>
             <AnimatedHeading as="h2" className={styles.mainTitle}>
-              Six months. Six RC races. Every round counts.
+              Six months. Six milestones. Real skills your child keeps.
             </AnimatedHeading>
             <p className={styles.subtitle}>
-              Learn coding and robotics month by month, earn points every round, and see how far your student team can climb.
+              Your child learns coding and robotics month by month, under mentor guidance, and builds confidence they can see for themselves.
             </p>
           </motion.div>
 
@@ -240,12 +240,12 @@ export default function Home() {
             viewport={{ once: true, margin: "-30px" }}
             transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
           >
-            <span className={styles.badge}>Meet your RC race car</span>
+            <span className={styles.badge}>What your child will actually build</span>
             <AnimatedHeading as="h2" className={styles.mainTitle}>
-              From the workbench to the starting grid.
+              From the workbench to a working machine.
             </AnimatedHeading>
             <p className={styles.subtitle}>
-              One shared RC car design. Every student team codes, builds, tunes, and races its own.
+              One proven design, taught step by step. Every student team learns to build, code, and troubleshoot a real working model of their own.
             </p>
           </motion.div>
 
@@ -263,12 +263,12 @@ export default function Home() {
             viewport={{ once: true, margin: "-30px" }}
             transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
           >
-            <span className={styles.badge}>RC race day</span>
+            <span className={styles.badge}>A safe, supervised event day</span>
             <AnimatedHeading as="h2" className={styles.mainTitle}>
               From morning inspection to the podium.
             </AnimatedHeading>
             <p className={styles.subtitle}>
-              A full RC racing day, from the first scrutineering check to the final awards.
+              Every event day is fully supervised, from the first safety check to the final awards—so parents know exactly what their child is part of.
             </p>
           </motion.div>
 
@@ -291,7 +291,7 @@ export default function Home() {
               Choose your way into the race.
             </AnimatedHeading>
             <p className={styles.subtitle}>
-              Join with your school team, or sign up as an independent student. Either way, there is a place for you to learn to code, build your RC car, and race it.
+              Join with a school group, or sign up as an independent student. Either way, your child gets the same guided path to learn to code, build a real working model, and gain hands-on experience.
             </p>
           </motion.div>
 
@@ -322,10 +322,10 @@ export default function Home() {
             viewport={{ once: true }}
             transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
           >
-            <span className={styles.bannerEyebrow}>Every round keeps you in the RC racing season</span>
-            <h2 className={styles.bannerHeading}>One tough round doesn&apos;t end your season.</h2>
+            <span className={styles.bannerEyebrow}>Every month builds on the last</span>
+            <h2 className={styles.bannerHeading}>One tough month doesn&apos;t end your child&apos;s progress.</h2>
             <p className={styles.bannerText}>
-              Your points add up across all six rounds of the season. A difficult month is a setback—not the finish line.
+              Progress adds up across all six months of the program. A difficult month is a setback—not the finish line.
             </p>
             <div className={styles.bannerActionGroup}>
               <a href="/login?mode=signup" className={styles.bannerPrimaryBtn}>
@@ -346,7 +346,7 @@ export default function Home() {
           <div className={styles.sectionHeader}>
             <span className={styles.badge}>FAQ</span>
             <AnimatedHeading as="h2" className={styles.mainTitle}>
-              A few things you might be wondering about our RC racing league.
+              A few things parents and students often ask us.
             </AnimatedHeading>
           </div>
 
@@ -505,7 +505,7 @@ export default function Home() {
           <div className={styles.footerBottomBar}>
             <div className={styles.bottomLeft}>
               <span className={styles.copyrightText}>
-                &copy; {new Date().getFullYear()} Hanbee F1 RC Racing League. All rights reserved.
+                &copy; {new Date().getFullYear()} Hanbee Student Engineering Program. All rights reserved.
               </span>
             </div>
 

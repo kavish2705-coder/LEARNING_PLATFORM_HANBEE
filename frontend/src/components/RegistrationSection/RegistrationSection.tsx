@@ -36,17 +36,17 @@ export default function RegistrationSection({ onOpenStudentModal }: Registration
 
             </div>
 
-            <h3 className={styles.cardTitle}>Enter as a school squad</h3>
+            <h3 className={styles.cardTitle}>Enter as a school team</h3>
             <p className={styles.cardDesc}>
-              Your school can field up to two teams of five. Faculty mentors get roster tools and course-progress dashboards, plus a dedicated pit bay on race days.
+              Your school can field up to two teams of five students, with real mentor supervision throughout. Faculty get roster tools and course-progress dashboards, so you can track exactly how each student is doing.
             </p>
 
             <div className={styles.perksList}>
               {[
                 "Up to two teams and ten active students per school",
-                "Access for a faculty mentor and school coordinator",
+                "Dedicated access for a faculty mentor and school coordinator",
                 "One registered substitute student per team",
-                "Official event photos, race footage, and telemetry records",
+                "Official event photos and progress records parents can review",
               ].map((perk, idx) => (
                 <div key={idx} className={styles.perkRow}>
                   <div className={styles.perkCheckWrap}>
@@ -80,15 +80,15 @@ export default function RegistrationSection({ onOpenStudentModal }: Registration
 
             <h3 className={styles.cardTitle}>Join as an independent student</h3>
             <p className={styles.cardDesc}>
-              No team at your school? You can still take part. Build your car, explore the full flight-controller and firmware modules, and race your way into the solo qualifying pool.
+              No team at your school? Your child can still take part on their own. They learn real coding and engineering skills, build their own working model, and join a verified solo qualifying pool.
             </p>
 
             <div className={styles.perksList}>
               {[
-                "Solo qualifying in the Hanbee F1 RC Racing League",
-                "Courses in C++, Java, and flight-controller design",
+                "A verified solo path into the Hanbee Student Engineering Program",
+                "Courses in C++, Java, and embedded controller design",
                 "Find teammates through student matchmaking",
-                "Compete for championship points throughout all six months",
+                "Clear, trackable progress every month for six months",
               ].map((perk, idx) => (
                 <div key={idx} className={styles.perkRow}>
                   <div className={styles.perkCheckWrap}>
