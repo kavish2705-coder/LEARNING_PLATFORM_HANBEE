@@ -17,7 +17,9 @@ export default function PrivacyPolicyPage() {
 
         <section className={styles.section}>
           <p>
-            This policy explains what information Hanbee (&quot;we&quot;, &quot;us&quot;)
+            This policy is issued by Hanbee Technologies Private Limited, registered at Plot No.
+            28, 2nd Cross Street, Thiurpur Kumaran Nagar, Thirukkalukundram, Tamil Nadu 603109,
+            India (&quot;Hanbee&quot;, &quot;we&quot;, &quot;us&quot;). It explains what information Hanbee
             collects through the Hanbee learning and tournament platform (the
             &quot;Platform&quot;), how we use it, and the choices you have.
           </p>
@@ -70,14 +72,14 @@ export default function PrivacyPolicyPage() {
             We keep account and activity data for as long as your account is active, and for a
             reasonable period after to meet legal and accounting requirements (including
             payment records). To request deletion of your personal data, contact us at{" "}
-            <a href="mailto:hanbeetechnology@gmail.com">hanbeetechnology@gmail.com</a>.
+            <a href="mailto:support@hanbee.in">support@hanbee.in</a>.
           </p>
         </section>
 
         <section className={styles.section}>
           <h2>Contact</h2>
           <p>
-            Questions about this policy: <a href="mailto:hanbeetechnology@gmail.com">hanbeetechnology@gmail.com</a>.
+            Questions about this policy: <a href="mailto:support@hanbee.in">support@hanbee.in</a>.
           </p>
         </section>
       </div>

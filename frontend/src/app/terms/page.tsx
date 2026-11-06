@@ -17,8 +17,11 @@ export default function TermsPage() {
 
         <section className={styles.section}>
           <p>
-            By creating an account or using the Hanbee learning and tournament platform
-            (the &quot;Platform&quot;), you agree to these terms.
+            These terms are between you and Hanbee Technologies Private Limited, registered at
+            Plot No. 28, 2nd Cross Street, Thiurpur Kumaran Nagar, Thirukkalukundram, Tamil Nadu
+            603109, India (&quot;Hanbee&quot;). By creating an account or using the Hanbee
+            learning and tournament platform (the &quot;Platform&quot;), you agree to these
+            terms.
           </p>
         </section>
 
@@ -73,7 +76,7 @@ export default function TermsPage() {
         <section className={styles.section}>
           <h2>Contact</h2>
           <p>
-            Questions about these terms: <a href="mailto:hanbeetechnology@gmail.com">hanbeetechnology@gmail.com</a>.
+            Questions about these terms: <a href="mailto:support@hanbee.in">support@hanbee.in</a>.
           </p>
         </section>
       </div>

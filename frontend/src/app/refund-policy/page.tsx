@@ -29,7 +29,7 @@ export default function RefundPolicyPage() {
             Payments are verified manually by our staff against the bank reference you submit.
             If you paid by mistake and your payment has <strong>not yet been confirmed</strong>,
             contact us immediately at{" "}
-            <a href="mailto:hanbeetechnology@gmail.com">hanbeetechnology@gmail.com</a> with your
+            <a href="mailto:support@hanbee.in">support@hanbee.in</a> with your
             payment reference, and we will cancel the pending entry and refund the full amount to
             your original payment method within{" "}
             <span className={styles.placeholder}>X business days — set your real SLA here</span>.
@@ -69,7 +69,7 @@ export default function RefundPolicyPage() {
         <section className={styles.section}>
           <h2>Contact for a refund request</h2>
           <p>
-            Email <a href="mailto:hanbeetechnology@gmail.com">hanbeetechnology@gmail.com</a> with
+            Email <a href="mailto:support@hanbee.in">support@hanbee.in</a> with
             your payment reference / UTR number and the reason for your request.
           </p>
         </section>
