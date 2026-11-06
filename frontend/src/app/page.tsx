@@ -340,8 +340,46 @@ export default function Home() {
         </div>
       </section>
 
-      {/* SECTION 7: Competition Rules & FAQ */}
-      <section className={styles.faqSection} id="about">
+      {/* SECTION 7: SEO & About The League Overview */}
+      <section className={styles.seoOverviewSection} id="about" aria-label="About Hanbee Racing League">
+        <div className={styles.container}>
+          <div className={styles.sectionHeader}>
+            <span className={styles.badge}>ABOUT THE LEAGUE</span>
+            <AnimatedHeading as="h2" className={styles.mainTitle}>
+              Engineering Excellence Through Autonomous Motorsport
+            </AnimatedHeading>
+            <p className={styles.subtitle}>
+              Bridging academic STEM theory with track-tested engineering, telemetry analysis, and competitive teamwork.
+            </p>
+          </div>
+
+          <div className={styles.seoGrid}>
+            <article className={styles.seoCard}>
+              <h3 className={styles.seoCardTitle}>Hands-On STEM &amp; Hardware Engineering</h3>
+              <p className={styles.seoCardDesc}>
+                Students transition from passive textbook learning to active engineering. Every team works directly with precision RC chassis architecture, brushless powertrains, electronic speed controllers (ESC), and mechanical telemetry systems.
+              </p>
+            </article>
+
+            <article className={styles.seoCard}>
+              <h3 className={styles.seoCardTitle}>Autonomous Firmware &amp; Telemetry</h3>
+              <p className={styles.seoCardDesc}>
+                Racers code and configure custom flight controller firmware, calibrate optical lap timing transponders, and analyze real-time race telemetry to optimize suspension damping, tire grip, and lap efficiency.
+              </p>
+            </article>
+
+            <article className={styles.seoCard}>
+              <h3 className={styles.seoCardTitle}>Six-Month Zero-Elimination Championship</h3>
+              <p className={styles.seoCardDesc}>
+                Unlike traditional single-knockout contests, the Hanbee championship format guarantees that one mechanical issue or collision never ends a season. Teams iterate, re-tune, and earn cumulative championship points across all 6 rounds.
+              </p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      {/* SECTION 8: Competition Rules & FAQ */}
+      <section className={styles.faqSection} id="faq">
         <div className={styles.containerSm}>
           <div className={styles.sectionHeader}>
             <span className={styles.badge}>FAQ</span>

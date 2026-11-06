@@ -1016,3 +1016,57 @@
   color: var(--landing-accent);
   transform: translateX(2px);
 }
+
+/* SEO & About Overview Section */
+.seoOverviewSection {
+  padding: 100px 0;
+  background: var(--landing-surface-2);
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.seoGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 28px;
+}
+
+.seoCard {
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  padding: 32px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  transition: all 0.25s ease;
+}
+
+.seoCard:hover {
+  background: rgba(255, 255, 255, 0.045);
+  border-color: rgba(229, 138, 43, 0.3);
+  transform: translateY(-2px);
+}
+
+.seoCardTitle {
+  font-family: var(--font-heading);
+  font-size: 19px;
+  font-weight: 600;
+  color: #ffffff;
+  line-height: 1.35;
+  letter-spacing: 0.02em;
+}
+
+.seoCardDesc {
+  font-family: var(--font-body);
+  font-size: 14.5px;
+  line-height: 1.65;
+  color: rgba(255, 255, 255, 0.65);
+  margin: 0;
+}
+
+@media (max-width: 900px) {
+  .seoGrid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+}
