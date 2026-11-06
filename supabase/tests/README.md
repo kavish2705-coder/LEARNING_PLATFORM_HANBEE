@@ -63,6 +63,6 @@ Never commit the URL. Use the session pooler (the direct host is IPv6 only). Enc
 | `0037_backend_hardening.mjs` | Join link rotation, append-only audit log, masked certificate name, chat history and profile limits, flood caps |
 | `0029_overviews_status_solo.mjs` | Dashboard data functions and who may call them, suspend/close/revoke, solo conversion, joining a new school |
 | `0028_tenant_scoping.mjs` | School A never sees school B: announcements, calendar, enrollments, discussions, profiles; revocation |
-| `0125_team_join_entitlements.mjs` | Tournament-access and active-license checks for join requests, join-request acceptance, and invitation acceptance |
+| `0126_team_join_entitlements.mjs` | Tournament-access and active-license checks for join requests, join-request acceptance, and invitation acceptance |
 
 They rely on these live accounts existing: `ava@student.edu` (student with an enrollment), `jamie@hanbeelms.edu` (Hanbee staff), `morgan@hanbeelms.edu` (manager). Add a test file for every new migration, and rerun all of them after any policy change. To apply a migration: `SUPABASE_DB_URL=... node apply-migration.mjs ../migrations/<file>.sql` (all or nothing). To run everything: `for f in rls/0*.mjs; do node $f | tail -1; done`.

@@ -1,3 +1,4 @@
+// Regression tests for migration 0126.
 import { connect } from "./_db.mjs";
 
 const c = await connect();

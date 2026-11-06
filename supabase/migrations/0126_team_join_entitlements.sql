@@ -1,4 +1,4 @@
--- Team membership must enforce the same tournament-access and active
+-- Migration 0126: team membership must enforce the same tournament-access and active
 -- Driver License requirements as creating a tournament team.
 
 create or replace function public.student_has_active_tournament_entitlements(p_student uuid)

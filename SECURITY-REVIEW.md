@@ -105,11 +105,11 @@ repository-wide security re-review. The security-review agent reported no
 vulnerabilities in the changes it reviewed, but did not return repository-wide
 findings. The previously documented medium-severity tournament team entitlement
 finding has a source remediation in
-[`supabase/migrations/0125_team_join_entitlements.sql`](./supabase/migrations/0125_team_join_entitlements.sql).
+[`supabase/migrations/0126_team_join_entitlements.sql`](./supabase/migrations/0126_team_join_entitlements.sql).
 The migration gates new join requests, captain acceptance against the
 requester's entitlements, and invitation acceptance against the invitee's
 entitlements. A focused regression suite was added at
-[`supabase/tests/rls/0125_team_join_entitlements.mjs`](./supabase/tests/rls/0125_team_join_entitlements.mjs),
+[`supabase/tests/rls/0126_team_join_entitlements.mjs`](./supabase/tests/rls/0126_team_join_entitlements.mjs),
 but it could not be executed because Supabase CLI and Docker are unavailable.
 Treat this finding as **patched in source, runtime verification pending**;
 production migration state was not checked. No staging-only B data or
