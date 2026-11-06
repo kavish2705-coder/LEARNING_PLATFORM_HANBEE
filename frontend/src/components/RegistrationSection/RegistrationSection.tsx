@@ -36,17 +36,17 @@ export default function RegistrationSection({ onOpenStudentModal }: Registration
 
             </div>
 
-            <h3 className={styles.cardTitle}>School Squad Entry</h3>
+            <h3 className={styles.cardTitle}>Enter as a school squad</h3>
             <p className={styles.cardDesc}>
-              Each registered school fields up to 2 competition teams (5 students each). Faculty mentors receive verified roster tools, curriculum progress dashboards, and dedicated pit bays on track days.
+              Your school can field up to two teams of five. Faculty mentors get roster tools and course-progress dashboards, plus a dedicated pit bay on race days.
             </p>
 
             <div className={styles.perksList}>
               {[
-                "2 competition teams per school (10 active students total)",
-                "Dedicated faculty mentor & school coordinator access",
-                "Registered substitute student allowance per team",
-                "Official event photography, race footage & telemetry records",
+                "Up to two teams and ten active students per school",
+                "Access for a faculty mentor and school coordinator",
+                "One registered substitute student per team",
+                "Official event photos, race footage, and telemetry records",
               ].map((perk, idx) => (
                 <div key={idx} className={styles.perkRow}>
                   <div className={styles.perkCheckWrap}>
@@ -59,7 +59,7 @@ export default function RegistrationSection({ onOpenStudentModal }: Registration
 
             <div className={styles.cardActionRow}>
               <a href="/login?mode=signup&role=School" className={styles.primaryPaddockBtn}>
-                <span>Register Your School</span>
+                <span>Register your school</span>
                 <ArrowRight size={16} />
               </a>
 
@@ -78,17 +78,17 @@ export default function RegistrationSection({ onOpenStudentModal }: Registration
 
             </div>
 
-            <h3 className={styles.cardTitle}>Independent Student</h3>
+            <h3 className={styles.cardTitle}>Join as an independent student</h3>
             <p className={styles.cardDesc}>
-              If your school doesn&apos;t field a squad yet, you don&apos;t have to sit out. Build your car, access complete flight controller and firmware modules, and enter the solo qualifying pool.
+              No team at your school? You can still take part. Build your car, explore the full flight-controller and firmware modules, and race your way into the solo qualifying pool.
             </p>
 
             <div className={styles.perksList}>
               {[
-                "Solo qualifier entry into the Hanbee F1 RC Racing League",
-                "Complete access to C++, Java & flight controller curriculum",
-                "Option to join student matchmaking pools to form teams",
-                "Full F1 championship points eligibility all six months",
+                "Solo qualifying in the Hanbee F1 RC Racing League",
+                "Courses in C++, Java, and flight-controller design",
+                "Find teammates through student matchmaking",
+                "Compete for championship points throughout all six months",
               ].map((perk, idx) => (
                 <div key={idx} className={styles.perkRow}>
                   <div className={styles.perkCheckWrap}>
@@ -101,7 +101,7 @@ export default function RegistrationSection({ onOpenStudentModal }: Registration
 
             <div className={styles.cardActionRow}>
               <button onClick={onOpenStudentModal} className={styles.secondaryPaddockBtn}>
-                <span>Join Independent Pool</span>
+                <span>Join the independent pool</span>
                 <ArrowRight size={16} />
               </button>
 
@@ -112,4 +112,3 @@ export default function RegistrationSection({ onOpenStudentModal }: Registration
     </div>
   );
 }
-

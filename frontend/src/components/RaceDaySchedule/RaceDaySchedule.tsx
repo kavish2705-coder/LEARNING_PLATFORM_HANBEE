@@ -20,13 +20,13 @@ interface Phase {
 }
 
 const PHASES: Phase[] = [
-  { step: "01", title: "Safety Inspection", desc: "Team check-in, car scrutineering, and transponder frequency verification.", icon: Wrench },
-  { step: "02", title: "Driver Briefing", desc: "Track walk, safety flags, track limits, and heat assignment review.", icon: Radio },
-  { step: "03", title: "Practice Session", desc: "Open track warm-up to dial in tire grip, suspension, and trim balance.", icon: Gauge },
-  { step: "04", title: "Qualifying & Heats", desc: "Official timed runs and wheel-to-wheel heats under optical timing gates.", icon: Timer },
-  { step: "05", title: "Finals & Placement", desc: "Main bracket championship finals alongside consolation placement races.", icon: Flag },
-  { step: "06", title: "Official Verification", desc: "Lap data verification, penalty review, and championship points update.", icon: CheckCircle2 },
-  { step: "07", title: "Podium & Awards", desc: "Trophies for Round Winner, Best Driver, Best Teamwork, and Fair Play.", icon: Trophy },
+  { step: "01", title: "Safety check-in", desc: "Check in with your team, have your car inspected, and confirm your transponder frequency.", icon: Wrench },
+  { step: "02", title: "Driver briefing", desc: "Walk the track, review the safety flags and track limits, and find out your heat assignment.", icon: Radio },
+  { step: "03", title: "Practice laps", desc: "Get out on the track and fine-tune your tire grip, suspension, and trim.", icon: Gauge },
+  { step: "04", title: "Qualifying & heats", desc: "Set your official time, then take on wheel-to-wheel heats timed by optical gates.", icon: Timer },
+  { step: "05", title: "Finals & placement", desc: "Race the championship bracket or take your place in the placement finals.", icon: Flag },
+  { step: "06", title: "Results check", desc: "We verify lap data, review penalties, and update the championship points.", icon: CheckCircle2 },
+  { step: "07", title: "Podium & awards", desc: "Celebrate the round winner, best driver, best teamwork, and fair play.", icon: Trophy },
 ];
 
 export default function RaceDaySchedule() {

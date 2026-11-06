@@ -20,7 +20,7 @@ import styles from "./page.module.css";
 
 const TECH_CONCEPTS = [
   {
-    label: "BUILD THE FLIGHT CONTROLLER",
+    label: "Build the flight controller",
     icon: (
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
         <rect x="5" y="5" width="14" height="14" rx="2.5" fill="#141620" stroke="#e58a2b" strokeWidth="1.6" />
@@ -30,7 +30,7 @@ const TECH_CONCEPTS = [
     ),
   },
   {
-    label: "CODE IT YOURSELF",
+    label: "Write your own code",
     icon: (
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
         <path d="M7 8L3 12L7 16M17 8L21 12L17 16M14 4L10 20" stroke="#e58a2b" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
@@ -38,7 +38,7 @@ const TECH_CONCEPTS = [
     ),
   },
   {
-    label: "LEARN JAVA",
+    label: "Learn Java",
     icon: (
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
         <path d="M8 2C8 3.5 10 3.5 10 5M12 2C12 3.5 14 3.5 14 5M16 2C16 3.5 18 3.5 18 5" stroke="#e58a2b" strokeWidth="1.3" strokeLinecap="round" />
@@ -49,7 +49,7 @@ const TECH_CONCEPTS = [
     ),
   },
   {
-    label: "DATA STRUCTURES & ALGORITHMS",
+    label: "Explore algorithms",
     icon: (
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
         <circle cx="12" cy="4" r="2.5" fill="#e58a2b" stroke="#ffffff" strokeWidth="1.2" />
@@ -64,7 +64,7 @@ const TECH_CONCEPTS = [
     ),
   },
   {
-    label: "REACT ARCHITECTURE",
+    label: "Design with React",
     icon: (
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
         <ellipse cx="12" cy="12" rx="10" ry="3.8" stroke="#58c4dc" strokeWidth="1.5" />
@@ -75,7 +75,7 @@ const TECH_CONCEPTS = [
     ),
   },
   {
-    label: "RACE AT THE HANBEE RC CUP",
+    label: "Race at the Hanbee RC Cup",
     icon: (
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
         <path d="M6 3H18V10C18 13.3137 15.3137 16 12 16C8.68629 16 6 13.3137 6 10V3Z" fill="rgba(229,138,43,0.25)" stroke="#e58a2b" strokeWidth="1.5" />
@@ -203,12 +203,12 @@ export default function Home() {
             viewport={{ once: true, margin: "-30px" }}
             transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
           >
-            <span className={styles.badge}>How the league works</span>
+            <span className={styles.badge}>The season, at a glance</span>
             <AnimatedHeading as="h2" className={styles.mainTitle}>
-              Six Months. Six Different Races.
+              Six months. Six races. Every round counts.
             </AnimatedHeading>
             <p className={styles.subtitle}>
-              A cumulative points championship. Every round counts.
+              Earn points month by month and see how far your team can climb.
             </p>
           </motion.div>
 
@@ -240,12 +240,12 @@ export default function Home() {
             viewport={{ once: true, margin: "-30px" }}
             transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
           >
-            <span className={styles.badge}>The car</span>
+            <span className={styles.badge}>Meet your machine</span>
             <AnimatedHeading as="h2" className={styles.mainTitle}>
-              Built by students. Raced on the circuit.
+              From the workbench to the starting grid.
             </AnimatedHeading>
             <p className={styles.subtitle}>
-              One spec. Every team builds the same car.
+              One shared design. Every team builds, tunes, and races its own.
             </p>
           </motion.div>
 
@@ -268,7 +268,7 @@ export default function Home() {
               From morning inspection to the podium.
             </AnimatedHeading>
             <p className={styles.subtitle}>
-              The schedule for each monthly round.
+              A race day, from the first check to the final awards.
             </p>
           </motion.div>
 
@@ -286,12 +286,12 @@ export default function Home() {
             viewport={{ once: true, margin: "-30px" }}
             transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
           >
-            <span className={styles.badge}>Get on the grid</span>
+            <span className={styles.badge}>Find your place on the grid</span>
             <AnimatedHeading as="h2" className={styles.mainTitle}>
-              Two ways to race in Season 1.
+              Choose your way into the race.
             </AnimatedHeading>
             <p className={styles.subtitle}>
-              Bring a school squad of 2 teams or enter the independent student pool to build, test, and compete.
+              Come with your school team, or join as an independent student. Either way, there is a place for you to build, test, and race.
             </p>
           </motion.div>
 
@@ -322,18 +322,18 @@ export default function Home() {
             viewport={{ once: true }}
             transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
           >
-            <span className={styles.bannerEyebrow}>Six months, zero elimination</span>
-            <h2 className={styles.bannerHeading}>Consistency wins the Championship.</h2>
+            <span className={styles.bannerEyebrow}>Every round keeps you in the race</span>
+            <h2 className={styles.bannerHeading}>One tough round doesn&apos;t end your season.</h2>
             <p className={styles.bannerText}>
-              Points accumulate over six rounds. A bad month is a setback, not an exit.
+              Your points add up across all six rounds. A difficult month is a setback—not the finish line.
             </p>
             <div className={styles.bannerActionGroup}>
               <a href="/login?mode=signup" className={styles.bannerPrimaryBtn}>
-                Register Your Team
+                Join the grid
                 <ArrowRight size={16} />
               </a>
               <a href="/apply" className={styles.bannerSecondaryBtn}>
-                School Enquiries
+                Talk to us about your school
               </a>
             </div>
           </motion.div>
@@ -346,31 +346,31 @@ export default function Home() {
           <div className={styles.sectionHeader}>
             <span className={styles.badge}>FAQ</span>
             <AnimatedHeading as="h2" className={styles.mainTitle}>
-              Common questions.
+              A few things you might be wondering.
             </AnimatedHeading>
           </div>
 
           <div className={styles.faqList}>
             {[
               {
-                q: "How does the season points system work?",
-                a: "Points follow the F1 table: 1st=25, 2nd=18, 3rd=15, 4th=12, 5th=10, 6th=8, 7th=6, 8th=4, 9th=2, 10th=1. Points accumulate across all 6 rounds.",
+                q: "How do points add up across the season?",
+                a: "Each round follows the F1 points scale: 1st: 25, 2nd: 18, 3rd: 15, 4th: 12, 5th: 10, 6th: 8, 7th: 6, 8th: 4, 9th: 2, and 10th: 1. Your points add up across all six rounds.",
               },
               {
-                q: "What happens if a car has a collision or mechanical failure?",
-                a: "If you're hit through no fault of your own, Race Control grants a restart. Teams get one repair window per round for mechanical issues.",
+                q: "What if there's a collision or a mechanical problem?",
+                a: "If another car hits you and it wasn't your fault, Race Control grants a restart. Teams also get one repair window per round for mechanical issues.",
               },
               {
-                q: "What is the qualification format for Month 6 (Grand Championship)?",
-                a: "The Top 8 teams on the cumulative leaderboard after Month 5 qualify for the Grand Championship Final. All other teams race in Placement Finals for season rankings and awards.",
+                q: "How does the Grand Championship round work?",
+                a: "After Month 5, the top eight teams on the season leaderboard qualify for the Grand Championship Final. Every other team races in the Placement Finals for season rankings and awards.",
               },
               {
-                q: "Can teams make driver substitutions during the season?",
-                a: "Yes. Each team may register one approved substitute student with school authorization and Race Director notification.",
+                q: "Can we bring in a substitute driver?",
+                a: "Yes. Each team may register one substitute student, with school approval and a heads-up to the Race Director.",
               },
               {
-                q: "How are season ties broken if two teams have the same points?",
-                a: "Ties are resolved by: (1) Most monthly round wins, (2) Most second-place finishes, and (3) Finishing order in the Grand Championship Final.",
+                q: "What happens if teams finish level on points?",
+                a: "We break ties in this order: most round wins, most second-place finishes, then each team's finishing place in the Grand Championship Final.",
               },
             ].map((faq, idx) => (
               <details key={idx} className={styles.faqCard}>
@@ -435,17 +435,17 @@ export default function Home() {
             {/* Middle: 3 Structured Navigation Columns */}
             <div className={styles.footerNavGroup}>
               <div className={styles.footerNavCol}>
-                <span className={styles.footerSectionHeader}>Participate</span>
+                <span className={styles.footerSectionHeader}>Join the race</span>
                 <ul className={styles.footerLinkList}>
-                  <li><a href="#educators" className={styles.footerLink}>School Squad Entry</a></li>
-                  <li><button onClick={() => setIsStudentModalOpen(true)} className={styles.footerLinkBtn}>Independent Racers</button></li>
-                  <li><a href="/login?mode=signup" className={styles.footerLink}>Register Your Team</a></li>
-                  <li><a href="/apply" className={styles.footerLink}>School Enquiries</a></li>
+                  <li><a href="#educators" className={styles.footerLink}>Enter as a school</a></li>
+                  <li><button onClick={() => setIsStudentModalOpen(true)} className={styles.footerLinkBtn}>Join as an independent student</button></li>
+                  <li><a href="/login?mode=signup" className={styles.footerLink}>Register your team</a></li>
+                  <li><a href="/apply" className={styles.footerLink}>Ask about schools</a></li>
                 </ul>
               </div>
 
               <div className={styles.footerNavCol}>
-                <span className={styles.footerSectionHeader}>STEM &amp; LMS</span>
+                <span className={styles.footerSectionHeader}>Learning &amp; tools</span>
                 <ul className={styles.footerLinkList}>
                   <li><a href="/login" className={styles.footerLink}>Student Portal</a></li>
                   <li><a href="/login" className={styles.footerLink}>Faculty Dashboard</a></li>
@@ -454,18 +454,18 @@ export default function Home() {
               </div>
 
               <div className={styles.footerNavCol}>
-                <span className={styles.footerSectionHeader}>Legal</span>
+                <span className={styles.footerSectionHeader}>Good to know</span>
                 <ul className={styles.footerLinkList}>
-                  <li><a href="/about" className={styles.footerLink}>About us</a></li>
-                  <li><a href="/contact" className={styles.footerLink}>Contact us</a></li>
+                  <li><a href="/about" className={styles.footerLink}>About Hanbee</a></li>
+                  <li><a href="/contact" className={styles.footerLink}>Get in touch</a></li>
                   <li><a href="/privacy-policy" className={styles.footerLink}>Privacy policy</a></li>
                   <li><a href="/terms" className={styles.footerLink}>Terms &amp; conditions</a></li>
-                  <li><a href="/refund-policy" className={styles.footerLink}>Refund &amp; cancellation</a></li>
+                  <li><a href="/refund-policy" className={styles.footerLink}>Refunds &amp; cancellations</a></li>
                 </ul>
               </div>
 
               <div className={styles.footerNavCol}>
-                <span className={styles.footerSectionHeader}>Connect with us</span>
+                <span className={styles.footerSectionHeader}>Stay in touch</span>
                 <ul className={styles.footerLinkList}>
                   <li>
                     <a

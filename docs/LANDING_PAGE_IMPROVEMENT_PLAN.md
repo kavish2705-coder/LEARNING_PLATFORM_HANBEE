@@ -1,7 +1,7 @@
 # Hanbee Landing Page Improvement Plan
 
-**Status:** Review plan only — no landing-page UI changes have been made.
-**Reviewed:** 2026-11-03
+**Status:** Landing-page copy refreshed on 2026-11-06; layout and interaction redesign remains a separate review item.
+**Reviewed:** 2026-11-03; copy refresh: 2026-11-06
 **Scope:** Public landing page, navigation, landing-page media and animation, FAQ, footer, and landing-page calls to action. Dashboard redesign is out of scope.
 
 ## Review baseline

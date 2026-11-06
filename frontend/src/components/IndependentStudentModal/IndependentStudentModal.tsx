@@ -22,19 +22,19 @@ const trackOptions = [
     id: "Tournament Track (Hardware & Code)",
     title: "Tournament Track",
     badge: "Hardware",
-    desc: "Build and program your RC car's flight controller, tune the chassis, and race solo at the Hanbee RC Cup.",
+    desc: "Build and program your RC car's flight controller, tune the chassis, and take on the Hanbee RC Cup as an independent racer.",
   },
   {
     id: "Classroom Track (Java · DSA · React)",
     title: "Classroom Track",
     badge: "Software",
-    desc: "Structured courses in Java, data structures, and React with self-paced lessons and auto-graded checks.",
+    desc: "Learn Java, data structures, and React through self-paced lessons and quick, automatically graded checks.",
   },
   {
     id: "Both Tracks (Tournament + Classroom)",
     title: "Both Tracks",
     badge: "Full Access",
-    desc: "Build and race the car in the tournament, plus complete access to all classroom coding courses.",
+    desc: "Build and race your car, then keep learning with the full set of classroom coding courses.",
   },
 ];
 
@@ -55,7 +55,7 @@ export default function IndependentStudentModal({ isOpen, onClose }: Independent
     setError("");
 
     if (!fullName.trim() || !email.trim() || !phone.trim()) {
-      setError("Please complete your name, email, and phone number.");
+      setError("Please add your name, email address, and phone number so we can get back to you.");
       return;
     }
 
@@ -82,7 +82,7 @@ export default function IndependentStudentModal({ isOpen, onClose }: Independent
 
       if (!res.ok) {
         const body = await res.json().catch(() => null);
-        setError(body?.error || "We couldn't save your application. Please try again.");
+        setError(body?.error || "We couldn't send your application just now. Please try again.");
         return;
       }
 
@@ -151,9 +151,9 @@ export default function IndependentStudentModal({ isOpen, onClose }: Independent
                   </svg>
                 </div>
                 <div className={styles.successEyebrow}>APPLICATION RECEIVED</div>
-                <h3 className={styles.successTitle}>Thank you, {fullName}</h3>
+                <h3 className={styles.successTitle}>Thanks for applying, {fullName}</h3>
                 <p className={styles.successDesc}>
-                  We&apos;ve recorded your application for{" "}
+                  We&apos;ve received your application for{" "}
                   <strong>{location === "Other" && customLocation ? customLocation : location}</strong>.
                 </p>
                 <div className={styles.successNextStep}>
@@ -163,7 +163,7 @@ export default function IndependentStudentModal({ isOpen, onClose }: Independent
                   </div>
                   <div className={styles.nextStepItem}>
                     <span className={styles.nextStepDot} />
-                    <span>Our team will message you on WhatsApp at <strong>{phone}</strong> to confirm your onboarding.</span>
+                    <span>We&apos;ll message you on WhatsApp at <strong>{phone}</strong> with your next steps.</span>
                   </div>
                 </div>
                 <button
@@ -183,9 +183,9 @@ export default function IndependentStudentModal({ isOpen, onClose }: Independent
                     <span className={styles.livePulse} />
                     <span>Independent Student</span>
                   </div>
-                  <h2 className={styles.title}>Apply as a Solo Student</h2>
+                  <h2 className={styles.title}>Join as an independent student</h2>
                   <p className={styles.subtitle}>
-                    You don&apos;t need a school team to join. Build your car, take the courses, and compete on your own at the Hanbee RC Cup.
+                    No school team? No problem. Choose the path that fits you: build and race, explore coding courses, or take on both.
                   </p>
                 </div>
 
@@ -194,7 +194,7 @@ export default function IndependentStudentModal({ isOpen, onClose }: Independent
                   <div className={styles.fieldGrid}>
                     <div className={styles.fieldGroup}>
                       <label className={styles.label}>
-                        <span>Full Name</span>
+                        <span>Your name</span>
                         <span className={styles.requiredDot}>•</span>
                       </label>
                       <input
@@ -210,13 +210,13 @@ export default function IndependentStudentModal({ isOpen, onClose }: Independent
 
                     <div className={styles.fieldGroup}>
                       <label className={styles.label}>
-                        <span>Phone / WhatsApp</span>
+                        <span>Phone or WhatsApp</span>
                         <span className={styles.requiredDot}>•</span>
                       </label>
                       <input
                         type="tel"
                         className={styles.input}
-                        placeholder="10-digit mobile number"
+                        placeholder="Your 10-digit mobile number"
                         value={phone}
                         onChange={(e) => setPhone(e.target.value)}
                         required
@@ -226,7 +226,7 @@ export default function IndependentStudentModal({ isOpen, onClose }: Independent
 
                   <div className={styles.fieldGroup}>
                     <label className={styles.label}>
-                      <span>Email Address</span>
+                      <span>Email address</span>
                       <span className={styles.requiredDot}>•</span>
                     </label>
                     <input
@@ -242,8 +242,8 @@ export default function IndependentStudentModal({ isOpen, onClose }: Independent
                   {/* Track Selection */}
                   <div className={styles.fieldGroup}>
                     <div className={styles.label}>
-                      <span>Select Track</span>
-                      <span className={styles.subLabel}>Choose your focus area</span>
+                      <span>Choose your track</span>
+                      <span className={styles.subLabel}>What would you like to explore?</span>
                     </div>
 
                     <div className={styles.trackGrid}>
@@ -279,7 +279,7 @@ export default function IndependentStudentModal({ isOpen, onClose }: Independent
                   <div className={styles.fieldGroup}>
                     <div className={styles.label}>
                       <span>Location</span>
-                      <span className={styles.subLabel}>Where are you based?</span>
+                      <span className={styles.subLabel}>Where are you joining us from?</span>
                     </div>
 
                     <div className={styles.locationGrid}>
@@ -320,12 +320,12 @@ export default function IndependentStudentModal({ isOpen, onClose }: Independent
                   {/* Optional Notes / Questions */}
                   <div className={styles.fieldGroup}>
                     <label className={styles.label}>
-                      <span>Notes or questions (Optional)</span>
+                      <span>Anything you&apos;d like us to know? (Optional)</span>
                     </label>
                     <textarea
                       className={styles.textarea}
                       rows={2}
-                      placeholder="Any questions for the team, or previous coding / RC experience..."
+                      placeholder="Ask us a question or tell us about your coding or RC experience."
                       value={message}
                       onChange={(e) => setMessage(e.target.value)}
                     />
@@ -340,7 +340,7 @@ export default function IndependentStudentModal({ isOpen, onClose }: Independent
                       className={styles.submitBtn}
                       disabled={submitting}
                     >
-                      <span>{submitting ? "Submitting application..." : "Submit Application"}</span>
+                      <span>{submitting ? "Sending your application..." : "Send my application"}</span>
                       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                         <line x1="5" y1="12" x2="19" y2="12" />
                         <polyline points="12 5 19 12 12 19" />
@@ -352,7 +352,7 @@ export default function IndependentStudentModal({ isOpen, onClose }: Independent
                         <circle cx="12" cy="12" r="10" />
                         <polyline points="12 6 12 12 16 14" />
                       </svg>
-                      <span>Our team will review your application and contact you on WhatsApp/email with next steps.</span>
+                      <span>Our team will review your application and get in touch by WhatsApp or email with next steps.</span>
                     </div>
                   </div>
                 </form>

@@ -94,7 +94,7 @@ export default function Hero({ onOpenStudentModal }: HeroProps) {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.44, duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
         >
-          Build the car with your own hands. Code the brain with your team. Race wheel-to-wheel for six months — where one bad day never knocks you off the grid.
+          Build the car by hand. Bring its brain to life with code. Then race your team&apos;s creation across six rounds—because one tough day should never end your season.
         </motion.p>
 
         {/* CTA Button Group */}
@@ -108,7 +108,7 @@ export default function Hero({ onOpenStudentModal }: HeroProps) {
             whileHover={{ scale: 1.03 }}
             whileTap={{ scale: 0.97 }}
           >
-            <span>Explore</span>
+            <span>Explore the season</span>
             <svg
               width="14"
               height="14"
