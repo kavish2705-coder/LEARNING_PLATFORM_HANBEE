@@ -16,6 +16,10 @@ const signup = async (email, meta) => { await asOwner(); const uid = (await one(
 const schoolMeta = (name) => ({role:"school_staff", full_name:"Owner "+name, school_name:name, registration_no:"REG-"+name, official_email:"office@x.test", guardian_consent:"true"});
 
 await c.query("begin");
+const startTeamOverloads = await one(
+  "select count(*)::int n from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname='public' and p.proname='student_start_team'",
+);
+check("school team creation has one canonical RPC overload", startTeamOverloads.n === 1, String(startTeamOverloads.n));
 const ownerA = await signup("ownerA39@x.test", schoolMeta("Alpha39")), ownerB = await signup("ownerB39@x.test", schoolMeta("Beta39"));
 const orgOf = async u => (await one("select org_id from organization_members where user_id=$1",[u])).org_id;
 const orgA = await orgOf(ownerA), orgB = await orgOf(ownerB);
@@ -31,10 +35,10 @@ await asOwner();
 const tour = (await one("insert into tournaments (title,status,starts_at,ends_at,venue) values ('T39 Cup','upcoming',now()+interval '30 days',now()+interval '31 days','Arena') returning id")).id;
 check("team size defaults to 5", (await one("select team_size from tournaments where id=$1",[tour])).team_size===5);
 
-await asUser(S[0]); let r = await tryq("select student_start_team($1,'Before access')",[tour]);
+await asUser(S[0]); let r = await tryq("select public.student_start_team($1::uuid,$2::text,$3::text)",[tour,"Before access","Robotics 101"]);
 check("a student without tournament access cannot start a team", !!r.e && r.e.message.includes("activate your RC Tournament access"), r.e?.message);
 await asOwner(); await c.query("update profiles set tournament_access='active' where id=$1",[S[0]]);
-await asUser(S[0]); r = await tryq("select student_start_team($1,'Before license')",[tour]);
+await asUser(S[0]); r = await tryq("select public.student_start_team($1::uuid,$2::text,$3::text)",[tour,"Before license","Robotics 101"]);
 check("a student without an active license cannot start a team", !!r.e && r.e.message.includes("Driver License"), r.e?.message);
 await asOwner();
 const eligibleStudents = [...S, sB];
@@ -45,7 +49,7 @@ await c.query(
 );
 
 // slots
-await asUser(S[0]); r = await tryq("select student_start_team($1,'Early')",[tour]);
+await asUser(S[0]); r = await tryq("select public.student_start_team($1::uuid,$2::text,$3::text)",[tour,"Early","Robotics 101"]);
 check("a student cannot start a team before the school opens slots", !!r.e, r.e?.message);
 r = await tryq("select set_team_slots($1,$2,2)",[tour,orgA]); check("a student cannot set slots", !!r.e);
 await asUser(ownerB); r = await tryq("select set_team_slots($1,$2,2)",[tour,orgA]); check("another school's staff cannot set my school's slots", !!r.e);
@@ -55,9 +59,9 @@ await asUser(S[0]); let st = (await one("select team_slot_status($1) s",[tour]))
 check("a student sees the slot status", st.max_teams===2 && st.used===0 && st.team_size===5, JSON.stringify(st));
 
 // start, invite
-r = await tryq("select student_start_team($1,'Rockets') t",[tour]); check("student starts a team", !r.e, r.e?.message);
+r = await tryq("select public.student_start_team($1::uuid,$2::text,$3::text) as t",[tour,"Rockets","Robotics 101"]); check("student starts a team", !r.e, r.e?.message);
 const team = r.r?.rows[0]?.t;
-if (!team) throw new Error("student_start_team did not return a team ID after passing entitlement checks");
+if (!team) throw new Error(`student_start_team did not return a team ID: ${JSON.stringify(r.r?.rows[0] ?? r.e?.message ?? null)}`);
 await asOwner();
 const tm = await one("select captain_id, status::text s, org_id from tournament_teams where id=$1",[team]);
 check("the starter is captain, team is a draft of their school", !!tm && tm.captain_id===S[0] && tm.s==="draft" && tm.org_id===orgA);

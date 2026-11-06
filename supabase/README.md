@@ -28,6 +28,18 @@ tenant isolation, course assessments, chat, tournaments, attendance, and team
 formation. Migration `0040_ai_daily_capacity.sql` adds the shared AI quota used
 by the Edge Function. Migration `0041_solo_tournament_entries.sql` adds the
 solo-student tournament submission path and the Hanbee review queue.
+Migration `0128_student_start_team_entitlements.sql` consolidates the
+division-aware school-team RPC and ensures it enforces both tournament-access
+and active-license checks.
+
+Do not paste or rerun a migration in the Supabase SQL Editor on a database
+where that migration has already been applied. Migration files are ordered,
+one-time schema changes; for example, `0027_tournaments_teams_applications.sql`
+creates the `tournament_status` enum, while later migrations assume it exists.
+Use `supabase db push` to apply pending migrations and keep the migration
+history in sync. If migrations were previously run manually in the SQL Editor,
+check the project's migration history before pushing; do not mark migrations
+as applied or rerun them until the actual schema state has been reconciled.
 
 For local migration testing, install the Supabase CLI and Docker Desktop, then
 from the repository root run:
