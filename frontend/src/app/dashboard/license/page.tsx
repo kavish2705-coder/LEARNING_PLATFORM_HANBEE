@@ -17,9 +17,8 @@ import {
   fetchMyLicense, type DriverLicense,
 } from "../../../lib/teamFormationApi";
 import { getStudentLeaderboard } from "../../../lib/tournamentAdminApi";
-import { createLicenseUpiPayment, getUpiPaymentStatus, claimUpiUtr, type PublicUpiPayment } from "../../../lib/upiClient";
 import AccessBlocker from "../components/access/AccessBlocker";
-import UpiCheckout from "../components/payments/UpiCheckout";
+import RazorpayCheckout from "../components/payments/RazorpayCheckout";
 
 export default function DriverLicensePage() {
   return (
@@ -40,10 +39,6 @@ function DriverLicensePageContent() {
   const [tournament, setTournament] = useState<UpcomingTournament | null>(null);
   const [bestLapMs, setBestLapMs] = useState<number | null>(null);
   const [license, setLicense] = useState<DriverLicense | null>(null);
-  const [upiPayment, setUpiPayment] = useState<PublicUpiPayment | null>(null);
-  const [paymentReference, setPaymentReference] = useState("");
-  const [licenseBusy, setLicenseBusy] = useState(false);
-  const [licenseError, setLicenseError] = useState("");
 
   const loadLicense = async () => {
     try {
@@ -56,63 +51,6 @@ function DriverLicensePageContent() {
   useEffect(() => {
     void loadLicense();
   }, []);
-
-  // Start (or reopen) a UPI auto-pay payment once we know the license
-  // isn't active yet -- codemode-upi-pay's createPayment is itself
-  // idempotent for the same order while its QR is still valid, so this is
-  // safe to call again on every mount.
-  useEffect(() => {
-    if (!license || license.status === "active" || upiPayment) return;
-    createLicenseUpiPayment()
-      .then(setUpiPayment)
-      .catch((reason) => setLicenseError(reason instanceof Error ? reason.message : "We couldn't start your payment."));
-  }, [license, upiPayment]);
-
-  // Poll for the bank's confirmation while a payment is open -- this is
-  // what makes it "automatic": no staff click needed once the alert email
-  // is read and matched.
-  useEffect(() => {
-    if (!upiPayment || upiPayment.status !== "pending") return;
-    const timer = setInterval(() => {
-      getUpiPaymentStatus(upiPayment.id)
-        .then((p) => {
-          // The status-poll endpoint deliberately omits `qr` (regenerating
-          // that SVG on every 4s poll would be wasted work) -- merge the
-          // status fields in instead of replacing the whole object, or the
-          // QR vanishes the moment the first poll lands.
-          setUpiPayment((current) => (current ? { ...current, ...p, qr: current.qr } : p));
-          if (p.status === "paid") void loadLicense();
-        })
-        .catch(() => {});
-    }, 4000);
-    return () => clearInterval(timer);
-  }, [upiPayment]);
-
-  async function handleClaimUtr() {
-    if (!upiPayment) return;
-    if (!paymentReference.trim()) {
-      setLicenseError("Enter the UPI transaction ID / UTR from your payment confirmation.");
-      return;
-    }
-    setLicenseBusy(true);
-    setLicenseError("");
-    try {
-      const r = await claimUpiUtr(upiPayment.id, paymentReference);
-      if (r.result === "not_found") {
-        setLicenseError("We haven't received that payment yet -- it can take a minute after the bank's alert arrives. Try again shortly.");
-      } else if (r.result === "used") {
-        setLicenseError("That UTR has already been used for another payment.");
-      } else {
-        const p = await getUpiPaymentStatus(upiPayment.id);
-        setUpiPayment((current) => (current ? { ...current, ...p, qr: current.qr } : p));
-        if (p.status === "paid") await loadLicense();
-      }
-    } catch (reason) {
-      setLicenseError(reason instanceof Error ? reason.message : "We couldn't check that UTR.");
-    } finally {
-      setLicenseBusy(false);
-    }
-  }
 
   const [timeLeft, setTimeLeft] = useState({
     days: 0,
@@ -388,22 +326,7 @@ function DriverLicensePageContent() {
       </header>
 
       {/* Driver License purchase gate -- shown whenever the license isn't active yet */}
-      {license && license.status !== "active" && upiPayment && (
-        <UpiCheckout
-          payment={upiPayment}
-          title="Get your Driver License"
-          description="Your license unlocks tournament entry. Pay securely by UPI; we’ll confirm it automatically when your bank sends the payment."
-          reference={paymentReference}
-          onReferenceChange={setPaymentReference}
-          onCheckPayment={() => void handleClaimUtr()}
-          checking={licenseBusy}
-          error={licenseError}
-          onRetry={() => { setUpiPayment(null); setPaymentReference(""); setLicenseError(""); }}
-          paidMessage="Payment confirmed — activating your Driver License now."
-          underpaidMessage={`We received ₹${upiPayment.paidAmount ?? 0}, but ₹${upiPayment.payAmount} was expected. Hanbee staff need to review this payment manually. Contact them with reference ${upiPayment.ref}.`}
-        />
-      )}
-      {license && license.status !== "active" && !upiPayment && (
+      {license && license.status !== "active" && (
         <div className={`${styles.infoCard} ${styles.purchaseGate}`}>
           <div className={styles.cardHeaderWithAction}>
             <h3 className={styles.cardTitle}>
@@ -417,17 +340,15 @@ function DriverLicensePageContent() {
 
           {license.status === "rejected" && (
             <p className={styles.paymentNotice} role="alert">
-              Your last payment was rejected. Contact Hanbee staff, or pay again below.
+              Your last license request was not approved. Contact Hanbee staff before trying again.
             </p>
           )}
 
-          <div className={styles.paymentPending} role="status">
-            <span className={styles.paymentPendingMark}><Lock size={18} /></span>
-            <div>
-              <strong>Preparing secure checkout</strong>
-              <p>{licenseError || "Your payment details are being prepared. This usually takes a moment."}</p>
-            </div>
-          </div>
+          <RazorpayCheckout
+            purpose="driver_license"
+            description="Hanbee Driver License"
+            onPaymentComplete={loadLicense}
+          />
         </div>
       )}
 

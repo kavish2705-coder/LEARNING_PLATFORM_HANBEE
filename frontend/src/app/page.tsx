@@ -458,6 +458,7 @@ export default function Home() {
                 <ul className={styles.footerLinkList}>
                   <li><a href="/about" className={styles.footerLink}>About Hanbee</a></li>
                   <li><a href="/contact" className={styles.footerLink}>Get in touch</a></li>
+                  <li><a href="/fees" className={styles.footerLink}>Fees &amp; payments</a></li>
                   <li><a href="/privacy-policy" className={styles.footerLink}>Privacy policy</a></li>
                   <li><a href="/terms" className={styles.footerLink}>Terms &amp; conditions</a></li>
                   <li><a href="/refund-policy" className={styles.footerLink}>Refunds &amp; cancellations</a></li>

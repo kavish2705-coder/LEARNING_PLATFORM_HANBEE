@@ -7,10 +7,10 @@ import styles from "./team.module.css";
 import registrationStyles from "./registrationStatus.module.css";
 import Shimmer from "../components/ui/Shimmer";
 import Dropdown from "../components/ui/Dropdown";
-import { createTournamentUpiPayment, getUpiPaymentStatus, claimUpiUtr, type PublicUpiPayment } from "../../../lib/upiClient";
 import AccessBlocker from "../components/access/AccessBlocker";
-import UpiCheckout from "../components/payments/UpiCheckout";
+import RazorpayCheckout from "../components/payments/RazorpayCheckout";
 import {
+  submitSoloEntryForReview,
   answerTeamInvitation,
   createSoloTournamentEntry,
   fetchMyLicense,
@@ -109,12 +109,7 @@ function MyTeamPageContent() {
   const [teamName, setTeamName] = useState("");
   const [inviteeId, setInviteeId] = useState("");
   const [isSolo, setIsSolo] = useState(false);
-  const [paymentReference, setPaymentReference] = useState("");
   const [license, setLicense] = useState<DriverLicense | null>(null);
-  const [teamUpiPayment, setTeamUpiPayment] = useState<PublicUpiPayment | null>(null);
-  const [paymentAttempt, setPaymentAttempt] = useState(0);
-  const [paymentBusy, setPaymentBusy] = useState(false);
-  const [paymentError, setPaymentError] = useState("");
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -320,59 +315,6 @@ function MyTeamPageContent() {
   const isCaptain = isRealTeam ? team!.is_captain : true;
   const isIndependent = isSolo && !formation?.school_id;
   const independentDraftTeamId = isRealTeam && isCaptain && teamStatus === "draft" && isIndependent ? team?.id : undefined;
-
-  // Start (or reopen) the UPI auto-pay payment once there's a draft,
-  // independent-captain team to pay for -- mirrors the license page's
-  // pattern. Resets if the relevant team itself changes (e.g. switching
-  // tournaments), so a stale payment for a different team can't linger.
-  useEffect(() => {
-    setTeamUpiPayment(null);
-    setPaymentError("");
-    if (!independentDraftTeamId) return;
-    createTournamentUpiPayment(independentDraftTeamId)
-      .then(setTeamUpiPayment)
-      .catch((reason) => setPaymentError(reason instanceof Error ? reason.message : "We couldn't start your payment."));
-  }, [independentDraftTeamId, paymentAttempt]);
-
-  useEffect(() => {
-    if (!teamUpiPayment || teamUpiPayment.status !== "pending") return;
-    const timer = setInterval(() => {
-      getUpiPaymentStatus(teamUpiPayment.id)
-        .then((p) => {
-          setTeamUpiPayment((current) => (current ? { ...current, ...p, qr: current.qr } : p));
-          if (p.status === "paid") void load();
-        })
-        .catch(() => {});
-    }, 4000);
-    return () => clearInterval(timer);
-  }, [teamUpiPayment, load]);
-
-  async function handleClaimTeamUtr() {
-    if (!teamUpiPayment) return;
-    if (!paymentReference.trim()) {
-      setPaymentError("Enter the UPI transaction ID / UTR from your payment confirmation.");
-      return;
-    }
-    setPaymentBusy(true);
-    setPaymentError("");
-    try {
-      const r = await claimUpiUtr(teamUpiPayment.id, paymentReference);
-      if (r.result === "not_found") {
-        setPaymentError("We haven't received that payment yet -- it can take a minute after the bank's alert arrives. Try again shortly.");
-      } else if (r.result === "used") {
-        setPaymentError("That UTR has already been used for another payment.");
-      } else {
-        const p = await getUpiPaymentStatus(teamUpiPayment.id);
-        setTeamUpiPayment((current) => (current ? { ...current, ...p, qr: current.qr } : p));
-        if (p.status === "paid") await load();
-      }
-    } catch (reason) {
-      setPaymentError(reason instanceof Error ? reason.message : "We couldn't check that UTR.");
-    } finally {
-      setPaymentBusy(false);
-    }
-  }
-
 
   if (loading) {
     return (
@@ -936,7 +878,7 @@ function MyTeamPageContent() {
                 <h2 className={styles.formTitle}>{isSolo ? "Solo Tournament Entry" : "School Membership Needed"}</h2>
                 <p className={styles.formSubtitle}>
                   {isSolo
-                    ? "Enter this tournament as a team of one. Your entry will be reviewed by Hanbee staff after you confirm payment."
+                    ? "Enter this tournament as a team of one. Hanbee staff will review your entry and contact you before payment is enabled."
                     : "Your account is not attached to an active school or marked for solo entry. Contact Hanbee staff to restore your school membership or enable solo participation."}
                 </p>
               </div>
@@ -945,7 +887,7 @@ function MyTeamPageContent() {
                   type="button"
                   className={styles.actionBtn}
                   disabled={busy}
-                  onClick={() => void runAction(() => createSoloTournamentEntry(tournament.id), "Solo entry created. Confirm payment below to submit it.")}
+                  onClick={() => void runAction(() => createSoloTournamentEntry(tournament.id), "Solo entry draft created. Submit it for Hanbee staff review before paying.")}
                 >
                   Create Solo Entry
                 </button>
@@ -985,44 +927,68 @@ function MyTeamPageContent() {
             </div>
           )}
 
-          {/* Solo entry: automatic UPI payment instead of school-staff submission */}
+          {/* Independent entries are reviewed and approved for payment by Hanbee staff first. */}
           {team && independentDraftTeamId === team.id && (
-            <div className={`${styles.formSection} ${teamUpiPayment ? styles.paymentSection : ""}`}>
-              {teamUpiPayment ? (
-                <UpiCheckout
-                  payment={teamUpiPayment}
-                  title="Confirm your tournament entry"
-                  description="Complete your solo entry fee by UPI. We’ll confirm it automatically when your bank sends the payment; Hanbee staff then review the entry."
-                  reference={paymentReference}
-                  onReferenceChange={setPaymentReference}
-                  onCheckPayment={() => void handleClaimTeamUtr()}
-                  checking={paymentBusy}
-                  error={paymentError}
-                  onRetry={() => { setPaymentReference(""); setPaymentError(""); setPaymentAttempt((attempt) => attempt + 1); }}
-                  paidMessage="Payment confirmed — your entry is now waiting for Hanbee staff review."
-                  underpaidMessage={`We received ₹${teamUpiPayment.paidAmount ?? 0}, but ₹${teamUpiPayment.payAmount} was expected. Hanbee staff need to review this payment manually. Contact them with reference ${teamUpiPayment.ref}.`}
-                  secondaryAction={
-                    <button
-                      type="button"
-                      className={styles.dangerBtn}
-                      disabled={busy}
-                      onClick={() => void runAction(() => leaveStudentTeam(team.id), "You left the team.")}
-                    >
-                      Leave Team
-                    </button>
-                  }
-                />
+            <div className={styles.formSection}>
+              <div className={styles.formHeader}>
+                <h2 className={styles.formTitle}>Submit your entry for staff review</h2>
+                <p className={styles.formSubtitle}>
+                  Hanbee staff will review your details and contact you before payment is enabled. Do not pay until staff approves your entry.
+                </p>
+              </div>
+              <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+                <button
+                  type="button"
+                  className={styles.actionBtn}
+                  disabled={busy}
+                  onClick={() => void runAction(
+                    () => submitSoloEntryForReview(team.id),
+                    "Your entry was sent to Hanbee staff. They will contact you before enabling payment.",
+                  )}
+                >
+                  {busy ? "Submitting…" : "Submit for staff review"}
+                </button>
+                <button
+                  type="button"
+                  className={styles.dangerBtn}
+                  disabled={busy}
+                  onClick={() => void runAction(() => leaveStudentTeam(team.id), "You left the entry.")}
+                >
+                  Cancel draft
+                </button>
+              </div>
+            </div>
+          )}
+
+          {team && isCaptain && isIndependent && team.status === "applied" && (
+            <div className={styles.formSection}>
+              {team.payment_approved_at ? (
+                <>
+                  <div className={styles.formHeader}>
+                    <h2 className={styles.formTitle}>Your entry is approved for payment</h2>
+                    <p className={styles.formSubtitle}>
+                      Complete payment through Razorpay to register. Tournament entry fees are non-refundable after registration.
+                    </p>
+                  </div>
+                  <RazorpayCheckout
+                    purpose="tournament_entry"
+                    referenceId={team.id}
+                    description={`Tournament entry: ${tournament?.title ?? "Hanbee tournament"}`}
+                    label="Pay tournament entry fee"
+                    onPaymentComplete={load}
+                  />
+                </>
               ) : (
                 <>
                   <div className={styles.formHeader}>
-                    <h2 className={styles.formTitle}>Confirm Tournament Payment</h2>
+                    <h2 className={styles.formTitle}>Waiting for Hanbee staff confirmation</h2>
                     <p className={styles.formSubtitle}>
-                      Pay your solo tournament entry fee. Once your bank confirms, Hanbee staff will review the entry.
+                      Staff will contact you to verify the entry. Payment becomes available here only after they approve it.
                     </p>
                   </div>
-                  <p className={styles.paymentStarting} role="status">
-                    {paymentError || "Starting your secure checkout…"}
-                  </p>
+                  <button type="button" className={styles.filterBtn} disabled={loading} onClick={() => void load()}>
+                    <RefreshCw size={14} /> Refresh approval status
+                  </button>
                 </>
               )}
             </div>

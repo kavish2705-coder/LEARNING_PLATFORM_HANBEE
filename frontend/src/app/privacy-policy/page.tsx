@@ -30,7 +30,7 @@ export default function PrivacyPolicyPage() {
           <ul>
             <li>Account details: name, email, role (student, school staff, Hanbee staff, manager), and school affiliation.</li>
             <li>Course and tournament activity: enrollment, lesson progress, quiz results, race results, and team membership.</li>
-            <li>Payment-related data: transaction reference, amount, and payment status for tournament entry fees, driver license fees, and course access — handled through our payment partner; we do not store your card, UPI PIN, or full bank account details ourselves.</li>
+            <li>Payment-related data: Razorpay order and payment IDs, payment amount, purpose, and status for tournament entry fees, Driver Licenses, and course access. Razorpay processes the payment; Hanbee does not receive or store your card number, card security code, UPI PIN, or full bank account details.</li>
             <li>Communications: messages sent through the Platform&apos;s chat feature, and any messages you send us directly (email, contact form).</li>
             <li>Basic technical data: browser type, device, and IP address, collected automatically for security and to keep the service working.</li>
           </ul>
@@ -40,7 +40,7 @@ export default function PrivacyPolicyPage() {
           <h2>How we use it</h2>
           <ul>
             <li>To run your account, show your course/tournament progress, and operate team and leaderboard features.</li>
-            <li>To process payments and confirm tournament entries, course access, and driver licenses.</li>
+            <li>To request payment through Razorpay, verify captured payments server-side, and activate the corresponding tournament entry, course access, or Driver License.</li>
             <li>To communicate with you about your account, your school&apos;s approval status, or tournament updates.</li>
             <li>To keep the Platform secure and prevent abuse (for example, rate-limiting messages).</li>
           </ul>
@@ -51,8 +51,10 @@ export default function PrivacyPolicyPage() {
           <p>
             Your course and tournament data is visible to your own school&apos;s staff and to
             Hanbee staff/managers who administer the league, as required to run the program.
-            It is never sold. We share payment details only with our payment processing
-            partner, to the extent needed to confirm your payment.
+            It is never sold. Razorpay receives the payment details needed to process a
+            transaction under its own terms and privacy policy. Hanbee stores the related
+            Razorpay order/payment IDs, amount, purpose, and confirmation status for account,
+            support, and accounting records.
           </p>
         </section>
 

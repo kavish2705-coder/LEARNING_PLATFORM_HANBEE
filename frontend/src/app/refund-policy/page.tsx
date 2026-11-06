@@ -4,7 +4,7 @@ import styles from "../legal.module.css";
 
 export const metadata: Metadata = {
   title: "Refund & Cancellation Policy — Hanbee",
-  description: "Our refund and cancellation policy for tournament entry, driver license, and course access payments.",
+  description: "Refund and cancellation terms for Hanbee tournament entries and digital access fees.",
 };
 
 export default function RefundPolicyPage() {
@@ -17,60 +17,62 @@ export default function RefundPolicyPage() {
 
         <section className={styles.section}>
           <p>
-            This policy covers one-time payments made on the Hanbee platform: tournament entry
-            fees, driver license fees, and course access fees. These are not subscriptions —
-            each payment unlocks a specific feature once confirmed.
+            Hanbee charges one-time fees for tournament entries, Driver Licenses, and course
+            access. These are not subscriptions. Tournament entry payments are accepted only
+            after Hanbee staff have reviewed the entry and contacted the captain or solo player.
           </p>
         </section>
 
         <section className={styles.section}>
-          <h2>Before your payment is confirmed</h2>
+          <h2>Failed or pending payments</h2>
           <p>
-            Payments are verified manually by our staff against the bank reference you submit.
-            If you paid by mistake and your payment has <strong>not yet been confirmed</strong>,
-            contact us immediately at{" "}
-            <a href="mailto:support@hanbee.in">support@hanbee.in</a> with your
-            payment reference, and we will cancel the pending entry and refund the full amount to
-            your original payment method within{" "}
-            <span className={styles.placeholder}>X business days — set your real SLA here</span>.
+            An entry or access is not registered until Razorpay confirms that the payment was
+            captured. If Razorpay shows a failed or pending payment but your bank account was
+            debited, contact{" "}
+            <a href="mailto:info@hanbee.in">info@hanbee.in</a> with your Razorpay payment ID
+            and order ID. We will check the transaction with our payment provider. A payment
+            that never reached Hanbee is not treated as a completed entry; any bank reversal is
+            subject to the bank and payment provider&apos;s process.
           </p>
         </section>
 
         <section className={styles.section}>
-          <h2>If your entry or application is rejected</h2>
+          <h2>Tournament entry fees</h2>
           <p>
-            If your team, driver license, or course access application is rejected after
-            payment (for example, an ineligible entry or a failed eligibility check), you are
-            entitled to a full refund of the fee you paid. Refunds are processed manually to
-            your original payment method within{" "}
-            <span className={styles.placeholder}>X business days — set your real SLA here</span>{" "}
-            of the rejection.
+            Hanbee staff review the team or solo entry and contact the captain or player before
+            enabling payment. Once Razorpay confirms payment and the entry is registered, the
+            tournament entry fee is non-refundable, including if a participant later withdraws,
+            does not attend, or does not win a prize. Paying an entry fee does not guarantee a
+            prize; prizes are awarded under the published tournament rules.
           </p>
         </section>
 
         <section className={styles.section}>
-          <h2>After your entry is confirmed and verified</h2>
+          <h2>Driver License and course access</h2>
           <p>
-            Once your tournament entry, license, or course access is verified and active, the
-            fee is non-refundable, except where required by law or where Hanbee cancels the
-            tournament, course, or season outright — in which case affected participants receive
-            a full refund.
+            These one-time fees are non-refundable after the corresponding license or course
+            access has been activated, except where required by applicable law or where Hanbee
+            cannot provide the paid service. Any additional conditions disclosed before payment
+            also apply.
           </p>
         </section>
 
         <section className={styles.section}>
-          <h2>How refunds are paid</h2>
+          <h2>Duplicate payments and service issues</h2>
           <p>
-            Refunds are returned to the same UPI ID or bank account the original payment came
-            from. We do not refund to a different account or payment method.
+            If you believe you were charged more than once for the same entry or access, contact
+            us with each Razorpay payment ID. We will investigate the records with Razorpay.
+            Where a refund is due under applicable law or because Hanbee cannot provide the
+            service, it will be handled through the original payment method and provider process.
           </p>
         </section>
 
         <section className={styles.section}>
-          <h2>Contact for a refund request</h2>
+          <h2>Contact for payment support</h2>
           <p>
-            Email <a href="mailto:support@hanbee.in">support@hanbee.in</a> with
-            your payment reference / UTR number and the reason for your request.
+            Email <a href="mailto:info@hanbee.in">info@hanbee.in</a> with your Razorpay
+            payment ID, order ID, the email on your Hanbee account, and a description of the
+            issue. Do not send card details, passwords, or UPI PINs by email.
           </p>
         </section>
       </div>

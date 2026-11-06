@@ -10,8 +10,7 @@ import { useSessionProfile } from "../../../../lib/hooks/useSessionProfile";
 import {
   requestAccess, fetchMyAccessRequest, type AccessDirection, type AccessRequest,
 } from "../../../../lib/accessApi";
-import { createCourseAccessUpiPayment, getUpiPaymentStatus, claimUpiUtr, type PublicUpiPayment } from "../../../../lib/upiClient";
-import UpiCheckout from "../payments/UpiCheckout";
+import RazorpayCheckout from "../payments/RazorpayCheckout";
 
 const COPY: Record<AccessDirection, { icon: ReactNode; title: string; body: string }> = {
   add_course: {
@@ -36,8 +35,6 @@ export default function AccessBlocker({ direction, children }: { direction: Acce
   const [request, setRequest] = useState<AccessRequest | null | undefined>(undefined);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
-  const [payment, setPayment] = useState<PublicUpiPayment | null>(null);
-  const [paymentReference, setPaymentReference] = useState("");
 
   const flag = direction === "add_course" ? profile?.course_access : profile?.tournament_access;
   const isIndependentStudent = profile?.role === "student" && !!profile?.is_solo;
@@ -46,26 +43,6 @@ export default function AccessBlocker({ direction, children }: { direction: Acce
     if (!isIndependentStudent || flag === "active") return;
     fetchMyAccessRequest(direction).then(setRequest).catch(() => setRequest(null));
   }, [isIndependentStudent, flag, direction]);
-
-  useEffect(() => {
-    if (flag !== "awaiting_payment" || direction !== "add_course" || payment) return;
-    createCourseAccessUpiPayment()
-      .then(setPayment)
-      .catch((reason) => setError(reason instanceof Error ? reason.message : "We couldn't start your payment."));
-  }, [flag, direction, payment]);
-
-  useEffect(() => {
-    if (!payment || payment.status !== "pending") return;
-    const timer = setInterval(() => {
-      getUpiPaymentStatus(payment.id)
-        .then((p) => {
-          setPayment((current) => (current ? { ...current, ...p, qr: current.qr } : p));
-          if (p.status === "paid") window.location.reload();
-        })
-        .catch(() => {});
-    }, 4000);
-    return () => clearInterval(timer);
-  }, [payment]);
 
   if (profileLoading || (isIndependentStudent && flag !== "active" && request === undefined)) {
     return <div className={styles.wrap}><Shimmer rows={4} /></div>;
@@ -101,32 +78,6 @@ export default function AccessBlocker({ direction, children }: { direction: Acce
       setRequest(await requestAccess(direction));
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : "That didn't go through -- try again.");
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  async function handleClaimUtr() {
-    if (!payment) return;
-    if (!paymentReference.trim()) {
-      setError("Enter the UPI transaction ID / UTR from your payment confirmation.");
-      return;
-    }
-    setBusy(true);
-    setError("");
-    try {
-      const r = await claimUpiUtr(payment.id, paymentReference);
-      if (r.result === "not_found") {
-        setError("We haven't received that payment yet -- it can take a minute after the bank's alert arrives. Try again shortly.");
-      } else if (r.result === "used") {
-        setError("That UTR has already been used for another payment.");
-      } else {
-        const p = await getUpiPaymentStatus(payment.id);
-        setPayment((current) => (current ? { ...current, ...p, qr: current.qr } : p));
-        if (p.status === "paid") window.location.reload();
-      }
-    } catch (reason) {
-      setError(reason instanceof Error ? reason.message : "We couldn't check that UTR.");
     } finally {
       setBusy(false);
     }
@@ -191,36 +142,22 @@ export default function AccessBlocker({ direction, children }: { direction: Acce
     );
   }
 
-  if (request.status === "awaiting_payment" && payment) {
-    return (
-      <div className={styles.wrap}>
-        <UpiCheckout
-          payment={payment}
-          title="Unlock your Course dashboard"
-          description="Your course access is approved. Complete this one-time UPI payment to unlock your learning dashboard."
-          reference={paymentReference}
-          onReferenceChange={setPaymentReference}
-          onCheckPayment={() => void handleClaimUtr()}
-          checking={busy}
-          error={error}
-          onRetry={() => { setPayment(null); setPaymentReference(""); setError(""); }}
-          paidMessage="Payment confirmed — your Course dashboard is being unlocked."
-          underpaidMessage={`We received ₹${payment.paidAmount ?? 0}, but ₹${payment.payAmount} was expected. Hanbee staff need to review this payment manually. Contact them with reference ${payment.ref}.`}
-        />
-      </div>
-    );
-  }
-
   // Awaiting payment -- only reachable for add_course; add_tournament goes
   // straight from 'requested' to 'active' via staff approval, no payment.
   if (request.status === "awaiting_payment") {
     return (
       <div className={styles.wrap}>
-        <div className={styles.paymentStarting} role="status">
-          <span className={styles.paymentStartingMark}><Lock size={19} /></span>
+        <div className={styles.card}>
+          <span className={styles.statusBadge}>Course access confirmed</span>
+          <h2 className={styles.title}>Unlock your Course dashboard</h2>
+          <p className={styles.body}>Hanbee staff confirmed your request and price. Complete this one-time Razorpay payment to unlock your learning dashboard.</p>
+          {error && <p className={styles.error} role="alert">{error}</p>}
           <div>
-            <strong>Course access confirmed</strong>
-            <p>{error || "Preparing secure checkout…"}</p>
+            <RazorpayCheckout
+              purpose="course_access"
+              description="Hanbee course access"
+              onPaymentComplete={() => window.location.reload()}
+            />
           </div>
         </div>
       </div>

@@ -6,6 +6,7 @@ import local from "./TournamentReviewQueue.module.css";
 import { getAccountProfile } from "../../../../lib/supabaseAuth";
 import {
   decideTournamentApplication,
+  approveEntryForPayment,
   fetchTournamentApplicationQueue,
   getTeamRoster,
   markPaymentReceived,
@@ -48,6 +49,7 @@ export default function TournamentReviewQueue() {
   const [decisionNote, setDecisionNote] = useState("");
   const [markPaymentRef, setMarkPaymentRef] = useState("");
   const [markingPayment, setMarkingPayment] = useState(false);
+  const [approvingPayment, setApprovingPayment] = useState(false);
   const [roster, setRoster] = useState<TeamRosterMember[] | null>(null);
   const [rosterLoading, setRosterLoading] = useState(false);
   const [rosterError, setRosterError] = useState("");
@@ -154,6 +156,23 @@ export default function TournamentReviewQueue() {
     }
   }
 
+  async function handleApproveForPayment() {
+    if (!reviewing) return;
+    setApprovingPayment(true);
+    setError("");
+    setNotice("");
+    try {
+      await approveEntryForPayment(reviewing.team_id);
+      setNotice(`Payment approved for ${reviewing.team_name}. The captain can now pay from the Team page.`);
+      setReviewing((current) => current && { ...current, payment_approved_at: new Date().toISOString() });
+      await load();
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "We couldn't approve payment for this entry.");
+    } finally {
+      setApprovingPayment(false);
+    }
+  }
+
   return (
     <section>
       {dialog}
@@ -163,7 +182,7 @@ export default function TournamentReviewQueue() {
         <div className={styles.sectionHeader}>
           <div>
             <h2 className={styles.tableTitle}>Tournament entry review</h2>
-            <p style={{ color: "var(--text-muted)", marginTop: 4 }}>Review payment declarations. Completed decisions remain available in Reviewed.</p>
+            <p style={{ color: "var(--text-muted)", marginTop: 4 }}>Contact and verify independent captains before approving payment. Completed decisions remain available in Reviewed.</p>
           </div>
         </div>
 
@@ -223,7 +242,7 @@ export default function TournamentReviewQueue() {
                       <td className={local.ageText}>{relativeTime(row.submitted_at)}</td>
                       <td>
                         <span className={`${local.paymentLabel} ${row.payment_declared ? local.paymentDeclared : local.paymentMissing}`}>
-                          {row.payment_declared ? "Declared by team" : "Not yet declared"}
+                          {row.payment_declared ? "Payment received" : row.payment_approved_at ? "Approved for payment" : "Needs staff confirmation"}
                         </span>
                       </td>
                       <td>
@@ -250,7 +269,7 @@ export default function TournamentReviewQueue() {
                       <div className={local.entryCardMeta}>{row.school_name ?? "Solo entry"}{row.captain_name ? ` · ${row.captain_name}` : ""} · {row.member_count} player{row.member_count === 1 ? "" : "s"}</div>
                     </div>
                     <span className={`${local.paymentLabel} ${row.payment_declared ? local.paymentDeclared : local.paymentMissing}`}>
-                      {row.payment_declared ? "Declared" : "Missing"}
+                      {row.payment_declared ? "Received" : row.payment_approved_at ? "Approved" : "Needs confirmation"}
                     </span>
                   </div>
                   <div className={local.entryCardRow}>
@@ -285,6 +304,16 @@ export default function TournamentReviewQueue() {
               <button type="button" className={modalStyles.dangerBtn} disabled={Boolean(busyId)} onClick={() => void decide("rejected")}>
                 {busyId === reviewing.team_id ? "Saving…" : "Reject entry"}
               </button>
+              {reviewing.org_id === null && reviewing.status === "applied" && !reviewing.payment_approved_at && !reviewing.payment_declared && (
+                <button
+                  type="button"
+                  className={modalStyles.primaryBtn}
+                  disabled={Boolean(busyId) || approvingPayment}
+                  onClick={() => void handleApproveForPayment()}
+                >
+                  {approvingPayment ? "Approving…" : "Approve for payment"}
+                </button>
+              )}
               <button
                 type="button"
                 className={modalStyles.primaryBtn}
@@ -307,9 +336,14 @@ export default function TournamentReviewQueue() {
             <div className={local.detailRow}>
               <span>Payment</span>
               <span className={reviewing.payment_declared ? local.paymentDeclared : local.paymentMissing}>
-                {reviewing.payment_declared ? "Declared by team" : "Not yet declared"}
+                {reviewing.payment_declared ? "Payment received" : reviewing.payment_approved_at ? "Approved for payment" : "Not yet approved"}
               </span>
             </div>
+            {reviewing.org_id === null && reviewing.status === "applied" && !reviewing.payment_declared && (
+              <p style={{ marginTop: 10, color: "var(--text-muted)", fontSize: 12.5 }}>
+                Confirm the captain and roster by phone before approving. Approval enables Razorpay checkout; captured payment registers the entry.
+              </p>
+            )}
             {reviewing.payment_reference && (
               <div className={local.detailRow}>
                 <span>Transaction ID / UTR</span>

@@ -40,10 +40,13 @@ export default function TermsPage() {
           <h2>Course access and tournament entry</h2>
           <p>
             Some features — course access, driver licenses, and tournament entry — require a
-            one-time payment. Payment unlocks the feature once confirmed; entry into a
-            tournament additionally requires passing the relevant car/safety inspection
-            where applicable. See our <a href="/refund-policy">Refund &amp; Cancellation Policy</a>{" "}
-            for what happens if a payment can&apos;t be fulfilled.
+            one-time payment processed through Razorpay. Access or registration is granted only
+            after Razorpay confirms the payment as captured. For independent tournament entries,
+            Hanbee staff review the entry and contact the captain or solo player before enabling
+            payment. Entry into a tournament also requires passing the relevant car/safety
+            inspection where applicable. Tournament entry fees are non-refundable after
+            registration, subject to applicable law and our{" "}
+            <a href="/refund-policy">Refund &amp; Cancellation Policy</a>.
           </p>
         </section>
 

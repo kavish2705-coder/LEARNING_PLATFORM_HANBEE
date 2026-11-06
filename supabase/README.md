@@ -31,6 +31,9 @@ solo-student tournament submission path and the Hanbee review queue.
 Migration `0128_student_start_team_entitlements.sql` consolidates the
 division-aware school-team RPC and ensures it enforces both tournament-access
 and active-license checks.
+Migration `0129_razorpay_checkout.sql` adds the private Razorpay order ledger,
+server-only captured-payment settlement, and staff approval gate for
+independent tournament entry payments.
 
 Do not paste or rerun a migration in the Supabase SQL Editor on a database
 where that migration has already been applied. Migration files are ordered,
@@ -79,8 +82,32 @@ Copy `frontend/.env.example` to `frontend/.env.local` and fill in the Supabase
 Project URL and anon key. Never put the service-role key in the frontend. No
 Supabase project credentials are currently present in this workspace, so live
 authentication and database requests require this setup. Set
-`NEXT_PUBLIC_TOURNAMENT_PAYMENT_QR_URL` in the frontend environment to show the
-hosted payment QR on the solo tournament entry page.
+the public Supabase URL and anon key in the frontend environment. Razorpay
+checkout does not require a public QR image.
+
+## Razorpay checkout
+
+See the [Razorpay onboarding and site-approval checklist](../docs/RAZORPAY_ONBOARDING.md)
+before applying to Razorpay or switching live payments on. Apply migration
+`0129_razorpay_checkout.sql` with `supabase db push`, then configure these
+server-only variables on the frontend deployment:
+
+- `RAZORPAY_KEY_ID`
+- `RAZORPAY_KEY_SECRET`
+- `RAZORPAY_WEBHOOK_SECRET`
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `SUPABASE_SERVICE_ROLE_KEY`
+
+In the Razorpay Dashboard, register
+`https://<your-production-domain>/api/razorpay/webhook` for the
+`payment.captured` event and put its webhook secret in
+`RAZORPAY_WEBHOOK_SECRET`. Use test keys outside the production environment;
+the application refuses to create production orders with an `rzp_test_` key.
+The key secret, webhook secret, and Supabase service-role key must never be
+exposed in browser variables or source control. Legacy UPI records remain
+available for reconciliation, but their create-payment routes return HTTP 410;
+new customer checkouts use Razorpay.
+
 ## What's in this folder
 
 - `migrations/0001_init.sql` — schema: profiles, courses/sections/modules/

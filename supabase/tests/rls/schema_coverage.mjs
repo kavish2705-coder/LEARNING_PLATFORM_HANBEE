@@ -8,6 +8,8 @@ const intentionallyPrivateTables = new Set([
   "upi_alerts",
   "upi_payments",
   "upi_sync",
+  // Razorpay order records are written/read only by the server-side integration.
+  "razorpay_orders",
   // tournament_races/results/laps: written and read only through the
   // SECURITY DEFINER RPCs in 0086 (record_tournament_race_result,
   // list_tournament_race_results, get_student_leaderboard) -- all direct

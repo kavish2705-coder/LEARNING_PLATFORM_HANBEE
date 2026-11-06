@@ -46,6 +46,24 @@ claim that the listed work has been verified.
   **Session Change Logs**; decisions and breaking changes are recorded here as
   well.
 
+### ADR-004 — Server-verified Razorpay checkout
+
+- **Status:** Accepted (2026-11-06).
+- Use Razorpay Standard Checkout for Driver License, staff-priced independent
+  course access, and staff-approved independent tournament entry payments.
+  Keep provider secrets server-only; verify the checkout signature and payment
+  with Razorpay, then settle through a private, idempotent database RPC and
+  signed capture webhook.
+- Independent tournament entries require staff review and approval before
+  checkout. Keep existing UPI payment records/status flows for reconciliation,
+  but reject new UPI payment-creation requests with HTTP 410.
+- The ₹1 Driver License price was explicitly a test placeholder; migration
+  `0129_razorpay_checkout.sql` sets the intended documented default to ₹199
+  while preserving configured amounts other than ₹1. Confirm the price with
+  the business and apply the migration before production payments.
+- See the [Razorpay onboarding guide](RAZORPAY_ONBOARDING.md) for KYC,
+  site-review, deployment, testing, and go-live checks.
+
 ## Session Change Logs
 
 | Date | Assignment | Outcome and key modifications |
@@ -65,3 +83,7 @@ claim that the listed work has been verified.
 | 2026-11-06 | Consolidate school-team RPC entitlement checks | Added migration `0128_student_start_team_entitlements.sql` to remove the stale two-argument/three-argument `student_start_team` overload mismatch and enforce tournament access and active Driver License checks on the division-aware RPC used by the frontend. Updated the RLS test to invoke that exact API signature and print the returned row on failure. Two-argument callers remain compatible through the default division; no intended breaking change. |
 | 2026-11-06 | Fix Supabase RLS workflow startup conflicts | The latest run applied every migration but could not start the unused Mailpit/Inbucket email-testing container because runner port `54324` was occupied. Updated CI to exclude Mailpit; the RLS tests use the database/Auth APIs and do not send email. Removed the two remaining unconfigured `.worktrees` gitlinks from the parent index without deleting their local worktree directories, preventing checkout-cleanup warnings. No application/schema behavior changed and no breaking changes introduced. |
 | 2026-11-06 | Repair committed pool join race-test entitlements | The RLS workflow now starts and reaches suite `0094`; its later committed concurrency fixture created fresh independent students but omitted tournament access and active Driver Licenses. Provisioned both entitlements for the captain and candidates before invoking `start_pool_team`, preserving production gates and the race test. No production authorization/schema change or breaking change introduced. |
+| 2026-11-06 | Assess Razorpay application readiness | Reviewed public business/contact and policy pages plus payment implementation. The site has Terms, Privacy, Refund, and Contact pages and identifies the business, but refund timing still has `X business days` placeholders, refund wording says payment checks are manual, and Privacy refers to an unspecified payment partner. The codebase has no Razorpay SDK or integration; current checkout is UPI QR with bank-alert/UTR settlement. A live domain, deployed pages, and Razorpay merchant documents were not verified. No application code, schema, API, or payment behavior changed; no breaking changes introduced. |
+| 2026-11-06 | Implement Razorpay checkout and onboarding guidance | Added server-side Razorpay order creation, signature/provider verification, captured-payment webhook and private settlement ledger; moved Driver License, staff-priced independent course access, and staff-approved independent tournament entries to Razorpay. Added the public Fees & Payments page, aligned terms/privacy/refund/contact content, documented KYC/site-approval/deployment steps in [Razorpay onboarding](RAZORPAY_ONBOARDING.md), and updated Supabase setup/schema coverage. Migration `0129` replaces the test-only ₹1 Driver License price with the documented ₹199 default (preserving other configured amounts); verify the business price and production migration before launch. New UPI payment-creation API calls now return HTTP 410, an intentional breaking API change; existing UPI records/status routes remain for reconciliation. No live merchant approval, production deployment, or transaction was verified. |
+| 2026-11-06 | Assess Razorpay application readiness and payment security | Added [Razorpay application readiness](RAZORPAY_APPLICATION_READINESS.md) with current implementation status, concrete public-site improvements, company KYC steps, deployment checks, and test/launch sequence. The scoped security review found no high-confidence exploitable vulnerabilities. `npm run build` passed; `npm run lint` could not run non-interactively because `next lint` prompted for first-time ESLint configuration. Database/RLS testing could not run because no test database URL or local Supabase CLI/Docker is configured. The owner reports migration `0129` was applied, but its remote state and live payment behavior were not independently verified. No application/schema/API behavior changed and no new breaking changes introduced. |
+| 2026-11-06 | Record Razorpay security status and pending work | Updated [Razorpay application readiness](RAZORPAY_APPLICATION_READINESS.md) to explicitly state that the scoped static review found no confirmed vulnerabilities (including low-severity findings), while clarifying that dynamic/production testing remains outstanding. Added prioritized team checklists for public-site/pricing/KYC readiness, migration and fee verification, secret/webhook configuration, staging payment and RLS tests, live verification, support operations, UPI 410 compatibility, and school-team checkout scope. Documentation only; no application/schema/API changes or breaking changes. |

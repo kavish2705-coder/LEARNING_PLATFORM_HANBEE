@@ -49,8 +49,9 @@ export default function ContactPage() {
           <h2>Related pages</h2>
           <p>
             For how refunds and cancellations work, see our{" "}
-            <Link href="/refund-policy">Refund &amp; Cancellation Policy</Link>. For our fees and
-            full terms of use, see our <Link href="/terms">Terms &amp; Conditions</Link>, and for
+            <Link href="/refund-policy">Refund &amp; Cancellation Policy</Link>. For our fees,
+            see <Link href="/fees">Fees &amp; Payments</Link>. For full terms of use, see our{" "}
+            <Link href="/terms">Terms &amp; Conditions</Link>, and for
             how we handle your data, see our <Link href="/privacy-policy">Privacy Policy</Link>.
           </p>
         </section>

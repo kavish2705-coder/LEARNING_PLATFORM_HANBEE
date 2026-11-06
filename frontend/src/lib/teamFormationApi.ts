@@ -26,6 +26,7 @@ export interface MyTeamFormation {
     is_captain: boolean;
     staff_note: string;
     chat_id: string | null;
+    payment_approved_at: string | null;
     members: TeamFormationMember[];
     pending_invites: Array<{ id: string; student_id: string; name: string }>;
   };
@@ -88,6 +89,7 @@ export interface TournamentApplication {
   payment_declared: boolean;
   payment_reference: string | null;
   submitted_at: string | null;
+  payment_approved_at: string | null;
 }
 
 export interface TeamRosterMember {
@@ -160,6 +162,14 @@ export function createSoloTournamentEntry(tournamentId: string) {
 
 export function applyStudentTeam(teamId: string, paymentDeclared: boolean, paymentReference?: string) {
   return rpc<null>("apply_team", { p_team: teamId, p_payment_declared: paymentDeclared, p_payment_reference: paymentReference?.trim() || null });
+}
+
+export function submitSoloEntryForReview(teamId: string) {
+  return rpc<null>("student_submit_solo_entry_for_review", { p_team: teamId });
+}
+
+export function approveEntryForPayment(teamId: string) {
+  return rpc<null>("staff_approve_entry_for_payment", { p_team: teamId });
 }
 
 // Staff-only escape hatch: some entries (pool teams, older entries) never
