@@ -6,12 +6,10 @@ import { motion, useScroll, useTransform, useSpring } from "framer-motion";
 import styles from "./Navbar.module.css";
 
 const navLinks = [
-const navLinks = [
   { label: "Home", href: "/" },
   { label: "How It Works", href: "/#how-it-works" },
   { label: "For Educators", href: "/#educators" },
   { label: "About", href: "/#about" },
-];
 ];
 
 export default function Navbar() {
