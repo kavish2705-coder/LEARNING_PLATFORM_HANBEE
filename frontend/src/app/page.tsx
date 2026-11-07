@@ -89,58 +89,45 @@ const TECH_CONCEPTS = [
 
 const LEAGUE_COMPANIES = [
   {
-    name: "STM32",
+    name: "ROBOKON",
     logo: (
-      <svg width="34" height="26" viewBox="0 0 48 36" fill="none">
-        <path d="M4 28L18 8H30L16 28H4Z" fill="#e58a2b" />
-        <path d="M22 28L36 8H44L30 28H22Z" fill="#ffffff" />
+      <svg width="36" height="36" viewBox="0 0 44 44" fill="none">
+        <polygon points="22,3 39,12 39,32 22,41 5,32 5,12" stroke="#e58a2b" strokeWidth="2.5" fill="rgba(229,138,43,0.12)" />
+        <circle cx="22" cy="22" r="8" stroke="#ffffff" strokeWidth="2" fill="#141620" />
+        <circle cx="22" cy="22" r="3.5" fill="#e58a2b" />
+        <path d="M22 6V11M22 33V38M9 14L13 17M31 27L35 30" stroke="#ffffff" strokeWidth="1.6" strokeLinecap="round" />
       </svg>
     ),
   },
   {
-    name: "BOSCH",
+    name: "Madhavan Tech private limited",
     logo: (
-      <svg width="32" height="32" viewBox="0 0 40 40" fill="none">
-        <circle cx="20" cy="20" r="16" stroke="#ffffff" strokeWidth="3" />
-        <rect x="13" y="11" width="14" height="18" rx="2" stroke="#e58a2b" strokeWidth="2.5" />
-        <circle cx="20" cy="20" r="3.5" fill="#ffffff" />
+      <svg width="36" height="36" viewBox="0 0 44 44" fill="none">
+        <rect x="4" y="4" width="36" height="36" rx="10" stroke="rgba(255,255,255,0.2)" strokeWidth="1.5" fill="rgba(255,255,255,0.03)" />
+        <path d="M11 31V13L22 24L33 13V31" stroke="#e58a2b" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+        <circle cx="11" cy="13" r="2.5" fill="#ffffff" />
+        <circle cx="33" cy="13" r="2.5" fill="#ffffff" />
+        <circle cx="22" cy="24" r="2" fill="#ffffff" />
       </svg>
     ),
   },
   {
-    name: "ANSYS",
+    name: "Apex",
     logo: (
-      <svg width="30" height="30" viewBox="0 0 40 40" fill="none">
-        <path d="M8 32L24 6L32 6L40 32H31L28 24H17L14 32H8ZM19 18H26L22.5 9L19 18Z" fill="#e58a2b" />
+      <svg width="36" height="36" viewBox="0 0 44 44" fill="none">
+        <path d="M22 5L39 37H28L22 22L16 37H5L22 5Z" fill="#e58a2b" />
+        <path d="M22 14L28 29H16L22 14Z" fill="#ffffff" />
+        <path d="M18 34H26" stroke="#12131a" strokeWidth="2" strokeLinecap="round" />
       </svg>
     ),
   },
   {
-    name: "MathWorks",
+    name: "Hanbee tech private limited",
     logo: (
-      <svg width="36" height="28" viewBox="0 0 48 40" fill="none">
-        <path d="M6 30C12 28 16 12 24 12C32 12 36 32 42 22" stroke="#e58a2b" strokeWidth="3.5" strokeLinecap="round" />
-        <path d="M6 22C14 22 18 34 26 34C34 34 38 18 42 18" stroke="#ffffff" strokeWidth="2" strokeLinecap="round" strokeDasharray="3 3" />
-      </svg>
-    ),
-  },
-  {
-    name: "FUTABA",
-    logo: (
-      <svg width="32" height="32" viewBox="0 0 40 40" fill="none">
-        <rect x="5" y="5" width="30" height="30" rx="8" fill="#181a24" stroke="#ffffff" strokeWidth="2" />
-        <path d="M14 12H26M14 19H23M14 12V28" stroke="#e58a2b" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" />
-      </svg>
-    ),
-  },
-  {
-    name: "BAMBU LAB",
-    logo: (
-      <svg width="32" height="32" viewBox="0 0 40 40" fill="none">
-        <rect x="6" y="6" width="12" height="12" rx="3" fill="#e58a2b" />
-        <rect x="22" y="6" width="12" height="12" rx="3" fill="#ffffff" />
-        <rect x="6" y="22" width="12" height="12" rx="3" fill="#ffffff" />
-        <rect x="22" y="22" width="12" height="12" rx="3" fill="#e58a2b" />
+      <svg width="38" height="34" viewBox="0 0 48 40" fill="none">
+        <path d="M24 4L42 14V26L24 36L6 26V14L24 4Z" stroke="#e58a2b" strokeWidth="2.2" fill="rgba(229,138,43,0.1)" />
+        <path d="M14 20H34M24 10V30" stroke="#ffffff" strokeWidth="1.8" strokeLinecap="round" />
+        <circle cx="24" cy="20" r="4" fill="#e58a2b" stroke="#ffffff" strokeWidth="1.5" />
       </svg>
     ),
   },
@@ -181,7 +168,7 @@ export default function Home() {
       <section className={styles.partnersRibbon}>
         <div className={styles.partnersTrackWrapper}>
           <div className={styles.partnersTrack}>
-            {[...LEAGUE_COMPANIES, ...LEAGUE_COMPANIES].map((company, i) => (
+            {[...LEAGUE_COMPANIES, ...LEAGUE_COMPANIES, ...LEAGUE_COMPANIES, ...LEAGUE_COMPANIES].map((company, i) => (
               <div className={styles.partnerCard} key={i}>
                 <div className={styles.partnerLogoWrap}>
                   {company.logo}
