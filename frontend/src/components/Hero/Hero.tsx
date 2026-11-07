@@ -100,7 +100,7 @@ export default function Hero({ onOpenStudentModal }: HeroProps) {
         {/* CTA Button Group */}
         <div className={styles.ctaGroup}>
           <motion.a
-            href="#courses"
+            href="#how-it-works"
             className={styles.ctaButton}
             initial={{ opacity: 0, y: 14 }}
             animate={{ opacity: 1, y: 0 }}

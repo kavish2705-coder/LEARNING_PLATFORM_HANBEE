@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -91,7 +93,7 @@ export default function SeasonLeague() {
                   <motion.div
                     layoutId="ribbonIndicator"
                     className={styles.stationIndicator}
-                    transition={{ type: "spring", stiffness: 400, damping: 32 }}
+                    transition={{ type: "spring", stiffness: 450, damping: 36 }}
                   />
                 )}
               </button>

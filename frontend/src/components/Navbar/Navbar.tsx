@@ -7,7 +7,7 @@ import styles from "./Navbar.module.css";
 
 const navLinks = [
   { label: "Home", href: "/" },
-  { label: "Courses", href: "/#courses" },
+  { label: "How It Works", href: "/#how-it-works" },
   { label: "For Educators", href: "/#educators" },
   { label: "About", href: "/#about" },
 ];
