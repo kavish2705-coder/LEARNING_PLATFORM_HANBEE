@@ -19,11 +19,17 @@ export function useUpdateProfile() {
   return useMutation({
     mutationFn: updateAccountProfile,
     onSuccess: (_data, variables) => {
-      // Update the cache immediately (no flash back to the old name),
-      // then let the next natural refetch confirm it from the server.
-      queryClient.setQueryData<AccountProfile | undefined>(sessionProfileKey, (current) =>
-        current ? { ...current, full_name: variables.full_name } : current,
-      );
+      // Update the cache immediately across all fields
+      queryClient.setQueryData<AccountProfile | undefined>(sessionProfileKey, (current) => {
+        if (!current) return current;
+        return {
+          ...current,
+          ...(variables.full_name !== undefined && { full_name: variables.full_name }),
+          ...(variables.avatar_url !== undefined && { avatar_url: variables.avatar_url }),
+          ...(variables.phone !== undefined && { phone: variables.phone }),
+          ...(variables.age !== undefined && { age: variables.age }),
+        };
+      });
       queryClient.invalidateQueries({ queryKey: sessionProfileKey });
     },
   });

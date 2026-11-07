@@ -2,7 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Moon, Sun, Monitor, Palette, Check, Lock, Save, CheckCircle2, AlertCircle } from "lucide-react";
+import { Moon, Sun, Monitor, Palette, Check, Lock, Save, CheckCircle2, AlertCircle, Camera, Trash2 } from "lucide-react";
+import { useRef } from "react";
+import { processProfileImage } from "../../../lib/imageUtils";
 import styles from "./settings.module.css";
 import { useTheme } from "../ThemeProvider";
 import { useSessionProfile, sessionProfileKey } from "../../../lib/hooks/useSessionProfile";
@@ -72,6 +74,10 @@ export default function SettingsPage() {
 
   const { data: profile } = useSessionProfile();
   const [fullName, setFullName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [age, setAge] = useState("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [busy, setBusy] = useState<"" | "profile" | "password">("");
@@ -234,7 +240,12 @@ export default function SettingsPage() {
     setBusy("profile");
     setStatus(null);
     try {
-      await updateAccountProfile({ id: profile.id, full_name: fullName.trim() });
+      await updateAccountProfile({
+        id: profile.id,
+        full_name: fullName.trim(),
+        phone: phone.trim() || null,
+        age: age ? parseInt(age, 10) || null : null,
+      });
       await queryClient.invalidateQueries({ queryKey: sessionProfileKey });
       await queryClient.invalidateQueries({ queryKey: ["account-profile"] });
       setStatus({ tone: "ok", text: "Profile details updated successfully." });
@@ -244,6 +255,47 @@ export default function SettingsPage() {
       setBusy("");
     }
   }
+
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !profile?.id) return;
+    try {
+      setUploadingAvatar(true);
+      const dataUrl = await processProfileImage(file);
+      await updateAccountProfile({
+        id: profile.id,
+        avatar_url: dataUrl,
+      });
+      await queryClient.invalidateQueries({ queryKey: sessionProfileKey });
+      await queryClient.invalidateQueries({ queryKey: ["account-profile"] });
+      setStatus({ tone: "ok", text: "Profile picture updated successfully!" });
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Failed to upload photo";
+      setStatus({ tone: "error", text: msg });
+    } finally {
+      setUploadingAvatar(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
+
+  const handleRemoveAvatar = async () => {
+    if (!profile?.id) return;
+    try {
+      setUploadingAvatar(true);
+      await updateAccountProfile({
+        id: profile.id,
+        avatar_url: null,
+      });
+      await queryClient.invalidateQueries({ queryKey: sessionProfileKey });
+      await queryClient.invalidateQueries({ queryKey: ["account-profile"] });
+      setStatus({ tone: "ok", text: "Profile picture removed." });
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Failed to remove photo";
+      setStatus({ tone: "error", text: msg });
+    } finally {
+      setUploadingAvatar(false);
+    }
+  };
 
   async function changePassword(event: React.FormEvent) {
     event.preventDefault();
@@ -276,7 +328,12 @@ export default function SettingsPage() {
 
   useEffect(() => {
     setEmail(profile?.email ?? "");
-  }, [profile?.email]);
+    if (profile) {
+      setFullName(profile.full_name ?? "");
+      setPhone(profile.phone ?? "");
+      setAge(profile.age ? String(profile.age) : "");
+    }
+  }, [profile]);
 
   function startEmailEdit() {
     setEmailDraft(email);
@@ -322,21 +379,69 @@ export default function SettingsPage() {
         <section className={styles.sectionCard}>
           <h2 className={styles.sectionTitle}>Profile Settings</h2>
 
-          <div className={styles.profileTop}>
-            <div className={styles.avatarLg}>{initial}</div>
-            <div className={styles.avatarInfo}>
-              <h3>{profile?.full_name ?? ""}</h3>
-              {editingEmail ? (
-                <form onSubmit={saveEmail} noValidate>
-                  <input
-                    type="email"
-                    className={styles.input}
-                    value={emailDraft}
-                    onChange={(event) => setEmailDraft(event.target.value)}
-                    autoComplete="email"
-                    aria-label="Email address"
-                  />
-                  {emailError && <p role="alert" style={{ color: "#ef4444", fontSize: 12 }}>{emailError}</p>}
+          {/* Profile Picture Upload Section */}
+          <div className={styles.avatarUploadContainer}>
+            <div className={styles.avatarPreviewBox}>
+              {profile?.avatar_url ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={profile.avatar_url} alt="Profile" className={styles.avatarImgLg} />
+              ) : (
+                <div className={styles.avatarLg}>{initial}</div>
+              )}
+            </div>
+
+            <div className={styles.avatarActionsCol}>
+              <div className={styles.avatarActionBtns}>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  onChange={handleAvatarUpload}
+                  style={{ display: "none" }}
+                />
+                <button
+                  type="button"
+                  className={styles.uploadAvatarBtn}
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={uploadingAvatar}
+                >
+                  <Camera size={14} />
+                  <span>{uploadingAvatar ? "Processing..." : profile?.avatar_url ? "Change Photo" : "Upload Photo"}</span>
+                </button>
+
+                {profile?.avatar_url && (
+                  <button
+                    type="button"
+                    className={styles.removeAvatarBtn}
+                    onClick={handleRemoveAvatar}
+                    disabled={uploadingAvatar}
+                  >
+                    <Trash2 size={13} />
+                    <span>Remove</span>
+                  </button>
+                )}
+              </div>
+              <span className={styles.avatarHelpText}>Visible on your Student Driver License and leaderboard.</span>
+            </div>
+          </div>
+
+          <div className={styles.profileDivider} />
+
+          {/* Account Email Display/Edit */}
+          <div className={styles.formGroup}>
+            <label className={styles.label}>Account Email</label>
+            {editingEmail ? (
+              <form onSubmit={saveEmail} className={styles.emailEditForm} noValidate>
+                <input
+                  type="email"
+                  className={styles.input}
+                  value={emailDraft}
+                  onChange={(event) => setEmailDraft(event.target.value)}
+                  autoComplete="email"
+                  aria-label="Email address"
+                />
+                {emailError && <p role="alert" style={{ color: "#ef4444", fontSize: 12 }}>{emailError}</p>}
+                <div style={{ display: "flex", gap: "8px", marginTop: "8px" }}>
                   <button type="submit" className={styles.saveBtn} disabled={savingEmail}>
                     {savingEmail ? "Saving..." : "Save"}
                   </button>
@@ -348,23 +453,62 @@ export default function SettingsPage() {
                   >
                     Cancel
                   </button>
-                </form>
-              ) : (
-                <>
-                  <p>{email || "No email set"}</p>
-                  <button type="button" className={styles.saveBtn} onClick={startEmailEdit}>
-                    {email ? "Edit" : "Add email"}
-                  </button>
-                </>
-              )}
-            </div>
+                </div>
+              </form>
+            ) : (
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "12px", background: "rgba(255, 255, 255, 0.03)", padding: "10px 14px", borderRadius: "8px", border: "1px solid rgba(255, 255, 255, 0.08)" }}>
+                <p style={{ margin: 0, fontSize: "13.5px", color: "var(--text-main)" }}>{email || "No email set"}</p>
+                <button type="button" className={styles.saveBtn} onClick={startEmailEdit} style={{ padding: "6px 12px", fontSize: "12px" }}>
+                  {email ? "Edit" : "Add email"}
+                </button>
+              </div>
+            )}
           </div>
 
+          {/* Form for Name, Age, Phone */}
           <form onSubmit={saveProfile}>
             <div className={styles.formGroup}>
               <label className={styles.label} htmlFor="full-name">Full Name</label>
-              <input id="full-name" type="text" className={styles.input} value={fullName} onChange={(e) => setFullName(e.target.value)} maxLength={120} required />
+              <input
+                id="full-name"
+                type="text"
+                className={styles.input}
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                maxLength={120}
+                placeholder="Your full name"
+                required
+              />
             </div>
+
+            <div className={styles.formRow}>
+              <div className={styles.formGroup} style={{ flex: 1 }}>
+                <label className={styles.label} htmlFor="student-age">Age</label>
+                <input
+                  id="student-age"
+                  type="number"
+                  min="5"
+                  max="99"
+                  className={styles.input}
+                  value={age}
+                  onChange={(e) => setAge(e.target.value)}
+                  placeholder="e.g. 16"
+                />
+              </div>
+
+              <div className={styles.formGroup} style={{ flex: 1.5 }}>
+                <label className={styles.label} htmlFor="student-phone">Phone Number</label>
+                <input
+                  id="student-phone"
+                  type="tel"
+                  className={styles.input}
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  placeholder="e.g. +91 98765 43210"
+                />
+              </div>
+            </div>
+
             <button type="submit" className={styles.saveBtn} disabled={busy !== ""}>
               <Check size={16} />
               <span>{busy === "profile" ? "Saving..." : "Save Changes"}</span>

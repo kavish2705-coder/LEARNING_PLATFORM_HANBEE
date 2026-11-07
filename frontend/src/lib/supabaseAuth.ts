@@ -365,6 +365,8 @@ export interface AccountProfile {
   full_name: string;
   role: HanbeeRole;
   avatar_url: string | null;
+  phone?: string | null;
+  age?: string | number | null;
 }
 
 export async function getAccountProfile() {
@@ -374,39 +376,119 @@ export async function getAccountProfile() {
   // DEVELOPER BYPASS
   if (session.user.id.startsWith("dummy-")) {
     const dummyRole = session.user.id.split("-")[1] as HanbeeRole;
+    let localExtras: Record<string, any> = {};
+    if (typeof window !== "undefined") {
+      try {
+        const raw = window.localStorage.getItem(`hanbee_student_details:${session.user.id}`);
+        if (raw) localExtras = JSON.parse(raw);
+      } catch {}
+    }
     return {
       id: session.user.id,
       email: session.user.email || `${dummyRole}@hanbee.in`,
       username: null,
       full_name: session.user.user_metadata?.full_name || `Dummy ${dummyRole}`,
       role: dummyRole,
-      avatar_url: null
+      avatar_url: localExtras.avatar_url ?? session.user.user_metadata?.avatar_url ?? null,
+      phone: localExtras.phone ?? session.user.user_metadata?.phone ?? null,
+      age: localExtras.age ?? session.user.user_metadata?.age ?? null,
     };
   }
 
-  const profiles = await authenticatedSupabaseFetch<AccountProfile[]>(
-    `/rest/v1/profiles?select=id,email,username,full_name,role,avatar_url&id=eq.${encodeURIComponent(session.user.id)}`,
-  );
-  const profile = profiles[0];
+  let profile: AccountProfile | undefined;
+  try {
+    const profiles = await authenticatedSupabaseFetch<AccountProfile[]>(
+      `/rest/v1/profiles?select=id,email,username,full_name,role,avatar_url,phone,age&id=eq.${encodeURIComponent(session.user.id)}`,
+    );
+    profile = profiles[0];
+  } catch {
+    // Fallback if the age column has not been migrated yet on the remote database
+    const fallbackProfiles = await authenticatedSupabaseFetch<AccountProfile[]>(
+      `/rest/v1/profiles?select=id,email,username,full_name,role,avatar_url,phone&id=eq.${encodeURIComponent(session.user.id)}`,
+    );
+    profile = fallbackProfiles[0];
+  }
+
   if (!profile) throw new Error("We couldn't find your Hanbee profile.");
-  return profile;
+  let localExtras: Record<string, any> = {};
+  if (typeof window !== "undefined") {
+    try {
+      const raw = window.localStorage.getItem(`hanbee_student_details:${session.user.id}`);
+      if (raw) localExtras = JSON.parse(raw);
+    } catch {}
+  }
+  return {
+    ...profile,
+    avatar_url: localExtras.avatar_url ?? profile.avatar_url ?? session.user.user_metadata?.avatar_url ?? null,
+    phone: localExtras.phone ?? profile.phone ?? session.user.user_metadata?.phone ?? null,
+    age: localExtras.age ?? (profile as any).age ?? session.user.user_metadata?.age ?? null,
+  };
 }
 
-export async function updateAccountProfile(input: Pick<AccountProfile, "id"> & { full_name: string }) {
+export async function updateAccountProfile(
+  input: Pick<AccountProfile, "id"> & {
+    full_name?: string;
+    avatar_url?: string | null;
+    phone?: string | null;
+    age?: string | number | null;
+  }
+) {
+  const session = readStoredSession();
+  if (session) {
+    session.user.user_metadata = session.user.user_metadata || {};
+    if (input.full_name !== undefined) session.user.user_metadata.full_name = input.full_name.trim();
+    if (input.avatar_url !== undefined) session.user.user_metadata.avatar_url = input.avatar_url;
+    if (input.phone !== undefined) session.user.user_metadata.phone = input.phone;
+    if (input.age !== undefined) session.user.user_metadata.age = input.age;
+    writeStoredSession(session);
+  }
+
+  // Also persist to localStorage for instant hydration
+  if (typeof window !== "undefined") {
+    try {
+      const key = `hanbee_student_details:${input.id}`;
+      const existing = JSON.parse(window.localStorage.getItem(key) || "{}");
+      const updated = {
+        ...existing,
+        ...(input.avatar_url !== undefined && { avatar_url: input.avatar_url }),
+        ...(input.phone !== undefined && { phone: input.phone }),
+        ...(input.age !== undefined && { age: input.age }),
+      };
+      window.localStorage.setItem(key, JSON.stringify(updated));
+    } catch {}
+  }
+
   if (input.id.startsWith("dummy-")) {
-    const session = readStoredSession();
-    if (session) {
-      session.user.user_metadata = session.user.user_metadata || {};
-      session.user.user_metadata.full_name = input.full_name.trim();
-      writeStoredSession(session);
-    }
     return;
   }
-  return authenticatedSupabaseFetch<undefined>(`/rest/v1/profiles?id=eq.${encodeURIComponent(input.id)}`, {
-    method: "PATCH",
-    headers: { Prefer: "return=minimal" },
-    body: JSON.stringify({ full_name: input.full_name.trim() }),
-  });
+
+  const payload: Record<string, any> = {};
+  if (input.full_name !== undefined) payload.full_name = input.full_name.trim();
+  if (input.avatar_url !== undefined) payload.avatar_url = input.avatar_url;
+  if (input.phone !== undefined) payload.phone = input.phone;
+  if (input.age !== undefined) {
+    const parsedAge = typeof input.age === "number" ? input.age : parseInt(String(input.age), 10);
+    payload.age = isNaN(parsedAge) ? null : parsedAge;
+  }
+
+  try {
+    return await authenticatedSupabaseFetch<undefined>(`/rest/v1/profiles?id=eq.${encodeURIComponent(input.id)}`, {
+      method: "PATCH",
+      headers: { Prefer: "return=minimal" },
+      body: JSON.stringify(payload),
+    });
+  } catch (err) {
+    // If the remote table has not yet migrated the age column, retry without age so other fields succeed
+    if (payload.age !== undefined) {
+      delete payload.age;
+      return await authenticatedSupabaseFetch<undefined>(`/rest/v1/profiles?id=eq.${encodeURIComponent(input.id)}`, {
+        method: "PATCH",
+        headers: { Prefer: "return=minimal" },
+        body: JSON.stringify(payload),
+      });
+    }
+    throw err;
+  }
 }
 
 // --- Two-factor authentication (TOTP), via Supabase Auth's built-in MFA API ---
