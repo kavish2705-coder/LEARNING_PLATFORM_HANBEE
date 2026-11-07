@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { Cpu, Shield, Zap, Radio } from "lucide-react";
 import styles from "./InteractiveCar.module.css";
@@ -20,7 +21,7 @@ const COMPONENTS: ComponentSpec[] = [
   {
     id: "fc",
     name: "Flight Controller",
-    tag: "CONTROLLER",
+    tag: "Controller",
     icon: Cpu,
     metric: "168 MHz",
     metricLabel: "ARM Processing",
@@ -35,7 +36,7 @@ const COMPONENTS: ComponentSpec[] = [
   {
     id: "chassis",
     name: "Chassis",
-    tag: "CHASSIS",
+    tag: "Chassis",
     icon: Shield,
     metric: "840g",
     metricLabel: "Curb Weight",
@@ -50,7 +51,7 @@ const COMPONENTS: ComponentSpec[] = [
   {
     id: "powertrain",
     name: "Drive & ESC",
-    tag: "DRIVETRAIN",
+    tag: "Drivetrain",
     icon: Zap,
     metric: "48 km/h",
     metricLabel: "Top Speed",
@@ -65,7 +66,7 @@ const COMPONENTS: ComponentSpec[] = [
   {
     id: "telemetry",
     name: "Telemetry",
-    tag: "TELEMETRY",
+    tag: "Telemetry",
     icon: Radio,
     metric: "<4 ms",
     metricLabel: "RF Latency",
@@ -104,9 +105,12 @@ export default function InteractiveCar() {
       <div className={styles.grid}>
         <div className={styles.visualFrame}>
           <div className={styles.carImageContainer}>
-            <img
+            <Image
               src="/rc-car-exploded.png"
               alt="Exploded diagram of Hanbee RC Racer"
+              width={683}
+              height={614}
+              sizes="(max-width: 480px) 60vw, (max-width: 960px) 90vw, 55vw"
               className={styles.carImg}
             />
           </div>

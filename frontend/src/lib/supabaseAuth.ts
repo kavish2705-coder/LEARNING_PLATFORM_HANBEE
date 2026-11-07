@@ -1,3 +1,5 @@
+import { humanizeError } from "./humanizeError";
+
 export type HanbeeRole = "student" | "school_staff" | "staff" | "manager";
 
 export interface SupabaseSession {
@@ -44,7 +46,8 @@ async function readError(response: Response, fallback: string) {
   } catch {
     // Supabase can return an empty body for upstream errors.
   }
-  return body.message || body.msg || body.error_description || body.error || fallback;
+  const raw = body.message || body.msg || body.error_description || body.error || fallback;
+  return humanizeError(raw);
 }
 
 async function supabaseFetch<T>(path: string, init: RequestInit = {}): Promise<T> {
@@ -358,6 +361,8 @@ export async function updatePassword(accessToken: string, password: string) {
   });
 }
 
+export type AccessStage = "none" | "requested" | "awaiting_payment" | "active";
+
 export interface AccountProfile {
   id: string;
   email: string | null;
@@ -367,9 +372,12 @@ export interface AccountProfile {
   avatar_url: string | null;
   phone?: string | null;
   age?: string | number | null;
+  is_solo?: boolean;
+  tournament_access?: AccessStage;
+  course_access?: AccessStage;
 }
 
-export async function getAccountProfile() {
+export async function getAccountProfile(): Promise<AccountProfile> {
   const session = readStoredSession();
   if (!session) throw new Error("Your session has expired. Sign in again to continue.");
   
@@ -392,23 +400,25 @@ export async function getAccountProfile() {
       avatar_url: localExtras.avatar_url ?? session.user.user_metadata?.avatar_url ?? null,
       phone: localExtras.phone ?? session.user.user_metadata?.phone ?? null,
       age: localExtras.age ?? session.user.user_metadata?.age ?? null,
+      is_solo: true,
+      tournament_access: "active",
+      course_access: "active",
     };
   }
 
   let profile: AccountProfile | undefined;
   try {
     const profiles = await authenticatedSupabaseFetch<AccountProfile[]>(
-      `/rest/v1/profiles?select=id,email,username,full_name,role,avatar_url,phone,age&id=eq.${encodeURIComponent(session.user.id)}`,
+      `/rest/v1/profiles?select=id,email,username,full_name,role,avatar_url,phone,age,is_solo,tournament_access,course_access&id=eq.${encodeURIComponent(session.user.id)}`,
     );
     profile = profiles[0];
   } catch {
     // Fallback if the age column has not been migrated yet on the remote database
     const fallbackProfiles = await authenticatedSupabaseFetch<AccountProfile[]>(
-      `/rest/v1/profiles?select=id,email,username,full_name,role,avatar_url,phone&id=eq.${encodeURIComponent(session.user.id)}`,
+      `/rest/v1/profiles?select=id,email,username,full_name,role,avatar_url,is_solo,tournament_access,course_access&id=eq.${encodeURIComponent(session.user.id)}`,
     );
     profile = fallbackProfiles[0];
   }
-
   if (!profile) throw new Error("We couldn't find your Hanbee profile.");
   let localExtras: Record<string, any> = {};
   if (typeof window !== "undefined") {

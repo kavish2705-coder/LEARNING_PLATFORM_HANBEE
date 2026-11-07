@@ -565,6 +565,23 @@
   gap: 20px;
 }
 
+.paymentSection {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.paymentStarting {
+  margin: 0;
+  padding: 15px 16px;
+  border: 1px solid var(--border-elevated);
+  border-radius: 12px;
+  background: var(--bg-card);
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
 .formHeader {
   display: flex;
   flex-direction: column;

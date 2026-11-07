@@ -26,6 +26,7 @@ export interface MyTeamFormation {
     is_captain: boolean;
     staff_note: string;
     chat_id: string | null;
+    payment_approved_at: string | null;
     members: TeamFormationMember[];
     pending_invites: Array<{ id: string; student_id: string; name: string }>;
   };
@@ -88,6 +89,7 @@ export interface TournamentApplication {
   payment_declared: boolean;
   payment_reference: string | null;
   submitted_at: string | null;
+  payment_approved_at: string | null;
 }
 
 export interface TeamRosterMember {
@@ -162,6 +164,14 @@ export function applyStudentTeam(teamId: string, paymentDeclared: boolean, payme
   return rpc<null>("apply_team", { p_team: teamId, p_payment_declared: paymentDeclared, p_payment_reference: paymentReference?.trim() || null });
 }
 
+export function submitSoloEntryForReview(teamId: string) {
+  return rpc<null>("student_submit_solo_entry_for_review", { p_team: teamId });
+}
+
+export function approveEntryForPayment(teamId: string) {
+  return rpc<null>("staff_approve_entry_for_payment", { p_team: teamId });
+}
+
 // Staff-only escape hatch: some entries (pool teams, older entries) never
 // go through the self-service QR+reference flow at all, so staff need a
 // way to record payment themselves before they can verify. Only valid
@@ -175,6 +185,8 @@ export interface PaymentSettings {
   qr_image_url: string;
   upi_id: string;
   instructions: string;
+  license_fee_amount: number;
+  plan_3mo_fee_amount: number;
 }
 
 // payment_settings is a public-to-authenticated singleton row (see
@@ -182,8 +194,50 @@ export interface PaymentSettings {
 // other simple staff-editable config reads in this codebase.
 export function fetchPaymentSettings(): Promise<PaymentSettings> {
   return authenticatedSupabaseFetch<PaymentSettings[]>(
-    "/rest/v1/payment_settings?select=qr_image_url,upi_id,instructions&limit=1",
-  ).then((rows) => rows[0] ?? { qr_image_url: "", upi_id: "", instructions: "" });
+    "/rest/v1/payment_settings?select=qr_image_url,upi_id,instructions,license_fee_amount,plan_3mo_fee_amount&limit=1",
+  ).then((rows) => rows[0] ?? { qr_image_url: "", upi_id: "", instructions: "", license_fee_amount: 0, plan_3mo_fee_amount: 0 });
+}
+
+// Driver License purchase (0121_driver_license_payment_gate.sql) -- same
+// global QR/UPI account as tournament entry fees, its own payment_declared
+// + payment_reference pair and staff review queue.
+export type LicenseStatus = "unpaid" | "payment_declared" | "active" | "rejected";
+
+export interface DriverLicense {
+  id: string | null;
+  student_id: string | null;
+  status: LicenseStatus | null;
+  amount: number | null;
+  payment_declared: boolean | null;
+  payment_reference: string | null;
+  decided_by: string | null;
+  decided_at: string | null;
+  created_at: string | null;
+  updated_at: string | null;
+}
+
+export function fetchMyLicense(): Promise<DriverLicense> {
+  return rpc<DriverLicense>("get_my_license", {});
+}
+
+export function declareLicensePayment(reference: string): Promise<DriverLicense> {
+  return rpc<DriverLicense>("declare_license_payment", { p_reference: reference.trim() });
+}
+
+export interface LicenseQueueRow {
+  student_id: string;
+  student_name: string;
+  amount: number;
+  payment_reference: string | null;
+  created_at: string;
+}
+
+export function fetchLicenseQueue(): Promise<LicenseQueueRow[]> {
+  return rpc<LicenseQueueRow[]>("license_queue", {});
+}
+
+export function staffDecideLicense(studentId: string, decision: "active" | "rejected"): Promise<void> {
+  return rpc<void>("staff_decide_license", { p_student: studentId, p_decision: decision });
 }
 
 // Staff/manager only (payment_settings' own RLS enforces this server-side

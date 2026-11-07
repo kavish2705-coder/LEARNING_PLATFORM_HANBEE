@@ -25,37 +25,37 @@ const SEASON_ROUNDS: RoundInfo[] = [
   {
     monthNum: 1,
     name: "Speed Race",
-    format: "5-lap wheel-to-wheel sprint. First across the line wins.",
+    format: "A five-lap sprint. First across the line takes the win.",
     icon: Gauge,
   },
   {
     monthNum: 2,
     name: "Time Trial",
-    format: "3 solo laps against the clock. Fastest clean lap counts.",
+    format: "Three solo laps against the clock. Your fastest clean lap counts.",
     icon: Timer,
   },
   {
     monthNum: 3,
     name: "Obstacle Challenge",
-    format: "Technical course with gates and chicanes. Best of two runs.",
+    format: "Thread the gates and chicanes. Your best of two runs counts.",
     icon: Compass,
   },
   {
     monthNum: 4,
     name: "Endurance Race",
-    format: "10-minute non-stop race. Most completed laps wins.",
+    format: "Ten minutes on track. The team with the most laps wins.",
     icon: BatteryCharging,
   },
   {
     monthNum: 5,
     name: "Knockout Challenge",
-    format: "Head-to-head bracket duels. Best of 3 heats per matchup.",
+    format: "Head-to-head bracket racing. Best of three heats takes each matchup.",
     icon: Swords,
   },
   {
     monthNum: 6,
     name: "Grand Championship",
-    format: "Top 8 race for the title. Everyone else races placement finals.",
+    format: "The top eight race for the title; everyone else takes on the placement finals.",
     icon: Trophy,
   },
 ];

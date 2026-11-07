@@ -130,7 +130,7 @@ export default function SchoolStudents() {
   return (
     <div>
       <div className={styles.pageHeader}>
-        <div className={styles.metricLabel}>SCHOOL PORTAL</div>
+        <div className={styles.metricLabel}>School portal</div>
         <h1 className={styles.pageTitle}>Students</h1>
         <p className={styles.pageSubtitle}>School roster, course progress, and secure student invitations</p>
       </div>

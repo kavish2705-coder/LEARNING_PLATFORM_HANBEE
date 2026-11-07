@@ -65,7 +65,7 @@ export default function HanbeeCoursesPage() {
       </div>
 
       {error && <p role="alert">{error}</p>}
-      {message && <p role="status" style={{ color: "#10b981", fontWeight: 600, marginBottom: 16 }}>{message}</p>}
+      {message && <p role="status" style={{ color: "var(--color-success)", fontWeight: 600, marginBottom: 16 }}>{message}</p>}
 
       {canManage && (
         <form className={styles.sectionCard} onSubmit={createCourse} style={{ marginBottom: 24, border: "1px solid var(--border-elevated)" }}>
@@ -77,7 +77,7 @@ export default function HanbeeCoursesPage() {
           <div style={{ display: "grid", gap: 16 }}>
             <div>
               <label htmlFor="course-title-input" style={{ display: "block", fontSize: 13, fontWeight: 600, color: "var(--text-main)", marginBottom: 6 }}>
-                Course Title <span style={{ color: "#ef4444" }}>*</span>
+                Course Title <span style={{ color: "var(--color-danger)" }}>*</span>
               </label>
               <Input 
                 id="course-title-input"
@@ -153,15 +153,15 @@ export default function HanbeeCoursesPage() {
                     >
                       {course.title}
                     </h2>
-                    <span style={{ 
-                      fontSize: 11, 
-                      fontFamily: "monospace", 
-                      fontWeight: 700, 
-                      textTransform: "uppercase", 
-                      padding: "2px 8px", 
+                    <span style={{
+                      fontSize: 12.5,
+                      fontFamily: "var(--font-heading)",
+                      fontWeight: 600,
+                      textTransform: "capitalize",
+                      padding: "2px 8px",
                       borderRadius: 6,
                       background: course.status === "published" ? "rgba(16, 185, 129, 0.12)" : course.status === "draft" ? "rgba(245, 158, 11, 0.12)" : "rgba(100, 116, 139, 0.12)",
-                      color: course.status === "published" ? "#10b981" : course.status === "draft" ? "#f59e0b" : "#64748b",
+                      color: course.status === "published" ? "var(--color-success)" : course.status === "draft" ? "var(--color-warning)" : "var(--text-muted)",
                       border: `1px solid ${course.status === "published" ? "rgba(16, 185, 129, 0.35)" : course.status === "draft" ? "rgba(245, 158, 11, 0.35)" : "rgba(100, 116, 139, 0.35)"}`
                     }}>
                       {course.status}
@@ -185,9 +185,7 @@ export default function HanbeeCoursesPage() {
                     {course.description || "No course description provided."}
                   </p>
 
-                  <div style={{ display: "flex", alignItems: "center", gap: 12, fontSize: 12, color: "var(--text-muted)", fontFamily: "monospace" }}>
-                    <span>ID: {course.id.slice(0, 8)}…</span>
-                    <span>·</span>
+                  <div style={{ display: "flex", alignItems: "center", gap: 12, fontSize: 12, color: "var(--text-muted)" }}>
                     <span>Created {new Date(course.created_at).toLocaleDateString()}</span>
                   </div>
                 </div>

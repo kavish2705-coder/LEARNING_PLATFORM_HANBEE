@@ -24,19 +24,32 @@
 }
 
 .managerPageHeader {
+  position: relative;
   gap: 18px;
   padding: 22px 28px;
   margin-bottom: 20px;
+  overflow: hidden;
+}
+
+/* Double-line edge: outer border + an inset second line with a gap,
+   matching the treatment on the student Overview page. */
+.managerPageHeader::after,
+.managerSectionCard::after {
+  content: '';
+  position: absolute;
+  inset: 6px;
+  border-radius: 18px;
+  border: 1px solid var(--border-elevated);
+  pointer-events: none;
 }
 
 .managerEyebrow {
   display: block;
   margin-bottom: 6px;
   color: var(--accent-subtle-text);
-  font-size: var(--ui-caption);
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  font-family: var(--font-heading);
+  font-size: 14px;
+  font-weight: 600;
 }
 
 .managerPageTitle {
@@ -71,7 +84,9 @@
 }
 
 .managerSectionCard {
+  position: relative;
   padding: 24px;
+  overflow: hidden;
 }
 
 .managerSectionHeader {
@@ -431,9 +446,8 @@
 
 .dataTable th {
   text-align: left;
-  font-size: 10px;
-  text-transform: uppercase;
-  letter-spacing: 1px;
+  font-size: 12.5px;
+  font-weight: 600;
   color: var(--text-muted);
   padding: 0 16px 16px 0;
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
@@ -470,10 +484,8 @@
   gap: 5px;
   padding: 5px 12px;
   border-radius: 999px;
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
 }
 
 .badge::before {
@@ -668,11 +680,9 @@
   padding: 5px 10px;
   border: 1px solid currentColor;
   border-radius: var(--radius-pill);
-  font-size: 11px;
-  font-weight: 700;
+  font-size: 13px;
+  font-weight: 600;
   line-height: 1.2;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
 }
 
 .statusPending,
@@ -801,10 +811,8 @@
 
 .teamSectionTitle {
   margin-bottom: var(--space-3);
-  font-size: var(--ui-caption);
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  font-size: 14px;
+  font-weight: 600;
   color: var(--text-muted);
 }
 
@@ -1431,7 +1439,7 @@
 /* Action Trigger Buttons & Danger States */
 .dangerActionBtn {
   background: transparent;
-  color: #dc2626 !important;
+  color: var(--color-danger) !important;
   border: 1px solid #fca5a5 !important;
   border-radius: var(--clay-radius-sm, 10px);
   padding: 8px 16px;
@@ -1446,8 +1454,8 @@
 
 .dangerActionBtn:hover {
   background: #fef2f2 !important;
-  border-color: #ef4444 !important;
-  color: #b91c1c !important;
+  border-color: var(--color-danger) !important;
+  color: var(--color-danger) !important;
 }
 
 .secondaryActionBtn {

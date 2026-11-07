@@ -16,14 +16,28 @@ import {
   ExternalLink,
   Award,
   Trophy,
+  Zap,
+  MapPin,
+  Lock,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import styles from "./license.module.css";
 import { useSessionProfile, useUpdateProfile } from "../../../lib/hooks/useSessionProfile";
 import { processProfileImage } from "../../../lib/imageUtils";
+import { fetchMyLicense, type DriverLicense } from "../../../lib/teamFormationApi";
+import AccessBlocker from "../components/access/AccessBlocker";
+import RazorpayCheckout from "../components/payments/RazorpayCheckout";
 
 export default function DriverLicensePage() {
+  return (
+    <AccessBlocker direction="add_tournament">
+      <DriverLicensePageContent />
+    </AccessBlocker>
+  );
+}
+
+function DriverLicensePageContent() {
   const router = useRouter();
   const { data: profile } = useSessionProfile();
   const updateProfile = useUpdateProfile();
@@ -32,6 +46,19 @@ export default function DriverLicensePage() {
   const [copied, setCopied] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const [license, setLicense] = useState<DriverLicense | null>(null);
+
+  const loadLicense = async () => {
+    try {
+      setLicense(await fetchMyLicense());
+    } catch {
+      // License card shows its own "couldn't load" state below.
+    }
+  };
+
+  useEffect(() => {
+    void loadLicense();
+  }, []);
 
   // Guard: Driver License is strictly student-only
   useEffect(() => {
@@ -78,18 +105,6 @@ export default function DriverLicensePage() {
   const phone = profile?.phone || "";
   const age = profile?.age || "";
   const serialNumber = profile?.id ? `HB-${profile.id.slice(0, 8).toUpperCase()}` : "HB-PENDING";
-
-  const handleCopySerial = () => {
-    if (typeof navigator !== "undefined" && navigator.clipboard) {
-      void navigator.clipboard.writeText(serialNumber);
-    }
-    setCopied(true);
-    setToastMessage(`✓ Copied Driver License ID: ${serialNumber}`);
-    setTimeout(() => {
-      setCopied(false);
-      setToastMessage(null);
-    }, 3000);
-  };
 
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -152,6 +167,33 @@ export default function DriverLicensePage() {
           </Link>
         </div>
       </header>
+
+      {/* Driver License purchase gate -- shown whenever the license isn't active yet */}
+      {license && license.status !== "active" && (
+        <div className={`${styles.infoCard} ${styles.purchaseGate}`}>
+          <div className={styles.cardHeaderWithAction}>
+            <h3 className={styles.cardTitle}>
+              <Lock size={18} color="#fbbf24" />
+              <span>Get Your Driver License</span>
+            </h3>
+          </div>
+          <p className={styles.purchaseDescription}>
+            You need an active Driver License before you can enter a tournament.
+          </p>
+
+          {license.status === "rejected" && (
+            <p className={styles.paymentNotice} role="alert">
+              Your last license request was not approved. Contact Hanbee staff before trying again.
+            </p>
+          )}
+
+          <RazorpayCheckout
+            purpose="driver_license"
+            description="Hanbee Driver License"
+            onPaymentComplete={loadLicense}
+          />
+        </div>
+      )}
 
       {/* Centered Clean License Card Container */}
       <div className={styles.cardContainerWrapper}>

@@ -14,6 +14,7 @@
 
 /* Page Header */
 .pageHeader {
+  position: relative;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -25,6 +26,20 @@
   box-shadow: var(--clay-shadow-outer);
   border: var(--border-subtle);
   backdrop-filter: blur(16px);
+  overflow: hidden;
+}
+
+/* Double-line edge: outer border + an inset second line with a visible
+   gap, matching the treatment used on the student Overview page. */
+.pageHeader::after,
+.tableCard::after,
+.opsCard::after {
+  content: '';
+  position: absolute;
+  inset: 6px;
+  border-radius: 18px;
+  border: 1px solid var(--border-elevated);
+  pointer-events: none;
 }
 
 .headerLeft {
@@ -37,10 +52,9 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-family: monospace;
-  font-size: 11px;
-  letter-spacing: 1.5px;
-  text-transform: uppercase;
+  font-family: var(--font-heading);
+  font-size: 13px;
+  font-weight: 600;
   color: var(--accent-subtle-text);
   background: var(--accent-subtle-bg);
   border: 1px solid var(--accent-subtle-border);
@@ -88,7 +102,7 @@
   border: 1px solid var(--border-elevated);
   color: var(--text-main);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-  transition: all 0.2s ease;
+  transition: all var(--motion-fast-duration) var(--motion-fast-ease);
 }
 
 [data-theme="light"] .linkBtn {
@@ -112,7 +126,7 @@
 }
 
 .primaryLinkBtn {
-  background: linear-gradient(135deg, #0891b2 0%, #2563eb 100%) !important;
+  background: linear-gradient(135deg, var(--color-primary-hover) 0%, #2563eb 100%) !important;
   border: 1px solid rgba(125, 211, 232, 0.5) !important;
   color: #ffffff !important;
   box-shadow: 0 4px 14px rgba(8, 145, 178, 0.35);
@@ -146,7 +160,7 @@
   background: transparent;
   color: var(--text-muted);
   border: 1px solid transparent;
-  transition: all 0.2s ease;
+  transition: all var(--motion-fast-duration) var(--motion-fast-ease);
   white-space: nowrap;
 }
 
@@ -223,10 +237,10 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  font-family: monospace;
-  font-size: 11px;
-  font-weight: 700;
-  color: #10b981;
+  font-family: var(--font-heading);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-success);
   background: rgba(16, 185, 129, 0.14);
   border: 1px solid rgba(16, 185, 129, 0.4);
   padding: 6px 14px;
@@ -250,7 +264,7 @@
   display: flex;
   align-items: center;
   gap: 14px;
-  transition: transform 0.2s ease, border-color 0.2s ease;
+  transition: transform var(--motion-fast-duration) var(--motion-fast-ease), border-color var(--motion-fast-duration) var(--motion-fast-ease);
 }
 
 .metricBox:hover {
@@ -277,21 +291,18 @@
 }
 
 .metricCategory {
-  font-size: 10px;
-  font-family: monospace;
-  font-weight: 700;
-  letter-spacing: 1.2px;
-  color: #64748b;
+  font-size: 12.5px;
+  font-family: var(--font-heading);
+  font-weight: 600;
+  color: var(--text-muted);
   margin-bottom: 2px;
 }
 
 .metricTitle {
-  font-size: 11px;
-  font-family: monospace;
+  font-size: 12.5px;
+  font-family: var(--font-body);
   font-weight: 500;
-  text-transform: uppercase;
-  color: #64748b;
-  letter-spacing: 0.5px;
+  color: var(--text-muted);
 }
 
 .metricValue {
@@ -305,6 +316,7 @@
 
 /* Live Teams Scores Card */
 .tableCard {
+  position: relative;
   background: var(--bg-card);
   box-shadow: var(--clay-shadow-outer);
   border: var(--border-subtle);
@@ -313,6 +325,7 @@
   display: flex;
   flex-direction: column;
   gap: 18px;
+  overflow: hidden;
 }
 
 .tableHeaderRow {
@@ -354,14 +367,12 @@
 
 .dataTable th {
   padding: 14px 18px;
-  font-family: monospace;
-  font-size: 11px;
+  font-family: var(--font-heading);
+  font-size: 13px;
   font-weight: 600;
-  text-transform: uppercase;
   color: var(--text-muted);
   background: rgba(0, 0, 0, 0.15);
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  letter-spacing: 0.5px;
 }
 
 [data-theme="light"] .dataTable th {
@@ -399,7 +410,7 @@
 .rankP1 {
   background: rgba(245, 158, 11, 0.2);
   border: 1px solid rgba(245, 158, 11, 0.5);
-  color: #f59e0b;
+  color: var(--color-warning);
 }
 
 .rankP2 {
@@ -411,7 +422,7 @@
 .rankP3 {
   background: rgba(217, 119, 6, 0.18);
   border: 1px solid rgba(217, 119, 6, 0.45);
-  color: #d97706;
+  color: var(--color-warning);
 }
 
 .rankOther {
@@ -448,7 +459,7 @@
   font-variant-numeric: tabular-nums;
   font-size: 13px;
   font-weight: 700;
-  color: #10b981;
+  color: var(--color-success);
 }
 
 .capacityPill {
@@ -466,17 +477,16 @@
 }
 
 .statusPill {
-  font-size: 10px;
-  font-family: monospace;
-  font-weight: 700;
-  text-transform: uppercase;
-  padding: 3px 8px;
+  font-size: 12px;
+  font-family: var(--font-heading);
+  font-weight: 600;
+  padding: 3px 9px;
   border-radius: 6px;
 }
 
 .statusVerified {
   background: rgba(16, 185, 129, 0.15);
-  color: #10b981;
+  color: var(--color-success);
   border: 1px solid rgba(16, 185, 129, 0.4);
 }
 
@@ -488,13 +498,13 @@
 
 .statusPending {
   background: rgba(245, 158, 11, 0.15);
-  color: #f59e0b;
+  color: var(--color-warning);
   border: 1px solid rgba(245, 158, 11, 0.4);
 }
 
 [data-theme="light"] .statusPending {
   background: #fffbeb;
-  color: #92400e;
+  color: var(--color-warning);
   border: 1px solid #fde68a;
 }
 
@@ -507,7 +517,7 @@
   font-size: 12px;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--motion-fast-duration) var(--motion-fast-ease);
   display: inline-flex;
   align-items: center;
   gap: 5px;
@@ -582,7 +592,7 @@
   font-size: 12px;
   font-family: monospace;
   font-weight: 700;
-  color: #10b981;
+  color: var(--color-success);
   margin-top: 4px;
 }
 
@@ -613,6 +623,7 @@
    duplicated here and again below with conflicting column counts,
    producing an unpredictable 2-then-1 wrap on desktop). */
 .opsCard {
+  position: relative;
   background: var(--bg-card);
   box-shadow: var(--clay-shadow-outer);
   border: var(--border-subtle);
@@ -621,6 +632,7 @@
   display: flex;
   flex-direction: column;
   gap: 16px;
+  overflow: hidden;
 }
 
 .opsHeader {

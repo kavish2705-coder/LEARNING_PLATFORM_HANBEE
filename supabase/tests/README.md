@@ -57,11 +57,15 @@ Never commit the URL. Use the session pooler (the direct host is IPv6 only). Enc
 | `0024_invite_only_signup.mjs` | Strangers cannot sign up, school registration, first verifier wins, invites (bulk, revoke, expiry, co-staff, solo), audit log cannot be forged |
 | `0016_0021_regressions.mjs` | Role self-promotion, attendance/certificate/time-entry forgery, server-checked lesson completion, gated content, scoped profiles |
 | `0026_chat_v2.mjs` | Who may message whom (27 allowed and 27 refused pairs), school groups, add/remove rules, unread counts, rate limit, forged system messages |
-| `0027_tournaments_teams_applications.mjs` | Tournament visibility, teams, payment claims can never be client-set, leaderboard, course applications and enrollment |
-| `0039_team_formation.mjs` | School team slots, configurable team size, student captains and invitations, same-school membership, proposal/return/approval flow, team chat synchronization, and role-scoped statistics (58 assertions) |
+| `0027_tournaments_teams_applications.mjs` | Tournament visibility, teams, payment claims can never be client-set, leaderboard, course applications and enrollment; tournament create/update with optional entry fees, including calls that omit them; solo-entry access and license gates |
+| `0039_team_formation.mjs` | School team slots, configurable team size, tournament-access and active-license gates on the division-aware RPC, student captains and invitations, same-school membership, proposal/return/approval flow, team chat synchronization, and role-scoped statistics |
+| `0093_pool_team_formation.mjs` | Independent pool teams, solo entries, invitations, school-team compatibility, and team chat; fixtures include required tournament and license entitlements |
+| `0094_pool_join_requests.mjs` | Pool join requests, captain decisions, capacity and duplicate protections, and entitlement enforcement; committed concurrency fixtures provision access and license state |
+| `0096_pool_queue_labeling.mjs` | Labels school vs independent entries and rejection notifications; fixtures include required tournament and license entitlements |
 | `0036_reviews_certificates.mjs` | Lesson reviews and certificates lists: who may see which |
 | `0037_backend_hardening.mjs` | Join link rotation, append-only audit log, masked certificate name, chat history and profile limits, flood caps |
 | `0029_overviews_status_solo.mjs` | Dashboard data functions and who may call them, suspend/close/revoke, solo conversion, joining a new school |
 | `0028_tenant_scoping.mjs` | School A never sees school B: announcements, calendar, enrollments, discussions, profiles; revocation |
+| `0126_team_join_entitlements.mjs` | Tournament-access and active-license checks for join requests, join-request acceptance, and invitation acceptance |
 
 They rely on these live accounts existing: `ava@student.edu` (student with an enrollment), `jamie@hanbeelms.edu` (Hanbee staff), `morgan@hanbeelms.edu` (manager). Add a test file for every new migration, and rerun all of them after any policy change. To apply a migration: `SUPABASE_DB_URL=... node apply-migration.mjs ../migrations/<file>.sql` (all or nothing). To run everything: `for f in rls/0*.mjs; do node $f | tail -1; done`.

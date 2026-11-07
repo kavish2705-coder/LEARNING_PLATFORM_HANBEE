@@ -68,6 +68,149 @@
   margin: 0;
 }
 
+/* ===== Hero: deliberately asymmetric -- a dominant greeting + headline
+   stat on the left (≈62%), a quiet divided list on the right (≈38%).
+   No two blocks here are the same size or treatment; that's the point. */
+.heroSection {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1.65fr 1fr;
+  gap: 0;
+  background: var(--bg-card);
+  border-radius: var(--clay-radius-md);
+  box-shadow: var(--clay-shadow-outer);
+  border: var(--border-subtle);
+  overflow: hidden;
+}
+
+.heroSection::after {
+  content: '';
+  position: absolute;
+  inset: 6px;
+  border-radius: 20px;
+  border: 1px solid var(--border-elevated);
+  pointer-events: none;
+}
+
+.heroMain {
+  padding: 36px 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  border-right: 1px solid var(--border-elevated);
+}
+
+.heroEyebrow {
+  font-family: var(--font-heading);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent-subtle-text);
+  margin: 0 0 10px;
+}
+
+.heroGreeting {
+  font-family: var(--font-display);
+  font-size: clamp(30px, 3.2vw, 44px);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--text-main);
+  margin: 0;
+  line-height: 1.1;
+}
+
+.heroHeadlineStat {
+  margin-top: 28px;
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.heroHeadlineLabel {
+  font-family: var(--font-heading);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-muted);
+  align-self: center;
+}
+
+.heroHeadlineValue {
+  font-family: var(--font-display);
+  font-size: clamp(48px, 5.5vw, 72px);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+
+.heroHeadlineContext {
+  font-size: 13px;
+  color: var(--text-muted);
+  align-self: center;
+}
+
+.heroSideStats {
+  padding: 32px 32px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 16px;
+  background: var(--bg-surface-elevated);
+}
+
+.sideStatRow {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.sideStatLabel {
+  font-family: var(--font-heading);
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.sideStatValue {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-main);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sideStatLink {
+  color: var(--accent-subtle-text);
+  font-size: 12.5px;
+  font-weight: 600;
+  text-decoration: none;
+  margin-top: 2px;
+}
+
+.sideStatDivider {
+  height: 1px;
+  background: var(--border-elevated);
+}
+
+@media (max-width: 760px) {
+  .heroSection {
+    grid-template-columns: 1fr;
+  }
+  .heroMain {
+    border-right: none;
+    border-bottom: 1px solid var(--border-elevated);
+    padding: 28px 24px;
+  }
+  .heroSideStats {
+    padding: 24px;
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+  .sideStatRow {
+    flex: 1 1 140px;
+  }
+}
+
 .streakPill {
   display: inline-flex;
   align-items: center;
@@ -80,7 +223,7 @@
   font-weight: 600;
   font-size: 13px;
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
-  transition: all 0.25s ease;
+  transition: all var(--motion-fast-duration) var(--motion-fast-ease);
 }
 
 .streakPill:hover {
@@ -89,14 +232,14 @@
 }
 
 .streakFlame {
-  color: #f59e0b;
+  color: var(--color-warning);
   animation: pulseFlame 1.8s ease-in-out infinite alternate;
 }
 
 .streakBonusTag {
   font-size: 11px;
   background: rgba(245, 158, 11, 0.15);
-  color: #fbbf24;
+  color: var(--color-warning);
   border: 1px solid rgba(245, 158, 11, 0.3);
   padding: 2px 7px;
   border-radius: 999px;
@@ -105,8 +248,8 @@
 }
 
 @keyframes pulseFlame {
-  0% { transform: scale(1); filter: drop-shadow(0 0 3px #f59e0b); }
-  100% { transform: scale(1.15); filter: drop-shadow(0 0 8px #f59e0b); }
+  0% { transform: scale(1); filter: drop-shadow(0 0 3px var(--color-warning)); }
+  100% { transform: scale(1.15); filter: drop-shadow(0 0 8px var(--color-warning)); }
 }
 
 .licenseNavBtn {
@@ -122,7 +265,7 @@
   border-radius: 999px;
   text-decoration: none;
   box-shadow: var(--clay-shadow-subtle);
-  transition: all 0.25s ease;
+  transition: all var(--motion-fast-duration) var(--motion-fast-ease);
 }
 
 .licenseNavBtn:hover {
@@ -162,7 +305,7 @@
     inset 0 1px 0 rgba(255, 255, 255, 0.2);
   padding: 28px;
   overflow: hidden;
-  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s ease;
+  transition: transform var(--motion-moment-duration) var(--motion-moment-ease), box-shadow var(--motion-moment-duration) var(--motion-moment-ease);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
 }
@@ -225,7 +368,7 @@
 .licenseNumber {
   font-family: var(--font-mono);
   font-size: 12px;
-  color: #7dd3e8;
+  color: var(--accent-subtle-text);
   font-weight: 600;
   letter-spacing: 1px;
 }
@@ -236,7 +379,7 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 1px;
-  background: linear-gradient(135deg, #f59e0b, #ef4444);
+  background: linear-gradient(135deg, var(--color-warning), var(--color-danger));
   color: #fff;
   padding: 4px 10px;
   border-radius: 6px;
@@ -255,7 +398,7 @@
   width: 82px;
   height: 82px;
   border-radius: 20px;
-  background: linear-gradient(135deg, #0891b2, #3b82f6);
+  background: linear-gradient(135deg, var(--color-primary-hover), #3b82f6);
   padding: 2px;
   flex-shrink: 0;
   box-shadow: 0 0 20px rgba(8, 145, 178, 0.4);
@@ -280,7 +423,7 @@
   bottom: -6px;
   left: 50%;
   transform: translateX(-50%);
-  background: #0891b2;
+  background: var(--color-primary-hover);
   color: #fff;
   font-family: var(--font-mono);
   font-size: 9px;
@@ -311,7 +454,7 @@
 
 .driverCallsign {
   font-size: 13px;
-  color: #7dd3e8;
+  color: var(--accent-subtle-text);
   margin: 0 0 6px;
   font-weight: 500;
 }
@@ -360,7 +503,7 @@
 }
 
 .statValueAccent {
-  color: #7dd3e8;
+  color: var(--accent-subtle-text);
   text-shadow: 0 0 10px rgba(125, 211, 232, 0.5);
 }
 
@@ -389,10 +532,10 @@
 
 .xpBarFill {
   height: 100%;
-  background: linear-gradient(90deg, #0891b2, #7dd3e8, #3b82f6);
+  background: linear-gradient(90deg, var(--color-primary-hover), var(--accent-subtle-text), #3b82f6);
   border-radius: 999px;
   box-shadow: 0 0 12px rgba(125, 211, 232, 0.8);
-  transition: width 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: width var(--motion-moment-duration) var(--motion-moment-ease);
 }
 
 /* Flip / Specs Toggle */
@@ -426,14 +569,36 @@
   cursor: pointer;
   background: transparent;
   border: none;
-  transition: color 0.2s ease;
+  transition: color var(--motion-fast-duration) var(--motion-fast-ease);
 }
 
 .flipBtn:hover {
-  color: #7dd3e8;
+  color: var(--accent-subtle-text);
 }
 
 /* ===== Grand Prix Countdown Card ===== */
+/* Double-line edge: an outer border plus an inset second line with a
+   visible gap between them, like a technical/blueprint frame rather than
+   a flat single-stroke card -- applied to every major surface below. */
+.grandPrixCard,
+.telemetryCard,
+.bountiesCard,
+.standingsSection {
+  position: relative;
+}
+
+.grandPrixCard::after,
+.telemetryCard::after,
+.bountiesCard::after,
+.standingsSection::after {
+  content: '';
+  position: absolute;
+  inset: 6px;
+  border-radius: 18px;
+  border: 1px solid var(--border-elevated);
+  pointer-events: none;
+}
+
 .grandPrixCard {
   background: var(--bg-card);
   border-radius: 24px;
@@ -457,7 +622,7 @@
   left: 0;
   right: 0;
   height: 2px;
-  background: linear-gradient(90deg, transparent, #7dd3e8, #10b981, transparent);
+  background: linear-gradient(90deg, transparent, var(--accent-subtle-text), var(--color-success), transparent);
   opacity: 0.9;
 }
 
@@ -486,7 +651,7 @@
   font-family: var(--font-mono);
   font-size: 11px;
   font-weight: 700;
-  color: var(--accent-subtle-text, #38bdf8);
+  color: var(--accent-subtle-text, var(--color-primary));
   background: var(--accent-subtle-bg, rgba(56, 189, 248, 0.12));
   border: 1px solid var(--accent-subtle-border, rgba(56, 189, 248, 0.35));
   padding: 4px 10px;
@@ -501,7 +666,7 @@
   font-family: var(--font-mono);
   font-size: 11px;
   font-weight: 700;
-  color: #10b981;
+  color: var(--color-success);
   background: rgba(16, 185, 129, 0.14);
   border: 1px solid rgba(16, 185, 129, 0.4);
   padding: 4px 10px;
@@ -583,8 +748,8 @@
   width: 14px;
   height: 14px;
   border-radius: 50%;
-  background: #ef4444;
-  box-shadow: 0 0 16px #ef4444, 0 0 28px rgba(239, 68, 68, 0.8);
+  background: var(--color-danger);
+  box-shadow: 0 0 16px var(--color-danger), 0 0 28px rgba(239, 68, 68, 0.8);
   animation: pulseLight 1s infinite alternate;
 }
 
@@ -630,11 +795,9 @@
 }
 
 .countdownUnit {
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 1.5px;
+  font-size: 13px;
   color: var(--text-muted);
-  font-weight: 700;
+  font-weight: 600;
 }
 
 /* CTA Row */
@@ -662,7 +825,7 @@
   text-align: center;
   white-space: nowrap;
   box-sizing: border-box;
-  transition: all 0.25s ease;
+  transition: all var(--motion-fast-duration) var(--motion-fast-ease);
 }
 
 .paddockBtn {
@@ -776,7 +939,7 @@
   width: 64px;
   height: 64px;
   border-radius: 50%;
-  background: conic-gradient(#10b981 0% 92%, rgba(255, 255, 255, 0.1) 92% 100%);
+  background: conic-gradient(var(--color-success) 0% 92%, rgba(255, 255, 255, 0.1) 92% 100%);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -800,7 +963,7 @@
   font-family: var(--font-mono);
   font-weight: 700;
   font-size: 14px;
-  color: #10b981;
+  color: var(--color-success);
   transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
@@ -823,14 +986,17 @@
   line-height: 1.4;
 }
 
-/* Diagnostic Checks List */
+/* Diagnostic Checks List -- original 2-column card grid, kept; only the
+   hover/motion/type treatment is new (lift + glow on hover, a display
+   font on the item title, the passed state settling down in place
+   rather than changing the grid itself). */
 .diagnosticList {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 12px;
+  gap: 10px;
 }
 
-@media (max-width: 850px) {
+@media (max-width: 640px) {
   .diagnosticList {
     grid-template-columns: 1fr;
   }
@@ -840,29 +1006,30 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 14px 18px;
-  border-radius: 16px;
+  padding: 14px 16px;
+  border-radius: 14px;
   background: var(--bg-surface-elevated);
   border: 1px solid var(--border-elevated);
   font-size: 13px;
   cursor: pointer;
   gap: 12px;
-  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.25s ease, background 0.25s ease;
 }
 
 .diagRow:hover {
   background: var(--bg-card-hover);
   border-color: var(--accent-subtle-border);
-  transform: translateX(3px);
+  transform: translateY(-3px);
+  box-shadow: 0 10px 24px -12px rgba(0, 0, 0, 0.45);
 }
 
 .diagRowPassed {
-  border-color: rgba(16, 185, 129, 0.3);
-  background: rgba(16, 185, 129, 0.05);
+  border-color: var(--color-success);
+  opacity: 0.82;
 }
 
 .diagRowPassed:hover {
-  border-color: rgba(16, 185, 129, 0.5);
+  opacity: 1;
 }
 
 .diagRowLeft {
@@ -872,27 +1039,33 @@
 }
 
 .diagIconWrap {
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
   background: var(--accent-subtle-bg);
   color: var(--accent-subtle-text);
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  transition: all 0.2s ease;
+  transition: transform var(--motion-fast-duration) var(--motion-fast-ease), background var(--motion-fast-duration) var(--motion-fast-ease), color var(--motion-fast-duration) var(--motion-fast-ease);
+}
+
+.diagRow:hover .diagIconWrap {
+  transform: scale(1.08) rotate(-4deg);
 }
 
 .diagIconWrapPassed {
-  background: rgba(16, 185, 129, 0.15);
-  color: #10b981;
+  background: var(--accent-subtle-bg);
+  color: var(--color-success);
 }
 
 .diagItemTitle {
-  font-weight: 500;
+  font-family: var(--font-display);
+  font-weight: 600;
   color: var(--text-main);
-  font-size: 13px;
+  font-size: 14px;
+  letter-spacing: -0.01em;
   margin: 0 0 2px 0;
 }
 
@@ -906,43 +1079,28 @@
   font-family: inherit;
   font-size: 11px;
   font-weight: 600;
-  color: #10b981;
-  background: rgba(16, 185, 129, 0.15);
-  border: 1px solid rgba(16, 185, 129, 0.35);
-  padding: 6px 12px;
-  border-radius: 8px;
+  color: var(--color-success);
   display: flex;
   align-items: center;
   gap: 5px;
-  box-shadow: 0 0 12px rgba(16, 185, 129, 0.15);
-  transition: all 0.2s ease;
-}
-
-.diagPassed:hover {
-  background: rgba(16, 185, 129, 0.25);
-  transform: scale(1.02);
 }
 
 .diagPending {
   font-family: inherit;
   font-size: 11px;
-  font-weight: 600;
-  color: var(--accent-subtle-text);
-  background: var(--accent-subtle-bg);
-  border: 1px solid var(--accent-subtle-border);
+  font-weight: 700;
+  color: var(--color-primary-text);
+  background: var(--color-primary);
   padding: 6px 12px;
   border-radius: 8px;
   display: flex;
   align-items: center;
   gap: 5px;
-  transition: all 0.2s ease;
+  transition: all var(--motion-fast-duration) var(--motion-fast-ease);
 }
 
 .diagPending:hover {
-  background: var(--color-primary);
-  border-color: var(--color-primary);
-  transform: scale(1.02);
-  color: var(--color-primary-text);
+  transform: scale(1.03);
 }
 
 .checkAllBtn {
@@ -957,7 +1115,7 @@
   display: flex;
   align-items: center;
   gap: 4px;
-  transition: all 0.2s ease;
+  transition: all var(--motion-fast-duration) var(--motion-fast-ease);
 }
 
 .checkAllBtn:hover {
@@ -992,6 +1150,8 @@
   }
 }
 
+/* Original equal-treatment 3-card layout, kept as-is -- only hover depth
+   and icon motion are new. */
 .bountyItem {
   background: var(--bg-surface-elevated);
   border: 1px solid var(--border-elevated);
@@ -1001,12 +1161,13 @@
   flex-direction: column;
   justify-content: space-between;
   gap: 16px;
-  transition: border-color 0.3s ease, background 0.3s ease;
+  transition: border-color 0.3s ease, background 0.3s ease, box-shadow 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .bountyItem:hover {
   border-color: var(--accent-subtle-border);
   background: var(--bg-card-hover);
+  box-shadow: 0 14px 28px -16px rgba(0, 0, 0, 0.5);
 }
 
 .bountyLeft {
@@ -1025,14 +1186,21 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  transition: transform var(--motion-fast-duration) var(--motion-fast-ease);
+}
+
+.bountyItem:hover .bountyIconWrap {
+  transform: scale(1.1) rotate(-3deg);
 }
 
 .bountyMeta h4 {
+  font-family: var(--font-display);
   font-size: 15px;
   font-weight: 700;
   color: var(--text-main);
   margin: 0 0 4px;
   line-height: 1.3;
+  letter-spacing: -0.01em;
 }
 
 .bountyMeta p {
@@ -1043,7 +1211,7 @@
 }
 
 .claimBtn {
-  background: linear-gradient(135deg, #10b981, #059669);
+  background: linear-gradient(135deg, var(--color-success), #059669);
   color: #fff;
   font-family: var(--font-mono);
   font-weight: 700;
@@ -1053,7 +1221,7 @@
   border: none;
   cursor: pointer;
   box-shadow: 0 4px 14px rgba(16, 185, 129, 0.4);
-  transition: all 0.2s ease;
+  transition: all var(--motion-fast-duration) var(--motion-fast-ease);
   white-space: nowrap;
 }
 
@@ -1086,8 +1254,14 @@
 
 .sectionHeaderLeft {
   display: flex;
-  align-items: center;
+  align-items: baseline;
   gap: 14px;
+}
+
+.sectionGroupSubtitle {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-muted);
 }
 
 .sectionGroupTitle {
@@ -1111,11 +1285,10 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-family: var(--font-mono);
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.8px;
-  color: #10b981;
+  font-family: var(--font-heading);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-success);
   background: rgba(16, 185, 129, 0.12);
   border: 1px solid rgba(16, 185, 129, 0.35);
   padding: 6px 14px;
@@ -1127,11 +1300,10 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-family: var(--font-mono);
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.8px;
-  color: #f59e0b;
+  font-family: var(--font-heading);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-warning);
   background: rgba(245, 158, 11, 0.12);
   border: 1px solid rgba(245, 158, 11, 0.35);
   padding: 6px 14px;
@@ -1163,7 +1335,7 @@
   left: 0;
   right: 0;
   height: 2px;
-  background: linear-gradient(90deg, transparent, #fbbf24, #f59e0b, transparent);
+  background: linear-gradient(90deg, transparent, var(--color-warning), var(--color-warning), transparent);
   opacity: 0.85;
 }
 
@@ -1227,9 +1399,9 @@
   font-family: var(--font-mono);
 }
 
-.podiumRankGold { background: rgba(251, 191, 36, 0.2); color: #fbbf24; }
+.podiumRankGold { background: rgba(251, 191, 36, 0.2); color: var(--color-warning); }
 .podiumRankSilver { background: rgba(156, 163, 175, 0.2); color: #9ca3af; }
-.podiumRankBronze { background: rgba(180, 83, 9, 0.2); color: #f59e0b; }
+.podiumRankBronze { background: rgba(180, 83, 9, 0.2); color: var(--color-warning); }
 
 .podiumPts {
   grid-column: 2;
@@ -1381,12 +1553,12 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  transition: all 0.2s ease;
+  transition: all var(--motion-fast-duration) var(--motion-fast-ease);
 }
 
 .pitTaskIconWrapDone {
   background: rgba(16, 185, 129, 0.2);
-  color: #10b981;
+  color: var(--color-success);
 }
 
 .pitTaskMeta h5 {
@@ -1414,7 +1586,7 @@
   cursor: pointer;
   white-space: nowrap;
   box-shadow: var(--clay-shadow-button), var(--accent-glow);
-  transition: all 0.2s ease;
+  transition: all var(--motion-fast-duration) var(--motion-fast-ease);
   display: inline-flex;
   align-items: center;
   gap: 5px;
@@ -1429,7 +1601,7 @@
   font-family: inherit;
   font-size: 11px;
   font-weight: 600;
-  color: #10b981;
+  color: var(--color-success);
   background: rgba(16, 185, 129, 0.15);
   border: 1px solid rgba(16, 185, 129, 0.4);
   padding: 6px 12px;
@@ -1463,17 +1635,15 @@
 
 .standingsThead th {
   padding: 18px 24px;
-  font-family: var(--font-mono);
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 1.3px;
+  font-family: var(--font-heading);
+  font-size: 13px;
+  font-weight: 600;
   color: var(--text-muted);
 }
 
 .standingsRow {
   border-bottom: 1px solid var(--border-subtle);
-  transition: background 0.2s ease;
+  transition: background var(--motion-fast-duration) var(--motion-fast-ease);
 }
 
 .standingsRow:last-child {
@@ -1511,9 +1681,9 @@
   justify-content: center;
 }
 
-.rankP1 { background: rgba(251, 191, 36, 0.25); color: #fbbf24; border: 1px solid rgba(251, 191, 36, 0.5); }
+.rankP1 { background: rgba(251, 191, 36, 0.25); color: var(--color-warning); border: 1px solid rgba(251, 191, 36, 0.5); }
 .rankP2 { background: rgba(156, 163, 175, 0.25); color: #9ca3af; border: 1px solid rgba(156, 163, 175, 0.5); }
-.rankP3 { background: rgba(245, 158, 11, 0.25); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.5); }
+.rankP3 { background: rgba(245, 158, 11, 0.25); color: var(--color-warning); border: 1px solid rgba(245, 158, 11, 0.5); }
 .rankOther { background: var(--bg-card); color: var(--text-muted); border: 1px solid var(--border-subtle); }
 
 .teamMetaTitle {
@@ -1539,19 +1709,18 @@
 .userSquadTag {
   background: var(--color-primary);
   color: var(--color-primary-text);
-  font-family: var(--font-mono);
-  font-size: 9px;
-  font-weight: 800;
-  padding: 2px 6px;
+  font-family: var(--font-heading);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 7px;
   border-radius: 4px;
-  letter-spacing: 0.5px;
 }
 
 .lapTimeBadge {
   font-family: var(--font-mono);
   font-weight: 600;
   font-size: 13px;
-  color: #10b981;
+  color: var(--color-success);
 }
 
 .speedBadge {
@@ -1577,8 +1746,8 @@
 .readinessBarFill {
   height: 100%;
   border-radius: 999px;
-  background: #10b981;
-  transition: width 0.4s ease;
+  background: var(--color-success);
+  transition: width var(--motion-moment-duration) var(--motion-moment-ease);
 }
 
 .readinessBarText {
@@ -1597,19 +1766,19 @@
 
 .statusActive {
   background: rgba(16, 185, 129, 0.15);
-  color: #10b981;
+  color: var(--color-success);
   border: 1px solid rgba(16, 185, 129, 0.3);
 }
 
 .statusTuning {
   background: rgba(245, 158, 11, 0.12);
-  color: #f59e0b;
+  color: var(--color-warning);
   border: 1px solid rgba(245, 158, 11, 0.28);
 }
 
 .statusPaddock {
   background: rgba(125, 211, 232, 0.15);
-  color: #7dd3e8;
+  color: var(--accent-subtle-text);
   border: 1px solid rgba(125, 211, 232, 0.3);
 }
 
@@ -1628,7 +1797,7 @@
   gap: 5px;
   background: rgba(16, 185, 129, 0.12);
   border: 1px solid rgba(16, 185, 129, 0.3);
-  color: #10b981;
+  color: var(--color-success);
   font-family: var(--font-mono);
   font-size: 10px;
   font-weight: 700;
@@ -1667,7 +1836,7 @@
 
 .simBadge {
   background: rgba(8, 145, 178, 0.22);
-  color: #7dd3e8;
+  color: var(--accent-subtle-text);
   padding: 3px 8px;
   border-radius: 6px;
   font-weight: 700;
@@ -1718,7 +1887,7 @@
   left: 0;
   right: 0;
   height: 2px;
-  background: linear-gradient(90deg, transparent, #7dd3e8, transparent);
+  background: linear-gradient(90deg, transparent, var(--accent-subtle-text), transparent);
   opacity: 0.85;
 }
 

@@ -35,6 +35,16 @@ export interface ChatMessage {
   created_at: string;
 }
 
+export interface ChatMember {
+  user_id: string;
+  full_name: string;
+  role: string;
+  member_role: "admin" | "member";
+  joined_at: string;
+  can_add: boolean;
+  can_remove: boolean;
+}
+
 async function rpc<T>(name: string, args: Record<string, unknown> = {}) {
   return authenticatedSupabaseFetch<T>(`/rest/v1/rpc/${name}`, {
     method: "POST",
@@ -96,6 +106,20 @@ export async function startDirectConversation(otherUserId: string) {
 export async function createGroupConversation(title: string, memberIds: string[]) {
   return rpc<string>("create_group_conversation", { p_title: title.trim(), p_member_ids: memberIds });
 }
+
+export const fetchChatMembers = (conversationId: string) => rpc<ChatMember[]>("chat_members", { p_conversation_id: conversationId });
+export const addChatMember = (conversationId: string, userId: string) =>
+  rpc<boolean>("chat_add_member", { p_conversation_id: conversationId, p_user_id: userId });
+export const removeChatMember = (conversationId: string, userId: string) =>
+  rpc<boolean>("chat_remove_member", { p_conversation_id: conversationId, p_user_id: userId });
+export const setChatMemberRole = (conversationId: string, userId: string, role: "admin" | "member") =>
+  rpc<boolean>("chat_set_member_role", { p_conversation_id: conversationId, p_user_id: userId, p_role: role });
+export const renameGroupConversation = (conversationId: string, title: string) =>
+  rpc<boolean>("chat_rename_group", { p_conversation_id: conversationId, p_title: title.trim() });
+export const deleteGroupConversation = (conversationId: string) =>
+  rpc<boolean>("chat_delete_group", { p_conversation_id: conversationId });
+export const leaveGroupConversation = (conversationId: string) =>
+  rpc<boolean>("chat_leave_group", { p_conversation_id: conversationId });
 
 export async function sendChatMessage(conversationId: string, body: string) {
   return authenticatedSupabaseFetch<unknown>("/rest/v1/messages", {

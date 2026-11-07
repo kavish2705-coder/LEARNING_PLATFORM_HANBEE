@@ -93,10 +93,8 @@
 .badge {
   padding: 4px 10px;
   border-radius: 6px;
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
   background: var(--bg-input);
   color: var(--text-muted);
   border: 1px solid var(--text-muted);

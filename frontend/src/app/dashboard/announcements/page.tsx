@@ -81,7 +81,7 @@ export default function AnnouncementsPage() {
         setAnnouncements(rows);
         setAuthors(new Map(people.map((person) => [person.id, person])));
       } catch (reason) {
-        if (active) setError(reason instanceof Error ? reason.message : "We couldn't load announcements.");
+        if (active) setError(reason instanceof Error ? reason.message : "Couldn't load the bulletin board — try again in a moment.");
       } finally {
         if (active) setLoading(false);
       }
@@ -281,8 +281,8 @@ export default function AnnouncementsPage() {
       {!loading && filteredBulletins.length === 0 && (
         <EmptyState
           icon={<Bell size={22} />}
-          title="No announcements yet"
-          description="School and tournament updates will show up here as soon as they're posted."
+          title="The board's quiet for now"
+          description="The moment staff or your school post something, you'll see it here first."
         />
       )}
       <div className={styles.announcementsList}>

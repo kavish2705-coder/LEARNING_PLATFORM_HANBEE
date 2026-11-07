@@ -12,8 +12,8 @@ export default function Hero({ onOpenStudentModal }: HeroProps) {
   const yBg = useTransform(scrollY, [0, 800], [0, 140]);
   const opacityText = useTransform(scrollY, [0, 420], [1, 0]);
 
-  const line1Words = ["DON'T", "JUST", "STUDY."];
-  const line2Words = ["BUILD", "SOMETHING", "REAL."];
+  const line1Words = ["Don't", "just", "learn."];
+  const line2Words = ["Build", "something", "real."];
 
   return (
     <section className={styles.hero}>
@@ -46,7 +46,7 @@ export default function Hero({ onOpenStudentModal }: HeroProps) {
           transition={{ delay: 0.1, duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
         >
           <span className={styles.taglineDot} />
-          <span className={styles.taglineText}>LEARN &middot; BUILD &middot; BELONG</span>
+          <span className={styles.taglineText}>A trusted coding and robotics program for school students</span>
         </motion.div>
 
         {/* Main Heading */}
@@ -94,7 +94,7 @@ export default function Hero({ onOpenStudentModal }: HeroProps) {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.44, duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
         >
-          Build the car with your own hands. Code the brain with your team. Race wheel-to-wheel for six months — where one bad day never knocks you off the grid.
+          A mentor-guided program where students build a real robotic car by hand, learn genuine Java and robotics coding skills, and compete safely as a team across a six-month season. It&apos;s practical, hands-on learning that gives parents real confidence in their child&apos;s progress.
         </motion.p>
 
         {/* CTA Button Group */}
@@ -108,7 +108,7 @@ export default function Hero({ onOpenStudentModal }: HeroProps) {
             whileHover={{ scale: 1.03 }}
             whileTap={{ scale: 0.97 }}
           >
-            <span>Explore</span>
+            <span>Explore the season</span>
             <svg
               width="14"
               height="14"

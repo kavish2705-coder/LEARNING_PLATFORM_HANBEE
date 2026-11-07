@@ -115,9 +115,9 @@ export default function SchoolDetail({ directoryHref = "/dashboard/manager/schoo
       {dialog}
       <header className={styles.pageHeader}>
         <Link href={directoryHref} style={{ display: "inline-flex", alignItems: "center", gap: 7, marginBottom: 14, color: "var(--text-muted)", textDecoration: "none" }}><ArrowLeft size={16} /> All schools</Link>
-        <div className={styles.metricLabel}>SCHOOL PROFILE · {school.status.toUpperCase()}</div>
+        <div className={styles.metricLabel}>School profile, {school.status}</div>
         <h1 className={styles.pageTitle}>{school.name}</h1>
-        <p className={styles.pageSubtitle}>Registration {school.registration_no || "not provided"} · {school.official_email}</p>
+        <p className={styles.pageSubtitle}>Registration {school.registration_no || "not provided"}, contact {school.official_email}</p>
       </header>
       {error && <p role="alert" style={{ marginBottom: 12 }}>{error}</p>}{notice && <p role="status" style={{ marginBottom: 12 }}>{notice}</p>}
       <div className={styles.sectionCard} style={{ marginBottom: 22 }}>
@@ -218,7 +218,7 @@ export default function SchoolDetail({ directoryHref = "/dashboard/manager/schoo
           <section className={styles.sectionCard} style={{ marginBottom: 20 }}>
             <div className={styles.sectionHeader}>
               <h2 className={styles.sectionTitle}>Course participation</h2>
-              <span className={styles.metricLabel}>READ ONLY</span>
+              <span className={styles.metricLabel}>Read only</span>
             </div>
             <div className={styles.tableContainer}>
               <table className={styles.dataTable}>
@@ -255,7 +255,7 @@ export default function SchoolDetail({ directoryHref = "/dashboard/manager/schoo
           <section className={styles.sectionCard}>
             <div className={styles.sectionHeader}>
               <h2 className={styles.sectionTitle}>Students ({students.length})</h2>
-              <span className={styles.metricLabel}>ACCOUNT CONTROLS</span>
+              <span className={styles.metricLabel}>Account controls</span>
             </div>
             <div className={styles.tableContainer}>
               <table className={styles.dataTable}>
@@ -283,15 +283,15 @@ export default function SchoolDetail({ directoryHref = "/dashboard/manager/schoo
                       <td>{student.completion_pct}%</td>
                       <td>{student.last_active ? new Date(student.last_active).toLocaleDateString() : "—"}</td>
                       <td>
-                        <span style={{ 
-                          fontSize: 11, 
-                          fontFamily: "monospace", 
-                          fontWeight: 700, 
-                          textTransform: "uppercase", 
-                          padding: "2px 6px", 
+                        <span style={{
+                          fontSize: 12.5,
+                          fontFamily: "var(--font-heading)",
+                          fontWeight: 600,
+                          textTransform: "capitalize",
+                          padding: "2px 6px",
                           borderRadius: 4,
                           background: student.account_status === "active" ? "rgba(16, 185, 129, 0.12)" : "rgba(239, 68, 68, 0.12)",
-                          color: student.account_status === "active" ? "#10b981" : "#ef4444"
+                          color: student.account_status === "active" ? "var(--color-success)" : "var(--color-danger)"
                         }}>
                           {student.account_status}
                         </span>

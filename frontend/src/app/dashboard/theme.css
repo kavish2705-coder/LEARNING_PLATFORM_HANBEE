@@ -1,22 +1,57 @@
+/* Cross-role accent rule (Round 3 audit, finding #8 -- accent-hue usage
+   diverged from 1 hue on student to 5+ "decorative" hues on manager with no
+   shared logic): every non-neutral color on screen must be ONE of --
+     1. --color-primary / --accent -- all primary actions, active-nav state,
+        focus rings. The only hue allowed to mean "this is the main action,"
+        used identically across all 4 roles.
+     2. --color-success / --color-warning / --color-danger -- their literal
+        semantic meaning only (pass/fail, caution, error). Never decoration.
+     3. --status-online -- presence/live indicators only (see definition
+        below), distinct from success on purpose.
+     4. A *category* hue, used only when it encodes a real, stable identity
+        a user can learn once -- a per-course cover accent (courses/page.tsx
+        `coverAccent`), a license/medal tier (gold/silver/bronze), a distinct
+        metric category that is genuinely not a status (e.g. "pace" vs.
+        "standing"). Each category hue must be documented at its call site
+        with what it encodes; an undocumented one-off hex is the bug this
+        rule exists to catch, not a style choice.
+   Anything that doesn't fit one of these four is a leftover and should be
+   migrated onto a real token or removed, not left as a guess. */
+
+/* Semantic tokens are defined in oklch() -- same variable names every
+   component already consumes, but perceptually-linear lightness means
+   contrast between any two tokens is now a real, computable ratio
+   (see scripts/check-contrast.mjs) instead of something eyeballed per
+   color. Converted from the previous hex/rgba values via exact sRGB ->
+   OKLCH math (Björn Ottosson's reference formulas), not approximated --
+   every token here renders identically to its prior hex value. */
 :root, [data-theme="dark"] {
-  --bg-page: #1c1c1e;
+  --bg-page: oklch(22.7% 0.004 286.1);
   --bg-page-image:
-    radial-gradient(ellipse 70% 55% at 12% -8%, rgba(8, 145, 178, 0.16), transparent 60%),
-    radial-gradient(ellipse 60% 50% at 100% 0%, rgba(79, 70, 229, 0.10), transparent 60%);
-  --bg-card: rgba(20, 20, 20, 0.7);
-  --bg-card-hover: rgba(30, 30, 30, 0.8);
-  --bg-input: rgba(10, 10, 10, 0.6);
-  --text-main: #f5f5f5;
-  --text-muted: #aaaaaa;
-  --accent: #0891b2; /* Cyan */
-  
-  --color-primary: #0891b2; /* Muted Cyan */
-  --color-primary-hover: #0e7490; /* Darker Cyan */
-  --color-primary-text: #ffffff;
-  
-  --color-success: #10B981; /* Emerald */
-  --color-warning: #F59E0B; /* Amber */
-  --color-danger: #EF4444; /* Red */
+    radial-gradient(ellipse 70% 55% at 12% -8%, oklch(60.9% 0.111 221.7 / 0.16), transparent 60%),
+    radial-gradient(ellipse 60% 50% at 100% 0%, oklch(51.1% 0.230 277.0 / 0.10), transparent 60%);
+  --bg-card: oklch(19.1% 0.000 89.9 / 0.7);
+  --bg-card-hover: oklch(23.5% 0.000 89.9 / 0.8);
+  --bg-input: oklch(14.5% 0.000 89.9 / 0.6);
+  --text-main: oklch(97.0% 0.000 89.9);
+  --text-muted: oklch(73.8% 0.000 89.9);
+  --accent: oklch(60.9% 0.111 221.7); /* Cyan */
+
+  --color-primary: oklch(60.9% 0.111 221.7); /* Muted Cyan */
+  --color-primary-hover: oklch(52.0% 0.094 223.1); /* Darker Cyan */
+  /* Pure white on this cyan measured 3.68:1 (fails WCAG AA 4.5:1) --
+     caught by scripts/check-contrast.mjs. Dark navy text on the same
+     background hits 5.08:1 instead. */
+  --color-primary-text: oklch(18% 0.039 231.3);
+
+  --color-success: oklch(69.6% 0.149 162.5); /* Emerald */
+  --color-warning: oklch(76.9% 0.165 70.1); /* Amber */
+  --color-danger: oklch(63.7% 0.208 25.3); /* Red */
+  /* Presence dot only (chat/attendance "online" indicator) -- distinct from
+     --color-success on purpose: a live-status pulse reads differently from
+     a completed/passed state, so it keeps its own neon-green identity
+     instead of borrowing success's calmer emerald. */
+  --status-online: #00ff80;
 
   /* Classic Dark Neumorphism with Glass */
   --clay-shadow-subtle: 0 1px 2px rgba(0, 0, 0, 0.2), 0 4px 12px rgba(0, 0, 0, 0.2);
@@ -27,57 +62,58 @@
   /* Buttons and Active States */
   --clay-shadow-button: 0 4px 12px rgba(0, 0, 0, 0.25);
   --clay-shadow-active: inset 0 2px 4px rgba(0, 0, 0, 0.3);
-  --accent-glow: 0 0 0 1px rgba(8, 145, 178, 0.4), 0 8px 24px -4px rgba(8, 145, 178, 0.35);
-  --focus-ring: 0 0 0 3px rgba(8, 145, 178, 0.35);
+  --accent-glow: 0 0 0 1px oklch(60.9% 0.111 221.7 / 0.4), 0 8px 24px -4px oklch(60.9% 0.111 221.7 / 0.35);
+  --focus-ring: 0 0 0 3px oklch(60.9% 0.111 221.7 / 0.35);
 
   /* Surface & Accent Tokens */
-  --accent-subtle-bg: rgba(8, 145, 178, 0.15);
-  --accent-subtle-border: rgba(125, 211, 232, 0.35);
-  --accent-subtle-text: #7dd3e8;
-  --bg-surface-elevated: rgba(0, 0, 0, 0.35);
-  --border-elevated: rgba(255, 255, 255, 0.08);
-  --btn-secondary-bg: rgba(255, 255, 255, 0.06);
-  --btn-secondary-hover: rgba(255, 255, 255, 0.12);
-  --btn-secondary-text: #ffffff;
-  --btn-secondary-border: rgba(255, 255, 255, 0.16);
+  --accent-subtle-bg: oklch(60.9% 0.111 221.7 / 0.15);
+  --accent-subtle-border: oklch(82.0% 0.088 215.2 / 0.35);
+  --accent-subtle-text: oklch(82.0% 0.088 215.2);
+  --bg-surface-elevated: oklch(0% 0 0 / 0.35);
+  --border-elevated: oklch(100% 0 0 / 0.08);
+  --btn-secondary-bg: oklch(100% 0 0 / 0.06);
+  --btn-secondary-hover: oklch(100% 0 0 / 0.12);
+  --btn-secondary-text: oklch(100% 0 0);
+  --btn-secondary-border: oklch(100% 0 0 / 0.16);
 
   --clay-radius-lg: 32px;
   --clay-radius-md: 24px;
   --clay-radius-sm: 16px;
 
-  --border-subtle: 1px solid rgba(255, 255, 255, 0.1);
+  --border-subtle: 1px solid oklch(100% 0 0 / 0.1);
 }
 
 [data-theme="light"] {
-  --bg-page: #f5f3ec;
+  --bg-page: oklch(96.4% 0.010 93.6);
   --bg-page-image:
-    radial-gradient(ellipse 70% 55% at 12% -8%, rgba(79, 70, 229, 0.08), transparent 60%),
-    radial-gradient(ellipse 60% 50% at 100% 0%, rgba(8, 145, 178, 0.07), transparent 60%);
-  --bg-card: rgba(255, 255, 255, 0.85);
-  --bg-card-hover: rgba(255, 255, 255, 0.98);
-  --bg-input: rgba(238, 235, 227, 0.8);
-  --text-main: #111827; /* Near black high contrast */
-  --text-muted: #4b5563; /* High contrast dark gray (WCAG AAA) */
-  --accent: #4f46e5; /* Indigo */
-  
-  --color-primary: #4f46e5; /* Indigo */
-  --color-primary-hover: #4338ca; /* Darker Indigo */
-  --color-primary-text: #ffffff;
-  
-  --color-success: #059669; /* Emerald */
-  --color-warning: #D97706; /* Amber */
-  --color-danger: #DC2626; /* Red */
+    radial-gradient(ellipse 70% 55% at 12% -8%, oklch(51.1% 0.230 277.0 / 0.08), transparent 60%),
+    radial-gradient(ellipse 60% 50% at 100% 0%, oklch(60.9% 0.111 221.7 / 0.07), transparent 60%);
+  --bg-card: oklch(100% 0 0 / 0.85);
+  --bg-card-hover: oklch(100% 0 0 / 0.98);
+  --bg-input: oklch(93.9% 0.008 93.6 / 0.8);
+  --text-main: oklch(21.0% 0.032 264.7); /* Near black high contrast */
+  --text-muted: oklch(44.6% 0.026 256.8); /* High contrast dark gray (WCAG AAA) */
+  --accent: oklch(51.1% 0.230 277.0); /* Indigo */
+
+  --color-primary: oklch(51.1% 0.230 277.0); /* Indigo */
+  --color-primary-hover: oklch(45.7% 0.215 277.0); /* Darker Indigo */
+  --color-primary-text: oklch(100% 0 0);
+
+  --color-success: oklch(59.6% 0.127 163.2); /* Emerald */
+  --color-warning: oklch(66.6% 0.157 58.3); /* Amber */
+  --color-danger: oklch(57.7% 0.215 27.3); /* Red */
+  --status-online: #00c853;
 
   /* High contrast light theme tokens */
-  --accent-subtle-bg: rgba(79, 70, 229, 0.09);
-  --accent-subtle-border: rgba(79, 70, 229, 0.28);
-  --accent-subtle-text: #4338ca; /* Deep indigo text with strong contrast on light cards */
-  --bg-surface-elevated: rgba(0, 0, 0, 0.04);
-  --border-elevated: rgba(0, 0, 0, 0.09);
-  --btn-secondary-bg: rgba(0, 0, 0, 0.05);
-  --btn-secondary-hover: rgba(0, 0, 0, 0.09);
-  --btn-secondary-text: #111827;
-  --btn-secondary-border: rgba(0, 0, 0, 0.14);
+  --accent-subtle-bg: oklch(51.1% 0.230 277.0 / 0.09);
+  --accent-subtle-border: oklch(51.1% 0.230 277.0 / 0.28);
+  --accent-subtle-text: oklch(45.7% 0.215 277.0); /* Deep indigo text with strong contrast on light cards */
+  --bg-surface-elevated: oklch(0% 0 0 / 0.04);
+  --border-elevated: oklch(0% 0 0 / 0.09);
+  --btn-secondary-bg: oklch(0% 0 0 / 0.05);
+  --btn-secondary-hover: oklch(0% 0 0 / 0.09);
+  --btn-secondary-text: oklch(21.0% 0.032 264.7);
+  --btn-secondary-border: oklch(0% 0 0 / 0.14);
   
   /* Glass shadows for light mode */
   --clay-shadow-subtle: 0 1px 2px rgba(17, 17, 17, 0.04), 0 4px 12px rgba(17, 17, 17, 0.05);
@@ -88,10 +124,10 @@
   /* Buttons and Active States */
   --clay-shadow-button: 0 4px 12px rgba(0, 0, 0, 0.1);
   --clay-shadow-active: inset 0 2px 4px rgba(0, 0, 0, 0.1);
-  --accent-glow: 0 0 0 1px rgba(79, 70, 229, 0.25), 0 8px 24px -4px rgba(79, 70, 229, 0.25);
-  --focus-ring: 0 0 0 3px rgba(79, 70, 229, 0.3);
+  --accent-glow: 0 0 0 1px oklch(51.1% 0.230 277.0 / 0.25), 0 8px 24px -4px oklch(51.1% 0.230 277.0 / 0.25);
+  --focus-ring: 0 0 0 3px oklch(51.1% 0.230 277.0 / 0.3);
 
-  --border-subtle: 1px solid rgba(0, 0, 0, 0.08);
+  --border-subtle: 1px solid oklch(0% 0 0 / 0.08);
 }
 
 [data-theme="personalized"] {
@@ -140,6 +176,29 @@
   --color-success: #10B981;
   --color-warning: #F59E0B;
   --color-danger: #EF4444;
+}
+
+/* Motion tokens, shared across all four role dashboards -- two paces, not
+   one. High-frequency surfaces (staff/manager queues, anything scanned
+   repeatedly during real work) use --motion-fast: quick and utilitarian,
+   no bounce. Lower-frequency "moment" surfaces (student cards, reveals,
+   payment confirmations) use --motion-moment: the fuller stagger/settle
+   treatment. Components opt into one or the other explicitly -- there is
+   deliberately no single global default, so a future addition doesn't
+   silently inherit the wrong pace. Respects prefers-reduced-motion by
+   collapsing both to nearly-instant.
+*/
+:root {
+  --motion-fast-duration: 150ms;
+  --motion-fast-ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --motion-moment-duration: 380ms;
+  --motion-moment-ease: cubic-bezier(0.16, 1, 0.3, 1);
+}
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --motion-fast-duration: 0.01ms;
+    --motion-moment-duration: 0.01ms;
+  }
 }
 
 /* Focus-visible ring everywhere in the dashboard, using the active theme's accent */

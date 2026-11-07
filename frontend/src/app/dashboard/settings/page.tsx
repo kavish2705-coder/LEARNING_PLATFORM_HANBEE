@@ -224,7 +224,7 @@ export default function SettingsPage() {
       await queryClient.invalidateQueries({ queryKey: ["account-extra"] });
       setStatus({ tone: "ok", text: "Preferred team name saved." });
     } catch (reason) {
-      setStatus({ tone: "error", text: reason instanceof Error ? reason.message : "We couldn't save your team name." });
+      setStatus({ tone: "error", text: reason instanceof Error ? reason.message : "Couldn't save that team name — try again." });
     } finally {
       setBusy("");
     }
@@ -250,7 +250,7 @@ export default function SettingsPage() {
       await queryClient.invalidateQueries({ queryKey: ["account-profile"] });
       setStatus({ tone: "ok", text: "Profile details updated successfully." });
     } catch (reason) {
-      setStatus({ tone: "error", text: reason instanceof Error ? reason.message : "We couldn't save your profile." });
+      setStatus({ tone: "error", text: reason instanceof Error ? reason.message : "Couldn't save those changes — try again." });
     } finally {
       setBusy("");
     }
@@ -320,7 +320,7 @@ export default function SettingsPage() {
       setConfirmPassword("");
       setStatus({ tone: "ok", text: "Password changed successfully." });
     } catch (reason) {
-      setStatus({ tone: "error", text: reason instanceof Error ? reason.message : "We couldn't change your password." });
+      setStatus({ tone: "error", text: reason instanceof Error ? reason.message : "Couldn't change your password — try again." });
     } finally {
       setBusy("");
     }
@@ -350,7 +350,7 @@ export default function SettingsPage() {
       setEmail(result.email);
       setEditingEmail(false);
     } catch (reason) {
-      setEmailError(reason instanceof Error ? reason.message : "We couldn't update your email.");
+      setEmailError(reason instanceof Error ? reason.message : "Couldn't update your email — try again.");
     } finally {
       setSavingEmail(false);
     }
@@ -362,7 +362,7 @@ export default function SettingsPage() {
     <div>
       <div className={styles.pageHeader}>
         <h1 className={styles.pageTitle}>Settings</h1>
-        <p className={styles.pageSubtitle}>Manage your account, team details, and notification preferences</p>
+        <p className={styles.pageSubtitle}>Your profile, your team name, and how you want to hear from us.</p>
       </div>
 
       {status && (
@@ -440,7 +440,7 @@ export default function SettingsPage() {
                   autoComplete="email"
                   aria-label="Email address"
                 />
-                {emailError && <p role="alert" style={{ color: "#ef4444", fontSize: 12 }}>{emailError}</p>}
+                {emailError && <p role="alert" style={{ color: "var(--color-danger)", fontSize: 12 }}>{emailError}</p>}
                 <div style={{ display: "flex", gap: "8px", marginTop: "8px" }}>
                   <button type="submit" className={styles.saveBtn} disabled={savingEmail}>
                     {savingEmail ? "Saving..." : "Save"}

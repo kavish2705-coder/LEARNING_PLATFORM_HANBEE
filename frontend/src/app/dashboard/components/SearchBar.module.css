@@ -23,14 +23,14 @@
 }
 
 .searchTrigger:hover {
-  border-color: var(--color-primary, #0891b2);
+  border-color: var(--color-primary, var(--color-primary-hover));
   box-shadow: 0 0 12px rgba(8, 145, 178, 0.28);
   transform: translateY(-1px);
 }
 
 .searchTrigger:focus-visible {
   outline: none;
-  border-color: var(--color-primary, #0891b2);
+  border-color: var(--color-primary, var(--color-primary-hover));
   box-shadow: 0 0 0 2px rgba(8, 145, 178, 0.35);
 }
 
@@ -42,12 +42,12 @@
 }
 
 .searchIcon {
-  color: #7dd3e8;
+  color: var(--accent-subtle-text);
   flex-shrink: 0;
 }
 
 [data-theme="light"] .searchIcon {
-  color: #0891b2;
+  color: var(--color-primary-hover);
 }
 
 .searchPlaceholder {
@@ -251,7 +251,7 @@
   height: 32px;
   border-radius: 8px;
   background: rgba(8, 145, 178, 0.16);
-  color: #7dd3e8;
+  color: var(--accent-subtle-text);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -259,7 +259,7 @@
 }
 
 [data-theme="light"] .resultIconBox {
-  color: #0891b2;
+  color: var(--color-primary-hover);
 }
 
 .resultMeta {
@@ -287,7 +287,7 @@
 }
 
 .resultEnter {
-  color: #7dd3e8;
+  color: var(--accent-subtle-text);
   opacity: 0;
   transition: opacity 0.15s ease;
   display: flex;

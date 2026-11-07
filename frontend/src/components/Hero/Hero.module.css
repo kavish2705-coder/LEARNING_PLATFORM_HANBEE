@@ -79,10 +79,8 @@
 
 .taglineText {
   font-family: var(--font-heading);
-  font-size: 13.5px;
+  font-size: 15px;
   font-weight: 700;
-  letter-spacing: 0.38em;
-  text-transform: uppercase;
   color: var(--landing-accent, #e58a2b);
   text-shadow: 0 0 20px rgba(229, 138, 43, 0.3);
 }

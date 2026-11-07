@@ -36,17 +36,17 @@ export default function RegistrationSection({ onOpenStudentModal }: Registration
 
             </div>
 
-            <h3 className={styles.cardTitle}>School Squad Entry</h3>
+            <h3 className={styles.cardTitle}>Enter as a school team</h3>
             <p className={styles.cardDesc}>
-              Each registered school fields up to 2 competition teams (5 students each). Faculty mentors receive verified roster tools, curriculum progress dashboards, and dedicated pit bays on track days.
+              Your school can field up to two teams of five students, with real mentor supervision throughout. Faculty get roster tools and course-progress dashboards, so you can track exactly how each student is doing.
             </p>
 
             <div className={styles.perksList}>
               {[
-                "2 competition teams per school (10 active students total)",
-                "Dedicated faculty mentor & school coordinator access",
-                "Registered substitute student allowance per team",
-                "Official event photography, race footage & telemetry records",
+                "Up to two teams and ten active students per school",
+                "Dedicated access for a faculty mentor and school coordinator",
+                "One registered substitute student per team",
+                "Official event photos and progress records parents can review",
               ].map((perk, idx) => (
                 <div key={idx} className={styles.perkRow}>
                   <div className={styles.perkCheckWrap}>
@@ -59,7 +59,7 @@ export default function RegistrationSection({ onOpenStudentModal }: Registration
 
             <div className={styles.cardActionRow}>
               <a href="/login?mode=signup&role=School" className={styles.primaryPaddockBtn}>
-                <span>Register Your School</span>
+                <span>Register your school</span>
                 <ArrowRight size={16} />
               </a>
 
@@ -78,17 +78,17 @@ export default function RegistrationSection({ onOpenStudentModal }: Registration
 
             </div>
 
-            <h3 className={styles.cardTitle}>Independent Student</h3>
+            <h3 className={styles.cardTitle}>Join as an independent student</h3>
             <p className={styles.cardDesc}>
-              If your school doesn&apos;t field a squad yet, you don&apos;t have to sit out. Build your car, access complete flight controller and firmware modules, and enter the solo qualifying pool.
+              No team at your school? Your child can still take part on their own. They learn real coding and engineering skills, build their own working model, and join a verified solo qualifying pool.
             </p>
 
             <div className={styles.perksList}>
               {[
-                "Solo qualifier entry into the Hanbee F1 RC Racing League",
-                "Complete access to C++, Java & flight controller curriculum",
-                "Option to join student matchmaking pools to form teams",
-                "Full F1 championship points eligibility all six months",
+                "A verified solo path into the Hanbee Student Engineering Program",
+                "Courses in C++, Java, and embedded controller design",
+                "Find teammates through student matchmaking",
+                "Clear, trackable progress every month for six months",
               ].map((perk, idx) => (
                 <div key={idx} className={styles.perkRow}>
                   <div className={styles.perkCheckWrap}>
@@ -101,7 +101,7 @@ export default function RegistrationSection({ onOpenStudentModal }: Registration
 
             <div className={styles.cardActionRow}>
               <button onClick={onOpenStudentModal} className={styles.secondaryPaddockBtn}>
-                <span>Join Independent Pool</span>
+                <span>Join the independent pool</span>
                 <ArrowRight size={16} />
               </button>
 
@@ -112,4 +112,3 @@ export default function RegistrationSection({ onOpenStudentModal }: Registration
     </div>
   );
 }
-

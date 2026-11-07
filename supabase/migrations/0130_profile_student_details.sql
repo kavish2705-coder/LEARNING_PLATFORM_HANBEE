@@ -1,4 +1,4 @@
--- Migration 0120: Student Driver Details (Age & License fields)
+-- Migration 0130: Student Driver Details (Age & License fields)
 -- Safely add age to profiles table if it doesn't already exist.
 
 alter table profiles add column if not exists age integer;

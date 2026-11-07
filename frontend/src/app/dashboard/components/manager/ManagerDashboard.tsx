@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { ArrowUpRight, Bell, BookOpen, Building2, CircleAlert, Clock3, Flag, Users } from "lucide-react";
+import { ArrowUpRight, Bell, BookOpen, Building2, CircleAlert, Clock3, Flag, Users, ShieldCheck } from "lucide-react";
 import styles from "../../dashboard.module.css";
+import ActionCenter, { type DashboardActionItem } from "../ui/ActionCenter";
 import { authenticatedSupabaseFetch, getAccountProfile } from "../../../../lib/supabaseAuth";
 import { fetchSchoolDirectory, type SchoolDirectoryRow } from "../../../../lib/schoolAdminApi";
 import { useSessionProfile } from "../../../../lib/hooks/useSessionProfile";
@@ -50,6 +51,48 @@ export default function ManagerDashboard() {
   const orderedStaff = [...staff].sort((a, b) => (b.last_clock_in ?? "").localeCompare(a.last_clock_in ?? "")).slice(0, 6);
 
   const firstName = profile?.full_name.trim().split(/\s+/)[0];
+  const managerActions: DashboardActionItem[] = [
+    {
+      id: "school-verifications",
+      title: "Review school registrations",
+      description: pendingSchools > 0
+        ? `${pendingSchools} school registration${pendingSchools === 1 ? "" : "s"} need review.`
+        : "No school registrations are waiting for review.",
+      href: "/dashboard/manager/verifications",
+      icon: <Building2 size={18} />,
+      meta: `${pendingSchools} pending`,
+    },
+    {
+      id: "staff-verifications",
+      title: "Review staff applications",
+      description: staffApplications > 0
+        ? `${staffApplications} Hanbee staff application${staffApplications === 1 ? "" : "s"} need review.`
+        : "No Hanbee staff applications are waiting for review.",
+      href: "/dashboard/manager/verifications",
+      icon: <ShieldCheck size={18} />,
+      meta: `${staffApplications} pending`,
+    },
+    {
+      id: "course-applications",
+      title: "Review course applications",
+      description: (lms?.course_applications_pending ?? 0) > 0
+        ? `${lms?.course_applications_pending} student course application${lms?.course_applications_pending === 1 ? "" : "s"} need review.`
+        : "No student course applications are waiting for review.",
+      href: "/dashboard/hanbee/applications",
+      icon: <BookOpen size={18} />,
+      meta: `${lms?.course_applications_pending ?? 0} pending`,
+    },
+    {
+      id: "tournament-decisions",
+      title: "Review tournament entries",
+      description: (tournament?.teams_awaiting_decision ?? 0) > 0
+        ? `${tournament?.teams_awaiting_decision} tournament entr${tournament?.teams_awaiting_decision === 1 ? "y needs" : "ies need"} a decision.`
+        : "No tournament entries are waiting for a decision.",
+      href: "/dashboard/hanbee/tournament",
+      icon: <Flag size={18} />,
+      meta: `${tournament?.teams_awaiting_decision ?? 0} pending`,
+    },
+  ];
 
   return <div>
     <header className={`${styles.pageHeader} ${styles.managerPageHeader}`}>
@@ -68,6 +111,14 @@ export default function ManagerDashboard() {
     </header>
     {error && <p role="alert" className={styles.sectionCard}>{error}</p>}
     {loading ? <div className={styles.sectionCard} role="status">Loading platform activity…</div> : <>
+
+      {!error && (
+        <ActionCenter
+          title="Manager action center"
+          description="Review real platform work queues and jump directly to the items that need a decision."
+          items={managerActions}
+        />
+      )}
 
       <div className={styles.managerMetricsGrid}>
         <div className={styles.metricCard}>
@@ -119,13 +170,16 @@ export default function ManagerDashboard() {
                           <span className={styles.managerStaffAvatar}>{initials || "H"}</span>
                           <h3 className={styles.managerStaffName}>{person.full_name}</h3>
                         </div>
-                        <span className={styles.badge + " " + (person.last_clock_in ? styles.badgeCompleted : styles.badgeUpcoming)}>
+                        <span
+                          className={styles.badge + " " + (person.last_clock_in ? styles.badgeCompleted : styles.badgeUpcoming)}
+                          style={{ textTransform: "none", letterSpacing: "normal", fontSize: 12 }}
+                        >
                           {person.last_clock_in ? "Active" : "Offline"}
                         </span>
                       </div>
                       <div className={styles.managerStaffStats}>
-                        <div><span>Hours · 7 days</span><strong>{person.hours_last_7_days}</strong></div>
-                        <div><span>Days · 30 days</span><strong>{person.days_worked_last_30}</strong></div>
+                        <div><span>Hours this week</span><strong>{person.hours_last_7_days}</strong></div>
+                        <div><span>Days this month</span><strong>{person.days_worked_last_30}</strong></div>
                         <div><span>Open tasks</span><strong>{person.open_tasks}</strong></div>
                       </div>
                       <p className={styles.managerStaffLastSeen}>
@@ -199,7 +253,7 @@ export default function ManagerDashboard() {
 
 function AttentionLink({ href, label, count }: { href: string; label: string; count: number }) {
   if (count === 0) return null;
-  return <Link href={href} className={styles.actionBtn} style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: "8px", background: "rgba(245, 158, 11, 0.1)", borderColor: "rgba(245, 158, 11, 0.2)", color: "#F59E0B" }}>
+  return <Link href={href} className={styles.actionBtn} style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: "8px", background: "rgba(245, 158, 11, 0.1)", borderColor: "rgba(245, 158, 11, 0.2)", color: "var(--color-warning)" }}>
     <CircleAlert size={16} />
     <div style={{ fontSize: "13px" }}>
       <strong>{count}</strong> {label}

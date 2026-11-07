@@ -70,13 +70,13 @@ export default function LeaderboardPage() {
         </div>
       )}
 
-      {failure && <p role="alert">{failure instanceof Error ? failure.message : "We couldn't load the leaderboard."}</p>}
+      {failure && <p role="alert">{failure instanceof Error ? failure.message : "Couldn't pull up the leaderboard — give it another go."}</p>}
       {loading && <Shimmer rows={5} />}
       {!loading && !failure && !tournament && (
         <EmptyState
           icon={<Trophy size={22} />}
-          title="No tournaments yet"
-          description="Standings will appear here as soon as a tournament is scheduled."
+          title="No race on the calendar yet"
+          description="The moment a tournament gets scheduled, this is where the standings will show up."
         />
       )}
 
@@ -123,11 +123,11 @@ export default function LeaderboardPage() {
               </div>
             ) : (
               <div style={{ padding: 20, border: "1px dashed var(--border-subtle)", borderRadius: 14, color: "var(--text-muted)" }}>
-                No {activeEntryType === "school" ? "school team" : "solo"} entries have been verified for this tournament.
+                No {activeEntryType === "school" ? "school team" : "solo"} entries verified yet — check back once results start coming in.
               </div>
             )
           ) : (
-            <p style={{ color: "var(--text-muted)" }}>No verified entries or results are available for this tournament yet.</p>
+            <p style={{ color: "var(--text-muted)" }}>Nobody's officially on the board yet for this one — results land here as soon as they're verified.</p>
           )}
         </section>
       )}
@@ -144,18 +144,22 @@ function LeaderboardEntry({ entry }: { entry: StudentLeaderboardRow }) {
         border: entry.is_current_user ? "2px solid var(--color-primary)" : "1px solid var(--border-subtle)",
       }}
     >
-      <div style={{ fontSize: 22, fontWeight: 700, fontFamily: "var(--font-mono)", color: entry.rank === 1 ? "#fbbf24" : "var(--text-muted)", textAlign: "center" }}>
+      <div style={{ fontSize: 22, fontWeight: 700, fontFamily: "var(--font-mono)", color: entry.rank === 1 ? "var(--color-warning)" : "var(--text-muted)", textAlign: "center" }}>
         {entry.rank === null ? "—" : `#${entry.rank}`}
       </div>
       <div style={{ minWidth: 0 }}>
         <h3 style={{ fontSize: 16, fontWeight: 600, margin: 0, overflowWrap: "anywhere" }}>{entry.team_name}</h3>
         <p style={{ fontSize: 13, color: "var(--text-muted)", margin: "3px 0 0" }}>{entry.school_name ?? "Solo entry"}</p>
-        {entry.is_current_user && <span style={{ color: "var(--accent-subtle-text)", fontSize: 11, fontWeight: 700 }}>YOUR ENTRY</span>}
+        {entry.is_current_user && <span style={{ color: "var(--accent-subtle-text)", fontSize: 12, fontWeight: 600 }}>Your entry</span>}
       </div>
       <EntryStat label="Avg lap" value={formatLapTime(entry.average_lap_time_ms)} />
       <EntryStat label="Races" value={String(entry.matches_participated)} />
       <EntryStat label="Wins" value={String(entry.wins)} />
       <EntryStat label="Top 3" value={String(entry.top_three_finishes)} />
+      <EntryStat
+        label="Win rate"
+        value={entry.matches_participated === 0 ? "—" : `${Math.round((entry.wins / entry.matches_participated) * 100)}%`}
+      />
       <EntryStat label="Points" value={entry.points.toLocaleString()} />
     </article>
   );
@@ -165,7 +169,7 @@ function EntryStat({ label, value }: { label: string; value: string }) {
   return (
     <div className={leaderboardStyles.stat} style={{ textAlign: "right", fontFamily: "var(--font-mono)", fontVariantNumeric: "tabular-nums" }}>
       <div style={{ color: "var(--text-main)", fontWeight: 700 }}>{value}</div>
-      <div style={{ color: "var(--text-muted)", fontSize: 10, textTransform: "uppercase", letterSpacing: "0.06em" }}>{label}</div>
+      <div style={{ color: "var(--text-muted)", fontSize: 12, fontFamily: "var(--font-heading)" }}>{label}</div>
     </div>
   );
 }

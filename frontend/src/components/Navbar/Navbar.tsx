@@ -6,10 +6,12 @@ import { motion, useScroll, useTransform, useSpring } from "framer-motion";
 import styles from "./Navbar.module.css";
 
 const navLinks = [
-  { label: "Home", href: "#" },
-  { label: "How It Works", href: "#how-it-works" },
-  { label: "For Educators", href: "#educators" },
-  { label: "About", href: "#about" },
+const navLinks = [
+  { label: "Home", href: "/" },
+  { label: "How It Works", href: "/#how-it-works" },
+  { label: "For Educators", href: "/#educators" },
+  { label: "About", href: "/#about" },
+];
 ];
 
 export default function Navbar() {
@@ -53,7 +55,7 @@ export default function Navbar() {
       <div className={styles.navContent}>
         {/* Logo */}
         <motion.a
-          href="#"
+          href="/"
           className={styles.logo}
           whileHover={{ scale: 1.02 }}
           transition={{ type: "spring", stiffness: 400, damping: 17 }}

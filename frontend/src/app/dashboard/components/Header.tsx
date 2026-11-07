@@ -53,7 +53,7 @@ const PAGE_TITLES: Record<string, string> = {
   "/dashboard/hanbee/schedule": "Schedule",
   "/dashboard/hanbee/announcements": "Announcements",
   "/dashboard/hanbee/chat": "Chat",
-  "/dashboard/manager/monitor": "Monitor",
+  "/dashboard/manager/monitor": "Overview",
   "/dashboard/manager/verifications": "Verifications",
   "/dashboard/manager/schools": "Schools",
   "/dashboard/manager/courses": "Courses",
@@ -171,7 +171,7 @@ export default function Header({
             <motion.div 
               className={styles.headerXpPill} 
               title="View Driver License & XP Progression"
-              animate={isGaining ? { scale: [1, 1.15, 1], borderColor: ["#7dd3e8", "#10b981", "#7dd3e8"] } : {}}
+              animate={isGaining ? { scale: [1, 1.15, 1], borderColor: ["var(--accent-subtle-text)", "var(--color-success)", "var(--accent-subtle-text)"] } : {}}
               transition={{ duration: 0.5, ease: "easeOut" }}
             >
               <Zap size={14} className={styles.headerXpIcon} />
@@ -189,7 +189,7 @@ export default function Header({
                     position: "absolute",
                     left: "50%",
                     transform: "translateX(-50%)",
-                    background: "#10b981",
+                    background: "var(--color-success)",
                     color: "#fff",
                     fontSize: "11px",
                     fontWeight: 800,

@@ -8,6 +8,10 @@ const asAnon = async () => { await c.query("reset role"); await c.query("set loc
 const asOwner = async () => { await c.query("reset role"); await c.query("select set_config('request.jwt.claims','',true)"); };
 const tryq = async (sql,p)=>{ await c.query("savepoint s"); try{const r=await c.query(sql,p); await c.query("release savepoint s"); return {r};}catch(e){await c.query("rollback to savepoint s"); return {e};} };
 const one = async (sql,p) => (await c.query(sql,p)).rows[0] ?? {};
+const requireResult = (result, label) => {
+  if (result.e) throw new Error(`${label}: ${result.e.message}`);
+  return result.r;
+};
 const signup = async (email, meta) => { await asOwner(); const uid = (await one("select gen_random_uuid() u")).u;
   const r = await tryq("select test_support_signup($1,$2,$3::jsonb)",[uid,email,JSON.stringify(meta)]);
   return { ...r, uid }; };
@@ -48,8 +52,8 @@ await asUser(a1); let r=await tryq("select create_tournament('X','',now(),now(),
 await asUser(staffA); r=await tryq("select create_tournament('X','',now(),now(),'v')"); check("school staff cannot create tournament",!!r.e);
 await asAnon(); r=await tryq("select create_tournament('X','',now(),now(),'v')"); check("anon cannot create tournament",!!r.e);
 await asUser(a1); r=await tryq("insert into tournaments (title,starts_at,ends_at) values ('X',now(),now())"); check("student direct insert tournament blocked",!!r.e);
-await asUser(jamie); r=await tryq("select create_tournament('RC F1 Cup','desc',now()+interval '10 day',now()+interval '11 day','Hall') t"); check("Hanbee staff creates tournament",ok(r)); const T=r.r.rows[0].t;
-await asUser(morgan); r=await tryq("select create_tournament('Second','',now()+interval '20 day',now()+interval '21 day','Hall') t"); check("manager creates tournament",ok(r)); const T2=r.r.rows[0].t;
+await asUser(jamie); r=await tryq("select create_tournament('RC F1 Cup','desc',now()+interval '10 day',now()+interval '11 day','Hall') t"); const createdByStaff=requireResult(r,"Hanbee staff creates tournament"); check("Hanbee staff creates tournament",true); const T=createdByStaff.rows[0]?.t; if (!T) throw new Error("Hanbee staff creates tournament returned no ID");
+await asUser(morgan); r=await tryq("select create_tournament('Second','',now()+interval '20 day',now()+interval '21 day','Hall') t"); const createdByManager=requireResult(r,"Manager creates tournament"); check("manager creates tournament",true); const T2=createdByManager.rows[0]?.t; if (!T2) throw new Error("Manager creates tournament returned no ID");
 await asUser(staffA); r=await tryq("select update_tournament($1,'H','',now(),now(),'',  'live')",[T]); check("school staff cannot update tournament",!!r.e);
 r=await tryq("update tournaments set title='hax' where id=$1",[T]); check("school staff direct update blocked",!!r.e);
 await asUser(a1); r=await tryq("select update_tournament($1,'H','',now(),now(),'','live')",[T]); check("student cannot update tournament",!!r.e);
@@ -157,7 +161,11 @@ await asOwner(); await c.query("update profiles set is_solo=true where id=$1",[c
 await asUser(c1); check("after converting to solo the student sees tournaments", await cnt("select count(*)::int n from tournaments")===2+baseT);
 
 // --- solo team
-await asUser(solo); r=await tryq("select create_solo_team($1) t",[T]); check("solo creates team of one",ok(r),r.e?.message); const soloTeam=r.r?.rows[0]?.t;
+await asUser(solo); r=await tryq("select create_solo_team($1) t",[T]); check("solo without tournament access cannot create a team",!!r.e&&r.e.message.includes("activate your RC Tournament access"));
+await asOwner(); await c.query("update profiles set tournament_access='active' where id=$1",[solo]);
+await asUser(solo); r=await tryq("select create_solo_team($1) t",[T]); check("solo without an active license cannot create a team",!!r.e&&r.e.message.includes("Driver License"));
+await asOwner(); await c.query("insert into driver_licenses (student_id,status,amount,payment_declared) values ($1,'active',1,true)",[solo]);
+await asUser(solo); r=await tryq("select create_solo_team($1) t",[T]); check("eligible solo creates team of one",ok(r),r.e?.message); const soloTeam=r.r?.rows[0]?.t;
 r=await tryq("select create_solo_team($1)",[T]); check("solo cannot make a second team",!!r.e);
 check("solo sees own team + roster of one", await cnt("select count(*)::int n from tournament_teams")===1 && await cnt("select count(*)::int n from get_team_roster($1)",[soloTeam])===1);
 r=await tryq("select add_team_member($1,$2)",[soloTeam,solo2]); check("solo cannot add members",!!r.e);

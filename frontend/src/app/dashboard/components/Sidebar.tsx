@@ -40,6 +40,8 @@ const staffMenu = [
   { name: "Scrutineering", href: "/dashboard/hanbee/scrutineering", icon: ShieldCheck },
   { name: "Independent students", href: "/dashboard/hanbee/independent-students", icon: UserPlus },
   { name: "Applications", href: "/dashboard/hanbee/applications", icon: ClipboardList },
+  { name: "License payments", href: "/dashboard/hanbee/licenses", icon: IdCard },
+  { name: "Access requests", href: "/dashboard/hanbee/access-requests", icon: UserCheck },
   { name: "Quiz reviews", href: "/dashboard/hanbee/assessment-reviews", icon: ClipboardCheck },
   { name: "Schedule", href: "/dashboard/hanbee/schedule", icon: CalendarDays },
   { name: "Attendance", href: "/dashboard/attendance", icon: Clock },
@@ -55,6 +57,7 @@ const managerMenu = [
   { name: "Schools", href: "/dashboard/manager/schools", icon: School },
   { name: "Courses", href: "/dashboard/hanbee/courses", icon: BookOpen },
   { name: "Course applications", href: "/dashboard/hanbee/applications", icon: ClipboardList },
+  { name: "Access requests", href: "/dashboard/hanbee/access-requests", icon: UserCheck },
   { name: "Quiz reviews", href: "/dashboard/hanbee/assessment-reviews", icon: ClipboardCheck },
   { name: "Tournament entries", href: "/dashboard/hanbee/tournament", icon: Users },
   { name: "Scrutineering", href: "/dashboard/hanbee/scrutineering", icon: ShieldCheck },
@@ -82,19 +85,22 @@ export default function Sidebar({
   const { data: profile } = useSessionProfile();
 
   const activeRole = profile?.role ?? "student";
-        
-  // Learning (Courses/Certificates/AI Assistant/Attendance) isn't ready for
-  // real students yet -- see LearningComingSoon.tsx. Rather than advertise
-  // nav items that dead-end behind that gate, students only ever get the
-  // tournament menu; the mode switcher (which exists to flip into the
-  // learning menu) is hidden for the same reason, just below.
+
+  // Independent students can request either track, while any student with
+  // active course access must be able to reach Courses even if their account
+  // is linked to a school.
+  const canSeeCourses = profile?.is_solo || profile?.course_access === "active";
+  const studentMenu = canSeeCourses
+    ? [...studentTournamentMenu.slice(0, 1), { name: "Courses", href: "/dashboard/courses", icon: BookOpen }, ...studentTournamentMenu.slice(1)]
+    : studentTournamentMenu;
+
   const items = activeRole === "school_staff"
     ? schoolMenu
     : activeRole === "staff"
       ? staffMenu
       : activeRole === "manager"
         ? managerMenu
-        : studentTournamentMenu;
+        : studentMenu;
 
   const displayName = profile?.full_name ?? "";
   const initials = displayName.split(/\s+/).slice(0, 2).map((part: string) => part[0]).join("").toUpperCase();

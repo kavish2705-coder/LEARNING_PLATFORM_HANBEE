@@ -118,8 +118,8 @@ export default function EnrollmentManager({ courseId }: { courseId: string }) {
       <p style={{ color: "var(--text-muted)", fontSize: 13.5, marginBottom: 16 }}>
         Enroll a registered student by email. They'll see this course under "My Courses" immediately.
       </p>
-      {error && <p role="alert" style={{ color: "#ef4444", fontSize: 13, marginBottom: 10 }}>{error}</p>}
-      {notice && <p role="status" style={{ color: "#10b981", fontSize: 13, marginBottom: 10 }}>{notice}</p>}
+      {error && <p role="alert" style={{ color: "var(--color-danger)", fontSize: 13, marginBottom: 10 }}>{error}</p>}
+      {notice && <p role="status" style={{ color: "var(--color-success)", fontSize: 13, marginBottom: 10 }}>{notice}</p>}
 
       <div style={{ display: "grid", gap: 10 }}>
         {sections.map((section) => {

@@ -85,9 +85,8 @@
 
 .label {
   display: block;
-  font-size: 10px;
-  text-transform: uppercase;
-  letter-spacing: 1px;
+  font-size: 13px;
+  font-weight: 600;
   color: var(--text-muted);
   margin-bottom: 8px;
 }
@@ -154,7 +153,7 @@
 .statusAlertOk {
   background: rgba(16, 185, 129, 0.12);
   border: 1px solid rgba(16, 185, 129, 0.35);
-  color: #10b981;
+  color: var(--color-success);
   padding: 12px 18px;
   border-radius: 12px;
   font-size: 14px;
@@ -170,7 +169,7 @@
 .statusAlertError {
   background: rgba(239, 68, 68, 0.12);
   border: 1px solid rgba(239, 68, 68, 0.35);
-  color: #ef4444;
+  color: var(--color-danger);
   padding: 12px 18px;
   border-radius: 12px;
   font-size: 14px;
@@ -396,16 +395,14 @@
 }
 
 .sectionBadge {
-  font-size: 10px;
-  font-family: var(--font-mono);
+  font-size: 12.5px;
+  font-family: var(--font-heading);
   font-weight: 700;
   color: var(--accent-subtle-text);
   background: var(--accent-subtle-bg);
   border: 1px solid var(--accent-subtle-border);
   padding: 3px 8px;
   border-radius: 999px;
-  letter-spacing: 0.5px;
-  text-transform: uppercase;
 }
 
 .sectionSubtitle {

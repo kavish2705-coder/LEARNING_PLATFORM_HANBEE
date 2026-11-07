@@ -1,0 +1,76 @@
+.page {
+  min-height: 100vh;
+  background: #0a0a0c;
+  color: rgba(255, 255, 255, 0.88);
+}
+
+.container {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 140px 24px 100px;
+}
+
+.title {
+  font-family: var(--font-heading, inherit);
+  font-size: 36px;
+  font-weight: 600;
+  margin: 0 0 8px;
+  color: #ffffff;
+}
+
+.updated {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 14px;
+  margin: 0 0 40px;
+}
+
+.section {
+  margin-bottom: 32px;
+  line-height: 1.7;
+  font-size: 15px;
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.section h2 {
+  font-family: var(--font-heading, inherit);
+  font-size: 20px;
+  font-weight: 600;
+  color: #ffffff;
+  margin: 0 0 12px;
+}
+
+.section p {
+  margin: 0 0 14px;
+}
+
+.section ul {
+  margin: 0 0 14px;
+  padding-left: 22px;
+}
+
+.section li {
+  margin-bottom: 8px;
+}
+
+.section a {
+  color: #e58a2b;
+  text-decoration: underline;
+}
+
+.placeholder {
+  display: inline-block;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: rgba(229, 138, 43, 0.15);
+  color: #e58a2b;
+  font-size: 13px;
+}
+
+.contactList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}

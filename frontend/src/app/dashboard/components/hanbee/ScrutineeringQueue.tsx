@@ -311,7 +311,7 @@ export default function ScrutineeringQueue() {
                       </td>
                       <td className={local.ageText}>{row.checked_by_name ? `${row.checked_by_name} · ${relativeTime(row.checked_at, tick)}` : "—"}</td>
                       <td>
-                        <button type="button" className={styles.filterBtn} style={{ padding: "6px 12px", fontSize: "12px" }} onClick={() => openInspection(row)}>Inspect →</button>
+                        <button type="button" className={styles.filterBtn} style={{ padding: "6px 12px", fontSize: "12px" }} onClick={() => openInspection(row)}>Inspect</button>
                       </td>
                     </tr>
                   ))}
@@ -341,7 +341,7 @@ export default function ScrutineeringQueue() {
                     <span className={local.ageText}>{row.checked_by_name ? relativeTime(row.checked_at, tick) : "Not inspected yet"}</span>
                   </div>
                   <div className={local.entryCardRow}>
-                    <button type="button" className={styles.filterBtn} style={{ padding: "6px 12px", fontSize: "12px", width: "100%" }} onClick={() => openInspection(row)}>Inspect →</button>
+                    <button type="button" className={styles.filterBtn} style={{ padding: "6px 12px", fontSize: "12px", width: "100%" }} onClick={() => openInspection(row)}>Inspect</button>
                   </div>
                 </div>
               ))}

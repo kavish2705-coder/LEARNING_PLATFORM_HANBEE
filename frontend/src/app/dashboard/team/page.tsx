@@ -1,28 +1,31 @@
 "use client";
 
 import { FormEvent, useCallback, useEffect, useRef, useState, useMemo } from "react";
+import Link from "next/link";
 import { Users, ShieldCheck, CheckCircle2, AlertCircle, UserPlus, RefreshCw, Trophy, XCircle, AlertTriangle } from "lucide-react";
 import styles from "./team.module.css";
 import registrationStyles from "./registrationStatus.module.css";
 import Shimmer from "../components/ui/Shimmer";
 import Dropdown from "../components/ui/Dropdown";
+import AccessBlocker from "../components/access/AccessBlocker";
+import RazorpayCheckout from "../components/payments/RazorpayCheckout";
 import {
+  submitSoloEntryForReview,
   answerTeamInvitation,
-  applyStudentTeam,
   createSoloTournamentEntry,
+  fetchMyLicense,
   fetchMySoloStatus,
   fetchMyTeamFormation,
   fetchMyTeamRegistrationStatus,
-  fetchPaymentSettings,
   fetchUpcomingTournaments,
   inviteStudentToTeam,
   leaveStudentTeam,
   startStudentTeam,
   submitStudentTeam,
+  type DriverLicense,
   type MyTeamFormation,
   type UpcomingTournament,
   type StudentTeamRegistrationStatus,
-  type PaymentSettings,
 } from "../../../lib/teamFormationApi";
 import { useSessionProfile } from "../../../lib/hooks/useSessionProfile";
 import { getRealtimeClient } from "../../../lib/realtime";
@@ -79,6 +82,14 @@ function errorMessage(reason: unknown, fallback: string) {
 }
 
 export default function MyTeamPage() {
+  return (
+    <AccessBlocker direction="add_tournament">
+      <MyTeamPageContent />
+    </AccessBlocker>
+  );
+}
+
+function MyTeamPageContent() {
   const { data: profile } = useSessionProfile();
 
   const [tournaments, setTournaments] = useState<UpcomingTournament[]>([]);
@@ -98,9 +109,7 @@ export default function MyTeamPage() {
   const [teamName, setTeamName] = useState("");
   const [inviteeId, setInviteeId] = useState("");
   const [isSolo, setIsSolo] = useState(false);
-  const [paymentDeclared, setPaymentDeclared] = useState(false);
-  const [paymentReference, setPaymentReference] = useState("");
-  const [paymentSettings, setPaymentSettings] = useState<PaymentSettings | null>(null);
+  const [license, setLicense] = useState<DriverLicense | null>(null);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -202,10 +211,11 @@ export default function MyTeamPage() {
   useEffect(() => { void load(); }, [load]);
 
   useEffect(() => {
+    if (profile?.role !== "student") return;
     let active = true;
-    fetchPaymentSettings().then((settings) => { if (active) setPaymentSettings(settings); }).catch(() => {});
+    fetchMyLicense().then((lic) => { if (active) setLicense(lic); }).catch(() => {});
     return () => { active = false; };
-  }, []);
+  }, [profile?.role]);
 
   useEffect(() => {
     if (!profile?.id || !tournament?.id) return;
@@ -304,6 +314,7 @@ export default function MyTeamPage() {
   const memberCount = isRealTeam ? (team?.members.length ?? 0) : 0;
   const isCaptain = isRealTeam ? team!.is_captain : true;
   const isIndependent = isSolo && !formation?.school_id;
+  const independentDraftTeamId = isRealTeam && isCaptain && teamStatus === "draft" && isIndependent ? team?.id : undefined;
 
   if (loading) {
     return (
@@ -353,7 +364,7 @@ export default function MyTeamPage() {
 
           <h1 className={styles.teamName}>
             {teamDisplayName}
-            {isCaptain && <span className={styles.badgeCaptain}>Captain</span>}
+            {isRealTeam && isCaptain && <span className={styles.badgeCaptain}>Captain</span>}
           </h1>
         </div>
       </div>
@@ -368,7 +379,28 @@ export default function MyTeamPage() {
       {error && (
         <div className={`${styles.noticeAlert} ${styles.noticeAlertError}`}>
           <AlertCircle size={16} />
-          <span>{error}</span>
+          <span>
+            {error}
+            {/\bdriver license\b/i.test(error) && (
+              <>
+                {" "}
+                <Link href="/dashboard/license" style={{ color: "inherit", textDecoration: "underline", fontWeight: 600 }}>
+                  Get your Driver License →
+                </Link>
+              </>
+            )}
+          </span>
+        </div>
+      )}
+      {license && license.status !== "active" && (
+        <div className={`${styles.noticeAlert} ${styles.noticeAlertError}`}>
+          <AlertCircle size={16} />
+          <span>
+            You need an active Driver License before you can enter a tournament.{" "}
+            <Link href="/dashboard/license" style={{ color: "inherit", textDecoration: "underline", fontWeight: 600 }}>
+              Get your Driver License →
+            </Link>
+          </span>
         </div>
       )}
 
@@ -846,7 +878,7 @@ export default function MyTeamPage() {
                 <h2 className={styles.formTitle}>{isSolo ? "Solo Tournament Entry" : "School Membership Needed"}</h2>
                 <p className={styles.formSubtitle}>
                   {isSolo
-                    ? "Enter this tournament as a team of one. Your entry will be reviewed by Hanbee staff after you confirm payment."
+                    ? "Enter this tournament as a team of one. Hanbee staff will review your entry and contact you before payment is enabled."
                     : "Your account is not attached to an active school or marked for solo entry. Contact Hanbee staff to restore your school membership or enable solo participation."}
                 </p>
               </div>
@@ -855,7 +887,7 @@ export default function MyTeamPage() {
                   type="button"
                   className={styles.actionBtn}
                   disabled={busy}
-                  onClick={() => void runAction(() => createSoloTournamentEntry(tournament.id), "Solo entry created. Confirm payment below to submit it.")}
+                  onClick={() => void runAction(() => createSoloTournamentEntry(tournament.id), "Solo entry draft created. Submit it for Hanbee staff review before paying.")}
                 >
                   Create Solo Entry
                 </button>
@@ -895,77 +927,70 @@ export default function MyTeamPage() {
             </div>
           )}
 
-          {/* Solo entry: payment confirmation instead of school-staff submission */}
-          {team && isCaptain && team.status === "draft" && !formation?.school_id && (
+          {/* Independent entries are reviewed and approved for payment by Hanbee staff first. */}
+          {team && independentDraftTeamId === team.id && (
             <div className={styles.formSection}>
               <div className={styles.formHeader}>
-                <h2 className={styles.formTitle}>Confirm Tournament Payment</h2>
+                <h2 className={styles.formTitle}>Submit your entry for staff review</h2>
                 <p className={styles.formSubtitle}>
-                  Confirm payment for your solo tournament entry. Hanbee staff will verify the entry after submission.
+                  Hanbee staff will review your details and contact you before payment is enabled. Do not pay until staff approves your entry.
                 </p>
               </div>
-
-              <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                {tournament?.entry_fee_amount != null && (
-                  <p style={{ fontSize: 15 }}>Entry fee: <strong style={{ color: "var(--text-primary)" }}>₹{tournament.entry_fee_amount}</strong></p>
-                )}
-                {paymentSettings?.qr_image_url ? (
-                  <div style={{ display: "flex", gap: 16, alignItems: "flex-start", flexWrap: "wrap" }}>
-                    {/* eslint-disable-next-line @next/next/no-img-element -- payment-assets is a public Supabase Storage bucket, not a Next-optimizable local/remote image source worth configuring */}
-                    <img src={paymentSettings.qr_image_url} alt="Payment QR code" style={{ width: 160, height: 160, borderRadius: 10, border: "1px solid var(--border-subtle)", objectFit: "contain", background: "#fff" }} />
-                    <div style={{ fontSize: 13, color: "var(--text-muted)", maxWidth: 420 }}>
-                      {paymentSettings.upi_id && <p style={{ marginBottom: 6 }}>Pay to UPI ID: <strong style={{ color: "var(--text-primary)" }}>{paymentSettings.upi_id}</strong></p>}
-                      {paymentSettings.instructions && <p>{paymentSettings.instructions}</p>}
-                    </div>
-                  </div>
-                ) : (
-                  <p role="status" style={{ fontSize: 13, color: "var(--text-muted)" }}>
-                    Payment QR isn&apos;t set up yet -- contact Hanbee staff for payment instructions before confirming.
-                  </p>
-                )}
-
-                <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, cursor: "pointer" }}>
-                  <input
-                    type="checkbox"
-                    checked={paymentDeclared}
-                    onChange={(e) => setPaymentDeclared(e.target.checked)}
-                  />
-                  I have completed the tournament payment.
-                </label>
-                {paymentDeclared && (
-                  <label style={{ display: "block", fontSize: 13 }}>
-                    UPI transaction ID / UTR
-                    <input
-                      value={paymentReference}
-                      onChange={(e) => setPaymentReference(e.target.value)}
-                      placeholder="e.g. 408812345678"
-                      maxLength={100}
-                      required
-                      disabled={busy}
-                      className={styles.textInput}
-                      style={{ display: "block", marginTop: 6 }}
-                    />
-                  </label>
-                )}
-                <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
-                  <button
-                    type="button"
-                    className={styles.actionBtn}
-                    disabled={busy || !paymentDeclared || !paymentReference.trim()}
-                    onClick={() => void runAction(async () => { await applyStudentTeam(team.id, true, paymentReference); setPaymentDeclared(false); setPaymentReference(""); }, "Payment declared. Your solo entry is waiting for Hanbee review.")}
-                  >
-                    Submit Paid Solo Entry
-                  </button>
-                  <button
-                    type="button"
-                    className={styles.dangerBtn}
-                    disabled={busy}
-                    onClick={() => void runAction(() => leaveStudentTeam(team.id), "You left the team.")}
-                  >
-                    Leave Team
-                  </button>
-                </div>
+              <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+                <button
+                  type="button"
+                  className={styles.actionBtn}
+                  disabled={busy}
+                  onClick={() => void runAction(
+                    () => submitSoloEntryForReview(team.id),
+                    "Your entry was sent to Hanbee staff. They will contact you before enabling payment.",
+                  )}
+                >
+                  {busy ? "Submitting…" : "Submit for staff review"}
+                </button>
+                <button
+                  type="button"
+                  className={styles.dangerBtn}
+                  disabled={busy}
+                  onClick={() => void runAction(() => leaveStudentTeam(team.id), "You left the entry.")}
+                >
+                  Cancel draft
+                </button>
               </div>
+            </div>
+          )}
+
+          {team && isCaptain && isIndependent && team.status === "applied" && (
+            <div className={styles.formSection}>
+              {team.payment_approved_at ? (
+                <>
+                  <div className={styles.formHeader}>
+                    <h2 className={styles.formTitle}>Your entry is approved for payment</h2>
+                    <p className={styles.formSubtitle}>
+                      Complete payment through Razorpay to register. Tournament entry fees are non-refundable after registration.
+                    </p>
+                  </div>
+                  <RazorpayCheckout
+                    purpose="tournament_entry"
+                    referenceId={team.id}
+                    description={`Tournament entry: ${tournament?.title ?? "Hanbee tournament"}`}
+                    label="Pay tournament entry fee"
+                    onPaymentComplete={load}
+                  />
+                </>
+              ) : (
+                <>
+                  <div className={styles.formHeader}>
+                    <h2 className={styles.formTitle}>Waiting for Hanbee staff confirmation</h2>
+                    <p className={styles.formSubtitle}>
+                      Staff will contact you to verify the entry. Payment becomes available here only after they approve it.
+                    </p>
+                  </div>
+                  <button type="button" className={styles.filterBtn} disabled={loading} onClick={() => void load()}>
+                    <RefreshCw size={14} /> Refresh approval status
+                  </button>
+                </>
+              )}
             </div>
           )}
         </div>
