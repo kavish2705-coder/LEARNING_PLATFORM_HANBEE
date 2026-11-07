@@ -1050,9 +1050,200 @@
   margin: 0;
 }
 
+/* ===== Comprehensive Mobile & Tablet Responsive Adaptations ===== */
 @media (max-width: 900px) {
+  .container {
+    padding: 0 28px;
+  }
+
+  .containerSm {
+    padding: 0 24px;
+  }
+
+  .sectionDark,
+  .sectionMid {
+    padding: 80px 0;
+  }
+
+  .faqSection {
+    padding: 80px 0;
+  }
+
+  .seoOverviewSection {
+    padding: 80px 0;
+  }
+
   .seoGrid {
     grid-template-columns: 1fr;
     gap: 20px;
   }
 }
+
+@media (max-width: 768px) {
+  .container {
+    padding: 0 20px;
+  }
+
+  .containerSm {
+    padding: 0 16px;
+  }
+
+  .sectionDark,
+  .sectionMid {
+    padding: 64px 0;
+  }
+
+  .sectionHeader {
+    margin: 0 auto 36px;
+    gap: 10px;
+  }
+
+  .mainTitle {
+    font-size: clamp(28px, 6.5vw, 38px);
+  }
+
+  .subtitle {
+    font-size: 15px;
+  }
+
+  .bannerContent {
+    padding: 60px 20px;
+  }
+
+  .bannerHeading {
+    font-size: clamp(26px, 6.5vw, 40px);
+  }
+
+  .bannerText {
+    font-size: 15px;
+    margin-bottom: 28px;
+  }
+
+  .bannerActionGroup {
+    flex-direction: column;
+    width: 100%;
+    gap: 12px;
+  }
+
+  .bannerPrimaryBtn,
+  .bannerSecondaryBtn {
+    width: 100%;
+    justify-content: center;
+    padding: 13px 20px;
+  }
+
+  .fairnessBanner {
+    padding: 22px 20px;
+    border-radius: 16px;
+  }
+
+  .faqSection {
+    padding: 64px 0;
+  }
+
+  .faqCard {
+    padding: 18px 20px;
+    border-radius: 14px;
+  }
+
+  .faqSummary {
+    font-size: 16px;
+  }
+
+  .seoOverviewSection {
+    padding: 64px 0;
+  }
+
+  .seoCard {
+    padding: 24px 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+    padding: 0 16px;
+  }
+
+  .containerSm {
+    padding: 0 14px;
+  }
+
+  .sectionDark,
+  .sectionMid {
+    padding: 52px 0;
+  }
+
+  .sectionHeader {
+    margin: 0 auto 28px;
+  }
+
+  .badge {
+    font-size: 13.5px;
+  }
+
+  .mainTitle {
+    font-size: clamp(24px, 7vw, 32px);
+  }
+
+  .partnerCard {
+    min-width: 250px;
+    height: 76px;
+    padding: 0 22px;
+    gap: 12px;
+  }
+
+  .partnerName {
+    font-size: 16px;
+  }
+
+  .partnersRibbon {
+    padding: 24px 0;
+  }
+
+  .techTickerWrap {
+    padding: 12px 0;
+  }
+
+  .techTickerItem {
+    padding: 8px 14px;
+    gap: 8px;
+  }
+
+  .techTickerText {
+    font-size: 12px;
+  }
+
+  .techTickerIcon {
+    width: 26px;
+    height: 26px;
+  }
+
+  .fairnessBanner {
+    padding: 18px 16px;
+  }
+
+  .faqCard {
+    padding: 16px;
+  }
+
+  .faqSummary {
+    font-size: 15px;
+  }
+
+  .faqAnswer {
+    font-size: 13.5px;
+  }
+
+  .seoCard {
+    padding: 20px 16px;
+  }
+
+  .seoCardTitle {
+    font-size: 17px;
+  }
+
+  .seoCardDesc {
+    font-size: 13.5px;
+  }
+}
+

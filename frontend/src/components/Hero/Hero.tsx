@@ -94,7 +94,7 @@ export default function Hero({ onOpenStudentModal }: HeroProps) {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.44, duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
         >
-          A mentor-guided program where students build a real robotic car by hand, learn genuine Java and robotics coding skills, and compete safely as a team across a six-month season. It&apos;s practical, hands-on learning that gives parents real confidence in their child&apos;s progress.
+          Master the fundamentals on our interactive LMS, then take it from raw components to the starting grid: code, build, and race your team&apos;s custom robotic car across the Hanbee championship—because real engineering happens on the track.
         </motion.p>
 
         {/* CTA Button Group */}

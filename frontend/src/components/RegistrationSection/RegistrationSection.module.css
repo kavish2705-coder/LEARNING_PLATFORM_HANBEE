@@ -195,3 +195,99 @@
   color: rgba(255, 255, 255, 0.45);
   text-align: center;
 }
+
+/* ===== Responsive Mobile & Tablet Optimizations ===== */
+@media (max-width: 960px) {
+  .paddockGrid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .paddockCard {
+    padding: 32px 28px;
+    border-radius: 20px;
+  }
+}
+
+@media (max-width: 640px) {
+  .registrationContainer {
+    gap: 16px;
+  }
+
+  .paddockGrid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .paddockCard {
+    padding: 24px 18px;
+    border-radius: 18px;
+  }
+
+  .paddockCardContent {
+    gap: 16px;
+  }
+
+  .iconBadge {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+  }
+
+  .cardTitle {
+    font-size: clamp(22px, 5.5vw, 26px);
+  }
+
+  .cardDesc {
+    font-size: 14px;
+    line-height: 1.55;
+  }
+
+  .perksList {
+    gap: 10px;
+    margin: 4px 0 14px;
+  }
+
+  .perkRow {
+    font-size: 13.5px;
+    gap: 10px;
+  }
+
+  .perkCheckWrap {
+    width: 20px;
+    height: 20px;
+  }
+
+  .cardActionRow {
+    padding-top: 14px;
+    gap: 8px;
+  }
+
+  .primaryPaddockBtn,
+  .secondaryPaddockBtn {
+    padding: 13px 18px;
+    font-size: 13.5px;
+    min-height: 48px;
+  }
+}
+
+@media (max-width: 380px) {
+  .paddockCard {
+    padding: 20px 14px;
+  }
+
+  .cardTitle {
+    font-size: 20px;
+  }
+
+  .perkRow {
+    font-size: 13px;
+  }
+
+  .primaryPaddockBtn,
+  .secondaryPaddockBtn {
+    font-size: 13px;
+    padding: 12px 14px;
+  }
+}
+

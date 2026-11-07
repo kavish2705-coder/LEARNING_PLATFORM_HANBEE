@@ -281,6 +281,40 @@
   .roundNumber {
     font-size: 38px;
   }
-
-  
 }
+
+@media (max-width: 480px) {
+  .ribbon {
+    padding: 6px;
+    gap: 4px;
+    border-radius: 14px;
+  }
+
+  .ribbonArrow {
+    width: 28px;
+    height: 28px;
+  }
+
+  .station {
+    padding: 8px 8px;
+    min-width: 32px;
+  }
+
+  .stationNum {
+    font-size: 13px;
+  }
+
+  .briefingCard {
+    padding: 20px 16px;
+    border-radius: 18px;
+  }
+
+  .roundTitle {
+    font-size: 22px;
+  }
+
+  .roundFormat {
+    font-size: 14px;
+  }
+}
+
