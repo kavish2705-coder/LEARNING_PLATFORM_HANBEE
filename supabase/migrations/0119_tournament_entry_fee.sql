@@ -7,6 +7,8 @@ alter table tournaments add column if not exists entry_fee_amount numeric(10,2);
 comment on column tournaments.entry_fee_amount is
   'Entry fee for this tournament, shown alongside the shared payment QR on the student payment-confirmation screen. Null means no amount has been set yet.';
 
+drop function if exists create_tournament(text, text, timestamptz, timestamptz, text);
+
 create or replace function create_tournament(p_title text, p_description text, p_starts_at timestamptz, p_ends_at timestamptz, p_venue text, p_entry_fee_amount numeric default null)
 returns uuid as $$
 declare v_id uuid;
@@ -21,6 +23,8 @@ begin
   return v_id;
 end;
 $$ language plpgsql security definer set search_path = public;
+
+drop function if exists update_tournament(uuid, text, text, timestamptz, timestamptz, text, tournament_status);
 
 create or replace function update_tournament(p_id uuid, p_title text, p_description text, p_starts_at timestamptz, p_ends_at timestamptz, p_venue text, p_status tournament_status, p_entry_fee_amount numeric default null)
 returns void as $$

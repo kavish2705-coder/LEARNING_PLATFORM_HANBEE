@@ -41,7 +41,9 @@
   color: rgba(255, 255, 255, 0.5);
   cursor: pointer;
   flex-shrink: 0;
-  transition: all 0.2s ease;
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 .ribbonArrow:hover {
@@ -65,32 +67,50 @@
   position: relative;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   flex: 1;
   min-width: 0;
-  padding: 10px 14px;
+  padding: 10px 12px;
   border-radius: 10px;
   background: transparent;
   border: 1px solid transparent;
   cursor: pointer;
   text-align: left;
-  transition: all 0.2s ease;
+  outline: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: background-color 0.18s ease, border-color 0.18s ease;
   z-index: 1;
 }
 
-.station:hover {
+.station:hover:not(.stationActive) {
   background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.station:hover:not(.stationActive) .stationName {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.station:hover:not(.stationActive) .stationNum {
+  color: rgba(255, 255, 255, 0.65);
 }
 
 .stationNum {
+  position: relative;
+  z-index: 2;
   font-family: var(--font-mono);
   font-size: 12px;
   font-weight: 700;
   color: rgba(255, 255, 255, 0.4);
   flex-shrink: 0;
+  pointer-events: none;
+  transition: color 0.18s ease;
 }
 
 .stationName {
+  position: relative;
+  z-index: 2;
   font-family: var(--font-heading);
   font-size: 13px;
   font-weight: 600;
@@ -98,6 +118,8 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  pointer-events: none;
+  transition: color 0.18s ease;
 }
 
 .stationActive .stationNum {
@@ -111,12 +133,18 @@
 .stationIndicator {
   position: absolute;
   inset: 0;
-  background: rgba(229, 138, 43, 0.12);
-  border: 1px solid rgba(229, 138, 43, 0.35);
+  background: linear-gradient(
+    135deg,
+    rgba(229, 138, 43, 0.18) 0%,
+    rgba(229, 138, 43, 0.08) 100%
+  );
+  border: 1px solid rgba(229, 138, 43, 0.45);
   border-radius: 10px;
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  z-index: -1;
+  box-shadow:
+    0 0 14px rgba(229, 138, 43, 0.22),
+    inset 0 1px 1px 0 rgba(255, 255, 255, 0.25);
+  pointer-events: none;
+  z-index: 1;
 }
 
 /* Futuristic Frosted Glass Briefing Card */

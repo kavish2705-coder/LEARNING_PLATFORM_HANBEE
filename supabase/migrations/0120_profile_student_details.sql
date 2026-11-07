@@ -14,3 +14,8 @@ begin
   end if;
 end $$;
 
+-- Clean up obsolete tournament overloads from 0119 so 5-arg create_tournament
+-- and 7-arg update_tournament calls resolve unambiguously
+drop function if exists create_tournament(text, text, timestamptz, timestamptz, text);
+drop function if exists update_tournament(uuid, text, text, timestamptz, timestamptz, text, tournament_status);
+
